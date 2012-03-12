@@ -78,7 +78,8 @@ int main( int argc, char** argv)
 		puts("arguments: cubinname kernelname");
 		return;
 	}
-        //Thrad count
+       
+	//Thread count
 	int tcount = 1;
 	if(argc>=4)
 	{
@@ -113,6 +114,7 @@ int main( int argc, char** argv)
 	muRC(92, cuCtxCreate(&context, CU_CTX_SCHED_SPIN, device));
 	muRC(90, cuMemAlloc(&gpu_output, size));
 
+	//------------Loading the cubin---------
 	CUmodule module;
 	CUfunction kernel;
 	CUresult result = cuModuleLoad(&module, argv[1]);
@@ -157,6 +159,7 @@ int main( int argc, char** argv)
          */
 	muRC(4, cuFuncSetBlockShape(kernel, tcount,1,1));
 
+	//------------- Launching the kernel from cubin-------	
 	muRC(5, cuLaunch(kernel));
 
 	muRC(6, cuMemcpyDtoH(cpu_output, gpu_output, size));
@@ -164,6 +167,7 @@ int main( int argc, char** argv)
 	printf("length=%i\n", length);
 	printf("tcount=%i\n", tcount);
 
+	//---------- Printing the tiing information from each thread.
 	printf("Thread \t Time \t Start time \t End time \t Result \n");
 	for (int i=0; i<tcount; i++) {
         	//printf("%d %d %d \n", cpu_output[i*3], cpu_output[i*3+1], cpu_output[i*3+2]);

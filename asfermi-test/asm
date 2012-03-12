@@ -1,9 +1,13 @@
+/* Here is where we write the kernel in assembly language.
+*/
+ 
+
 !Machine 64
 
 !Kernel k
 !Param 8 1
 
-//R9 has the threadID
+//-- Capture the threadID
 S2R R9, SR_Tid_X; //thread ID
 
 // Inititalizing R1, R2, R3 with 0
@@ -20,15 +24,24 @@ IADD R3, R3, 0x1;
 IADD R4, R4, 0x1;
 IADD R5, R5, 0x1;
 
-// instructions to be timed
+//--Timing the instructions--
+
+//Start time clock
 S2R R0, SR_ClockLo;
+
+// Following macro takes instructions from 'stub-template'
+// and repeats them based on command line argument
+// note the end "--" is just new-line marker used by tool.sh script
 #include "repeat.h"
 REPEAT( #include "stub" --- )
-S2R R2, SR_ClockLo;
-//timing done
 
+// End time clock
+S2R R2, SR_ClockLo;
+//--timing done--
+
+
+// STORING RESULTS BACK TO MEMORY
 MOV R10, c[0x0][0x20]; //R10 has the memory pointer
-//MOV R11, c[0x0][0x24]; //R10 has the memory pointer
 
 // Proper Indexing: storing correct addr values in R10 and R11 by indexing based on threadID
 // Note that the output array has each element of size 8 bytes.
@@ -36,10 +49,6 @@ IMUL R9, R9, 0x3; // R9 jumped threadID times in steps of 3
 IMAD R10.CC, R9, 0x8, R10;
 IMUL.HI R9, R9, 0x8;
 IADD.X R11, R9, c [0x0] [0x24];
-
-//making sure integer
-//IADD R0, R0, RZ;
-//IADD R2, R2, RZ;
 
 //storing the results back
 ST.E [R10], R0;

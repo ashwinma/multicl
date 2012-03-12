@@ -1,0 +1,56 @@
+!Machine 64
+
+!Kernel k
+!Param 8 1
+
+//R9 has the threadID
+S2R R9, SR_Tid_X; //thread ID
+
+// Inititalizing R1, R2, R3 with 0
+IADD R1, RZ, RZ;
+IADD R4, RZ, RZ;
+IADD R3, RZ, RZ;
+IADD R5, RZ, RZ;
+
+//dummy instructions to fill instruction cache
+S2R R0, SR_ClockLo;
+S2R R2, SR_ClockLo;
+IADD R1, R1, 0x1;
+IADD R3, R3, 0x1;
+IADD R4, R4, 0x1;
+IADD R5, R5, 0x1;
+
+// instructions to be timed
+S2R R0, SR_ClockLo;
+#include "repeat.h"
+REPEAT( #include "stub" --- )
+S2R R2, SR_ClockLo;
+//timing done
+
+MOV R10, c[0x0][0x20]; //R10 has the memory pointer
+//MOV R11, c[0x0][0x24]; //R10 has the memory pointer
+
+// Proper Indexing: storing correct addr values in R10 and R11 by indexing based on threadID
+// Note that the output array has each element of size 8 bytes.
+IMUL R9, R9, 0x3; // R9 jumped threadID times in steps of 3
+IMAD R10.CC, R9, 0x8, R10;
+IMUL.HI R9, R9, 0x8;
+IADD.X R11, R9, c [0x0] [0x24];
+
+//making sure integer
+//IADD R0, R0, RZ;
+//IADD R2, R2, RZ;
+
+//storing the results back
+ST.E [R10], R0;
+ST.E [R10 + 0x8], R2;
+/*
+Distinguishing the result from each thread
+S2R R9, SR_Tid_X;
+IADD R1, R1, R9;
+*/
+ST.E [R10 + 0x10], R1;
+
+EXIT;
+
+!EndKernel

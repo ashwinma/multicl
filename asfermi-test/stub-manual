@@ -1,0 +1,4 @@
+#define INSTR IADD
+INSTR R1, R1, 0x3;
+INSTR R2, R2, 0x3;
+INSTR R3, R3, 0x3;

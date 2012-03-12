@@ -6,8 +6,10 @@
 #define INSTR +
 #define INSTR2 *
 
-__global__ void add (TYPE* a, TYPE* b, TYPE *c, clock_t* t_start, clock_t* t0, clock_t* t1, clock_t* t2, clock_t* t3, TYPE operand){
+__global__ void add (TYPE* a, TYPE* b, TYPE *c, clock_t* t_start, clock_t* t0, clock_t* t1, clock_t* t2, clock_t* t3, TYPE operand, TYPE operand2){
 	volatile clock_t start = clock();
+	TYPE op = operand;
+	TYPE op2 = operand2;
 	int t = threadIdx.x;
 	t_start[t] = start;
 
@@ -28,7 +30,7 @@ __global__ void add (TYPE* a, TYPE* b, TYPE *c, clock_t* t_start, clock_t* t0, c
         	//repeat171(c_ = c_ INSTR2  b_;  b_ = b_ INSTR a_; a_ = c_ INSTR a_;)
         	//repeat128( a_ = a_ INSTR b_ ;c_ = c_ + operand; d_ = d_+operand; b_ = b_ INSTR a_;)
         	//repeat64( a_ = a_ INSTR b_ ;c_ = c_ + d_; d_ = d_+c_; b_ = b_ INSTR a_;)
-        	repeat64( a_ = a_ INSTR b_ ; c_ = c_ INSTR operand; d_ = d_ INSTR operand; e_ = e_ INSTR operand; f_ = f_ INSTR operand;)
+        	repeat64( a_ = a_ INSTR b_ ; c_ = c_ INSTR operand; d_ = d_ INSTR operand; e_ = e_ INSTR operand2; f_ = f_ INSTR operand;)
         	//repeat2048( a_ = a_ INSTR operand ; b_ = b_ INSTR operand; c_ = c_ INSTR operand; d = d INSTR operand;)
         	//repeat171(c_ = c_ INSTR  b_;  b_ = b_ INSTR a_; a_ = c_ INSTR a_;)
         	//repeat512(c_ = c_ *  b_; c_ = c_ + b_;) // Fused Multiply Add - FFMA
@@ -95,7 +97,7 @@ int main(int argc, char* argv[]) {
 	cudaMemcpy(d_b, b , size*THREADS, cudaMemcpyHostToDevice);
 	
 	//add <<<1,THREADS>>> (d_a, d_b, d_c, d_t, d_t1, d_t2, d_t3);
-	add <<<1,THREADS>>> (d_a, d_b, d_c, d_tstart, d_t, d_t1, d_t2, d_t3, 2);
+	add <<<1,THREADS>>> (d_a, d_b, d_c, d_tstart, d_t, d_t1, d_t2, d_t3, 2, 2);
 	cudaThreadSynchronize();
 //        add <<<1,1>>> (d_c);
 	cudaMemcpy (c, d_c, size*THREADS, cudaMemcpyDeviceToHost);

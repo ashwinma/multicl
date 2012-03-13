@@ -1,8 +1,8 @@
 
 Requirements:
 ------------
-Make sure to have 'Asfermi' installed on your system and 'asfermi.exe' is in your PATH variable. 
-('asfermi.EXE' will run on linux ;-) )
+Make sure to have 'Asfermi' installed on your system and 'asfermi.exe' is in your PATH env variable.
+(the .exe is confusing but its just the name, the binary will run on linux as its built using g++ in linux)
 If you don't have asfermi installed, you can get it at http://code.google.com/p/asfermi/
 
 Important Files:

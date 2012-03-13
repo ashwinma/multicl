@@ -4,7 +4,6 @@ then
 	exit 0
 fi
 
-
 gcc -D REPEAT=repeat$1 -E -x c -C  -P asm |sed  's/---/\n/g' > asm-final ;
 gcc -E -x c -C  -P stub-template > stub
 gcc -E -x c -C  -P asm-final > asm-final-tmp

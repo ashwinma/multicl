@@ -12,7 +12,8 @@ extern "C"
 
 char* muGetErrorString(CUresult result);
 
-void muEC(int position) //checks and outputs error position and error string
+//Checks and outputs error position and error string
+void muEC(int position)
 {
 	cudaError_t errcode = cudaGetLastError();
 	if(errcode==cudaSuccess)
@@ -71,40 +72,37 @@ char* muGetErrorString(CUresult result)
 }
 
 
-int main( int argc, char** argv) 
+int main(int argc, char** argv) 
 {
-	if(argc<3)
+	if(argc < 3)
 	{
 		puts("arguments: cubinname kernelname");
-		return;
+		return 1;
 	}
-       
+
 	//Thread count
 	int tcount = 1;
-	if(argc>=4)
+	if(argc >= 4)
 	{
 		tcount = atoi(argv[3]);
 	}
 
-        
-        int length = 3*tcount;
-	long* cpu_output=new long[length];
-	int size = sizeof(long)*length;
-	
-	//int* cpu_output=new int[length];
-	//int size = sizeof(int)*length;
+        int length = 3 * tcount;
+	long* cpu_output = new long[length];
+	int size = sizeof(long) * length;
 	int interval = 1;
 	
         bool odd = true;
 	bool even = true;
-	if(argc>=5)
+	if(argc >= 5)
 	{
 		int choice = atoi(argv[4]);
-		if(choice==1)
+		if(choice == 1)
 			even = false;
-		else if(choice==2)
+		else if(choice == 2)
 			odd = false;
 	}
+
 	CUdeviceptr gpu_output;
 	CUdevice device;
 	CUcontext context;
@@ -127,8 +125,8 @@ int main( int argc, char** argv)
          * Sets through numbytes the total size in bytes needed by the function
          * parameters of the kernel corresponding to hfunc.
          * Parameters:
-         * hfunc- Kernel to set parameter size for
-         * numbytes - Size of parameter list in bytes
+         *   hfunc    - Kernel to set parameter size for
+         *   numbytes - Size of parameter list in bytes
          */
 	//muRC(2, cuParamSetSize(kernel, 20));
 	muRC(2, cuParamSetSize(kernel, 8));
@@ -138,10 +136,10 @@ int main( int argc, char** argv)
          * Copies an arbitrary amount of data (specified in numbytes) from ptr
          * into the parameter space of the kernel corresponding 
          * to hfunc. offset is a byte offset.
-         *   Parameters:
-         *   hfunc   - Kernel to add data to
-         *   offset  - Offset to add data to argument list
-         *   ptr     - Pointer to arbitrary data
+         * Parameters:
+         *   hfunc       - Kernel to add data to
+         *   offset      - Offset to add data to argument list
+         *   ptr         - Pointer to arbitrary data
          *   numbytes    - Size of data to copy in bytes
          */
 	muRC(3, cuParamSetv(kernel, 0, &gpu_output, size));
@@ -152,31 +150,37 @@ int main( int argc, char** argv)
          * Specifies the x, y, and z dimensions of the thread blocks that are
          * created when the kernel given by hfunc is launched.
          * Parameters:
-         * hfunc    - Kernel to specify dimensions of
-         * x    - X dimension
-         * y    - Y dimension
-         * z    - Z dimension
+         *   hfunc    - Kernel to specify dimensions of
+         *   x        - X dimension
+         *   y        - Y dimension
+         *   z        - Z dimension
          */
-	muRC(4, cuFuncSetBlockShape(kernel, tcount,1,1));
+	muRC(4, cuFuncSetBlockShape(kernel, tcount, 1, 1));
 
 	//------------- Launching the kernel from cubin-------	
 	muRC(5, cuLaunch(kernel));
-
 	muRC(6, cuMemcpyDtoH(cpu_output, gpu_output, size));
 	muRC(7, cuCtxSynchronize());
-	printf("length=%i\n", length);
-	printf("tcount=%i\n", tcount);
+
+	printf("length = %i\n", length);
+	printf("tcount = %i\n", tcount);
 
 	//---------- Printing the tiing information from each thread.
 	printf("Thread \t Time \t Start time \t End time \t Result \n");
-	for (int i=0; i<tcount; i++) {
-        	//printf("%d %d %d \n", cpu_output[i*3], cpu_output[i*3+1], cpu_output[i*3+2]);
-        	printf("%d \t %d \t %d \t %d \t %d \n", i, cpu_output[i*3 + 1] - cpu_output[i*3], cpu_output[i*3], cpu_output[i*3 +1], cpu_output[i*3+2]);
+
+	int time, start_time, end_time, result;
+	for (int i = 0; i < tcount; i++) {
+        	time = cpu_output[i * 3 + 1] - cpu_output[i * 3];
+		start_time = cpu_output[i * 3];
+		end_time = cpu_output[i * 3 + 1];
+		result = cpu_output[i * 3 + 2];
+        	printf("%d \t %d \t %d \t %d \t %d \n", i, time, start_time, end_time, result);
 	}
+
         /*
 	for(int i=0; i<length/interval; i++)
 	{
-		if(i%2==0)
+		if(i%2 == 0)
 		{
 			if(!even) continue;
 		}
@@ -184,12 +188,13 @@ int main( int argc, char** argv)
 		{
 			if(!odd) continue;
 		}
-		for(int j=0; j<interval; j++)
+		for(int j=0; j < interval; j++)
 			printf("i=%i, j=%i, output=%i\n", i, j, cpu_output[i*interval+j]);
-		if(interval!=1)
+		if(interval != 1)
 			puts("");
 	}
         */
+
 	muRC(8, cuModuleUnload(module));
 	muRC(9, cuMemFree(gpu_output));
 	muRC(10, cuCtxDestroy(context));

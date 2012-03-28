@@ -1,5 +1,6 @@
-Author: Brian Bowden
- * Date: 12/4/11
+/*
+ * Author: Brian Bowden
+ * Date: 11/2/11
  *
  * gpuThrputBenchmark.cu
  *
@@ -17,15 +18,18 @@ Author: Brian Bowden
 #define DOUBLE 3
 
 // ############# CHANGE BELOW 2 LINES FOR DIFFERENT DATA TYPES!!!!! ######################
-typedef int TYPE;
-#define DATATYPE (INT)
-// #######################################################################################
+typedef float TYPE;
+#define DATATYPE (FLOAT)
+// ############# CHANGE BELOW FOR MAXIMUM OCCUPANCY OR FOR LATENCY #######################
+#define MAX_OCCUPANCY 0
 
-const int total_threads = 1536;
-const int number_multi_processors = 7;
-const float clock_speed = 1.53e9;	//1.53 GHz
+int total_threads;
+const int threads_per_warp = 32;
+const int max_warps = 48;
+const int number_multi_processors = 14;
+const float clock_speed = 1.5e9;	//1.5 GHz
 const int number_runs = 25;
-const int N = total_threads * number_multi_processors;
+const int N = threads_per_warp * max_warps * number_multi_processors;
 TYPE operand = 10;
 
 const int block_size[] = {2, 3, 4, 6, 8};
@@ -37,21 +41,25 @@ TYPE* device_A;
 TYPE* device_B;
 TYPE* device_C;
 TYPE* device_D;
-
+	
 cudaEvent_t start, stop;
 
 void print_results(double average_time, int number_runs, int total_threads, int iterations) 
 {
 	int number_instructions = total_threads * iterations * 4;
-	double throughput;
-	long long int number_cycles;
-	
 	average_time = average_time / number_runs;
+	long long int number_cycles = (long long int)((average_time * clock_speed) / 1000);
+	double throughput = (double) number_instructions / number_cycles;;
+	
+#if (MAX_OCCUPANCY)
 	printf("Average Time for %d iterations : %g (ms)\n", iterations, average_time);
-	number_cycles = (long long int)((average_time * clock_speed) / 1000);
-	printf("Number cycles : %ld\n", number_cycles);
-	throughput = (double)number_instructions / number_cycles;
+	printf("Total number cycles : %ld\n", number_cycles);
 	printf("Throughput : %0.3g\n", throughput);
+#endif
+#if (!MAX_OCCUPANCY)
+	int number_warps = total_threads / threads_per_warp;
+	printf("%d warps : %0.3g\n", number_warps, throughput);
+#endif
 }
 
 __global__ void kernelAdd(TYPE* A, TYPE* B, TYPE* C, TYPE *D, TYPE operand)
@@ -61,7 +69,7 @@ __global__ void kernelAdd(TYPE* A, TYPE* B, TYPE* C, TYPE *D, TYPE operand)
 	TYPE b_val = B[i];
 	TYPE c_val = C[i];
 	TYPE d_val = D[i];
-	repeat4096(d_val = c_val + operand; c_val = b_val + operand; b_val = a_val + operand; a_val = d_val + operand;);
+	repeat4096(a_val = b_val + operand; b_val = c_val + operand; c_val = d_val + operand; d_val = a_val + operand;);
 	D[i] = d_val;
 	C[i] = c_val;
 	B[i] = b_val;
@@ -74,50 +82,13 @@ void getAddThroughput()
 	float time_elapsed;
 	int number_threads = 0;
 	int iterations = 4096;
-	printf("\n---------------Addition--------------------\n"); 
+	if (total_threads == 32 || MAX_OCCUPANCY) printf("\n---------------Addition--------------------\n"); 
 	int i = 0;
 	number_threads = total_threads / block_size[i];
 	for (int j = 0; j < number_runs; j++) 
 	{
 		cudaEventRecord(start, 0);
 		kernelAdd<<<block_size[i] * number_multi_processors, number_threads>>>(device_A, device_B, device_C, device_D, operand);
-		cudaEventRecord(stop, 0);
-		cudaEventSynchronize(start);
-		cudaEventSynchronize(stop);
-		cudaEventElapsedTime(&time_elapsed, start, stop);
-		average_time += time_elapsed;
-	}
-	print_results(average_time, number_runs, total_threads, iterations);
-}
-
-__global__ void kernelVectorAdd(TYPE* A, TYPE* B, TYPE* C, TYPE *D, TYPE operand)
-{
-	int i = (blockIdx.x * blockDim.x) + threadIdx.x;
-	TYPE a_val = A[i];
-	TYPE b_val = B[i];
-	TYPE c_val = C[i];
-	TYPE d_val = D[i];
-	TYPE e_val = a_val + b_val;
-	repeat4096(d_val = c_val + b_val + a_val; c_val = b_val + a_val + c_val; b_val = a_val + e_val + b_val; a_val = d_val + e_val + a_val;);
-	D[i] = d_val;
-	C[i] = c_val;
-	B[i] = b_val;
-	A[i] = a_val;
-}
-
-void getVectorAddThroughput()
-{
-	double average_time = 0.0;
-	float time_elapsed;
-	int number_threads = 0;
-	int iterations = 4096;
-	printf("\n-------------Vector-Addition-----------------\n"); 
-	int i = 0;
-	number_threads = total_threads / block_size[i];
-	for (int j = 0; j < number_runs; j++) 
-	{
-		cudaEventRecord(start, 0);
-		kernelVectorAdd<<<block_size[i] * number_multi_processors, number_threads>>>(device_A, device_B, device_C, device_D, operand);
 		cudaEventRecord(stop, 0);
 		cudaEventSynchronize(start);
 		cudaEventSynchronize(stop);
@@ -134,7 +105,7 @@ __global__ void kernelSub(TYPE* A, TYPE* B, TYPE* C, TYPE *D, TYPE operand)
 	TYPE b_val = B[i];
 	TYPE c_val = C[i];
 	TYPE d_val = D[i];
-	repeat4096(d_val = d_val - operand; c_val = c_val - operand; b_val = b_val - operand; a_val = a_val - operand;);
+	repeat4096(a_val = b_val - operand; b_val = c_val - operand; c_val = d_val - operand; d_val = a_val - operand;);
 	D[i] = d_val;
 	C[i] = c_val;
 	B[i] = b_val;
@@ -147,7 +118,7 @@ void getSubtractThroughput()
 	float time_elapsed;
 	int number_threads = 0;
 	int iterations = 4096;
-	printf("\n--------------Subtraction------------------\n"); 
+	if (total_threads == 32 || MAX_OCCUPANCY) printf("\n--------------Subtraction------------------\n"); 
 	int i = 0;
 	number_threads = total_threads / block_size[i];
 	for (int j = 0; j < number_runs; j++) 
@@ -163,6 +134,7 @@ void getSubtractThroughput()
 	print_results(average_time, number_runs, total_threads, iterations);
 }
 
+
 __global__ void kernelMul(TYPE* A, TYPE* B, TYPE* C, TYPE *D, TYPE operand)
 {
 	int i = (blockIdx.x * blockDim.x) + threadIdx.x;
@@ -170,7 +142,7 @@ __global__ void kernelMul(TYPE* A, TYPE* B, TYPE* C, TYPE *D, TYPE operand)
 	TYPE b_val = B[i];
 	TYPE c_val = C[i];
 	TYPE d_val = D[i];
-	repeat4096(d_val = d_val * operand; c_val = c_val * operand; b_val = b_val * operand; a_val = a_val * operand;);
+	repeat4096(a_val = b_val * operand; b_val = c_val * operand; c_val = d_val * operand; d_val = a_val * operand;);
 	D[i] = d_val;
 	C[i] = c_val;
 	B[i] = b_val;
@@ -183,7 +155,7 @@ void getMultiplyThroughput()
 	float time_elapsed;
 	int number_threads = 0;
 	int iterations = 4096;
-	printf("\n------------Multiplication-----------------\n"); 
+	if (total_threads == 32 || MAX_OCCUPANCY) printf("\n------------Multiplication-----------------\n"); 
 	int i = 0;
 	number_threads = total_threads / block_size[i];
 	for (int j = 0; j < number_runs; j++) 
@@ -199,6 +171,7 @@ void getMultiplyThroughput()
 	print_results(average_time, number_runs, total_threads, iterations);
 }
 
+
 __global__ void kernelDiv(TYPE* A, TYPE* B, TYPE* C, TYPE *D, TYPE operand)
 {
 	int i = (blockIdx.x * blockDim.x) + threadIdx.x;
@@ -206,7 +179,7 @@ __global__ void kernelDiv(TYPE* A, TYPE* B, TYPE* C, TYPE *D, TYPE operand)
 	TYPE b_val = B[i];
 	TYPE c_val = C[i];
 	TYPE d_val = D[i];
-	repeat512(d_val = d_val / operand; c_val = c_val / operand; b_val = b_val / operand; a_val = a_val / operand;);
+	repeat512(a_val = b_val / operand; b_val = c_val / operand; c_val = d_val / operand; d_val = a_val / operand;);
 	D[i] = d_val;
 	C[i] = c_val;
 	B[i] = b_val;
@@ -219,7 +192,7 @@ void getDivideThroughput()
 	float time_elapsed;
 	int number_threads = 0;
 	int iterations = 512;
-	printf("\n---------------Division--------------------\n"); 
+	if (total_threads == 32 || MAX_OCCUPANCY) printf("\n---------------Division--------------------\n"); 
 	int i = 0;
 	number_threads = total_threads / block_size[i];
 	for (int j = 0; j < number_runs; j++) 
@@ -242,8 +215,8 @@ __global__ void kernelMAD(TYPE* A, TYPE* B, TYPE* C, TYPE *D, TYPE operand)
 	TYPE b_val = B[i];
 	TYPE c_val = C[i];
 	TYPE d_val = D[i];
-	repeat4096(d_val = d_val * operand; d_val = d_val + operand; c_val = c_val * operand; c_val = c_val + operand; 
-	b_val = b_val * operand; b_val = b_val + operand; a_val = a_val * operand; a_val = a_val + operand;);
+	repeat4096(a_val = b_val * operand; a_val = b_val + operand; b_val = c_val * operand; b_val = c_val + operand; 
+	c_val = d_val * operand; c_val = d_val + operand; d_val = a_val * operand; d_val = a_val + operand;);
 	D[i] = d_val;
 	C[i] = c_val;
 	B[i] = b_val;
@@ -251,13 +224,12 @@ __global__ void kernelMAD(TYPE* A, TYPE* B, TYPE* C, TYPE *D, TYPE operand)
 }
 
 void getMultiplyAddThroughput()
-
 {
 	double average_time = 0.0;
 	float time_elapsed;
 	int number_threads = 0;
 	int iterations = 4096;
-	printf("\n-------------Multiply-Add------------------\n"); 
+	if (total_threads == 32 || MAX_OCCUPANCY) printf("\n-------------Multiply-Add------------------\n"); 
 	int i = 0;
 	number_threads = total_threads / block_size[i];
 	for (int j = 0; j < number_runs; j++) 
@@ -273,7 +245,44 @@ void getMultiplyAddThroughput()
 	print_results(average_time, number_runs, total_threads, iterations);
 }
 
+
 #if DATATYPE == INT || DATATYPE == UINT
+__global__ void kernelVectorAdd(TYPE* A, TYPE* B, TYPE* C, TYPE *D, TYPE operand)
+{
+	int i = (blockIdx.x * blockDim.x) + threadIdx.x;
+	TYPE a_val = A[i];
+	TYPE b_val = B[i];
+	TYPE c_val = C[i];
+	TYPE d_val = D[i];
+	repeat2048(a_val = a_val + b_val + operand; b_val = b_val + c_val + operand; c_val = c_val + d_val + operand; a_val = a_val + d_val + operand;);
+	D[i] = d_val;
+	C[i] = c_val;
+	B[i] = b_val;
+	A[i] = a_val;
+}
+
+void getVectorAddThroughput()
+{
+	double average_time = 0.0;
+	float time_elapsed;
+	int number_threads = 0;
+	int iterations = 2048;
+	if (total_threads == 32 || MAX_OCCUPANCY) printf("\n-------------Vector-Addition-----------------\n"); 
+	int i = 0;
+	number_threads = total_threads / block_size[i];
+	for (int j = 0; j < number_runs; j++) 
+	{
+		cudaEventRecord(start, 0);
+		kernelVectorAdd<<<block_size[i] * number_multi_processors, number_threads>>>(device_A, device_B, device_C, device_D, operand);
+		cudaEventRecord(stop, 0);
+		cudaEventSynchronize(start);
+		cudaEventSynchronize(stop);
+		cudaEventElapsedTime(&time_elapsed, start, stop);
+		average_time += time_elapsed;
+	}
+	print_results(average_time, number_runs, total_threads, iterations);
+}
+
 __global__ void kernelRemainder(TYPE* A, TYPE* B, TYPE* C, TYPE *D, TYPE operand)
 {
 	int i = (blockIdx.x * blockDim.x) + threadIdx.x;
@@ -281,7 +290,7 @@ __global__ void kernelRemainder(TYPE* A, TYPE* B, TYPE* C, TYPE *D, TYPE operand
 	TYPE b_val = B[i];
 	TYPE c_val = C[i];
 	TYPE d_val = D[i];
-	repeat256(d_val = d_val % operand; c_val = c_val % operand; b_val = b_val % operand; a_val = a_val % operand;);
+	repeat256(a_val = b_val % operand; b_val = c_val % operand; c_val = d_val % operand; d_val = a_val % operand;);
 	D[i] = d_val;
 	C[i] = c_val;
 	B[i] = b_val;
@@ -294,7 +303,7 @@ void getRemainderThroughput()
 	float time_elapsed;
 	int number_threads = 0;
 	int iterations = 256;
-	printf("\n-------------Remainder------------------\n"); 
+	if (total_threads == 32 || MAX_OCCUPANCY) printf("\n-------------Remainder------------------\n"); 
 	int i = 0;
 	number_threads = total_threads / block_size[i];
 	for (int j = 0; j < number_runs; j++) 
@@ -320,7 +329,7 @@ __global__ void kernelAnd(int* A, int* B, int* C, int *D, int operand)
 	int b_val = B[i];
 	int c_val = C[i];
 	int d_val = D[i];
-	repeat4096(d_val = c_val & operand; c_val = b_val & operand; b_val = a_val & operand; a_val = d_val & c_val;);
+	repeat4096(a_val = b_val & operand; b_val = c_val & operand; c_val = d_val & operand; d_val = a_val & b_val;);
 	D[i] = d_val;
 	C[i] = c_val;
 	B[i] = b_val;
@@ -333,7 +342,7 @@ void getAndThroughput()
 	float time_elapsed;
 	int number_threads = 0;
 	int iterations = 4096;
-	printf("\n-----------------AND-----------------------\n");
+	if (total_threads == 32 || MAX_OCCUPANCY) printf("\n-----------------AND-----------------------\n");
 	int i = 0;
 	number_threads = total_threads / block_size[i];
 	for (int j = 0; j < number_runs; j++) 
@@ -356,23 +365,20 @@ __global__ void kernelOr(int* A, int* B, int* C, int *D, int operand)
 	int b_val = B[i];
 	int c_val = C[i];
 	int d_val = D[i];
-	repeat4096(d_val = c_val | operand; c_val = b_val | operand; b_val = a_val | operand; a_val = d_val | c_val;);
+	repeat4096(a_val = b_val | operand; b_val = c_val | operand; c_val = d_val | operand; d_val = a_val | b_val;);
 	D[i] = d_val;
 	C[i] = c_val;
 	B[i] = b_val;
 	A[i] = a_val;
 }
 
-
-
 void getOrThroughput()
-
 {
 	double average_time = 0.0;
 	float time_elapsed;
 	int number_threads = 0;
 	int iterations = 4096;
-    	printf("\n-----------------OR------------------------\n"); 
+    if (total_threads == 32 || MAX_OCCUPANCY) printf("\n-----------------OR------------------------\n"); 
 	int i = 0;
 	number_threads = total_threads / block_size[i];
 	for (int j = 0; j < number_runs; j++) 
@@ -395,7 +401,7 @@ __global__ void kernelXor(int* A, int* B, int* C, int *D, int operand)
 	int b_val = B[i];
 	int c_val = C[i];
 	int d_val = D[i];
-	repeat4096(d_val = d_val ^ operand; c_val = c_val ^ operand; b_val = b_val ^ operand; a_val = a_val ^ operand;);
+	repeat4096(a_val = b_val ^ operand; b_val = c_val ^ operand; c_val = d_val ^ operand; d_val = a_val ^ operand;);
 	D[i] = d_val;
 	C[i] = c_val;
 	B[i] = b_val;
@@ -408,7 +414,7 @@ void getXorThroughput()
 	float time_elapsed;
 	int number_threads = 0;
 	int iterations = 4096;
-	printf("\n-----------------XOR-----------------------\n");
+	if (total_threads == 32 || MAX_OCCUPANCY) printf("\n-----------------XOR-----------------------\n");
 	int i = 0;
 	number_threads = total_threads / block_size[i];
 	for (int j = 0; j < number_runs; j++) 
@@ -431,7 +437,7 @@ __global__ void kernelShl(int* A, int* B, int* C, int *D, int operand)
 	int b_val = B[i];
 	int c_val = C[i];
 	int d_val = D[i];
-	repeat4096(d_val = d_val << operand; c_val = c_val << operand; b_val = b_val << operand; a_val = a_val << operand;);
+	repeat4096(a_val = b_val << operand; b_val = c_val << operand; c_val = d_val << operand; d_val = a_val << operand;);
 	D[i] = d_val;
 	C[i] = c_val;
 	B[i] = b_val;
@@ -444,7 +450,7 @@ void getShlThroughput()
 	float time_elapsed;
 	int number_threads = 0;
 	int iterations = 4096;
-	printf("\n--------------Shift-Left-------------------\n");
+	if (total_threads == 32 || MAX_OCCUPANCY) printf("\n--------------Shift-Left-------------------\n");
 	int i = 0;
 	number_threads = total_threads / block_size[i];
 	for (int j = 0; j < number_runs; j++) 
@@ -467,7 +473,7 @@ __global__ void kernelShr(int* A, int* B, int* C, int *D, int operand)
 	int b_val = B[i];
 	int c_val = C[i];
 	int d_val = D[i];
-	repeat4096(d_val = d_val >> operand; c_val = c_val >> operand; b_val = b_val >> operand; a_val = a_val >> operand;);
+	repeat4096(a_val = b_val >> operand; b_val = c_val >> operand; c_val = d_val >> operand; d_val = a_val >> operand;);
 	D[i] = d_val;
 	C[i] = c_val;
 	B[i] = b_val;
@@ -480,7 +486,7 @@ void getShrThroughput()
 	float time_elapsed;
 	int number_threads = 0;
 	int iterations = 4096;
-	printf("\---------------Shift-Right-------------------\n");
+	if (total_threads == 32 || MAX_OCCUPANCY) printf("\n--------------Shift-Right-------------------\n");
 	int i = 0;
 	number_threads = total_threads / block_size[i];
 	for (int j = 0; j < number_runs; j++) 
@@ -508,7 +514,7 @@ int main(int argc, char **argv)
 	host_B = (TYPE *) malloc(array_size);
 	host_C = (TYPE *) malloc(array_size);
 	host_D = (TYPE *) malloc(array_size);		
-
+	
 	if (host_A == NULL || host_B == NULL || host_C == NULL || host_D == NULL)
 		exit(1);
 
@@ -531,30 +537,28 @@ int main(int argc, char **argv)
 	cudaMemcpy(device_B, host_B, array_size, cudaMemcpyHostToDevice);
 	cudaMemcpy(device_C, host_C, array_size, cudaMemcpyHostToDevice);
 	cudaMemcpy(device_D, host_D, array_size, cudaMemcpyHostToDevice);
-
-	//The loops are ordered as follows:
-	//The outermost loop (k) iterates through the 9 different tests(addition, subtraction, ect.)
-	//The second loop (j) does each test number_runs times (in this case 25)
-	//The innermost loop (i) iterates over the 5 different block configurations I have
+	
 	switch(DATATYPE)
 	{
-		case INT:    printf("****************Integer******************\n"); break;
-		case UINT:   printf("************Unsigned-Integer*************\n"); break;
-		case FLOAT:  printf("*****************Float*******************\n"); break;
-		case DOUBLE: printf("****************Double*******************\n"); break;
+		case INT: printf("**************Integer********************\n"); break;
+		case UINT: printf("***********Unsigned-Integer***************\n"); break;
+		case FLOAT: printf("**************Float********************\n"); break;
+		case DOUBLE: printf("**************Double********************\n"); break;
 	}
-
+	
+#if (MAX_OCCUPANCY)
+	total_threads = max_warps * threads_per_warp;
 	for (int k = 0; k < 12; k++) 
 	{
 		switch(k) 
 		{
 			case 0:	getAddThroughput();	break;
-			case 1: getVectorAddThroughput(); break;
-			case 2: getSubtractThroughput(); break;
-			case 3: getMultiplyThroughput(); break;
-			case 4: getDivideThroughput(); break;
-			case 5: getMultiplyAddThroughput(); break;
+			case 1: getSubtractThroughput(); break;
+			case 2: getMultiplyThroughput(); break;
+			case 3: getDivideThroughput(); break;
+			case 4: getMultiplyAddThroughput(); break;
 #if DATATYPE == INT || DATATYPE == UINT
+			case 5: getVectorAddThroughput(); break;
 			case 6: getRemainderThroughput(); break;
 #endif
 #if DATATYPE == INT
@@ -566,7 +570,35 @@ int main(int argc, char **argv)
 #endif
 		}
 	}
-
+#endif
+#if (!MAX_OCCUPANCY)
+	for (int k = 0; k < 12; k++) {			
+		for (int i = 1; i <= max_warps; i++) 
+		{
+			total_threads = i * threads_per_warp;
+			switch(k) 
+			{
+				case 0:	getAddThroughput();	break;
+				case 1: getSubtractThroughput(); break;
+				case 2: getMultiplyThroughput(); break;
+				case 3: getDivideThroughput(); break;
+				case 4: getMultiplyAddThroughput(); break;
+#if DATATYPE == INT || DATATYPE == UINT
+				case 5: getVectorAddThroughput(); break;
+				case 6: getRemainderThroughput(); break;
+#endif
+#if DATATYPE == INT
+				case 7: getAndThroughput(); break;
+				case 8: getOrThroughput(); break;
+				case 9: getXorThroughput(); break;
+				case 10: getShlThroughput(); break;
+				case 11: getShrThroughput(); break;
+#endif
+			}
+		}
+	}
+#endif
+	
 	cudaFree(device_A);
 	cudaFree(device_B);
 	cudaFree(device_C);
@@ -574,6 +606,10 @@ int main(int argc, char **argv)
 	free(host_A);
 	free(host_B);
 	free(host_C);
+	free(host_D);
+	
 	return 0;
 }
+
+
 

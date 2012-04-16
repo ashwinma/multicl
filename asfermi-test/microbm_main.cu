@@ -16,7 +16,7 @@ char* muGetErrorString(CUresult result);
 void muEC(int position)
 {
 	cudaError_t errcode = cudaGetLastError();
-	if(errcode==cudaSuccess)
+	if(errcode == cudaSuccess)
 	{
 		printf("No error at position %i\n", position);
 		return;
@@ -76,33 +76,23 @@ int main(int argc, char** argv)
 {
 	if(argc < 3)
 	{
-		puts("arguments: cubinname kernelname");
+		puts("arguments: cubin_name kernel_name (number_warps)");
 		return 1;
 	}
 
 	//Thread count
-	int tcount = 1;
+	int tcount = 32;
+	int number_warps;
 	if(argc >= 4)
 	{
-		tcount = atoi(argv[3]);
+		number_warps = atoi(argv[3]);
 	}
 
+	tcount = number_warps * 32;
         int length = 3 * tcount;
 	long* cpu_output = new long[length];
 	int size = sizeof(long) * length;
-	int interval = 1;
 	
-        bool odd = true;
-	bool even = true;
-	if(argc >= 5)
-	{
-		int choice = atoi(argv[4]);
-		if(choice == 1)
-			even = false;
-		else if(choice == 2)
-			odd = false;
-	}
-
 	CUdeviceptr gpu_output;
 	CUdevice device;
 	CUcontext context;
@@ -118,8 +108,8 @@ int main(int argc, char** argv)
 	CUresult result = cuModuleLoad(&module, argv[1]);
 	muRC(0 , result);
 	result = cuModuleGetFunction(&kernel, module, argv[2]);
-	muRC(1, result); 
-	int param = 0x1010;
+	muRC(1, result);
+
         /*
          * cuParamSetSize
          * Sets through numbytes the total size in bytes needed by the function
@@ -128,7 +118,6 @@ int main(int argc, char** argv)
          *   hfunc    - Kernel to set parameter size for
          *   numbytes - Size of parameter list in bytes
          */
-	//muRC(2, cuParamSetSize(kernel, 20));
 	muRC(2, cuParamSetSize(kernel, 8));
 
         /* 
@@ -143,7 +132,6 @@ int main(int argc, char** argv)
          *   numbytes    - Size of data to copy in bytes
          */
 	muRC(3, cuParamSetv(kernel, 0, &gpu_output, size));
-	//muRC(3, cuParamSetv(kernel, 16, &param, 4));
 
         /*
          * cuFuncSetBlockShape:
@@ -166,35 +154,22 @@ int main(int argc, char** argv)
 	printf("tcount = %i\n", tcount);
 
 	//---------- Printing the tiing information from each thread.
-	printf("Thread \t Time \t Start time \t End time \t Result \n");
+	printf("Warp \t Time \t Start time \t End time \t Result \n");
 
-	int time, start_time, end_time, result;
-	for (int i = 0; i < tcount; i++) {
-        	time = cpu_output[i * 3 + 1] - cpu_output[i * 3];
-		start_time = cpu_output[i * 3];
-		end_time = cpu_output[i * 3 + 1];
-		result = cpu_output[i * 3 + 2];
-        	printf("%d \t %d \t %d \t %d \t %d \n", i, time, start_time, end_time, result);
+	int time, start_time, end_time, debug_result;
+	int average_time = 0;
+
+	for (int i = 0; i < number_warps; i++) {
+        	time = cpu_output[i * 32 * 3 + 1] - cpu_output[i * 32 * 3];
+		average_time += time;
+		start_time = cpu_output[i * 32 * 3];
+		end_time = cpu_output[(i * 32 * 3) + 1];
+		debug_result = cpu_output[(i * 32 * 3) + 2];
+        	printf("%d \t %d \t %d \t %d \t %d \n", i, time, start_time, end_time, debug_result);
 	}
 
-        /*
-	for(int i=0; i<length/interval; i++)
-	{
-		if(i%2 == 0)
-		{
-			if(!even) continue;
-		}
-		else
-		{
-			if(!odd) continue;
-		}
-		for(int j=0; j < interval; j++)
-			printf("i=%i, j=%i, output=%i\n", i, j, cpu_output[i*interval+j]);
-		if(interval != 1)
-			puts("");
-	}
-        */
-
+	average_time /= number_warps;
+	printf("Average Time : %d\n", average_time);
 	muRC(8, cuModuleUnload(module));
 	muRC(9, cuMemFree(gpu_output));
 	muRC(10, cuCtxDestroy(context));

@@ -30,7 +30,7 @@ Important Files:
 
 Example Usage:
 ----------------------------------------------------------------------------------
-$ ./tool.sh 10 out.cubin
+$./tool.sh 10 out.cubin
 $ ./compile_microbm_cu.sh 
 $ microbm_main out.cubin k 32
 

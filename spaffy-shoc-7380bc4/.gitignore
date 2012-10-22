@@ -1,0 +1,13 @@
+*.o
+*.a
+*.d
+*_cl.cpp
+*.buildflags
+*Makefile
+config.log
+config.status
+config/common.mk
+config/config.h
+config/targets.mk
+tools/Logs/*
+tools/results.csv

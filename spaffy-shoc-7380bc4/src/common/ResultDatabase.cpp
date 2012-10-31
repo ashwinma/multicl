@@ -342,8 +342,9 @@ void ResultDatabase::DumpSummary(ostream &out)
 //
 // ****************************************************************************
 vector<ResultDatabase::Result>
-ResultDatabase::GetResultsForTest(const string &test)
+ResultDatabase::GetResultsForTest(const string &test_orig)
 {
+    string test = RemoveAllButLeadingSpaces(test_orig);
     // get only the given test results
     vector<Result> retval;
     for (int i=0; i<results.size(); i++)

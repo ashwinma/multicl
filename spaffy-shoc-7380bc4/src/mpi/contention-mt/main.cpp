@@ -18,7 +18,6 @@
 #include "OptionParser.h"
 #include <ParallelResultDatabase.h>
 #include <ParallelHelpers.h>
-
 using namespace std;
 
 int mympirank;
@@ -31,20 +30,33 @@ int GPUSetup(OptionParser &op, int mympirank, int mynoderank);
 int GPUCleanup();
 int numgputimes=1;
 volatile unsigned long long mpidone=1;
+volatile unsigned long long cudado=1;
+volatile unsigned long long mpido=1;
+volatile unsigned long long cudadone = 1;
+pthread_barrier_t mpitest_barrier;
 
 void MPITest(OptionParser &op, ResultDatabase &resultDB, int numtasks, int myrank,
                 int mypair, MPI_Comm newcomm);
 
 void *GPUDriversimwrapper(void *dummy)
 {
-int i;
-    if (mympirank == 0 ) cout<<endl;
-    do {
-        GPUDriversim();
-        //if (mympirank == 0) {cout<<".";flush(cout);}
-    }while(mpidone!=1);
-    //if (mympirank == 0 ) cout<<endl;
-    return (0);
+	pthread_t thread = pthread_self();
+	cpu_set_t cpuset;
+	/* Set affinity mask to include CPUs 0 to 7 */
+	CPU_ZERO(&cpuset);
+	//for (j = 0; j < 8; j++)
+	CPU_SET(1, &cpuset);
+	int s = pthread_setaffinity_np(thread, sizeof(cpu_set_t), &cpuset);
+	if (s != 0)
+		cout << "Error code " << s << " inpthread_setaffinity_np" << endl;
+	int i;
+	if (mympirank == 0 ) cout<<endl;
+	//do {
+	GPUDriversim();
+	//if (mympirank == 0) {cout<<".";flush(cout);}
+	//}while(mpidone!=1);
+	//if (mympirank == 0 ) cout<<endl;
+	return (0);
 }
 
 pthread_t mychild;
@@ -110,6 +122,8 @@ int main(int argc, char *argv[])
     op.addOption("MPIiter", OPT_INT, "1000", 
                     "specify number of MPI benchmark iterations for each size");
     op.addOption("platform", OPT_INT, "0", "specify platform for device selection", 'y');
+    op.addOption("gpuTests", OPT_STRING, "TEST_GMEM_R", "specify GPU related tests", 'G');
+    op.addOption("mpiTests", OPT_STRING, "MPISynctests", "specify MPI related tests", 'M');
             
     if (!op.parse(argc, argv))
     {
@@ -120,6 +134,18 @@ int main(int argc, char *argv[])
     }
 
     int npasses = op.getOptionInt("passes");
+    string gpu_tests = op.getOptionString("gpuTests");
+	if(!(gpu_tests == "TEST_GMEM_R") &&
+		!(gpu_tests == "TEST_GMEM_W") &&
+		!(gpu_tests == "TEST_GMEM_UNIT_R") &&
+		!(gpu_tests == "TEST_GMEM_UNIT_W") &&
+		!(gpu_tests == "TEST_LMEM_R") &&
+		!(gpu_tests == "TEST_LMEM_W"))
+	{
+		op.usage();
+        MPI_Finalize(); 
+        return 0;
+	}
 
     //our simple mapping
     NodeInfo NI;
@@ -160,7 +186,13 @@ int main(int argc, char *argv[])
         printf("\n%d:calloc failed in %s",mympirank,__FUNCTION__);
         exit(1);
     }
-
+    
+    if(pthread_barrier_init(&mpitest_barrier, NULL, 2))
+	{
+		cout << "Could not init the barrier" << endl;
+		MPI_Finalize();
+		exit(1);
+	}
     /*compute the groups*/
     int beginoffset=0;
     if(mynoderank == 0)
@@ -247,20 +279,25 @@ int main(int argc, char *argv[])
     // ensure we are all synchronized before starting test
     MPI_Barrier(MPI_COMM_WORLD);
 
+	mpido = 1;
+	cudado = 1;
     //first, individual runs for device benchmark
     if ( amGPUTask ) GPUDriverwrmup();
     if ( amGPUTask )
     {
-        for ( i=0; i<npasses; i++ ) GPUDriverseq();
+        //for ( i=0; i<npasses; i++ ) GPUDriverseq();
+        GPUDriverseq();
     }
-
+	
     MPI_Barrier(MPI_COMM_WORLD);
 
+	mpido = 1;
+	cudado = 1;
     //First, warmup run
     MPITest(op, rdbwupmpi,numtasks,mympirank,mypair,MPI_COMM_WORLD );
 
     //next, individual run for MPI Benchmark
-    for ( i=0; i<npasses; i++ ) 
+    //for ( i=0; i<npasses; i++ ) 
         MPITest(op, rdbseqmpi, numtasks,mympirank,mypair,MPI_COMM_WORLD );
 
     MPI_Barrier(MPI_COMM_WORLD);
@@ -286,6 +323,9 @@ int main(int argc, char *argv[])
 
     //make sure GPU task keeps running until MPI task is done
     mpidone = 0;
+    cudadone = 0;
+	mpido = 0;
+	cudado = 0;
 
     //first spawnoff GPU tasks
     if ( amGPUTask )
@@ -294,13 +334,17 @@ int main(int argc, char *argv[])
     }
 
     //run the MPI test
-    for ( i=0;i<npasses;i++)
+    //for ( i=0;i<npasses;i++)
+	{
         MPITest(op, rdbsimmpi, numtasks,mympirank,mypair,MPI_COMM_WORLD );
+	}
     mpidone=1;
+    cudadone=1;
 
     //waif for MPI test to finish
     MPI_Barrier(MPI_COMM_WORLD);
 
+	cout << "Printing final results..." << std::endl;
     //wait for GPU tasks to return
     if ( amGPUTask )
     {
@@ -355,10 +399,48 @@ int main(int argc, char *argv[])
 
     if ( amGPUTask && mympirank==0) 
     {
-        vector<ResultDatabase::Result> prespeed    = prdbseqgpu.GetResultsForTest("DownloadSpeed(mean)");
-        vector<ResultDatabase::Result> postspeed   = prdbsimgpu.GetResultsForTest("DownloadSpeed(mean)");
-        cout<<endl<<"Summarized Mean(Mean) GPU Baseline Download Speed vs. Download Speed with Contention";
-        cout<<endl<<"MSG SIZE(KB)\t";
+		vector<ResultDatabase::Result> prespeed;
+		vector<ResultDatabase::Result> postspeed;
+        //vector<ResultDatabase::Result> prespeed    = prdbseqgpu.GetResultsForTest("DownloadSpeed(mean)");
+        //vector<ResultDatabase::Result> postspeed   = prdbsimgpu.GetResultsForTest("DownloadSpeed(mean)");
+        //cout<<endl<<"Summarized Mean(Mean) GPU Baseline Download Speed vs. Download Speed with Contention";
+		if(gpu_tests == "TEST_GMEM_R")
+		{
+			prespeed  = prdbseqgpu.GetResultsForTest("readGlobalMemoryCoalesced(mean)");
+			postspeed = prdbsimgpu.GetResultsForTest("readGlobalMemoryCoalesced(mean)");
+			cout<<endl<<"Summarized Mean(Mean) GPU Baseline Read GMEM-BW (coalesced) vs. GMEM-BW (coalesced) with Contention";
+		}
+		else if(gpu_tests == "TEST_GMEM_UNIT_R")
+		{
+			prespeed  = prdbseqgpu.GetResultsForTest("readGlobalMemoryUnit(mean)");
+			postspeed = prdbsimgpu.GetResultsForTest("readGlobalMemoryUnit(mean)");
+			cout<<endl<<"Summarized Mean(Mean) GPU Baseline Read GMEM-BW (unit) vs. GMEM-BW (unit) with Contention";
+		}
+		else if(gpu_tests == "TEST_LMEM_R")
+		{
+			prespeed  = prdbseqgpu.GetResultsForTest("readLocalMemory(mean)");
+			postspeed = prdbsimgpu.GetResultsForTest("readLocalMemory(mean)");
+			cout<<endl<<"Summarized Mean(Mean) GPU Baseline Read LMEM-BW vs. LMEM-BW with Contention";
+		}
+		else if(gpu_tests == "TEST_GMEM_W")
+		{
+			prespeed  = prdbseqgpu.GetResultsForTest("writeGlobalMemoryCoalesced(mean)");
+			postspeed = prdbsimgpu.GetResultsForTest("writeGlobalMemoryCoalesced(mean)");
+			cout<<endl<<"Summarized Mean(Mean) GPU Baseline Write GMEM-BW (coalesced) vs. GMEM-BW (coalesced) with Contention";
+		}
+		else if(gpu_tests == "TEST_GMEM_UNIT_W")
+		{
+			prespeed  = prdbseqgpu.GetResultsForTest("writeGlobalMemoryUnit(mean)");
+			postspeed = prdbsimgpu.GetResultsForTest("writeGlobalMemoryUnit(mean)");
+			cout<<endl<<"Summarized Mean(Mean) GPU Baseline Write GMEM-BW (unit) vs. GMEM-BW (unit) with Contention";
+		}
+		else if(gpu_tests == "TEST_LMEM_W")
+		{
+			prespeed  = prdbseqgpu.GetResultsForTest("writeLocalMemory(mean)");
+			postspeed = prdbsimgpu.GetResultsForTest("writeLocalMemory(mean)");
+			cout<<endl<<"Summarized Mean(Mean) GPU Baseline Write LMEM-BW vs. LMEM-BW with Contention";
+		}
+		cout<<endl<<"MSG SIZE(normalized)\t";
 	int msgsize=1;
         for (i=0; i<prespeed.size(); ++i)
         {
@@ -401,5 +483,11 @@ int main(int argc, char *argv[])
         GPUCleanup();
     }
 
+    if(pthread_barrier_destroy(&mpitest_barrier))
+	{
+		cout << "Could not destroy the barrier" << endl;
+		MPI_Finalize();
+		exit(1);
+	}
     MPI_Finalize();
 }

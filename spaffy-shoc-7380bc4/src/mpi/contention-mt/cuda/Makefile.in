@@ -9,16 +9,19 @@ BENCHMARKOBJ_CUDA= \
 BENCHMARKPROG_CUDA = $(patsubst %_mpi.o,$(SHOC_ROOT)/bin/EP/CUDA/%,$(BENCHMARKOBJ_CUDA))
 
 COMMONOBJ_CUDA= \
- $(SHOC_ROOT)/src/cuda/level0/BusSpeedDownload_cuda.o \
+ $(SHOC_ROOT)/src/cuda/level0/DeviceMemory_cuda.o \
  CUDADriver_cuda.o\
  main_mpi.o
 
+# $(SHOC_ROOT)/src/cuda/level0/DeviceMemory_cuda.o \
+# $(SHOC_ROOT)/src/cuda/level0/BusSpeedDownload_cuda.o \
+ 
 ALLOBJ=$(COMMONOBJ_CUDA) $(BENCHMARKOBJ_CUDA)
 
 LIBS+=-lSHOCCommonMPI -lSHOCCommon
 #CUDA_LIBS+=-lSHOCCommonCUDA
 
-CPPFLAGS+=-I${SHOC_ROOT}/src/mpi/common
+CPPFLAGS+=-I${SHOC_ROOT}/src/mpi/common -I${HOME}/opt/include -I/opt/apps/cuda/4.0.17/include
 
 MPI_LIBS    = -lSHOCCommonMPI
 

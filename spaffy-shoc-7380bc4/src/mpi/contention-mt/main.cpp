@@ -140,6 +140,11 @@ int main(int argc, char *argv[])
 		!(gpu_tests == "TEST_GMEM_UNIT_R") &&
 		!(gpu_tests == "TEST_GMEM_UNIT_W") &&
 		!(gpu_tests == "TEST_LMEM_R") &&
+		!(gpu_tests == "TEST_H2D_MPIACC_SEND") &&
+		!(gpu_tests == "TEST_H2D_MPIACC_RECV") &&
+		!(gpu_tests == "TEST_D2H_MPIACC_SEND") &&
+		!(gpu_tests == "TEST_D2H_MPIACC_RECV") &&
+		!(gpu_tests == "TEST_FLOPS") &&
 		!(gpu_tests == "TEST_LMEM_W"))
 	{
 		op.usage();
@@ -439,6 +444,36 @@ int main(int argc, char *argv[])
 			prespeed  = prdbseqgpu.GetResultsForTest("writeLocalMemory(mean)");
 			postspeed = prdbsimgpu.GetResultsForTest("writeLocalMemory(mean)");
 			cout<<endl<<"Summarized Mean(Mean) GPU Baseline Write LMEM-BW vs. LMEM-BW with Contention";
+		}
+		else if(gpu_tests == "TEST_H2D_MPIACC_SEND")
+		{
+			prespeed  = prdbseqgpu.GetResultsForTest("DownloadSpeed(mean)");
+			postspeed = prdbsimgpu.GetResultsForTest("DownloadSpeed(mean)");
+			cout<<endl<<"Summarized Mean(Mean) GPU Baseline PCI H2D BW vs. PCI H2D BW with MPI-ACC Send (different queues)";
+		}
+		else if(gpu_tests == "TEST_H2D_MPIACC_RECV")
+		{
+			prespeed  = prdbseqgpu.GetResultsForTest("DownloadSpeed(mean)");
+			postspeed = prdbsimgpu.GetResultsForTest("DownloadSpeed(mean)");
+			cout<<endl<<"Summarized Mean(Mean) GPU Baseline PCI H2D BW vs. PCI H2D BW with MPI-ACC Recv (same queues)";
+		}
+		else if(gpu_tests == "TEST_D2H_MPIACC_SEND")
+		{
+			prespeed  = prdbseqgpu.GetResultsForTest("ReadbackSpeed(mean)");
+			postspeed = prdbsimgpu.GetResultsForTest("ReadbackSpeed(mean)");
+			cout<<endl<<"Summarized Mean(Mean) GPU Baseline PCI D2H BW vs. PCI D2H BW with MPI-ACC Send (same queues)";
+		}
+		else if(gpu_tests == "TEST_D2H_MPIACC_RECV")
+		{
+			prespeed  = prdbseqgpu.GetResultsForTest("ReadbackSpeed(mean)");
+			postspeed = prdbsimgpu.GetResultsForTest("ReadbackSpeed(mean)");
+			cout<<endl<<"Summarized Mean(Mean) GPU Baseline PCI D2H BW vs. PCI D2H BW with MPI-ACC Recv (different queues)";
+		}
+		else if(gpu_tests == "TEST_FLOPS")
+		{
+			prespeed  = prdbseqgpu.GetResultsForTest("MulMAddU-SP(mean)");
+			postspeed = prdbsimgpu.GetResultsForTest("MulMAddU-SP(mean)");
+			cout<<endl<<"Summarized Mean(Mean) GPU Baseline Flops vs. Flops with Contention";
 		}
 		cout<<endl<<"MSG SIZE(normalized)\t";
 	int msgsize=1;

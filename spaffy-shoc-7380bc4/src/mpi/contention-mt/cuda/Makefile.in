@@ -9,10 +9,14 @@ BENCHMARKOBJ_CUDA= \
 BENCHMARKPROG_CUDA = $(patsubst %_mpi.o,$(SHOC_ROOT)/bin/EP/CUDA/%,$(BENCHMARKOBJ_CUDA))
 
 COMMONOBJ_CUDA= \
- $(SHOC_ROOT)/src/cuda/level0/DeviceMemory_cuda.o \
+ BusSpeedH2D_cuda.o \
  CUDADriver_cuda.o\
  main_mpi.o
 
+# BusSpeedH2D_cuda.o \
+# BusSpeedD2H_cuda.o \
+# DeviceMemory_cuda.o \
+# MaxFlops_cuda.o \
 # $(SHOC_ROOT)/src/cuda/level0/DeviceMemory_cuda.o \
 # $(SHOC_ROOT)/src/cuda/level0/BusSpeedDownload_cuda.o \
  

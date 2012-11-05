@@ -58,7 +58,8 @@ void MPITest(OptionParser &op, ResultDatabase &resultDB, int numtasks, int myran
     int skip=10,i=0,j=0;
     int minmsg_sz = op.getOptionInt("MPIminmsg");
     int maxmsg_sz = op.getOptionInt("MPImaxmsg");
-    int iterations = 10;
+    string gpu_tests = op.getOptionString("gpuTests");
+    int iterations = 2;
     //int iterations = op.getOptionInt("MPIiter");
     int npasses = op.getOptionInt("passes");
     char *recvbuf = NULL;
@@ -76,14 +77,24 @@ void MPITest(OptionParser &op, ResultDatabase &resultDB, int numtasks, int myran
 	size_t mem_total;
 	MPIX_Buffertype sendtype = MPIX_GPU_CUDA;
 	MPIX_Buffertype recvtype = MPIX_GPU_CUDA;
+	if(gpu_tests == "TEST_H2D_MPIACC_SEND" || gpu_tests == "TEST_D2H_MPIACC_SEND")
+	{
+		sendtype = MPIX_GPU_CUDA;
+		recvtype = MPIX_CPU;
+	}
+	else if(gpu_tests == "TEST_H2D_MPIACC_RECV" || gpu_tests == "TEST_D2H_MPIACC_RECV")
+	{
+		sendtype = MPIX_CPU;
+		recvtype = MPIX_GPU_CUDA;
+	}
 	if(cudado != 1)
 	{
-	    int rc = pthread_barrier_wait(&mpitest_barrier);
+	    /*int rc = pthread_barrier_wait(&mpitest_barrier);
 		if(rc != 0 && rc != PTHREAD_BARRIER_SERIAL_THREAD)
 		{
 			printf("Could not wait on barrier\n");
 			exit(-1);
-		}
+		}*/
 	}
 	if(sendtype != MPIX_CPU)
 	{

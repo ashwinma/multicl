@@ -10,6 +10,14 @@
 #include "Timer.h"
 #include "support.h"
 
+#include "misc_defs.h"
+
+extern unsigned long long mpido;
+extern unsigned long long cudado;
+extern unsigned long long mpidone;
+extern unsigned long long cudadone;
+extern pthread_barrier_t mpitest_barrier;
+
 // Forward declarations for texture memory test and benchmark kernels
 void TestTextureMem(ResultDatabase &resultDB, OptionParser &op, double scalet);
 __global__ void
@@ -75,6 +83,7 @@ void RunBenchmark(ResultDatabase &resultDB,
                   OptionParser &op)
 {
     int npasses = op.getOptionInt("passes");
+    string gpu_tests = op.getOptionString("gpuTests");
     size_t minGroupSize = 32;
     size_t maxGroupSize = 512;
     size_t globalWorkSize = 32768;  // 64 * maxGroupSize = 64 * 512;
@@ -98,131 +107,204 @@ void RunBenchmark(ResultDatabase &resultDB,
     float *d_mem1, *d_mem2;
     char sizeStr[128];
 
+	cudaStream_t d_stream;
+	cudaStreamCreate(&d_stream);
+	CHECK_CUDA_ERROR();
+
     cudaMalloc((void**)&d_mem1, sizeof(float)*(numWordsFloat));
     CHECK_CUDA_ERROR();
     cudaMalloc((void**)&d_mem2, sizeof(float)*(numWordsFloat));
     CHECK_CUDA_ERROR();
 
+	if(cudado != 1)
+	{
+	    /*int rc = pthread_barrier_wait(&mpitest_barrier);
+		if(rc != 0 && rc != PTHREAD_BARRIER_SERIAL_THREAD)
+		{
+			printf("Could not wait on barrier\n");
+			exit(-1);
+		}*/
+	}
     cudaEvent_t start, stop;
     cudaEventCreate(&start);
     cudaEventCreate(&stop);
     CHECK_CUDA_ERROR();
 
-    cudaEventRecord(start, 0);
-    readGlobalMemoryCoalesced<<<512, 64>>>
+    cudaEventRecord(start, d_stream);
+    readGlobalMemoryCoalesced<<<512, 64, 0, d_stream>>>
                   (d_mem1, d_mem2, numWordsFloat, 256);
-    cudaEventRecord(stop, 0);
+    cudaEventRecord(stop, d_stream);
     cudaEventSynchronize(stop);
     CHECK_CUDA_ERROR();
     float t = 0.0f;
     cudaEventElapsedTime(&t, start, stop);
     t /= 1.e3;
     double scalet = 0.15 / t;
-    
+ 
+#ifdef LONG_GPU_RUNS
+    const unsigned int maxRepeatsCoal  = 100*256*scalet;
+    const unsigned int maxRepeatsUnit  = 100*16*scalet;
+    const unsigned int maxRepeatsLocal = 100*300*scalet;
+#else
+    //const unsigned int maxRepeatsCoal  = 32*scalet;
     const unsigned int maxRepeatsCoal  = 256*scalet;
     const unsigned int maxRepeatsUnit  = 16*scalet;
     const unsigned int maxRepeatsLocal = 300*scalet;
+#endif
 
+	printf("[CUDA-Task] Flag values before (mpido, cudado): (%d, %d)\n", mpido, cudado);
+	printf("[CUDA-Task] Device Memory Test iters/repeats: %d\n", maxRepeatsCoal);
+	//cudado = 1;
+	if(cudado != 1)
+	{
+	    int rc = pthread_barrier_wait(&mpitest_barrier);
+		if(rc != 0 && rc != PTHREAD_BARRIER_SERIAL_THREAD)
+		{
+			printf("Could not wait on barrier\n");
+			exit(-1);
+	    }
+	}
+	printf("[CUDA-Task] Set CUDA Flag to 1, waiting for MPI flag...\n");
+	printf("[CUDA-Task] Flag values (mpido, cudado): (%d, %d)\n", mpido, cudado);
+	if(mpido != 1)
+	{
+	}
+	//while(mpido != 1);
+	printf("[CUDA-Task] All clear to start CUDA task... \n");
+	int iter = 0;
+#ifndef LONG_GPU_RUNS
+	do {
+#else
+	//printf("[CUDA-Task] MPI done? : %d\n", mpidone);
     for (int p = 0; p < npasses; p++)
     {
+#endif
         // Run the kernel for each group size
-        cout << "Running benchmarks, pass: " << p << "\n";
-        for (int threads=minGroupSize; threads<=maxGroupSize ; threads*=2)
+        cout << "Running benchmarks, pass: " << iter << "\n";
+		int threads = maxGroupSize;
+        //for (int threads=minGroupSize; threads<=maxGroupSize ; threads*=2)
         {
             const unsigned int blocks = globalWorkSize / threads;
             double bdwth;
             sprintf (sizeStr, "blockSize:%03d", threads);
 
-            // Test 1
-            cudaEventRecord(start, 0);
-            readGlobalMemoryCoalesced<<<blocks, threads>>>
-                    (d_mem1, d_mem2, numWordsFloat, maxRepeatsCoal);
-            cudaEventRecord(stop, 0);
-            cudaEventSynchronize(stop);
-            CHECK_CUDA_ERROR();
-            t = 0.0f;
-            cudaEventElapsedTime(&t, start, stop);
-            t /= 1.e3;
-            bdwth = ((double) globalWorkSize * maxRepeatsCoal * 16 * sizeof(float)) 
-                   / (t * 1000. * 1000. * 1000.);
-            resultDB.AddResult("readGlobalMemoryCoalesced", sizeStr, "GB/s",
-                    bdwth);
-
-            // Test 2
-            cudaEventRecord(start, 0);
-            readGlobalMemoryUnit<<<blocks, threads>>>
-                    (d_mem1, d_mem2, numWordsFloat, maxRepeatsUnit);
-            cudaEventRecord(stop, 0);
-            cudaEventSynchronize(stop);
-            CHECK_CUDA_ERROR();
-            cudaEventElapsedTime(&t, start, stop);
-            t /= 1.e3;
-            bdwth = ((double) globalWorkSize * maxRepeatsUnit * 16 * sizeof(float)) 
-                   / (t * 1000. * 1000. * 1000.);
-            resultDB.AddResult("readGlobalMemoryUnit", sizeStr, "GB/s", bdwth);
-
-            // Test 3
-            cudaEventRecord(start, 0);
-            readLocalMemory<<<blocks, threads>>>
-                    (d_mem1, d_mem2, numWordsFloat, maxRepeatsLocal);
-            cudaEventRecord(stop, 0);
-            cudaEventSynchronize(stop);
-            CHECK_CUDA_ERROR();
-            cudaEventElapsedTime(&t, start, stop);
-            t /= 1.e3;
-            bdwth = ((double) globalWorkSize * maxRepeatsLocal * 16 * sizeof(float)) 
-                   / (t * 1000. * 1000. * 1000.);
-            resultDB.AddResult("readLocalMemory", sizeStr, "GB/s", bdwth);
-
-            // Test 4
-            cudaEventRecord(start, 0);
-            writeGlobalMemoryCoalesced<<<blocks, threads>>>
-                    (d_mem2, numWordsFloat, maxRepeatsCoal);
-            cudaEventRecord(stop, 0);
-            cudaEventSynchronize(stop);
-            CHECK_CUDA_ERROR();
-            cudaEventElapsedTime(&t, start, stop);
-            t /= 1.e3;
-            bdwth = ((double) globalWorkSize * maxRepeatsCoal * 16 * sizeof(float)) 
-                   / (t * 1000. * 1000. * 1000.);
-            resultDB.AddResult("writeGlobalMemoryCoalesced", sizeStr, "GB/s",
-                    bdwth);
-
-            // Test 5
-            cudaEventRecord(start, 0);
-            writeGlobalMemoryUnit<<<blocks, threads>>>
-                       (d_mem2, numWordsFloat, maxRepeatsUnit);
-            cudaEventRecord(stop, 0);
-            cudaEventSynchronize(stop);
-            CHECK_CUDA_ERROR();
-            cudaEventElapsedTime(&t, start, stop);
-            t /= 1.e3;
-            bdwth = ((double) globalWorkSize * maxRepeatsUnit * 16 * sizeof(float)) 
-                    / (t * 1000. * 1000. * 1000.);
-            resultDB.AddResult("writeGlobalMemoryUnit", sizeStr, "GB/s",
-                    bdwth);
-
-            // Test 6
-            cudaEventRecord(start, 0);
-            writeLocalMemory<<<blocks, threads>>>
-                       (d_mem2, numWordsFloat, maxRepeatsLocal);
-            cudaEventRecord(stop, 0);
-            cudaEventSynchronize(stop);
-            CHECK_CUDA_ERROR();
-            cudaEventElapsedTime(&t, start, stop);
-            t /= 1.e3;
-            bdwth = ((double) globalWorkSize * maxRepeatsLocal * 16 * sizeof(float)) 
-                   / (t * 1000. * 1000. * 1000.);
-            resultDB.AddResult("writeLocalMemory", sizeStr, "GB/s", bdwth);
+			if(gpu_tests == "TEST_GMEM_R")
+			{
+				// Test 1
+				cudaEventRecord(start, d_stream);
+				readGlobalMemoryCoalesced<<<blocks, threads, 0, d_stream>>>
+					(d_mem1, d_mem2, numWordsFloat, maxRepeatsCoal);
+				cudaEventRecord(stop, d_stream);
+				cudaEventSynchronize(stop);
+				CHECK_CUDA_ERROR();
+				t = 0.0f;
+				cudaEventElapsedTime(&t, start, stop);
+				printf("Time for Device Memory Test (ms): %f\n", t);
+				t /= 1.e3;
+				bdwth = ((double) globalWorkSize * maxRepeatsCoal * 16 * sizeof(float)) 
+					/ (t * 1000. * 1000. * 1000.);
+				resultDB.AddResult("readGlobalMemoryCoalesced", sizeStr, "GB/s",
+						bdwth);
+			}
+			else if(gpu_tests == "TEST_GMEM_UNIT_R")
+			{
+				// Test 2
+				cudaEventRecord(start, d_stream);
+				readGlobalMemoryUnit<<<blocks, threads, 0, d_stream>>>
+					(d_mem1, d_mem2, numWordsFloat, maxRepeatsUnit);
+				cudaEventRecord(stop, d_stream);
+				cudaEventSynchronize(stop);
+				CHECK_CUDA_ERROR();
+				cudaEventElapsedTime(&t, start, stop);
+				t /= 1.e3;
+				bdwth = ((double) globalWorkSize * maxRepeatsUnit * 16 * sizeof(float)) 
+					/ (t * 1000. * 1000. * 1000.);
+				resultDB.AddResult("readGlobalMemoryUnit", sizeStr, "GB/s", bdwth);
+			}
+			else if(gpu_tests == "TEST_LMEM_R")
+			{
+				// Test 3
+				cudaEventRecord(start, d_stream);
+				readLocalMemory<<<blocks, threads, 0, d_stream>>>
+					(d_mem1, d_mem2, numWordsFloat, maxRepeatsLocal);
+				cudaEventRecord(stop, d_stream);
+				cudaEventSynchronize(stop);
+				CHECK_CUDA_ERROR();
+				cudaEventElapsedTime(&t, start, stop);
+				printf("Time for Device Memory Test (ms): %f\n", t);
+				t /= 1.e3;
+				bdwth = ((double) globalWorkSize * maxRepeatsLocal * 16 * sizeof(float)) 
+					/ (t * 1000. * 1000. * 1000.);
+				resultDB.AddResult("readLocalMemory", sizeStr, "GB/s", bdwth);
+			}
+			else if(gpu_tests == "TEST_GMEM_W")
+			{
+				// Test 4
+				cudaEventRecord(start, d_stream);
+				writeGlobalMemoryCoalesced<<<blocks, threads, 0, d_stream>>>
+					(d_mem2, numWordsFloat, maxRepeatsCoal);
+				cudaEventRecord(stop, d_stream);
+				cudaEventSynchronize(stop);
+				CHECK_CUDA_ERROR();
+				cudaEventElapsedTime(&t, start, stop);
+				t /= 1.e3;
+				bdwth = ((double) globalWorkSize * maxRepeatsCoal * 16 * sizeof(float)) 
+					/ (t * 1000. * 1000. * 1000.);
+				resultDB.AddResult("writeGlobalMemoryCoalesced", sizeStr, "GB/s",
+						bdwth);
+			}
+			else if(gpu_tests == "TEST_GMEM_UNIT_W")
+			{
+				// Test 5
+				cudaEventRecord(start, d_stream);
+				writeGlobalMemoryUnit<<<blocks, threads, 0, d_stream>>>
+					(d_mem2, numWordsFloat, maxRepeatsUnit);
+				cudaEventRecord(stop, d_stream);
+				cudaEventSynchronize(stop);
+				CHECK_CUDA_ERROR();
+				cudaEventElapsedTime(&t, start, stop);
+				t /= 1.e3;
+				bdwth = ((double) globalWorkSize * maxRepeatsUnit * 16 * sizeof(float)) 
+					/ (t * 1000. * 1000. * 1000.);
+				resultDB.AddResult("writeGlobalMemoryUnit", sizeStr, "GB/s",
+						bdwth);
+			}
+			else if(gpu_tests == "TEST_LMEM_W")
+			{
+				// Test 6
+				cudaEventRecord(start, d_stream);
+				writeLocalMemory<<<blocks, threads, 0, d_stream>>>
+					(d_mem2, numWordsFloat, maxRepeatsLocal);
+				cudaEventRecord(stop, d_stream);
+				cudaEventSynchronize(stop);
+				CHECK_CUDA_ERROR();
+				cudaEventElapsedTime(&t, start, stop);
+				t /= 1.e3;
+				bdwth = ((double) globalWorkSize * maxRepeatsLocal * 16 * sizeof(float)) 
+					/ (t * 1000. * 1000. * 1000.);
+				resultDB.AddResult("writeLocalMemory", sizeStr, "GB/s", bdwth);
+			}
         }
+		iter++;
+#ifdef LONG_GPU_RUNS
     }
+	cudadone = 1;
+#else
+	} while(mpidone != 1);
+#endif
+	//cudado = 0;
+	printf("Done with CUDA Tests...\n");
+	cudaStreamDestroy(d_stream);
+	CHECK_CUDA_ERROR();
     cudaFree(d_mem1);
     cudaFree(d_mem2);
     delete[] h_in;
     delete[] h_out;
     cudaEventDestroy(start);
     cudaEventDestroy(stop);
-    TestTextureMem(resultDB, op, scalet);
+#if 0
+	TestTextureMem(resultDB, op, scalet);
+#endif
 }
 
 // ****************************************************************************

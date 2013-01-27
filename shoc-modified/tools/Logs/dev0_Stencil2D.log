@@ -1,0 +1,4 @@
+Chose device: name='Cedar' index=0 id=0x14b43c0
+
+Performing stencil operation on host for later comparison with OpenCL output
+Depending on host capabilities, this may take a while.

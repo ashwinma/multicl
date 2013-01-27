@@ -1,0 +1,13 @@
+CXX=g++
+CC=g++
+NVCC=
+AR=ar
+LD=g++
+CPPFLAGS=-I../../src/common -I../../config 
+CFLAGS=-g -O2
+CXXFLAGS=-g -O2
+NVCXXFLAGS=-g -O2
+LDFLAGS=
+ARFLAGS=rcv
+LIBS=-L../../lib  -lrt
+uname= Linux amdlow1 2.6.32-5-amd64 #1 SMP Mon Jan 16 16:22:28 UTC 2012 x86_64 GNU/Linux

@@ -1,0 +1,295 @@
+>> initializing
+Chose device: name='Cypress' index=0 id=0xb7fce0
+Code for kernel readGlobalMemoryCoalesced:
+__kernel void readGlobalMemoryCoalesced(__global float *data, __global float *output, int size)
+{
+    int gid = get_global_id(0), num_thr = get_global_size(0), grpid=get_group_id(0), j = 0;
+    float sum = 0;
+    int s = gid;
+    for (j=0 ; j<1024 ; ++j) {
+       float a0 = data[(s+0)&(size-1)];
+       float a1 = data[(s+25600)&(size-1)];
+       float a2 = data[(s+51200)&(size-1)];
+       float a3 = data[(s+76800)&(size-1)];
+       float a4 = data[(s+102400)&(size-1)];
+       float a5 = data[(s+128000)&(size-1)];
+       float a6 = data[(s+153600)&(size-1)];
+       float a7 = data[(s+179200)&(size-1)];
+       float a8 = data[(s+204800)&(size-1)];
+       float a9 = data[(s+230400)&(size-1)];
+       float a10 = data[(s+256000)&(size-1)];
+       float a11 = data[(s+281600)&(size-1)];
+       float a12 = data[(s+307200)&(size-1)];
+       float a13 = data[(s+332800)&(size-1)];
+       float a14 = data[(s+358400)&(size-1)];
+       float a15 = data[(s+384000)&(size-1)];
+       sum += a0+a1+a2+a3+a4+a5+a6+a7+a8+a9+a10+a11+a12+a13+a14+a15;
+       s = (s+409600)&(size-1);
+    }
+    output[gid] = sum;
+}
+
+>> running the readGlobalMemoryCoalesced kernel, globalWorkSize=25600, localWorkSize=32 and number of groups=800
+>> running the readGlobalMemoryCoalesced kernel, globalWorkSize=25600, localWorkSize=64 and number of groups=400
+>> running the readGlobalMemoryCoalesced kernel, globalWorkSize=25600, localWorkSize=128 and number of groups=200
+>> running the readGlobalMemoryCoalesced kernel, globalWorkSize=25600, localWorkSize=256 and number of groups=100
+Code for kernel readGlobalMemoryUnit:
+__kernel void readGlobalMemoryUnit(__global float *data, __global float *output, int size)
+{
+    int gid = get_global_id(0), num_thr = get_global_size(0), grpid=get_group_id(0), j = 0;
+    float sum = 0;
+    int s = gid*1024;
+    for (j=0 ; j<512 ; ++j) {
+       float a0 = data[(s+0)&(size-1)];
+       float a1 = data[(s+1)&(size-1)];
+       float a2 = data[(s+2)&(size-1)];
+       float a3 = data[(s+3)&(size-1)];
+       float a4 = data[(s+4)&(size-1)];
+       float a5 = data[(s+5)&(size-1)];
+       float a6 = data[(s+6)&(size-1)];
+       float a7 = data[(s+7)&(size-1)];
+       float a8 = data[(s+8)&(size-1)];
+       float a9 = data[(s+9)&(size-1)];
+       float a10 = data[(s+10)&(size-1)];
+       float a11 = data[(s+11)&(size-1)];
+       float a12 = data[(s+12)&(size-1)];
+       float a13 = data[(s+13)&(size-1)];
+       float a14 = data[(s+14)&(size-1)];
+       float a15 = data[(s+15)&(size-1)];
+       sum += a0+a1+a2+a3+a4+a5+a6+a7+a8+a9+a10+a11+a12+a13+a14+a15;
+       s = (s+16)&(size-1);
+    }
+    output[gid] = sum;
+}
+
+>> running the readGlobalMemoryUnit kernel, globalWorkSize=25600, localWorkSize=32 and number of groups=800
+>> running the readGlobalMemoryUnit kernel, globalWorkSize=25600, localWorkSize=64 and number of groups=400
+>> running the readGlobalMemoryUnit kernel, globalWorkSize=25600, localWorkSize=128 and number of groups=200
+>> running the readGlobalMemoryUnit kernel, globalWorkSize=25600, localWorkSize=256 and number of groups=100
+Code for kernel readConstantMemoryCoalesced:
+__kernel void readConstantMemoryCoalesced(__global const float *data, __global float *output, int size)
+{
+    int gid = get_global_id(0), num_thr = get_global_size(0), grpid=get_group_id(0), j = 0;
+    float sum = 0;
+    int s = gid;
+    for (j=0 ; j<1024 ; ++j) {
+       float a0 = data[(s+0)&(size-1)];
+       float a1 = data[(s+25600)&(size-1)];
+       float a2 = data[(s+51200)&(size-1)];
+       float a3 = data[(s+76800)&(size-1)];
+       float a4 = data[(s+102400)&(size-1)];
+       float a5 = data[(s+128000)&(size-1)];
+       float a6 = data[(s+153600)&(size-1)];
+       float a7 = data[(s+179200)&(size-1)];
+       float a8 = data[(s+204800)&(size-1)];
+       float a9 = data[(s+230400)&(size-1)];
+       float a10 = data[(s+256000)&(size-1)];
+       float a11 = data[(s+281600)&(size-1)];
+       float a12 = data[(s+307200)&(size-1)];
+       float a13 = data[(s+332800)&(size-1)];
+       float a14 = data[(s+358400)&(size-1)];
+       float a15 = data[(s+384000)&(size-1)];
+       sum += a0+a1+a2+a3+a4+a5+a6+a7+a8+a9+a10+a11+a12+a13+a14+a15;
+       s = (s+409600)&(size-1);
+    }
+    output[gid] = sum;
+}
+
+>> running the readConstantMemoryCoalesced kernel, globalWorkSize=25600, localWorkSize=32 and number of groups=800
+>> running the readConstantMemoryCoalesced kernel, globalWorkSize=25600, localWorkSize=64 and number of groups=400
+>> running the readConstantMemoryCoalesced kernel, globalWorkSize=25600, localWorkSize=128 and number of groups=200
+>> running the readConstantMemoryCoalesced kernel, globalWorkSize=25600, localWorkSize=256 and number of groups=100
+Code for kernel readLocalMemory:
+__kernel void readLocalMemory(__global const float *data, __global float *output, int size)
+{
+    int gid = get_global_id(0), num_thr = get_global_size(0), grpid=get_group_id(0), j = 0;
+    float sum = 0;
+    int tid=get_local_id(0), localSize=get_local_size(0), litems=4096/localSize, goffset=localSize*grpid+tid*litems;
+    int s = tid;
+    __local float lbuf[4096];
+    for ( ; j<litems && j<(size-goffset) ; ++j)
+       lbuf[tid*litems+j] = data[goffset+j];
+    for (int i=0 ; j<litems ; ++j,++i)
+       lbuf[tid*litems+j] = data[i];
+    barrier(CLK_LOCAL_MEM_FENCE);
+    for (j=0 ; j<3000 ; ++j) {
+       float a0 = lbuf[(s+0)&(4095)];
+       float a1 = lbuf[(s+1)&(4095)];
+       float a2 = lbuf[(s+2)&(4095)];
+       float a3 = lbuf[(s+3)&(4095)];
+       float a4 = lbuf[(s+4)&(4095)];
+       float a5 = lbuf[(s+5)&(4095)];
+       float a6 = lbuf[(s+6)&(4095)];
+       float a7 = lbuf[(s+7)&(4095)];
+       float a8 = lbuf[(s+8)&(4095)];
+       float a9 = lbuf[(s+9)&(4095)];
+       float a10 = lbuf[(s+10)&(4095)];
+       float a11 = lbuf[(s+11)&(4095)];
+       float a12 = lbuf[(s+12)&(4095)];
+       float a13 = lbuf[(s+13)&(4095)];
+       float a14 = lbuf[(s+14)&(4095)];
+       float a15 = lbuf[(s+15)&(4095)];
+       sum += a0+a1+a2+a3+a4+a5+a6+a7+a8+a9+a10+a11+a12+a13+a14+a15;
+       s = (s+16)&(4095);
+    }
+    output[gid] = sum;
+}
+
+>> running the readLocalMemory kernel, globalWorkSize=25600, localWorkSize=32 and number of groups=800
+>> running the readLocalMemory kernel, globalWorkSize=25600, localWorkSize=64 and number of groups=400
+>> running the readLocalMemory kernel, globalWorkSize=25600, localWorkSize=128 and number of groups=200
+>> running the readLocalMemory kernel, globalWorkSize=25600, localWorkSize=256 and number of groups=100
+Code for kernel writeGlobalMemoryCoalesced:
+__kernel void writeGlobalMemoryCoalesced(__global float *output, int size)
+{
+    int gid = get_global_id(0), num_thr = get_global_size(0), grpid=get_group_id(0), j = 0;
+    float sum = 0;
+    int s = gid;
+    for (j=0 ; j<1024 ; ++j) {
+       output[(s+0)&(size-1)] = gid;
+       output[(s+25600)&(size-1)] = gid;
+       output[(s+51200)&(size-1)] = gid;
+       output[(s+76800)&(size-1)] = gid;
+       output[(s+102400)&(size-1)] = gid;
+       output[(s+128000)&(size-1)] = gid;
+       output[(s+153600)&(size-1)] = gid;
+       output[(s+179200)&(size-1)] = gid;
+       output[(s+204800)&(size-1)] = gid;
+       output[(s+230400)&(size-1)] = gid;
+       output[(s+256000)&(size-1)] = gid;
+       output[(s+281600)&(size-1)] = gid;
+       output[(s+307200)&(size-1)] = gid;
+       output[(s+332800)&(size-1)] = gid;
+       output[(s+358400)&(size-1)] = gid;
+       output[(s+384000)&(size-1)] = gid;
+       s = (s+409600)&(size-1);
+    }
+}
+
+>> running the writeGlobalMemoryCoalesced kernel, globalWorkSize=25600, localWorkSize=32 and number of groups=800
+>> running the writeGlobalMemoryCoalesced kernel, globalWorkSize=25600, localWorkSize=64 and number of groups=400
+>> running the writeGlobalMemoryCoalesced kernel, globalWorkSize=25600, localWorkSize=128 and number of groups=200
+>> running the writeGlobalMemoryCoalesced kernel, globalWorkSize=25600, localWorkSize=256 and number of groups=100
+Code for kernel writeGlobalMemoryUnit:
+__kernel void writeGlobalMemoryUnit(__global float *output, int size)
+{
+    int gid = get_global_id(0), num_thr = get_global_size(0), grpid=get_group_id(0), j = 0;
+    float sum = 0;
+    int s = gid*1024;
+    for (j=0 ; j<512 ; ++j) {
+       output[(s+0)&(size-1)] = gid;
+       output[(s+1)&(size-1)] = gid;
+       output[(s+2)&(size-1)] = gid;
+       output[(s+3)&(size-1)] = gid;
+       output[(s+4)&(size-1)] = gid;
+       output[(s+5)&(size-1)] = gid;
+       output[(s+6)&(size-1)] = gid;
+       output[(s+7)&(size-1)] = gid;
+       output[(s+8)&(size-1)] = gid;
+       output[(s+9)&(size-1)] = gid;
+       output[(s+10)&(size-1)] = gid;
+       output[(s+11)&(size-1)] = gid;
+       output[(s+12)&(size-1)] = gid;
+       output[(s+13)&(size-1)] = gid;
+       output[(s+14)&(size-1)] = gid;
+       output[(s+15)&(size-1)] = gid;
+       s = (s+16)&(size-1);
+    }
+}
+
+>> running the writeGlobalMemoryUnit kernel, globalWorkSize=25600, localWorkSize=32 and number of groups=800
+>> running the writeGlobalMemoryUnit kernel, globalWorkSize=25600, localWorkSize=64 and number of groups=400
+>> running the writeGlobalMemoryUnit kernel, globalWorkSize=25600, localWorkSize=128 and number of groups=200
+>> running the writeGlobalMemoryUnit kernel, globalWorkSize=25600, localWorkSize=256 and number of groups=100
+Code for kernel writeLocalMemory:
+__kernel void writeLocalMemory(__global float *output, int size)
+{
+    int gid = get_global_id(0), num_thr = get_global_size(0), grpid=get_group_id(0), j = 0;
+    float sum = 0;
+    int tid=get_local_id(0), localSize=get_local_size(0), litems=4096/localSize, goffset=localSize*grpid+tid*litems;
+    int s = tid;
+    __local float lbuf[4096];
+    for (j=0 ; j<3000 ; ++j) {
+       lbuf[(s+0)&(4095)] = gid;
+       lbuf[(s+1)&(4095)] = gid;
+       lbuf[(s+2)&(4095)] = gid;
+       lbuf[(s+3)&(4095)] = gid;
+       lbuf[(s+4)&(4095)] = gid;
+       lbuf[(s+5)&(4095)] = gid;
+       lbuf[(s+6)&(4095)] = gid;
+       lbuf[(s+7)&(4095)] = gid;
+       lbuf[(s+8)&(4095)] = gid;
+       lbuf[(s+9)&(4095)] = gid;
+       lbuf[(s+10)&(4095)] = gid;
+       lbuf[(s+11)&(4095)] = gid;
+       lbuf[(s+12)&(4095)] = gid;
+       lbuf[(s+13)&(4095)] = gid;
+       lbuf[(s+14)&(4095)] = gid;
+       lbuf[(s+15)&(4095)] = gid;
+       s = (s+16)&(4095);
+    }
+    barrier(CLK_LOCAL_MEM_FENCE);
+    for (j=0 ; j<litems ; ++j)
+       output[gid] = lbuf[tid];
+}
+
+>> running the writeLocalMemory kernel, globalWorkSize=25600, localWorkSize=32 and number of groups=800
+>> running the writeLocalMemory kernel, globalWorkSize=25600, localWorkSize=64 and number of groups=400
+>> running the writeLocalMemory kernel, globalWorkSize=25600, localWorkSize=128 and number of groups=200
+>> running the writeLocalMemory kernel, globalWorkSize=25600, localWorkSize=256 and number of groups=100
+
+
+Now testing image memory.
+Benchmarking Image Memory, Test: 1 / 5
+Benchmarking Image Memory, Test: 2 / 5
+Benchmarking Image Memory, Test: 3 / 5
+Benchmarking Image Memory, Test: 4 / 5
+Benchmarking Image Memory, Test: 5 / 5
+test	atts	units	median	mean	stddev	min	max	trial0	trial1	trial2	trial3	trial4	trial5	trial6	trial7	trial8	trial9	
+TextureRepeatedCacheHit	    16kB	GB/sec	83.0743	77.799	12.9008	40.0859	83.9748	40.0859	73.5972	81.4131	83.046	83.1026	82.3989	83.1309	83.8965	83.344	83.9748	
+TextureRepeatedCacheHit	    64kB	GB/sec	333.483	332.378	3.76818	325.199	337.681	337.681	329.278	335.375	329.002	336.373	334.249	334.445	329.464	325.199	332.718	
+TextureRepeatedCacheHit	   256kB	GB/sec	583.439	659.429	157.862	574.113	978.694	580.922	585.637	583.173	577.312	574.113	583.984	971.41	575.338	583.706	978.694	
+TextureRepeatedCacheHit	  1024kB	GB/sec	881.623	915.602	100.919	729.924	1104.1	872.516	729.924	1043.43	1002.08	873.488	879.808	887.485	879.752	1104.1	883.439	
+TextureRepeatedCacheHit	  4096kB	GB/sec	1043.93	1050.76	69.0639	979.134	1149.96	1093.5	1095.48	1136.91	994.355	1149.96	981.453	982.998	980.291	979.134	1113.49	
+TextureRepeatedLinearAccess	    16kB	GB/sec	32.1586	31.0231	3.35504	20.9783	32.4635	20.9783	31.7076	31.8679	32.0842	32.3361	32.0436	32.2437	32.2735	32.4635	32.233	
+TextureRepeatedLinearAccess	    64kB	GB/sec	122.693	122.222	2.37478	115.769	124.514	115.769	124.082	121.356	121.567	122.768	124.223	122.671	122.558	122.715	124.514	
+TextureRepeatedLinearAccess	   256kB	GB/sec	304.65	305.22	3.18742	299.416	309.576	308.383	303.045	307.579	305.799	299.416	302.993	302.845	309.059	309.576	303.5	
+TextureRepeatedLinearAccess	  1024kB	GB/sec	328.354	329.142	3.62687	325.13	336.637	325.57	327.227	328.741	335.143	329.221	336.637	327.967	328.922	326.856	325.13	
+TextureRepeatedLinearAccess	  4096kB	GB/sec	339.053	338.741	1.64154	336.412	341.873	336.573	339.079	338.362	339.734	336.887	341.873	339.359	339.028	336.412	340.107	
+TextureRepeatedRandomAccess	    16kB	GB/sec	26.0318	25.5128	1.81985	20.0916	26.4931	20.0916	25.9664	25.8898	26.287	26.2464	25.9187	25.7877	26.0972	26.4931	26.3498	
+TextureRepeatedRandomAccess	    64kB	GB/sec	91.8632	91.8096	0.415987	91.1678	92.2576	91.234	92.2488	91.7265	91.1678	92.2473	92.1752	91.3128	91.7964	91.9301	92.2576	
+TextureRepeatedRandomAccess	   256kB	GB/sec	112.469	112.441	0.419259	111.738	113.132	113.132	112.16	111.738	112.46	112.348	112.725	112.478	112.603	112.922	111.843	
+TextureRepeatedRandomAccess	  1024kB	GB/sec	50.5737	50.6065	0.150798	50.3412	50.9142	50.9142	50.5753	50.7354	50.572	50.5607	50.4867	50.7512	50.3412	50.5283	50.6002	
+TextureRepeatedRandomAccess	  4096kB	GB/sec	25.6716	25.6631	0.0747211	25.5623	25.8039	25.737	25.7099	25.6235	25.5711	25.6924	25.6507	25.8039	25.5623	25.695	25.5847	
+readConstantMemoryCoalesced	GrpSize:032	GB/s	105.957	105.776	0.605169	103.977	106.131	103.977	105.9	105.853	106.061	105.994	106.131	106.026	105.88	105.919	106.015	
+readConstantMemoryCoalesced	GrpSize:064	GB/s	143.987	143.98	0.0944857	143.799	144.125	144.011	143.998	143.947	144.125	143.976	144.016	143.931	144.118	143.799	143.877	
+readConstantMemoryCoalesced	GrpSize:128	GB/s	146.309	146.302	0.0676828	146.196	146.432	146.324	146.254	146.345	146.432	146.302	146.196	146.362	146.275	146.317	146.21	
+readConstantMemoryCoalesced	GrpSize:256	GB/s	142.744	142.767	0.0707536	142.678	142.889	142.719	142.726	142.678	142.694	142.868	142.849	142.748	142.741	142.889	142.758	
+readGlobalMemoryCoalesced	GrpSize:032	GB/s	105.989	105.689	0.944229	102.877	106.165	102.877	105.803	106.09	105.893	105.968	106.011	105.871	106.128	106.089	106.165	
+readGlobalMemoryCoalesced	GrpSize:064	GB/s	143.985	143.954	0.129834	143.68	144.118	143.913	144.026	144.082	144.118	143.68	143.869	143.816	143.949	144.069	144.02	
+readGlobalMemoryCoalesced	GrpSize:128	GB/s	146.325	146.311	0.157437	145.88	146.472	146.3	145.88	146.29	146.334	146.414	146.379	146.448	146.283	146.472	146.316	
+readGlobalMemoryCoalesced	GrpSize:256	GB/s	142.816	142.807	0.0786453	142.696	142.919	142.733	142.714	142.786	142.89	142.846	142.893	142.742	142.854	142.696	142.919	
+readGlobalMemoryUnit	GrpSize:032	GB/s	29.1018	29.3191	1.64422	27.2424	32.0766	28.7013	31.0407	28.2404	27.5543	29.8169	27.6184	32.0766	31.3977	29.5022	27.2424	
+readGlobalMemoryUnit	GrpSize:064	GB/s	17.4003	17.3006	0.561799	16.4448	18.239	16.5941	16.971	17.7936	18.239	17.7798	17.2981	17.6377	16.4448	17.5025	16.7452	
+readGlobalMemoryUnit	GrpSize:128	GB/s	18.6059	18.4434	0.53945	17.552	19.1659	18.502	19.1659	18.8154	18.023	17.552	19.0992	18.7098	17.9257	18.808	17.8327	
+readGlobalMemoryUnit	GrpSize:256	GB/s	18.9004	18.8827	0.342757	18.374	19.531	19.1002	19.531	18.374	18.5975	19.1947	19.0998	18.984	18.5112	18.8168	18.6181	
+readLocalMemory	GrpSize:032	GB/s	238.083	237.428	1.71766	232.37	238.256	232.37	238.118	238.134	238.22	238.256	238.083	238.083	237.985	237.042	237.994	
+readLocalMemory	GrpSize:064	GB/s	487.281	487.079	0.448067	486.041	487.495	486.041	486.589	487.219	487.356	487.318	487.465	487.331	487.495	486.728	487.244	
+readLocalMemory	GrpSize:128	GB/s	650.528	650.296	0.462548	649.379	650.661	649.379	650.466	650.578	649.536	649.966	650.62	650.477	650.641	650.634	650.661	
+readLocalMemory	GrpSize:256	GB/s	654.459	654.513	1.01998	652.621	655.811	655.811	653.895	654.815	653.438	655.04	655.789	652.621	655.604	654.103	654.015	
+writeGlobalMemoryCoalesced	GrpSize:032	GB/s	27.0022	26.9883	0.0397595	26.8695	27.0055	26.8695	26.9923	27.0035	27.0011	26.9984	27.0018	27.0027	27.0055	27.0034	27.0046	
+writeGlobalMemoryCoalesced	GrpSize:064	GB/s	53.6138	53.6085	0.0301628	53.5513	53.6452	53.6247	53.6428	53.5513	53.5857	53.6452	53.5755	53.592	53.603	53.6322	53.6325	
+writeGlobalMemoryCoalesced	GrpSize:128	GB/s	53.6303	53.6262	0.0164295	53.5805	53.6453	53.6327	53.6267	53.6332	53.6314	53.6291	53.6453	53.6347	53.6287	53.5805	53.6198	
+writeGlobalMemoryCoalesced	GrpSize:256	GB/s	53.6292	53.6299	0.0101657	53.6145	53.6474	53.628	53.6145	53.621	53.6292	53.6335	53.6311	53.6462	53.6186	53.6474	53.6292	
+writeGlobalMemoryUnit	GrpSize:032	GB/s	5.60275	5.59854	0.0831172	5.43016	5.7446	5.66927	5.43016	5.60604	5.59132	5.50693	5.64393	5.5531	5.64064	5.7446	5.59946	
+writeGlobalMemoryUnit	GrpSize:064	GB/s	2.70742	2.70632	0.0183991	2.66324	2.7299	2.71619	2.72544	2.70178	2.7213	2.66324	2.69692	2.70992	2.69359	2.7299	2.70491	
+writeGlobalMemoryUnit	GrpSize:128	GB/s	2.67885	2.69835	0.0595784	2.60693	2.82191	2.67952	2.82191	2.60693	2.6758	2.77403	2.66112	2.67818	2.72082	2.71786	2.64735	
+writeGlobalMemoryUnit	GrpSize:256	GB/s	2.71192	2.69929	0.0578152	2.59971	2.78054	2.78054	2.73156	2.69229	2.75437	2.73397	2.74102	2.65873	2.59971	2.60908	2.69164	
+writeLocalMemory	GrpSize:032	GB/s	331.859	331.116	2.36718	324.06	332.221	324.06	331.905	332.159	332.126	332.151	332.221	331.709	331.314	331.813	331.705	
+writeLocalMemory	GrpSize:064	GB/s	659.817	658.699	3.01201	650.023	660.795	660.313	660.795	657.486	659.679	659.798	659.061	650.023	659.837	659.947	660.054	
+writeLocalMemory	GrpSize:128	GB/s	948.018	947.794	0.63088	945.954	948.2	948.102	948.103	948.023	947.699	947.905	948.14	947.806	948.2	945.954	948.013	
+writeLocalMemory	GrpSize:256	GB/s	947.085	944.81	6.07344	927.404	948.601	942.855	946.448	927.404	948.005	948.601	948.25	948.274	947.33	944.09	946.839	
+
+Note: Any results marked with (*) had missing values.
+      This can occur on systems with a mixture of
+      device types or architectural capabilities.

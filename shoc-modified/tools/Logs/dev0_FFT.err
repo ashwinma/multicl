@@ -1,0 +1,5 @@
+Error: CL_INVALID_BUFFER_SIZE in fftlib.cpp line 184
+Error: CL_INVALID_MEM_OBJECT in fftlib.cpp line 191
+Error: CL_INVALID_BUFFER_SIZE in fftlib.cpp line 184
+Error: CL_INVALID_MEM_OBJECT in fftlib.cpp line 191
+Segmentation fault

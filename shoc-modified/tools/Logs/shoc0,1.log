@@ -1,0 +1,68 @@
+--- Welcome To The SHOC Benchmark Suite version 1.1.4 --- 
+Hostname: amdlow1 
+Platform selection not specified, default to platform #0
+Number of available platforms: 1 
+Number of available devices on platform 0 'AMD Accelerated Parallel Processing': 2
+Device 0: Cedar
+Device 1: Intel(R) Celeron(R) CPU          430  @ 1.80GHz
+Specified 2 device IDs: 0,1
+Using size class: 4
+
+--- Starting Benchmarks ---
+Running benchmark BusSpeedDownload
+gcc (Debian 4.4.5-8) 4.4.5
+Copyright (C) 2010 Free Software Foundation, Inc.
+This is free software; see the source for copying conditions.  There is NO
+warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+
+    result for bspeed_download:                 BenchmarkError
+Running benchmark BusSpeedReadback
+    result for bspeed_readback:                 BenchmarkError
+Running benchmark MaxFlops
+    result for maxspflops:                      BenchmarkError
+    result for maxdpflops:                      BenchmarkError
+Running benchmark DeviceMemory
+    result for gmem_readbw:                     BenchmarkError
+    result for gmem_readbw_strided:             BenchmarkError
+    result for gmem_writebw:                    BenchmarkError
+    result for gmem_writebw_strided:            BenchmarkError
+    result for lmem_readbw:                     BenchmarkError
+    result for lmem_writebw:                    BenchmarkError
+    result for tex_readbw:                      BenchmarkError
+Running benchmark KernelCompile
+    result for ocl_kernel:                      BenchmarkError
+Running benchmark QueueDelay
+    result for ocl_queue:                       BenchmarkError
+Running benchmark FFT
+    result for fft_sp:                          BenchmarkError
+    result for fft_dp:                          BenchmarkError
+Running benchmark SGEMM
+    result for sgemm_n:                         BenchmarkError
+    result for dgemm_n:                         BenchmarkError
+Running benchmark MD
+    result for md_sp_flops:                     BenchmarkError
+    result for md_dp_flops:                     BenchmarkError
+Running benchmark Reduction
+    result for reduction:                       BenchmarkError
+    result for reduction_dp:                    BenchmarkError
+Running benchmark Scan
+    result for scan:                            BenchmarkError
+    result for scan_dp:                         BenchmarkError
+Running benchmark Sort
+    result for sort:                            BenchmarkError
+Running benchmark Spmv
+    result for spmv_csr_scalar_sp:              BenchmarkError
+    result for spmv_csr_vector_sp:              BenchmarkError
+    result for spmv_ellpackr_sp:                BenchmarkError
+    result for spmv_csr_scalar_dp:              BenchmarkError
+    result for spmv_csr_vector_dp:              BenchmarkError
+    result for spmv_ellpackr_dp:                BenchmarkError
+Running benchmark Stencil2D
+    result for stencil:                         BenchmarkError
+    result for stencil_dp:                      BenchmarkError
+Running benchmark Triad
+    result for triad_bw:                        BenchmarkError
+Running benchmark S3D
+    result for s3d:                             BenchmarkError
+    result for s3d_dp:                          BenchmarkError
+Skipping non-opencl benchmark QTC

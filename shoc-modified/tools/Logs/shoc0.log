@@ -1,0 +1,21 @@
+--- Welcome To The SHOC Benchmark Suite version 1.1.4 --- 
+Hostname: amdlow1 
+Platform selection not specified, default to platform #0
+Number of available platforms: 1 
+Number of available devices on platform 0 'AMD Accelerated Parallel Processing': 2
+Device 0: Cedar
+Device 1: Intel(R) Celeron(R) CPU          430  @ 1.80GHz
+Specified 1 device IDs: 0
+Using size class: 4
+
+--- Starting Benchmarks ---
+Running benchmark BusSpeedDownload
+gcc (Debian 4.4.5-8) 4.4.5
+Copyright (C) 2010 Free Software Foundation, Inc.
+This is free software; see the source for copying conditions.  There is NO
+warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+
+    result for bspeed_download:                  3.4386 GB/sec
+Running benchmark BusSpeedReadback
+    result for bspeed_readback:                  3.5941 GB/sec
+Running benchmark MaxFlops

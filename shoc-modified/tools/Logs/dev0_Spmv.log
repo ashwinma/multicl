@@ -1,0 +1,85 @@
+Chose device: name='Cedar' index=0 id=0x237d9c0
+Single precision tests:
+CSR Test
+CSR Scalar Kernel
+Pass 0: Passed
+Pass 1: Passed
+Pass 2: Passed
+Pass 3: Passed
+Pass 4: Passed
+Pass 5: Passed
+Pass 6: Passed
+Pass 7: Passed
+Pass 8: Passed
+Pass 9: Passed
+CSR Vector Kernel
+Pass 0: Passed
+Pass 1: Passed
+Pass 2: Passed
+Pass 3: Passed
+Pass 4: Passed
+Pass 5: Passed
+Pass 6: Passed
+Pass 7: Passed
+Pass 8: Passed
+Pass 9: Passed
+CSR Test -- Padded Data
+CSR Scalar Kernel
+Pass 0: Passed
+Pass 1: Passed
+Pass 2: Passed
+Pass 3: Passed
+Pass 4: Passed
+Pass 5: Passed
+Pass 6: Passed
+Pass 7: Passed
+Pass 8: Passed
+Pass 9: Passed
+CSR Vector Kernel
+Pass 0: Passed
+Pass 1: Passed
+Pass 2: Passed
+Pass 3: Passed
+Pass 4: Passed
+Pass 5: Passed
+Pass 6: Passed
+Pass 7: Passed
+Pass 8: Passed
+Pass 9: Passed
+ELLPACKR Test
+Pass 0: Passed
+Pass 1: Passed
+Pass 2: Passed
+Pass 3: Passed
+Pass 4: Passed
+Pass 5: Passed
+Pass 6: Passed
+Pass 7: Passed
+Pass 8: Passed
+Pass 9: Passed
+Double precision not supported by chosen device, skipping
+test	atts	units	median	mean	stddev	min	max	trial0	trial1	trial2	trial3	trial4	trial5	trial6	trial7	trial8	trial9	
+CSR-Scalar-DP	N/A	Gflop/s	N/A	N/A	N/A	N/A	N/A	N/A	N/A	N/A	N/A	N/A	N/A	N/A	N/A	N/A	N/A	
+CSR-Scalar-DP_PCIe	N/A	Gflop/s	N/A	N/A	N/A	N/A	N/A	N/A	N/A	N/A	N/A	N/A	N/A	N/A	N/A	N/A	N/A	
+CSR-Scalar-SP	2684354_elements_16384_rows	Gflop/s	0.0561558	0.0561558	1.2332e-06	0.0561536	0.0561574	0.0561574	0.0561536	0.0561537	0.0561567	0.0561555	0.0561559	0.0561555	0.0561564	0.0561558	0.0561573	
+CSR-Scalar-SP_PCIe	2684354_elements_16384_rows	Gflop/s	0.0470206	0.0470206	8.64615e-07	0.0470191	0.0470217	0.0470217	0.0470191	0.0470191	0.0470212	0.0470204	0.0470207	0.0470204	0.047021	0.0470206	0.0470216	
+CSR-Vector-DP	N/A	Gflop/s	N/A	N/A	N/A	N/A	N/A	N/A	N/A	N/A	N/A	N/A	N/A	N/A	N/A	N/A	N/A	
+CSR-Vector-DP_PCIe	N/A	Gflop/s	N/A	N/A	N/A	N/A	N/A	N/A	N/A	N/A	N/A	N/A	N/A	N/A	N/A	N/A	N/A	
+CSR-Vector-SP	2684354_elements_16384_rows	Gflop/s	0.314033	0.314019	0.000144271	0.313744	0.314238	0.314058	0.314226	0.313835	0.313951	0.314025	0.314021	0.314042	0.314238	0.313744	0.31405	
+CSR-Vector-SP_PCIe	2684354_elements_16384_rows	Gflop/s	0.150511	0.150507	3.31443e-05	0.150444	0.150557	0.150516	0.150555	0.150465	0.150492	0.150509	0.150508	0.150513	0.150557	0.150444	0.150514	
+ELLPACKR-DP	N/A	Gflop/s	N/A	N/A	N/A	N/A	N/A	N/A	N/A	N/A	N/A	N/A	N/A	N/A	N/A	N/A	N/A	
+ELLPACKR-DP_PCIe	N/A	Gflop/s	N/A	N/A	N/A	N/A	N/A	N/A	N/A	N/A	N/A	N/A	N/A	N/A	N/A	N/A	N/A	
+ELLPACKR-SP	2684354_elements_16384_rows	Gflop/s	0.566668	0.566757	0.000538415	0.566068	0.568082	0.566068	0.56663	0.566716	0.566667	0.568082	0.56679	0.566373	0.567281	0.566296	0.566669	
+ELLPACKR-SP_PCIe	2684354_elements_16384_rows	Gflop/s	0.175913	0.175922	5.18325e-05	0.175855	0.176049	0.175855	0.17591	0.175918	0.175913	0.176049	0.175925	0.175885	0.175972	0.175877	0.175913	
+Padded_CSR-Scalar-DP	N/A	Gflop/s	N/A	N/A	N/A	N/A	N/A	N/A	N/A	N/A	N/A	N/A	N/A	N/A	N/A	N/A	N/A	
+Padded_CSR-Scalar-DP_PCIe	N/A	Gflop/s	N/A	N/A	N/A	N/A	N/A	N/A	N/A	N/A	N/A	N/A	N/A	N/A	N/A	N/A	N/A	
+Padded_CSR-Scalar-SP	2806864_elements_16384_rows	Gflop/s	0.0567891	0.0567887	2.02961e-06	0.056784	0.0567912	0.0567884	0.0567906	0.0567899	0.0567881	0.056784	0.0567887	0.0567895	0.0567912	0.0567902	0.0567866	
+Padded_CSR-Scalar-SP_PCIe	2806864_elements_16384_rows	Gflop/s	0.0510513	0.0510509	1.6402e-06	0.0510471	0.0510529	0.0510507	0.0510525	0.0510519	0.0510504	0.0510471	0.0510509	0.0510516	0.0510529	0.0510521	0.0510492	
+Padded_CSR-Vector-DP	N/A	Gflop/s	N/A	N/A	N/A	N/A	N/A	N/A	N/A	N/A	N/A	N/A	N/A	N/A	N/A	N/A	N/A	
+Padded_CSR-Vector-DP_PCIe	N/A	Gflop/s	N/A	N/A	N/A	N/A	N/A	N/A	N/A	N/A	N/A	N/A	N/A	N/A	N/A	N/A	N/A	
+Padded_CSR-Vector-SP	2806864_elements_16384_rows	Gflop/s	0.355454	0.355385	0.000272337	0.354601	0.35565	0.355397	0.355376	0.35565	0.355396	0.355475	0.355546	0.355439	0.35547	0.355497	0.354601	
+Padded_CSR-Vector-SP_PCIe	2806864_elements_16384_rows	Gflop/s	0.208661	0.208637	9.39295e-05	0.208367	0.208729	0.208641	0.208634	0.208729	0.208641	0.208668	0.208693	0.208656	0.208667	0.208676	0.208367	
+
+Note: Any results marked with (*) had missing values.
+      This can occur on systems with a mixture of
+      device types or architectural capabilities.

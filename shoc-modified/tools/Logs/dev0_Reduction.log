@@ -1,0 +1,15 @@
+Chose device: name='Cedar' index=0 id=0x1ae8780
+Compiling reduction kernel.
+Initializing host memory.
+Running benchmark.
+TEST FAILED
+Diff: 1.67774e+07
+DP Not Supported
+test	atts	units	median	mean	stddev	min	max	trial0	trial1	trial2	trial3	trial4	trial5	trial6	trial7	trial8	trial9	
+Reduction-DP	DP_Not_Supported	GB/s	N/A	N/A	N/A	N/A	N/A	N/A	N/A	N/A	N/A	N/A	N/A	N/A	N/A	N/A	N/A	
+Reduction-DP_PCIe	DP_Not_Supported	GB/s	N/A	N/A	N/A	N/A	N/A	N/A	N/A	N/A	N/A	N/A	N/A	N/A	N/A	N/A	N/A	
+Reduction-DP_Parity	DP_Not_Supported	GB/s	N/A	N/A	N/A	N/A	N/A	N/A	N/A	N/A	N/A	N/A	N/A	N/A	N/A	N/A	N/A	
+
+Note: Any results marked with (*) had missing values.
+      This can occur on systems with a mixture of
+      device types or architectural capabilities.

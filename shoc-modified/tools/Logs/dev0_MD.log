@@ -1,0 +1,22 @@
+Chose device: name='Cedar' index=0 id=0xfaa7c0
+Initializing test problem (this can take several minutes for large problems).
+                   Finished.
+9437184 of 9437184 pairs within cutoff distance = 100 %
+Performing Correctness Check (can take several minutes)
+Test Passed
+DP Not Supported
+test	atts	units	median	mean	stddev	min	max	trial0	trial1	trial2	trial3	trial4	trial5	trial6	trial7	trial8	trial9	
+MD-LJ	73728_atoms	GFLOPS	1.53814	1.53815	0.000102176	1.538	1.53831	1.53803	1.53827	1.53811	1.538	1.53819	1.53826	1.53812	1.53807	1.53831	1.53817	
+MD-LJ-Bandwidth	73728_atoms	GB/s	1.17879	1.17879	7.83044e-05	1.17867	1.17892	1.1787	1.17888	1.17876	1.17867	1.17882	1.17888	1.17877	1.17873	1.17892	1.1788	
+MD-LJ-Bandwidth_PCIe	73728_atoms	GB/s	1.04589	1.04589	6.16434e-05	1.0458	1.04599	1.04582	1.04596	1.04587	1.0458	1.04591	1.04596	1.04587	1.04584	1.04599	1.0459	
+MD-LJ-DP	DP_Not_Supported	GB/s	N/A	N/A	N/A	N/A	N/A	N/A	N/A	N/A	N/A	N/A	N/A	N/A	N/A	N/A	N/A	
+MD-LJ-DP-Bandwidth	DP_Not_Supported	GB/s	N/A	N/A	N/A	N/A	N/A	N/A	N/A	N/A	N/A	N/A	N/A	N/A	N/A	N/A	N/A	
+MD-LJ-DP-Bandwidth_PCIe	DP_Not_Supported	GB/s	N/A	N/A	N/A	N/A	N/A	N/A	N/A	N/A	N/A	N/A	N/A	N/A	N/A	N/A	N/A	
+MD-LJ-DP_PCIe	DP_Not_Supported	GB/s	N/A	N/A	N/A	N/A	N/A	N/A	N/A	N/A	N/A	N/A	N/A	N/A	N/A	N/A	N/A	
+MD-LJ-DP_Parity	DP_Not_Supported	GB/s	N/A	N/A	N/A	N/A	N/A	N/A	N/A	N/A	N/A	N/A	N/A	N/A	N/A	N/A	N/A	
+MD-LJ_PCIe	73728_atoms	GFLOPS	1.36473	1.36474	8.04356e-05	1.36462	1.36487	1.36464	1.36483	1.36471	1.36462	1.36477	1.36483	1.36471	1.36467	1.36487	1.36475	
+MD-LJ_Parity	73728_atoms	N	0.127066	0.127067	8.44078e-06	0.127054	0.127081	0.127057	0.127077	0.127064	0.127054	0.12707	0.127076	0.127064	0.12706	0.127081	0.127068	
+
+Note: Any results marked with (*) had missing values.
+      This can occur on systems with a mixture of
+      device types or architectural capabilities.

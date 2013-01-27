@@ -1,0 +1,2 @@
+Running this command to detect devices:
+../bin/Serial/OpenCL/BusSpeedDownload -i > Logs/deviceInfo.txt 2> Logs/deviceInfo.err

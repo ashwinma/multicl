@@ -1,0 +1,9 @@
+Chose device: name='Cedar' index=0 id=0x20a3680
+test	atts	units	median	mean	stddev	min	max	trial0	trial1	trial2	
+SSDelay	1Kernel	ms	0.202993	0.271132	0.0970455	0.202029	0.408374	0.408374	0.202993	0.202029	
+SSDelay	2Kernels	ms	0.257466	0.247087	0.0159696	0.224526	0.259268	0.224526	0.257466	0.259268	
+SSDelay	4Kernels	ms	0.269025	0.270697	0.00901918	0.260583	0.282484	0.282484	0.269025	0.260583	
+
+Note: Any results marked with (*) had missing values.
+      This can occur on systems with a mixture of
+      device types or architectural capabilities.

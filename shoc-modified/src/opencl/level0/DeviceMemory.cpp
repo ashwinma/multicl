@@ -13,15 +13,15 @@
 #include "ProgressBar.h"
 
 using namespace std;
-
+#define VECF_SIZE	4
 void TestImageMemory(cl_context ctx,
                      cl_command_queue queue,
                      ResultDatabase &resultDB,
                      OptionParser &op);
 
 // define the data types for which the benchmarks are run
-typedef enum {INT_TYPE, FLOAT_TYPE, NUM_ELEM_TYPES} ElemType;
-const char* etypeNames[] = {"int", "float"};
+typedef enum {INT_TYPE, SHORT_TYPE, FLOAT_TYPE, LONG_TYPE, VECF_TYPE, NUM_ELEM_TYPES} ElemType;
+const char* etypeNames[] = {"int", "short int", "float", "long int", "float4"};
 
 // define the type of benchmark operations
 typedef enum {OP_MEM_READ=1, OP_MEM_WRITE=2, NUM_MEMORY_OPERATIONS} OperationType;
@@ -47,12 +47,13 @@ struct _benchmark_type {
    int   maxGroupSize;           // maximum local work group size (0 to use the card's maximum)
    unsigned int opFlags;         // indicates if kernel applies to READ and/or WRITE operations
 } bTestsGPU[] = {
-  {"GlobalMemoryCoalesced", "__global", "__global", "s", "gid", false, -1, 0, false, 0, 0, 1024, 16, 64, 256, OP_MEM_READ|OP_MEM_WRITE},
-  {"GlobalMemoryUnit", "__global", "__global", "s", "gid*1024", false, 16384, 0, false, 0, 0, 512, 16, 64, 256, OP_MEM_READ|OP_MEM_WRITE},
-  {"GlobalMemoryUnCoalesced2", "__global", "__global", "s", "gid*2", false, 1, 0, false, 0, 0, 512, 16, 64, 256, OP_MEM_READ|OP_MEM_WRITE},
-  {"GlobalMemoryUnCoalesced4", "__global", "__global", "s", "gid*4", false, 1, 0, false, 0, 0, 512, 16, 64, 256, OP_MEM_READ|OP_MEM_WRITE},
-  {"GlobalMemoryUnCoalesced8", "__global", "__global", "s", "gid*8", false, 1, 0, false, 0, 0, 512, 16, 64, 256, OP_MEM_READ|OP_MEM_WRITE},
-  {"ConstantMemoryCoalesced", "__global const", "__global", "s", "gid", false, -1, 0, false, 0, 0, 1024, 64, 32, 0, OP_MEM_READ},
+//  {"GlobalMemoryCoalesced", "__global", "__global", "s", "gid", false, -1, 0, false, 0, 0, 1024, 16, 32, 512, OP_MEM_READ|OP_MEM_WRITE},
+//  {"GlobalMemoryUnit", "__global", "__global", "s", "gid*1024", false, 16384, 0, false, 0, 0, 512, 16, 32, 512, OP_MEM_READ|OP_MEM_WRITE},
+//  {"GlobalMemoryUnCoalescedHalf", "__global", "__global", "s", "gid/2", false, -1, 0, false, 0, 0, 512, 16, 32, 512, OP_MEM_READ|OP_MEM_WRITE},
+//  {"GlobalMemoryUnCoalesced2", "__global", "__global", "s", "gid*2", false, -1, 0, false, 0, 0, 512, 16, 32, 512, OP_MEM_READ|OP_MEM_WRITE},
+//  {"GlobalMemoryUnCoalesced4", "__global", "__global", "s", "gid*4", false, -1, 0, false, 0, 0, 512, 16, 32, 512, OP_MEM_READ|OP_MEM_WRITE},
+//  {"GlobalMemoryUnCoalesced8", "__global", "__global", "s", "gid*8", false, -1, 0, false, 0, 0, 512, 16, 32, 512, OP_MEM_READ|OP_MEM_WRITE},
+  //{"ConstantMemoryCoalesced", "__global const", "__global", "s", "gid", false, -1, 0, false, 0, 0, 1024, 64, 32, 0, OP_MEM_READ},
   {"LocalMemory", "__global const", "__global", "s", "tid", false, 1, 0, true, 2048, 0, 3000, 16, 32, 0, OP_MEM_READ|OP_MEM_WRITE},
   {0, 0, 0, 0, 0, 0, 0, false, 0, 0, 0, 0}
 };
@@ -126,8 +127,14 @@ generateKernel (ostringstream &oss,
     int u;
     int elemSize;
     long localMemSize = 0;
-    if (etype==INT_TYPE)
+    if (etype==SHORT_TYPE)
+       elemSize = sizeof(short int);
+    else if (etype==VECF_TYPE)
+       elemSize = sizeof(float) * VECF_SIZE;
+    else if (etype==INT_TYPE)
        elemSize = sizeof(int);
+    else if (etype==LONG_TYPE)
+       elemSize = sizeof(long int);
     else
        elemSize = sizeof(float);
     if (test.useLocalMem)
@@ -324,11 +331,17 @@ void RunBenchmark(cl::Device& devcpp,
 
     
 // Only change following information for a particular AMD GPU
-#define WAVEFRONT_SIZE 64
-#define NBLOCKS 12
-    size_t numCU = 32;
-    size_t maxWavefronts = 1280;
-    size_t numBlocksArr[NBLOCKS] = {1,2,4,8,16,32,64,128,256,512,1024,1280};
+#define WAVEFRONT_SIZE 32
+#define NBLOCKS 9
+#if 1
+    size_t numCU = 14;
+    size_t maxWavefronts = (48 * 14);
+    size_t numBlocksArr[NBLOCKS] = {1,2,4,8,14,28,42,56,112};
+#else
+    size_t numCU = 30;
+    size_t maxWavefronts = (32 * 30);
+    size_t numBlocksArr[NBLOCKS] = {1,2,4,8,16,30,60,120,240};
+#endif
     //size_t numBlocksArr[1] = {100};
 
     // 1k through 8M bytes
@@ -348,6 +361,9 @@ void RunBenchmark(cl::Device& devcpp,
     while (memSize*2 > availMem)
        memSize >>= 1;   // keep it a power of 2
     
+    const int numWordsShortInt = memSize / sizeof(short int);
+    const int numWordsLongInt = memSize / sizeof(long int);
+    const int numWordsVecfFloat = memSize / sizeof(float) * VECF_SIZE;
     const int numWordsInt = memSize / sizeof(int);
     const int numWordsFloat = memSize / sizeof(float);
 
@@ -359,11 +375,32 @@ void RunBenchmark(cl::Device& devcpp,
         int elemSize;
 
         // initialize host memory
+        short int *hostMemShortInt = new short int[numWordsShortInt];
         int *hostMemInt = new int[numWordsInt];
+        long int *hostMemLongInt = new long int[numWordsLongInt];
+        float *hostMemVecfFloat = new float[numWordsVecfFloat * VECF_SIZE];
         float *hostMemFloat = new float[numWordsFloat];
+        short int *outMemShortInt = new short int[numWordsShortInt];
         int *outMemInt = new int[numWordsInt];
+        long int *outMemLongInt = new long int[numWordsLongInt];
+        float *outMemVecfFloat = new float[numWordsVecfFloat * VECF_SIZE];
         float *outMemFloat = new float[numWordsFloat];
         srand48(8650341L);
+        for (int i=0 ; i<numWordsShortInt; ++i) 
+        {
+            hostMemShortInt[i] = (short int)floor(drand48()*numWordsShortInt);
+        }
+        for (int i=0 ; i<numWordsVecfFloat ; ++i) 
+        {
+            hostMemVecfFloat[i] = (float)floor(drand48()*numWordsVecfFloat*VECF_SIZE);
+            hostMemVecfFloat[i+1] = (float)floor(drand48()*numWordsVecfFloat*VECF_SIZE);
+            hostMemVecfFloat[i+2] = (float)floor(drand48()*numWordsVecfFloat*VECF_SIZE);
+            hostMemVecfFloat[i+3] = (float)floor(drand48()*numWordsVecfFloat*VECF_SIZE);
+        }
+        for (int i=0 ; i<numWordsLongInt ; ++i) 
+        {
+            hostMemLongInt[i] = (long int)floor(drand48()*numWordsLongInt);
+        }
         for (int i=0 ; i<numWordsInt ; ++i) 
         {
             hostMemInt[i] = (int)floor(drand48()*numWordsInt);
@@ -390,8 +427,9 @@ void RunBenchmark(cl::Device& devcpp,
             // for each data type; currently only floating point type is used because
             // there were no major differences in the performance results with
             // integer and floating point data types.
-            for (etype=FLOAT_TYPE ; etype<NUM_ELEM_TYPES ; ++etype)
-            {
+            //for (etype=SHORT_TYPE ; etype < FLOAT_TYPE ; ++etype)
+            etype=FLOAT_TYPE;
+			{
                 int bIdx = 0;
                 while ((bTests!=0) && (bTests[bIdx].name!=0))
                 {
@@ -457,13 +495,114 @@ void RunBenchmark(cl::Device& devcpp,
             // for each data type; currently only floating point type is used because
             // there were no major differences in the performance results with
             // integer and floating point data types.
-            for (etype=FLOAT_TYPE ; etype<NUM_ELEM_TYPES ; ++etype)
-            {
+            //for (etype=SHORT_TYPE ; etype<FLOAT_TYPE ; ++etype)
+            etype = FLOAT_TYPE;
+			{
                 cl_mem mem1, mem2;
                 ElemType et = (ElemType)etype;
                 switch (et)
                 {
-                    case INT_TYPE:
+					case VECF_TYPE:
+                    {
+                        elemSize = sizeof(float) * VECF_SIZE;
+                        mem1 = clCreateBuffer(ctx, CL_MEM_READ_WRITE, 
+                                     sizeof(cl_float4)*(numWordsVecfFloat), 
+                                     NULL, &err);
+                        CL_CHECK_ERROR(err);
+                        Event evDownloadPrime("DownloadPrime");
+                        err = clEnqueueWriteBuffer(queue, mem1, false, 0,
+                                     (numWordsVecfFloat)*sizeof(float) * VECF_SIZE, 
+                                     hostMemVecfFloat,
+                                     0, NULL, 
+                                     &evDownloadPrime.CLEvent());
+                        CL_CHECK_ERROR(err);
+                        err = clWaitForEvents(1, &evDownloadPrime.CLEvent());
+                        CL_CHECK_ERROR(err);
+                       
+                        mem2 = clCreateBuffer(ctx, CL_MEM_READ_WRITE, 
+                                     sizeof(cl_float4)*(numWordsVecfFloat), 
+                                     NULL, &err);
+                        CL_CHECK_ERROR(err);
+                        Event evDownloadPrime2("DownloadPrime");
+                        err = clEnqueueWriteBuffer(queue, mem2, false, 0,
+                                     (numWordsVecfFloat)*sizeof(float) * VECF_SIZE, 
+                                     hostMemVecfFloat,
+                                     0, NULL, 
+                                     &evDownloadPrime2.CLEvent());
+                        CL_CHECK_ERROR(err);
+                        err = clWaitForEvents(1, &evDownloadPrime2.CLEvent());
+                        CL_CHECK_ERROR(err);
+                    }
+                    break;
+
+					case LONG_TYPE:
+                    {
+                        elemSize = sizeof(long int);
+                        mem1 = clCreateBuffer(ctx, CL_MEM_READ_WRITE, 
+                                     sizeof(cl_long)*(numWordsLongInt), 
+                                     NULL, &err);
+                        CL_CHECK_ERROR(err);
+                        Event evDownloadPrime("DownloadPrime");
+                        err = clEnqueueWriteBuffer(queue, mem1, false, 0,
+                                     (numWordsLongInt)*sizeof(long int), 
+                                     hostMemLongInt,
+                                     0, NULL, 
+                                     &evDownloadPrime.CLEvent());
+                        CL_CHECK_ERROR(err);
+                        err = clWaitForEvents(1, &evDownloadPrime.CLEvent());
+                        CL_CHECK_ERROR(err);
+                       
+                        mem2 = clCreateBuffer(ctx, CL_MEM_READ_WRITE, 
+                                     sizeof(cl_long)*(numWordsLongInt), 
+                                     NULL, &err);
+                        CL_CHECK_ERROR(err);
+                        Event evDownloadPrime2("DownloadPrime");
+                        err = clEnqueueWriteBuffer(queue, mem2, false, 0,
+                                     (numWordsLongInt)*sizeof(long int), 
+                                     hostMemLongInt,
+                                     0, NULL, 
+                                     &evDownloadPrime2.CLEvent());
+                        CL_CHECK_ERROR(err);
+                        err = clWaitForEvents(1, &evDownloadPrime2.CLEvent());
+                        CL_CHECK_ERROR(err);
+                    }
+                    break;
+
+
+                    case SHORT_TYPE:
+                    {
+                        elemSize = sizeof(short int);
+                        mem1 = clCreateBuffer(ctx, CL_MEM_READ_WRITE, 
+                                     sizeof(cl_short)*(numWordsShortInt), 
+                                     NULL, &err);
+                        CL_CHECK_ERROR(err);
+                        Event evDownloadPrime("DownloadPrime");
+                        err = clEnqueueWriteBuffer(queue, mem1, false, 0,
+                                     (numWordsShortInt)*sizeof(short int), 
+                                     hostMemShortInt,
+                                     0, NULL, 
+                                     &evDownloadPrime.CLEvent());
+                        CL_CHECK_ERROR(err);
+                        err = clWaitForEvents(1, &evDownloadPrime.CLEvent());
+                        CL_CHECK_ERROR(err);
+                       
+                        mem2 = clCreateBuffer(ctx, CL_MEM_READ_WRITE, 
+                                     sizeof(cl_short)*(numWordsShortInt), 
+                                     NULL, &err);
+                        CL_CHECK_ERROR(err);
+                        Event evDownloadPrime2("DownloadPrime");
+                        err = clEnqueueWriteBuffer(queue, mem2, false, 0,
+                                     (numWordsShortInt)*sizeof(short int), 
+                                     hostMemShortInt,
+                                     0, NULL, 
+                                     &evDownloadPrime2.CLEvent());
+                        CL_CHECK_ERROR(err);
+                        err = clWaitForEvents(1, &evDownloadPrime2.CLEvent());
+                        CL_CHECK_ERROR(err);
+                    }
+                    break;
+
+                	case INT_TYPE:
                     {
                         elemSize = sizeof(int);
                         mem1 = clCreateBuffer(ctx, CL_MEM_READ_WRITE, 
@@ -584,7 +723,19 @@ void RunBenchmark(cl::Device& devcpp,
                                     (void*)&mem2);
                     CL_CHECK_ERROR(err);
                     ++ argIdx;
-                    if (et == INT_TYPE)
+                    if (et == SHORT_TYPE)
+                       err = clSetKernelArg(kernel_mem, argIdx, 
+                                    sizeof(cl_int), 
+                                    (void*)&numWordsShortInt);
+                    else if (et == LONG_TYPE)
+                       err = clSetKernelArg(kernel_mem, argIdx, 
+                                    sizeof(cl_int), 
+                                    (void*)&numWordsLongInt);
+                    else if (et == VECF_TYPE)
+                       err = clSetKernelArg(kernel_mem, argIdx, 
+                                    sizeof(cl_int), 
+                                    (void*)&numWordsVecfFloat);
+                    else if (et == INT_TYPE)
                        err = clSetKernelArg(kernel_mem, argIdx, 
                                     sizeof(cl_int), 
                                     (void*)&numWordsInt);
@@ -614,7 +765,7 @@ void RunBenchmark(cl::Device& devcpp,
     //                    numBlocks = globalWorkSize / localWorkSize;
                         globalWorkSize = numBlocks*localWorkSize;
                         
-                        if(globalWorkSize/WAVEFRONT_SIZE < maxWavefronts) {
+                        if(globalWorkSize/WAVEFRONT_SIZE <= maxWavefronts) {
                             if (verbose)
                                 cout << ">> running the " << kName 
                                      << " kernel, globalWorkSize=" << globalWorkSize
@@ -636,12 +787,31 @@ void RunBenchmark(cl::Device& devcpp,
                                 
                                 // Read the result device memory back to the host
                                 Event evReadback("Readback");
-                                if (et == INT_TYPE)
+                                if (et == SHORT_TYPE)
+                                {
+                                    err = clEnqueueReadBuffer(queue, mem2, false, 0,
+                                             numWordsShortInt*sizeof(short int), outMemShortInt,
+                                             0, NULL, &evReadback.CLEvent());
+                                } 
+                                else if (et == LONG_TYPE)
+                                {
+                                    err = clEnqueueReadBuffer(queue, mem2, false, 0,
+                                             numWordsLongInt*sizeof(long int), outMemLongInt,
+                                             0, NULL, &evReadback.CLEvent());
+                                } 
+                                else if (et == VECF_TYPE)
+                                {
+                                    err = clEnqueueReadBuffer(queue, mem2, false, 0,
+                                             numWordsVecfFloat*sizeof(float) * VECF_SIZE, outMemVecfFloat,
+                                             0, NULL, &evReadback.CLEvent());
+                                } 
+                                else if (et == INT_TYPE)
                                 {
                                     err = clEnqueueReadBuffer(queue, mem2, false, 0,
                                              numWordsInt*sizeof(int), outMemInt,
                                              0, NULL, &evReadback.CLEvent());
-                                } else
+                                } 
+								else
                                 {
                                     err = clEnqueueReadBuffer(queue, mem2, false, 0,
                                              numWordsFloat*sizeof(float), outMemFloat,
@@ -692,9 +862,15 @@ void RunBenchmark(cl::Device& devcpp,
         }  // for each memory operation
         fprintf (stdout, "\n\n");
         
+        delete[] hostMemShortInt;
         delete[] hostMemInt;
+        delete[] hostMemLongInt;
+        delete[] hostMemVecfFloat;
         delete[] hostMemFloat;
+        delete[] outMemShortInt;
         delete[] outMemInt;
+        delete[] outMemLongInt;
+        delete[] outMemVecfFloat;
         delete[] outMemFloat;
     }
 

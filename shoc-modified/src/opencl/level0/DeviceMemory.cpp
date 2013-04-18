@@ -47,12 +47,12 @@ struct _benchmark_type {
    int   maxGroupSize;           // maximum local work group size (0 to use the card's maximum)
    unsigned int opFlags;         // indicates if kernel applies to READ and/or WRITE operations
 } bTestsGPU[] = {
-//  {"GlobalMemoryCoalesced", "__global", "__global", "s", "gid", false, -1, 0, false, 0, 0, 1024, 16, 32, 512, OP_MEM_READ|OP_MEM_WRITE},
-//  {"GlobalMemoryUnit", "__global", "__global", "s", "gid*1024", false, 16384, 0, false, 0, 0, 512, 16, 32, 512, OP_MEM_READ|OP_MEM_WRITE},
-//  {"GlobalMemoryUnCoalescedHalf", "__global", "__global", "s", "gid/2", false, -1, 0, false, 0, 0, 512, 16, 32, 512, OP_MEM_READ|OP_MEM_WRITE},
-//  {"GlobalMemoryUnCoalesced2", "__global", "__global", "s", "gid*2", false, -1, 0, false, 0, 0, 512, 16, 32, 512, OP_MEM_READ|OP_MEM_WRITE},
-//  {"GlobalMemoryUnCoalesced4", "__global", "__global", "s", "gid*4", false, -1, 0, false, 0, 0, 512, 16, 32, 512, OP_MEM_READ|OP_MEM_WRITE},
-//  {"GlobalMemoryUnCoalesced8", "__global", "__global", "s", "gid*8", false, -1, 0, false, 0, 0, 512, 16, 32, 512, OP_MEM_READ|OP_MEM_WRITE},
+//  {"GlobalMemoryCoalesced", "__global", "__global", "s", "gid", false, -1, 0, false, 0, 0, 1024, 16, 64, 256, OP_MEM_READ|OP_MEM_WRITE},
+//  {"GlobalMemoryUnit", "__global", "__global", "s", "gid*1024", false, 16384, 0, false, 0, 0, 512, 16, 64, 256, OP_MEM_READ|OP_MEM_WRITE},
+//  {"GlobalMemoryUnCoalescedHalf", "__global", "__global", "s", "gid/2", false, -1, 0, false, 0, 0, 512, 16, 64, 256, OP_MEM_READ|OP_MEM_WRITE},
+//  {"GlobalMemoryUnCoalesced2", "__global", "__global", "s", "gid*2", false, -1, 0, false, 0, 0, 512, 16, 64, 256, OP_MEM_READ|OP_MEM_WRITE},
+//  {"GlobalMemoryUnCoalesced4", "__global", "__global", "s", "gid*4", false, -1, 0, false, 0, 0, 512, 16, 64, 256, OP_MEM_READ|OP_MEM_WRITE},
+//  {"GlobalMemoryUnCoalesced8", "__global", "__global", "s", "gid*8", false, -1, 0, false, 0, 0, 512, 16, 64, 256, OP_MEM_READ|OP_MEM_WRITE},
   //{"ConstantMemoryCoalesced", "__global const", "__global", "s", "gid", false, -1, 0, false, 0, 0, 1024, 64, 32, 0, OP_MEM_READ},
   {"LocalMemory", "__global const", "__global", "s", "tid", false, 1, 0, true, 2048, 0, 3000, 16, 32, 0, OP_MEM_READ|OP_MEM_WRITE},
   {0, 0, 0, 0, 0, 0, 0, false, 0, 0, 0, 0}
@@ -331,6 +331,13 @@ void RunBenchmark(cl::Device& devcpp,
 
     
 // Only change following information for a particular AMD GPU
+#if 1
+#define WAVEFRONT_SIZE 64
+#define NBLOCKS 12
+    size_t numCU = 32;
+    size_t maxWavefronts = 1280;
+    size_t numBlocksArr[NBLOCKS] = {1,2,4,8,16,32,64,128,256,512,1024,1280};
+#else
 #define WAVEFRONT_SIZE 32
 #define NBLOCKS 9
 #if 1
@@ -341,6 +348,7 @@ void RunBenchmark(cl::Device& devcpp,
     size_t numCU = 30;
     size_t maxWavefronts = (32 * 30);
     size_t numBlocksArr[NBLOCKS] = {1,2,4,8,16,30,60,120,240};
+#endif
 #endif
     //size_t numBlocksArr[1] = {100};
 
@@ -363,7 +371,7 @@ void RunBenchmark(cl::Device& devcpp,
     
     const int numWordsShortInt = memSize / sizeof(short int);
     const int numWordsLongInt = memSize / sizeof(long int);
-    const int numWordsVecfFloat = memSize / sizeof(float) * VECF_SIZE;
+    const int numWordsVecfFloat = memSize / (sizeof(float) * VECF_SIZE);
     const int numWordsInt = memSize / sizeof(int);
     const int numWordsFloat = memSize / sizeof(float);
 
@@ -414,7 +422,7 @@ void RunBenchmark(cl::Device& devcpp,
         int err;
         char sizeStr[128];
         bool addTypeSuffix = false;
-        cl_ulong localMemSize = getLocalMemSize(dev);
+        cl_ulong localMemSize = getLocalMemSize(dev)/8;
 
         struct _benchmark_type *bTests = bTestsGPU;
         
@@ -428,7 +436,7 @@ void RunBenchmark(cl::Device& devcpp,
             // there were no major differences in the performance results with
             // integer and floating point data types.
             //for (etype=SHORT_TYPE ; etype < FLOAT_TYPE ; ++etype)
-            etype=FLOAT_TYPE;
+            etype=VECF_TYPE;
 			{
                 int bIdx = 0;
                 while ((bTests!=0) && (bTests[bIdx].name!=0))
@@ -496,7 +504,7 @@ void RunBenchmark(cl::Device& devcpp,
             // there were no major differences in the performance results with
             // integer and floating point data types.
             //for (etype=SHORT_TYPE ; etype<FLOAT_TYPE ; ++etype)
-            etype = FLOAT_TYPE;
+            etype = VECF_TYPE;
 			{
                 cl_mem mem1, mem2;
                 ElemType et = (ElemType)etype;

@@ -45,7 +45,7 @@ void *GPUDriversimwrapper(void *dummy)
 	/* Set affinity mask to include CPUs 0 to 7 */
 	CPU_ZERO(&cpuset);
 	//for (j = 0; j < 8; j++)
-	CPU_SET(1, &cpuset);
+	CPU_SET(7, &cpuset);
 	int s = pthread_setaffinity_np(thread, sizeof(cpu_set_t), &cpuset);
 	if (s != 0)
 		cout << "Error code " << s << " inpthread_setaffinity_np" << endl;

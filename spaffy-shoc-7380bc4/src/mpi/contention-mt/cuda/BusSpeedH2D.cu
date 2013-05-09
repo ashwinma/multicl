@@ -67,6 +67,11 @@ void RunBenchmark(ResultDatabase &resultDB,
 {
     const bool verbose = op.getOptionBool("verbose");
     const bool pinned = !op.getOptionBool("nopinned");
+	int cur_device;
+	cudaGetDevice(&cur_device);
+	CHECK_CUDA_ERROR();
+	cudaSetDevice(1);
+	CHECK_CUDA_ERROR();
 
     // Sizes are in kb
     //int nSizes  = 20;
@@ -142,7 +147,11 @@ void RunBenchmark(ResultDatabase &resultDB,
 			exit(-1);
 	    }
 	}
-
+	
+	int cur_dev;
+	cudaGetDevice(&cur_dev);
+	CHECK_CUDA_ERROR();
+    cout << "[CUDA-Task] Running CUDA benchmarks on device: " << cur_dev << "\n";
 	int iter = 0;
     // Three passes, forward and backward both
 #ifndef LONG_GPU_RUNS
@@ -217,4 +226,6 @@ void RunBenchmark(ResultDatabase &resultDB,
     }
     cudaEventDestroy(start);
     cudaEventDestroy(stop);
+	cudaSetDevice(cur_device);
+    CHECK_CUDA_ERROR();
 }

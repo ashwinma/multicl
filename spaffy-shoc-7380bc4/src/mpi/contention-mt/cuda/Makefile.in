@@ -25,7 +25,7 @@ ALLOBJ=$(COMMONOBJ_CUDA) $(BENCHMARKOBJ_CUDA)
 LIBS+=-lSHOCCommonMPI -lSHOCCommon
 #CUDA_LIBS+=-lSHOCCommonCUDA
 
-CPPFLAGS+=-I${SHOC_ROOT}/src/mpi/common -I${HOME}/opt/include -I/opt/apps/cuda/4.0.17/include
+CPPFLAGS+=-I${SHOC_ROOT}/src/mpi/common -I${HOME}/opt/include -I$(CUDA_INSTALL_PATH)/include
 
 MPI_LIBS    = -lSHOCCommonMPI
 

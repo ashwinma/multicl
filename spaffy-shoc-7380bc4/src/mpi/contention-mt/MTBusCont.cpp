@@ -59,7 +59,7 @@ void MPITest(OptionParser &op, ResultDatabase &resultDB, int numtasks, int myran
     int minmsg_sz = op.getOptionInt("MPIminmsg");
     int maxmsg_sz = op.getOptionInt("MPImaxmsg");
     string gpu_tests = op.getOptionString("gpuTests");
-    int iterations = 2;
+    int iterations = 10;
     //int iterations = op.getOptionInt("MPIiter");
     int npasses = op.getOptionInt("passes");
     char *recvbuf = NULL;
@@ -71,7 +71,7 @@ void MPITest(OptionParser &op, ResultDatabase &resultDB, int numtasks, int myran
     MPI_Request req;
 
 #ifdef MPIACC_TESTS
-	cudaSetDevice(0);
+	//cudaSetDevice(0);
 	CUDA_CHECK_ERR("CUDA Set device");
 	size_t mem_free;
 	size_t mem_total;
@@ -171,6 +171,10 @@ void MPITest(OptionParser &op, ResultDatabase &resultDB, int numtasks, int myran
 	}
 
 	printf("[MPI-Task] All clear to start MPI task... \n");
+	int cur_dev;
+	cudaGetDevice(&cur_dev);
+	CUDA_CHECK_ERR("Get CUDA Device");
+    cout << "[MPI-Task] Running MPI-ACC benchmarks on device: " << cur_dev << "\n";
 #endif //MPIACC_TESTS
 #ifndef LONG_GPU_RUNS
     for(int passes = 0; passes < npasses; passes++) {

@@ -16,7 +16,7 @@ LIBS     = -L$(SHOC_ROOT)/lib @LIBS@
 USE_MPI         = @USE_MPI@
 MPICXX          = @MPICXX@
 
-OCL_CPPFLAGS    += -I${SHOC_ROOT}/src/opencl/common
+OCL_CPPFLAGS    += -I${SHOC_ROOT}/src/opencl/common -I${SHOC_ROOT}/src/cuda/include
 OCL_LIBS        = @OPENCL_LIBS@
 
 NVCC            = @NVCC@

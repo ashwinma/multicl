@@ -20,6 +20,70 @@ void addBenchmarkSpecOptions(OptionParser &op);
 void RunBenchmark(ResultDatabase &resultDB,
                   OptionParser &op);
 
+void MPIACCGetCPUCore_proc(int *coreId)
+{
+	pid_t proc = getpid();
+	cpu_set_t cpuset;
+	/* Check the actual affinity mask assigned to the thread */
+	int s = sched_getaffinity(proc, sizeof(cpu_set_t), &cpuset);
+	if (s != 0)
+		cout << "Error code " << s << " in sched_getaffinity" << endl;
+	for (int j = 0; j < CPU_SETSIZE; j++)
+		if (CPU_ISSET(j, &cpuset))
+			*coreId = j;
+}
+
+void MPIACCGetCPUCore_thread(int *coreId)
+{
+#if 1
+	pthread_t thread = pthread_self();
+	cpu_set_t cpuset;
+	/* Check the actual affinity mask assigned to the thread */
+	int s = pthread_getaffinity_np(thread, sizeof(cpu_set_t), &cpuset);
+	if (s != 0)
+		cout << "Error code " << s << " in pthread_getaffinity_np" << endl;
+	for (int j = 0; j < CPU_SETSIZE; j++)
+		if (CPU_ISSET(j, &cpuset))
+			*coreId = j;
+#endif
+}
+
+void MPIACCSetCPUCore_proc(const int coreId)
+{
+	pid_t proc = getpid();
+	cpu_set_t cpuset;
+	/* Set affinity mask to include CPUs 0 to 7 */
+	CPU_ZERO(&cpuset);
+	//for (j = 0; j < 8; j++)
+	CPU_SET(coreId, &cpuset);
+	int s = sched_setaffinity(proc, sizeof(cpu_set_t), &cpuset); 
+	if (s != 0)
+		cout << "Error code " << s << " in sched_setaffinity" << endl;
+}
+
+void MPIACCSetCPUCore_thread(const int coreId)
+{	
+#if 1
+	pthread_t thread = pthread_self();
+	cpu_set_t cpuset;
+	/* Set affinity mask to include CPUs 0 to 7 */
+	CPU_ZERO(&cpuset);
+	//for (j = 0; j < 8; j++)
+	CPU_SET(coreId, &cpuset);
+	int s = pthread_setaffinity_np(thread, sizeof(cpu_set_t), &cpuset);
+	if (s != 0)
+		cout << "Error code " << s << " in pthread_setaffinity_np" << endl;
+#endif
+}
+/*
+void MPIACCGetGPUDevice(int *devId)
+{
+}
+
+void MPIACCSetGPUDevice(const int devId)
+{
+}
+*/
 void EnumerateDevicesAndChoose(int chooseDevice, bool verbose, const char* prefix = NULL)
 {
     cudaSetDevice(chooseDevice);

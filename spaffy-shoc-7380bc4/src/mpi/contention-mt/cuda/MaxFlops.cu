@@ -107,6 +107,9 @@ void RunBenchmark(ResultDatabase &resultDB, OptionParser &op)
     bool quiet = op.getOptionBool("quiet");
     const unsigned int passes = op.getOptionInt("passes");
 
+	int cur_cpu_core;
+	MPIACCGetCPUCore_thread(&cur_cpu_core);
+	MPIACCSetCPUCore_thread(1);
     // Test to see if this device supports double precision
     int device;
     cudaGetDevice(&device);
@@ -309,6 +312,10 @@ void RunBenchmark(ResultDatabase &resultDB, OptionParser &op)
         cudaEventRecord(start, d_stream);
         MulMAddU<<< blocks, threads, 0, d_stream >>>(target_sp, val1, val2);
         cudaEventRecord(stop, d_stream);
+/*        cudaEventRecord(start, 0);
+        MulMAddU<<< blocks, threads >>>(target_sp, val1, val2);
+        cudaEventRecord(stop, 0);*/
+        //cudaStreamSynchronize(d_stream);
         cudaEventSynchronize(stop);
         CHECK_CUDA_ERROR();
         cudaEventElapsedTime(&t, start, stop);
@@ -316,7 +323,7 @@ void RunBenchmark(ResultDatabase &resultDB, OptionParser &op)
 
         // Add result
 #ifdef LONG_GPU_RUNS
-        nflopsPerPixel = ((3*8)*10*10*5*100) + 13;
+        nflopsPerPixel = ((3*8)*10*10*5*10) + 13;
 #else
         nflopsPerPixel = ((3*8)*10*10*5) + 13;
 #endif
@@ -336,6 +343,7 @@ void RunBenchmark(ResultDatabase &resultDB, OptionParser &op)
 	} while(mpidone != 1);
 #endif
 	printf("Done with CUDA Tests...\n");
+	MPIACCSetCPUCore_thread(cur_cpu_core);
 	cudaStreamDestroy(d_stream);
 	CHECK_CUDA_ERROR();
     cudaFree((void*)target_sp);
@@ -1602,8 +1610,9 @@ __global__ void MulMAddU(float *target, float val1, float val2)
     // 10 OP10s inside the loop = 2400 FLOPS in the .ptx code
     // and 5 loops of 10 OP10s = 12000 FLOPS per pixel total
 #ifdef LONG_GPU_RUNS
-	for (int i=0; i<5*100; i++)
+	for (int i=0; i<5*10; i++)
 #else
+    //for (int i=0; i<8; i++)
     for (int i=0; i<5; i++)
 #endif
     {

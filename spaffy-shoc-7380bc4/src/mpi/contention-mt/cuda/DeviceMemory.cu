@@ -93,6 +93,9 @@ void RunBenchmark(ResultDatabase &resultDB,
        memSize >>= 1;   // keep it a power of 2
     
     const unsigned int numWordsFloat = memSize / sizeof(float);
+	int cur_cpu_core;
+	MPIACCGetCPUCore_thread(&cur_cpu_core);
+	MPIACCSetCPUCore_thread(1);
 
     // Initialize host memory
     float *h_in  = new float[numWordsFloat];
@@ -294,6 +297,7 @@ void RunBenchmark(ResultDatabase &resultDB,
 #endif
 	//cudado = 0;
 	printf("Done with CUDA Tests...\n");
+	MPIACCSetCPUCore_thread(cur_cpu_core);
 	cudaStreamDestroy(d_stream);
 	CHECK_CUDA_ERROR();
     cudaFree(d_mem1);

@@ -1,7 +1,7 @@
 #include <string.h>
 #include <iomanip>
 #include <pthread.h>
-
+//#include <cuda_profiler_api.h>
 // When using MPICH and MPICH-derived MPI implementations, there is a
 // naming conflict between stdio.h and MPI's C++ binding.
 // Since we do not use the C++ MPI binding, we can avoid the ordering
@@ -9,6 +9,9 @@
 // This #define should be quietly ignored when using other MPI implementations.
 #define MPICH_SKIP_MPICXX
 #include "mpi.h"
+#include "misc_mpi_defs.h"
+
+#include "gpu_ops.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -19,6 +22,15 @@
 #include <ParallelResultDatabase.h>
 #include <ParallelHelpers.h>
 using namespace std;
+
+#define CUDA_CHECK_ERR(msg) \
+	{ \
+		cudaError_t cu_err = cudaGetLastError(); \
+		if(cu_err != cudaSuccess) { \
+			fprintf(stderr, "CUDA error: %s %s.\n", msg, cudaGetErrorString( cu_err) ); \
+			return MPI_ERR_OTHER; \
+		} \
+	}
 
 int mympirank;
 void GPUDriversim();
@@ -35,20 +47,36 @@ volatile unsigned long long mpido=1;
 volatile unsigned long long cudadone = 1;
 pthread_barrier_t mpitest_barrier;
 
+void *g_gpuhostbuf1 = NULL;
+void *g_gpuhostbuf2 = NULL;
+#if 1
+const int CMD_QUEUE_COUNT = 0;
+#else
+const int CMD_QUEUE_COUNT = 16;
+#endif
+cudaStream_t g_gpustreams[CMD_QUEUE_COUNT];
+//cudaStream_t g_cuda_default_stream;
+
 void MPITest(OptionParser &op, ResultDatabase &resultDB, int numtasks, int myrank,
                 int mypair, MPI_Comm newcomm);
 
 void *GPUDriversimwrapper(void *dummy)
 {
+#if 0
+	/* Below code should be done at the RunBenchmark
+	 * level so that it applies to both seq and
+	 * simultaneous modes
+	 */
 	pthread_t thread = pthread_self();
 	cpu_set_t cpuset;
 	/* Set affinity mask to include CPUs 0 to 7 */
 	CPU_ZERO(&cpuset);
 	//for (j = 0; j < 8; j++)
-	CPU_SET(7, &cpuset);
+	CPU_SET(8, &cpuset);
 	int s = pthread_setaffinity_np(thread, sizeof(cpu_set_t), &cpuset);
 	if (s != 0)
 		cout << "Error code " << s << " inpthread_setaffinity_np" << endl;
+#endif
 	int i;
 	if (mympirank == 0 ) cout<<endl;
 	//do {
@@ -73,6 +101,7 @@ int rc;
     if((rc=pthread_attr_init(&attr)))
        exitwrapper("pthread attr_init failed",rc);
 
+	//GPUDriversimwrapper(NULL);
     rc = pthread_create(&mychild, &attr, GPUDriversimwrapper, (void *)NULL);
     if(rc) exitwrapper("pthread_create failed",rc);
 
@@ -103,6 +132,38 @@ int main(int argc, char *argv[])
     MPI_Comm_size(MPI_COMM_WORLD, &numtasks);
     MPI_Comm_rank(MPI_COMM_WORLD, &mympirank);
     MPI_Comm_group(MPI_COMM_WORLD, &orig_group); 
+	const int MESSAGE_ALIGNMENT = 64;
+	const size_t MAX_MSG_SIZE = (1<<22);
+	const size_t MYBUFSIZE = (MAX_MSG_SIZE * 16 + MESSAGE_ALIGNMENT);
+
+	#if 1
+		int PARTITION_SIZE;
+		char *partition_sz = getenv("MPIACC_PIPELINE_SIZE");
+		char *psz_end;
+		long int psz;
+		if(partition_sz != NULL)
+		{   
+			psz = strtol(partition_sz, &psz_end, 10);
+			if(psz > 0)
+				PARTITION_SIZE = psz;
+			/*PARTITION_SIZE = atoi(partition_sz);*/
+		}   
+		fprintf(stderr, "MPIACC Pipeline Size = %d\n", PARTITION_SIZE);
+		int mpi_errno = gpuInitCUDA(PARTITION_SIZE, 2);
+	#endif
+
+	cudaMallocHost(&g_gpuhostbuf1, MYBUFSIZE);
+	cudaMallocHost(&g_gpuhostbuf2, MYBUFSIZE);
+	CUDA_CHECK_ERR("Host Buf Creation");
+	for(int stream_idx = 0; stream_idx < CMD_QUEUE_COUNT; stream_idx++)
+	{
+		cudaStreamCreate(&g_gpustreams[stream_idx]);
+		printf("Created Stream: %p\n", g_gpustreams[stream_idx]);
+		CUDA_CHECK_ERR("Stream Creation");
+	}
+	//cudaStreamCreate(&g_cuda_default_stream);
+	//printf("Created Default CUDA Stream: %p\n", g_cuda_default_stream);
+	//CUDA_CHECK_ERR("Stream Creation");
 
     //Add shared options to the parser
     op.addOption("device", OPT_VECINT, "0", "specify device(s) to run on", 'd');
@@ -184,6 +245,9 @@ int main(int argc, char *argv[])
     {
         amGPUTask = true;
     }
+	cout << "numdev: " << numdev << endl;
+	cout << "nodenprocs: " << nodenprocs << endl;
+	cout << "devsPerNode: " << devsPerNode << endl;
 
     grp1=(int *)calloc(totalnumdev, sizeof(int));
     if (grp1==NULL)
@@ -322,10 +386,9 @@ int main(int argc, char *argv[])
     prdbseqmpi.MergeSerialDatabases(rdbseqmpi,MPI_COMM_WORLD);
     if(mympirank==0)
         prdbseqmpi.DumpSummary(cout);
-
     // Simultaneous runs for observing impact of contention
     MPI_Barrier(MPI_COMM_WORLD);
-
+	//if(mympirank == 0)cudaProfilerStart();
     //make sure GPU task keeps running until MPI task is done
     mpidone = 0;
     cudadone = 0;
@@ -338,6 +401,16 @@ int main(int argc, char *argv[])
         spawnongpu();
     }
 
+#if 0
+	sleep(5);
+    mpidone=1;
+    cudadone=1;
+    if ( amGPUTask )
+    {
+        if((rc=pthread_join(mychild,NULL)))
+            exitwrapper("pthread_join: failed",rc);
+	}
+#endif
     //run the MPI test
     //for ( i=0;i<npasses;i++)
 	{
@@ -346,9 +419,11 @@ int main(int argc, char *argv[])
     mpidone=1;
     cudadone=1;
 
+    printf("Total with both tests\n");
     //waif for MPI test to finish
     MPI_Barrier(MPI_COMM_WORLD);
 
+	//if(mympirank == 0)cudaProfilerStop();
 	cout << "Printing final results..." << std::endl;
     //wait for GPU tasks to return
     if ( amGPUTask )
@@ -496,6 +571,11 @@ int main(int argc, char *argv[])
     {
         vector<ResultDatabase::Result> pregpulat  = prdbseqgpu.GetResultsForTest("DownloadLatencyEstimate(mean)");
         vector<ResultDatabase::Result> postgpulat = prdbsimgpu.GetResultsForTest("DownloadLatencyEstimate(mean)");
+		if(gpu_tests == "TEST_D2H_MPIACC_SEND" || gpu_tests == "TEST_D2H_MPIACC_RECV")
+		{
+			pregpulat  = prdbseqgpu.GetResultsForTest("ReadbackTime(mean)");
+			postgpulat = prdbsimgpu.GetResultsForTest("ReadbackTime(mean)");
+		}
         cout<<endl<<"Summarized Mean(Mean) GPU Baseline Download Latency vs. Download Latency with Contention";
         cout<<endl<<"MSG SIZE\t";
         for (i=0; i<pregpulat.size(); ++i)
@@ -524,5 +604,15 @@ int main(int argc, char *argv[])
 		MPI_Finalize();
 		exit(1);
 	}
+	cudaFreeHost(g_gpuhostbuf1);
+	cudaFreeHost(g_gpuhostbuf2);
+	//cudaStreamDestroy(g_cuda_default_stream);
+	CUDA_CHECK_ERR("GPU Destroy Streams");
+	for(int stream_idx = 0; stream_idx < CMD_QUEUE_COUNT; stream_idx++)
+	{
+	//	cudaStreamDestroy(g_gpustreams[stream_idx]);
+		CUDA_CHECK_ERR("GPU Destroy Streams");
+	}
+	//gpuFinalizeCUDA();
     MPI_Finalize();
 }

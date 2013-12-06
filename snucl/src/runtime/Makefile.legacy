@@ -1,0 +1,16 @@
+include Makefile.common
+
+TARGET := $(SNUCLROOT)/lib/libsnucl_single.so
+CXX    := g++
+
+CXX_FLAGS += -DLEGACY_PLATFORM -DSNUCL_DEBUG
+
+SOURCES += $(wildcard legacy/*.cpp)
+
+OBJ_DIR=objs/legacy
+
+SUBDIRS=legacy
+OBJ_SUBDIRS=$(patsubst %,$(OBJ_DIR)/%,$(SUBDIRS))
+DEPS_DIR=$(patsubst %,$(OBJ_DIR)/.deps/%,$(SUBDIRS))
+
+include Makefile.rules

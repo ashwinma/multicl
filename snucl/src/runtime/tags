@@ -1,0 +1,1574 @@
+!_TAG_FILE_FORMAT	2	/extended format; --format=1 will not append ;" to lines/
+!_TAG_FILE_SORTED	1	/0=unsorted, 1=sorted, 2=foldcase/
+!_TAG_PROGRAM_AUTHOR	Darren Hiebert	/dhiebert@users.sourceforge.net/
+!_TAG_PROGRAM_NAME	Exuberant Ctags	//
+!_TAG_PROGRAM_URL	http://ctags.sourceforge.net	/official site/
+!_TAG_PROGRAM_VERSION	5.6	//
+AccessMemOnDevice	CLCommand.cpp	/^void CLCommand::AccessMemOnDevice(CLMem* mem, bool write) {$/;"	f	class:CLCommand
+AddCallback	CLEvent.cpp	/^void CLEvent::AddCallback(EventCallback* callback) {$/;"	f	class:CLEvent
+AddCommandQueue	CLDevice.cpp	/^void CLDevice::AddCommandQueue(CLCommandQueue* queue) {$/;"	f	class:CLDevice
+AddCommandQueue	CLScheduler.cpp	/^void CLScheduler::AddCommandQueue(CLCommandQueue* queue) {$/;"	f	class:CLScheduler
+AddDestructorCallback	CLMem.cpp	/^void CLMem::AddDestructorCallback(MemObjectDestructorCallback* callback) {$/;"	f	class:CLMem
+AddDevice	CLIssuer.cpp	/^void CLIssuer::AddDevice(CLDevice* device) {$/;"	f	class:CLIssuer
+AddDevice	CLPlatform.cpp	/^void CLPlatform::AddDevice(CLDevice* device) {$/;"	f	class:CLPlatform
+AddDeviceToFirstIssuer	CLPlatform.cpp	/^void CLPlatform::AddDeviceToFirstIssuer(CLDevice* device) {$/;"	f	class:CLPlatform
+AddIssuer	CLPlatform.cpp	/^void CLPlatform::AddIssuer(CLIssuer* issuer) {$/;"	f	class:CLPlatform
+AddLatest	CLMem.cpp	/^void CLMem::AddLatest(CLDevice* device) {$/;"	f	class:CLMem
+AddMem	CLContext.cpp	/^void CLContext::AddMem(CLMem* mem) {$/;"	f	class:CLContext
+AddSampler	CLContext.cpp	/^void CLContext::AddSampler(CLSampler* sampler) {$/;"	f	class:CLContext
+AddSource	CLProgram.cpp	/^void CLProgramSource::AddSource(const char* source) {$/;"	f	class:CLProgramSource
+AddSource	CLProgram.cpp	/^void CLProgramSource::AddSource(const char* source, size_t length) {$/;"	f	class:CLProgramSource
+AddWaitEvent	CLCommand.cpp	/^void CLCommand::AddWaitEvent(CLEvent* event) {$/;"	f	class:CLCommand
+AllocHostPtr	CLMem.cpp	/^void CLMem::AllocHostPtr() {$/;"	f	class:CLMem
+AllocIdleScheduler	CLPlatform.cpp	/^CLScheduler* CLPlatform::AllocIdleScheduler() {$/;"	f	class:CLPlatform
+AllocKernel	CLDevice.cpp	/^void* CLDevice::AllocKernel(CLKernel* kernel) {$/;"	f	class:CLDevice
+AllocKernel	cluster/ClusterDevice.cpp	/^void* ClusterDevice::AllocKernel(CLKernel* kernel) {$/;"	f	class:ClusterDevice
+AllocKernel	legacy/LegacyDevice.cpp	/^void* LegacyDevice::AllocKernel(CLKernel* kernel) {$/;"	f	class:LegacyDevice
+AllocMem	cluster/ClusterDevice.cpp	/^void* ClusterDevice::AllocMem(CLMem* mem) {$/;"	f	class:ClusterDevice
+AllocMem	cpu/CPUDevice.cpp	/^void* CPUDevice::AllocMem(CLMem* mem) {$/;"	f	class:CPUDevice
+AllocMem	legacy/LegacyDevice.cpp	/^void* LegacyDevice::AllocMem(CLMem* mem) {$/;"	f	class:LegacyDevice
+AllocSampler	CLDevice.cpp	/^void* CLDevice::AllocSampler(CLSampler* sampler) {$/;"	f	class:CLDevice
+AllocSampler	cluster/ClusterDevice.cpp	/^void* ClusterDevice::AllocSampler(CLSampler* sampler) {$/;"	f	class:ClusterDevice
+AllocSampler	legacy/LegacyDevice.cpp	/^void* LegacyDevice::AllocSampler(CLSampler* sampler) {$/;"	f	class:LegacyDevice
+AlltoAllBuffer	CLDevice.h	/^  virtual void AlltoAllBuffer(CLCommand* command, CLMem* mem_src,$/;"	f	class:CLDevice
+AlltoAllBuffer	cluster/ClusterDevice.cpp	/^void ClusterDevice::AlltoAllBuffer(CLCommand* command, CLMem* mem_src,$/;"	f	class:ClusterDevice
+AnnotateDestinationDevice	CLCommand.cpp	/^void CLCommand::AnnotateDestinationDevice(CLDevice* device) {$/;"	f	class:CLCommand
+AnnotateDestinationNode	CLCommand.cpp	/^void CLCommand::AnnotateDestinationNode(int node) {$/;"	f	class:CLCommand
+AnnotateSourceDevice	CLCommand.cpp	/^void CLCommand::AnnotateSourceDevice(CLDevice* device) {$/;"	f	class:CLCommand
+AnnotateSourceNode	CLCommand.cpp	/^void CLCommand::AnnotateSourceNode(int node) {$/;"	f	class:CLCommand
+AppendHeaderOptions	cpu/CPUDevice.cpp	/^string CPUDevice::AppendHeaderOptions(const char* options, size_t num_headers,$/;"	f	class:CPUDevice
+BeginRegisterKernelInfo	CLProgram.cpp	/^bool CLProgram::BeginRegisterKernelInfo() {$/;"	f	class:CLProgram
+BroadcastBuffer	CLDevice.h	/^  virtual void BroadcastBuffer(CLCommand* command, CLMem* mem_src,$/;"	f	class:CLDevice
+BroadcastBuffer	cluster/ClusterDevice.cpp	/^void ClusterDevice::BroadcastBuffer(CLCommand* command, CLMem* mem_src,$/;"	f	class:ClusterDevice
+BuildProgram	CLProgram.cpp	/^cl_int CLProgram::BuildProgram(cl_uint num_devices,$/;"	f	class:CLProgram
+BuildProgram	cluster/ClusterDevice.cpp	/^void ClusterDevice::BuildProgram(CLCommand* command, CLProgram* program,$/;"	f	class:ClusterDevice
+BuildProgram	cpu/CPUDevice.cpp	/^void CPUDevice::BuildProgram(CLCommand* command, CLProgram* program,$/;"	f	class:CPUDevice
+BuildProgram	legacy/LegacyDevice.cpp	/^void LegacyDevice::BuildProgram(CLCommand* command, CLProgram* program,$/;"	f	class:LegacyDevice
+CHECK_ERROR	legacy/LegacyDevice.cpp	91;"	d	file:
+CHECK_VERSION	cluster/ClusterDevice.cpp	67;"	d	file:
+CLCommand	CLCommand.cpp	/^CLCommand::CLCommand(CLContext* context, CLDevice* device,$/;"	f	class:CLCommand
+CLCommand	CLCommand.h	/^class CLCommand {$/;"	c
+CLCommandQueue	CLCommandQueue.cpp	/^CLCommandQueue::CLCommandQueue(CLContext *context, CLDevice* device,$/;"	f	class:CLCommandQueue
+CLCommandQueue	CLCommandQueue.h	/^class CLCommandQueue: public CLObject<struct _cl_command_queue,$/;"	c
+CLContext	CLContext.cpp	/^CLContext::CLContext(const std::vector<CLDevice*>& devices,$/;"	f	class:CLContext
+CLContext	CLContext.h	/^class CLContext: public CLObject<struct _cl_context, CLContext> {$/;"	c
+CLDevice	CLDevice.cpp	/^CLDevice::CLDevice(CLDevice* parent)$/;"	f	class:CLDevice
+CLDevice	CLDevice.cpp	/^CLDevice::CLDevice(int node_id)$/;"	f	class:CLDevice
+CLDevice	CLDevice.h	/^class CLDevice: public CLObject<struct _cl_device_id, CLDevice> {$/;"	c
+CLDispatch	CLDispatch.cpp	/^CLDispatch::CLDispatch() {$/;"	f	class:CLDispatch
+CLDispatch	CLDispatch.h	/^class CLDispatch {$/;"	c
+CLEvent	CLEvent.cpp	/^CLEvent::CLEvent(CLCommandQueue* queue, CLCommand* command) {$/;"	f	class:CLEvent
+CLEvent	CLEvent.cpp	/^CLEvent::CLEvent(CLContext* context) {$/;"	f	class:CLEvent
+CLEvent	CLEvent.cpp	/^CLEvent::CLEvent(CLContext* context, CLCommand* command) {$/;"	f	class:CLEvent
+CLEvent	CLEvent.h	/^class CLEvent: public CLObject<struct _cl_event, CLEvent> {$/;"	c
+CLInOrderCommandQueue	CLCommandQueue.cpp	/^CLInOrderCommandQueue::CLInOrderCommandQueue($/;"	f	class:CLInOrderCommandQueue
+CLInOrderCommandQueue	CLCommandQueue.h	/^class CLInOrderCommandQueue: public CLCommandQueue {$/;"	c
+CLIssuer	CLIssuer.cpp	/^CLIssuer::CLIssuer(CLDevice* device, bool blocking) {$/;"	f	class:CLIssuer
+CLIssuer	CLIssuer.cpp	/^CLIssuer::CLIssuer(bool blocking) {$/;"	f	class:CLIssuer
+CLIssuer	CLIssuer.h	/^class CLIssuer {$/;"	c
+CLK_ADDRESS_CLAMP	cpu/CPUDevice.cpp	/^  CLK_ADDRESS_CLAMP = 0x0008, $/;"	e	enum:CPUSamplerAddressingModes	file:
+CLK_ADDRESS_CLAMP_TO_EDGE	cpu/CPUDevice.cpp	/^  CLK_ADDRESS_CLAMP_TO_EDGE = 0x0010, $/;"	e	enum:CPUSamplerAddressingModes	file:
+CLK_ADDRESS_MIRRORED_REPEAT	cpu/CPUDevice.cpp	/^  CLK_ADDRESS_MIRRORED_REPEAT = 0x0001$/;"	e	enum:CPUSamplerAddressingModes	file:
+CLK_ADDRESS_NONE	cpu/CPUDevice.cpp	/^  CLK_ADDRESS_NONE = 0x0004, $/;"	e	enum:CPUSamplerAddressingModes	file:
+CLK_ADDRESS_REPEAT	cpu/CPUDevice.cpp	/^  CLK_ADDRESS_REPEAT = 0x0002, $/;"	e	enum:CPUSamplerAddressingModes	file:
+CLK_FILTER_LINEAR	cpu/CPUDevice.cpp	/^  CLK_FILTER_LINEAR = 0x0020$/;"	e	enum:CPUSamplerFilterModes	file:
+CLK_FILTER_NEAREST	cpu/CPUDevice.cpp	/^  CLK_FILTER_NEAREST = 0x0040, $/;"	e	enum:CPUSamplerFilterModes	file:
+CLK_NORMALIZED_COORDS_FALSE	cpu/CPUDevice.cpp	/^  CLK_NORMALIZED_COORDS_FALSE = 0x0080$/;"	e	enum:CPUSamplerNormalizedCoords	file:
+CLK_NORMALIZED_COORDS_TRUE	cpu/CPUDevice.cpp	/^  CLK_NORMALIZED_COORDS_TRUE = 0x0100,$/;"	e	enum:CPUSamplerNormalizedCoords	file:
+CLKernel	CLKernel.cpp	/^CLKernel::CLKernel(CLContext* context, CLProgram* program,$/;"	f	class:CLKernel
+CLKernel	CLKernel.h	/^class CLKernel: public CLObject<struct _cl_kernel, CLKernel> {$/;"	c
+CLKernelArg	CLKernel.h	/^} CLKernelArg;$/;"	t	typeref:struct:_CLKernelArg
+CLKernelInfo	CLProgram.cpp	/^CLKernelInfo::CLKernelInfo(const char* name, cl_uint num_args,$/;"	f	class:CLKernelInfo
+CLKernelInfo	CLProgram.h	/^class CLKernelInfo {$/;"	c
+CLMapWritebackLayout	CLMem.h	/^} CLMapWritebackLayout;$/;"	t	typeref:struct:_CLMapWritebackLayout
+CLMem	CLMem.cpp	/^CLMem::CLMem(CLContext* context) {$/;"	f	class:CLMem
+CLMem	CLMem.h	/^class CLMem: public CLObject<struct _cl_mem, CLMem> {$/;"	c
+CLObject	CLObject.h	/^  CLObject() {$/;"	f	class:CLObject
+CLObject	CLObject.h	/^class CLObject {$/;"	c
+CLObject_GetNewID	CLObject.cpp	/^unsigned long CLObject_GetNewID() {$/;"	f
+CLOutOfOrderCommandQueue	CLCommandQueue.cpp	/^CLOutOfOrderCommandQueue::CLOutOfOrderCommandQueue($/;"	f	class:CLOutOfOrderCommandQueue
+CLOutOfOrderCommandQueue	CLCommandQueue.h	/^class CLOutOfOrderCommandQueue: public CLCommandQueue {$/;"	c
+CLPlatform	CLPlatform.cpp	/^CLPlatform::CLPlatform() {$/;"	f	class:CLPlatform
+CLPlatform	CLPlatform.h	/^class CLPlatform: public CLObject<struct _cl_platform_id, CLPlatform> {$/;"	c
+CLProgram	CLProgram.cpp	/^CLProgram::CLProgram(CLContext* context, const vector<CLDevice*>& devices)$/;"	f	class:CLProgram
+CLProgram	CLProgram.h	/^class CLProgram: public CLObject<struct _cl_program, CLProgram> {$/;"	c
+CLProgramBinary	CLProgram.cpp	/^CLProgramBinary::CLProgramBinary(CLDevice* device, cl_program_binary_type type,$/;"	f	class:CLProgramBinary
+CLProgramBinary	CLProgram.cpp	/^CLProgramBinary::CLProgramBinary(CLDevice* device,$/;"	f	class:CLProgramBinary
+CLProgramBinary	CLProgram.cpp	/^CLProgramBinary::CLProgramBinary(CLProgramBinary* original) {$/;"	f	class:CLProgramBinary
+CLProgramBinary	CLProgram.h	/^class CLProgramBinary {$/;"	c
+CLProgramSource	CLProgram.cpp	/^CLProgramSource::CLProgramSource(CLProgramSource* original)$/;"	f	class:CLProgramSource
+CLProgramSource	CLProgram.h	/^  CLProgramSource() {}$/;"	f	class:CLProgramSource
+CLProgramSource	CLProgram.h	/^class CLProgramSource {$/;"	c
+CLSampler	CLSampler.cpp	/^CLSampler::CLSampler(CLContext *context, cl_bool normalized_coords,$/;"	f	class:CLSampler
+CLSampler	CLSampler.h	/^class CLSampler: public CLObject<struct _cl_sampler, CLSampler> {$/;"	c
+CLScheduler	CLScheduler.cpp	/^CLScheduler::CLScheduler(CLPlatform* platform, bool busy_waiting) {$/;"	f	class:CLScheduler
+CLScheduler	CLScheduler.h	/^class CLScheduler {$/;"	c
+CLUSTER_MESSAGE_SIZE	cluster/ClusterMessage.h	49;"	d
+CLUSTER_REQUEST_ALLTOALL	cluster/ClusterMessage.h	79;"	d
+CLUSTER_REQUEST_BROADCAST	cluster/ClusterMessage.h	80;"	d
+CLUSTER_REQUEST_BUILD_PROGRAM	cluster/ClusterMessage.h	76;"	d
+CLUSTER_REQUEST_COMPILE_PROGRAM	cluster/ClusterMessage.h	77;"	d
+CLUSTER_REQUEST_COPY_BUFFER	cluster/ClusterMessage.h	65;"	d
+CLUSTER_REQUEST_COPY_BUFFER_RECT	cluster/ClusterMessage.h	73;"	d
+CLUSTER_REQUEST_COPY_BUFFER_TO_IMAGE	cluster/ClusterMessage.h	70;"	d
+CLUSTER_REQUEST_COPY_IMAGE	cluster/ClusterMessage.h	68;"	d
+CLUSTER_REQUEST_COPY_IMAGE_TO_BUFFER	cluster/ClusterMessage.h	69;"	d
+CLUSTER_REQUEST_DEVICE_INFO	cluster/ClusterMessage.h	60;"	d
+CLUSTER_REQUEST_EXIT	cluster/ClusterMessage.h	58;"	d
+CLUSTER_REQUEST_FILL_BUFFER	cluster/ClusterMessage.h	74;"	d
+CLUSTER_REQUEST_FILL_IMAGE	cluster/ClusterMessage.h	75;"	d
+CLUSTER_REQUEST_FREE_KERNEL	cluster/ClusterMessage.h	84;"	d
+CLUSTER_REQUEST_FREE_MEM	cluster/ClusterMessage.h	81;"	d
+CLUSTER_REQUEST_FREE_PROGRAM	cluster/ClusterMessage.h	83;"	d
+CLUSTER_REQUEST_FREE_SAMPLER	cluster/ClusterMessage.h	82;"	d
+CLUSTER_REQUEST_LAUNCH_KERNEL	cluster/ClusterMessage.h	61;"	d
+CLUSTER_REQUEST_LAUNCH_NATIVE_KERNEL	cluster/ClusterMessage.h	62;"	d
+CLUSTER_REQUEST_LINK_PROGRAM	cluster/ClusterMessage.h	78;"	d
+CLUSTER_REQUEST_NODE_INFO	cluster/ClusterMessage.h	59;"	d
+CLUSTER_REQUEST_RECV_BUFFER	cluster/ClusterMessage.h	64;"	d
+CLUSTER_REQUEST_RECV_BUFFER_RECT	cluster/ClusterMessage.h	72;"	d
+CLUSTER_REQUEST_RECV_IMAGE	cluster/ClusterMessage.h	67;"	d
+CLUSTER_REQUEST_SEND_BUFFER	cluster/ClusterMessage.h	63;"	d
+CLUSTER_REQUEST_SEND_BUFFER_RECT	cluster/ClusterMessage.h	71;"	d
+CLUSTER_REQUEST_SEND_IMAGE	cluster/ClusterMessage.h	66;"	d
+CLUSTER_TAG_COMMAND	cluster/ClusterMessage.h	51;"	d
+CLUSTER_TAG_DEVICE_INFO	cluster/ClusterMessage.h	53;"	d
+CLUSTER_TAG_EVENT_WAIT	cluster/ClusterMessage.h	54;"	d
+CLUSTER_TAG_NODE_INFO	cluster/ClusterMessage.h	52;"	d
+CLUSTER_TAG_RECV_BODY	cluster/ClusterMessage.h	56;"	d
+CLUSTER_TAG_SEND_BODY	cluster/ClusterMessage.h	55;"	d
+CLUSTER_VERSION_1_0	cluster/ClusterDevice.cpp	63;"	d	file:
+CLUSTER_VERSION_1_1	cluster/ClusterDevice.cpp	64;"	d	file:
+CLUSTER_VERSION_1_2	cluster/ClusterDevice.cpp	65;"	d	file:
+CL_API_SUFFIX__VERSION_1_0	CLAPI.h	48;"	d
+CL_API_SUFFIX__VERSION_1_0	CLAPI.h	59;"	d
+CL_API_SUFFIX__VERSION_1_0	ICD.h	/^                 cl_uint *        num_platforms) CL_API_SUFFIX__VERSION_1_0;$/;"	t
+CL_API_SUFFIX__VERSION_1_0	ICD.h	/^    GLuint *             gl_object_name) CL_API_SUFFIX__VERSION_1_0;$/;"	t
+CL_API_SUFFIX__VERSION_1_0	ICD.h	/^    cl_command_queue command_queue) CL_API_SUFFIX__VERSION_1_0;$/;"	t
+CL_API_SUFFIX__VERSION_1_0	ICD.h	/^    cl_context context) CL_API_SUFFIX__VERSION_1_0;$/;"	t
+CL_API_SUFFIX__VERSION_1_0	ICD.h	/^    cl_device_id     device) CL_API_SUFFIX__VERSION_1_0;$/;"	t
+CL_API_SUFFIX__VERSION_1_0	ICD.h	/^    cl_event *           event) CL_API_SUFFIX__VERSION_1_0;$/;"	t
+CL_API_SUFFIX__VERSION_1_0	ICD.h	/^    cl_event *          event) CL_API_SUFFIX__VERSION_1_0;$/;"	t
+CL_API_SUFFIX__VERSION_1_0	ICD.h	/^    cl_event *         event) CL_API_SUFFIX__VERSION_1_0;$/;"	t
+CL_API_SUFFIX__VERSION_1_0	ICD.h	/^    cl_event *        event) CL_API_SUFFIX__VERSION_1_0;$/;"	t
+CL_API_SUFFIX__VERSION_1_0	ICD.h	/^    cl_event *       event) CL_API_SUFFIX__VERSION_1_0;$/;"	t
+CL_API_SUFFIX__VERSION_1_0	ICD.h	/^    cl_int *                       errcode_ret) CL_API_SUFFIX__VERSION_1_0;$/;"	t
+CL_API_SUFFIX__VERSION_1_0	ICD.h	/^    cl_int *                errcode_ret) CL_API_SUFFIX__VERSION_1_0;$/;"	t
+CL_API_SUFFIX__VERSION_1_0	ICD.h	/^    cl_int *             errcode_ret) CL_API_SUFFIX__VERSION_1_0;$/;"	t
+CL_API_SUFFIX__VERSION_1_0	ICD.h	/^    cl_int *            errcode_ret) CL_API_SUFFIX__VERSION_1_0;$/;"	t
+CL_API_SUFFIX__VERSION_1_0	ICD.h	/^    cl_int *          errcode_ret) CL_API_SUFFIX__VERSION_1_0;$/;"	t
+CL_API_SUFFIX__VERSION_1_0	ICD.h	/^    cl_int *         errcode_ret) CL_API_SUFFIX__VERSION_1_0;$/;"	t
+CL_API_SUFFIX__VERSION_1_0	ICD.h	/^    cl_int *        errcode_ret) CL_API_SUFFIX__VERSION_1_0;$/;"	t
+CL_API_SUFFIX__VERSION_1_0	ICD.h	/^    cl_int *     errcode_ret) CL_API_SUFFIX__VERSION_1_0;$/;"	t
+CL_API_SUFFIX__VERSION_1_0	ICD.h	/^    cl_uint *            num_image_formats) CL_API_SUFFIX__VERSION_1_0;$/;"	t
+CL_API_SUFFIX__VERSION_1_0	ICD.h	/^    cl_uint *        num_devices) CL_API_SUFFIX__VERSION_1_0;$/;"	t
+CL_API_SUFFIX__VERSION_1_0	ICD.h	/^    cl_uint *      num_kernels_ret) CL_API_SUFFIX__VERSION_1_0;$/;"	t
+CL_API_SUFFIX__VERSION_1_0	ICD.h	/^    const cl_event *    event_list) CL_API_SUFFIX__VERSION_1_0;$/;"	t
+CL_API_SUFFIX__VERSION_1_0	ICD.h	/^    const void * arg_value) CL_API_SUFFIX__VERSION_1_0;$/;"	t
+CL_API_SUFFIX__VERSION_1_0	ICD.h	/^    int *         errcode_ret) CL_API_SUFFIX__VERSION_1_0;$/;"	t
+CL_API_SUFFIX__VERSION_1_0	ICD.h	/^    size_t *                   param_value_size_ret) CL_API_SUFFIX__VERSION_1_0;$/;"	t
+CL_API_SUFFIX__VERSION_1_0	ICD.h	/^    size_t *              param_value_size_ret) CL_API_SUFFIX__VERSION_1_0;$/;"	t
+CL_API_SUFFIX__VERSION_1_0	ICD.h	/^    size_t *             param_value_size_ret) CL_API_SUFFIX__VERSION_1_0;$/;"	t
+CL_API_SUFFIX__VERSION_1_0	ICD.h	/^    size_t *            param_value_size_ret) CL_API_SUFFIX__VERSION_1_0;$/;"	t
+CL_API_SUFFIX__VERSION_1_0	ICD.h	/^    size_t *           param_value_size_ret) CL_API_SUFFIX__VERSION_1_0;$/;"	t
+CL_API_SUFFIX__VERSION_1_0	ICD.h	/^    size_t *         param_value_size_ret) CL_API_SUFFIX__VERSION_1_0;$/;"	t
+CL_API_SUFFIX__VERSION_1_0	ICD.h	/^    size_t *        param_value_size_ret) CL_API_SUFFIX__VERSION_1_0;$/;"	t
+CL_API_SUFFIX__VERSION_1_0	ICD.h	/^    void *               user_data) CL_API_SUFFIX__VERSION_1_0;$/;"	t
+CL_API_SUFFIX__VERSION_1_0	ICD.h	/^typedef CL_API_ENTRY cl_int (CL_API_CALL *pfn_clFinish)(cl_command_queue command_queue) CL_API_SUFFIX__VERSION_1_0;$/;"	t
+CL_API_SUFFIX__VERSION_1_0	ICD.h	/^typedef CL_API_ENTRY cl_int (CL_API_CALL *pfn_clFlush)(cl_command_queue command_queue) CL_API_SUFFIX__VERSION_1_0;$/;"	t
+CL_API_SUFFIX__VERSION_1_0	ICD.h	/^typedef CL_API_ENTRY cl_int (CL_API_CALL *pfn_clReleaseEvent)(cl_event event) CL_API_SUFFIX__VERSION_1_0;$/;"	t
+CL_API_SUFFIX__VERSION_1_0	ICD.h	/^typedef CL_API_ENTRY cl_int (CL_API_CALL *pfn_clReleaseKernel)(cl_kernel   kernel) CL_API_SUFFIX__VERSION_1_0;$/;"	t
+CL_API_SUFFIX__VERSION_1_0	ICD.h	/^typedef CL_API_ENTRY cl_int (CL_API_CALL *pfn_clReleaseMemObject)(cl_mem memobj) CL_API_SUFFIX__VERSION_1_0;$/;"	t
+CL_API_SUFFIX__VERSION_1_0	ICD.h	/^typedef CL_API_ENTRY cl_int (CL_API_CALL *pfn_clReleaseProgram)(cl_program program) CL_API_SUFFIX__VERSION_1_0;$/;"	t
+CL_API_SUFFIX__VERSION_1_0	ICD.h	/^typedef CL_API_ENTRY cl_int (CL_API_CALL *pfn_clReleaseSampler)(cl_sampler sampler) CL_API_SUFFIX__VERSION_1_0;$/;"	t
+CL_API_SUFFIX__VERSION_1_0	ICD.h	/^typedef CL_API_ENTRY cl_int (CL_API_CALL *pfn_clRetainEvent)(cl_event event) CL_API_SUFFIX__VERSION_1_0;$/;"	t
+CL_API_SUFFIX__VERSION_1_0	ICD.h	/^typedef CL_API_ENTRY cl_int (CL_API_CALL *pfn_clRetainKernel)(cl_kernel    kernel) CL_API_SUFFIX__VERSION_1_0;$/;"	t
+CL_API_SUFFIX__VERSION_1_0	ICD.h	/^typedef CL_API_ENTRY cl_int (CL_API_CALL *pfn_clRetainMemObject)(cl_mem memobj) CL_API_SUFFIX__VERSION_1_0;$/;"	t
+CL_API_SUFFIX__VERSION_1_0	ICD.h	/^typedef CL_API_ENTRY cl_int (CL_API_CALL *pfn_clRetainProgram)(cl_program program) CL_API_SUFFIX__VERSION_1_0;$/;"	t
+CL_API_SUFFIX__VERSION_1_0	ICD.h	/^typedef CL_API_ENTRY cl_int (CL_API_CALL *pfn_clRetainSampler)(cl_sampler sampler) CL_API_SUFFIX__VERSION_1_0;$/;"	t
+CL_API_SUFFIX__VERSION_1_0	ICD.h	50;"	d
+CL_API_SUFFIX__VERSION_1_0	ICD.h	61;"	d
+CL_API_SUFFIX__VERSION_1_0	legacy/LegacyDevice.cpp	/^    cl_uint *num_platforms) CL_API_SUFFIX__VERSION_1_0;$/;"	t	file:
+CL_API_SUFFIX__VERSION_1_0	legacy/LegacyDevice.cpp	/^typedef CL_API_ENTRY void * (CL_API_CALL *pfn_clGetExtensionFunctionAddress)(const char * func_name) CL_API_SUFFIX__VERSION_1_0;$/;"	t	file:
+CL_API_SUFFIX__VERSION_1_1	CLAPI.h	50;"	d
+CL_API_SUFFIX__VERSION_1_1	CLAPI.h	61;"	d
+CL_API_SUFFIX__VERSION_1_1	ICD.h	/^    cl_event *          event) CL_API_SUFFIX__VERSION_1_1;$/;"	t
+CL_API_SUFFIX__VERSION_1_1	ICD.h	/^    cl_int     \/* execution_status *\/) CL_API_SUFFIX__VERSION_1_1;$/;"	t
+CL_API_SUFFIX__VERSION_1_1	ICD.h	/^    cl_int *                 \/* errcode_ret *\/) CL_API_SUFFIX__VERSION_1_1;$/;"	t
+CL_API_SUFFIX__VERSION_1_1	ICD.h	/^    cl_int *      \/* errcode_ret *\/) CL_API_SUFFIX__VERSION_1_1;$/;"	t
+CL_API_SUFFIX__VERSION_1_1	ICD.h	/^    void *              \/* user_data *\/) CL_API_SUFFIX__VERSION_1_1;$/;"	t
+CL_API_SUFFIX__VERSION_1_1	ICD.h	/^    void * \/*user_data *\/ ) CL_API_SUFFIX__VERSION_1_1;$/;"	t
+CL_API_SUFFIX__VERSION_1_1	ICD.h	52;"	d
+CL_API_SUFFIX__VERSION_1_1	ICD.h	63;"	d
+CL_API_SUFFIX__VERSION_1_2	CLAPI.h	52;"	d
+CL_API_SUFFIX__VERSION_1_2	CLAPI.h	63;"	d
+CL_API_SUFFIX__VERSION_1_2	ICD.h	/^    cl_device_id     device) CL_API_SUFFIX__VERSION_1_2;$/;"	t
+CL_API_SUFFIX__VERSION_1_2	ICD.h	/^    cl_event *             event) CL_API_SUFFIX__VERSION_1_2;$/;"	t
+CL_API_SUFFIX__VERSION_1_2	ICD.h	/^    cl_event *         event) CL_API_SUFFIX__VERSION_1_2;$/;"	t
+CL_API_SUFFIX__VERSION_1_2	ICD.h	/^    cl_event *        event) CL_API_SUFFIX__VERSION_1_2;$/;"	t
+CL_API_SUFFIX__VERSION_1_2	ICD.h	/^    cl_int *                errcode_ret) CL_API_SUFFIX__VERSION_1_2;$/;"	t
+CL_API_SUFFIX__VERSION_1_2	ICD.h	/^    cl_int *              errcode_ret) CL_API_SUFFIX__VERSION_1_2;$/;"	t
+CL_API_SUFFIX__VERSION_1_2	ICD.h	/^    cl_int *             errcode_ret) CL_API_SUFFIX__VERSION_1_2;$/;"	t
+CL_API_SUFFIX__VERSION_1_2	ICD.h	/^    cl_int *        errcode_ret) CL_API_SUFFIX__VERSION_1_2;$/;"	t
+CL_API_SUFFIX__VERSION_1_2	ICD.h	/^    cl_platform_id     platform) CL_API_SUFFIX__VERSION_1_2;$/;"	t
+CL_API_SUFFIX__VERSION_1_2	ICD.h	/^    const char *   function_name) CL_API_SUFFIX__VERSION_1_2;$/;"	t
+CL_API_SUFFIX__VERSION_1_2	ICD.h	/^    size_t *        param_value_size_ret) CL_API_SUFFIX__VERSION_1_2;$/;"	t
+CL_API_SUFFIX__VERSION_1_2	ICD.h	/^    void *               user_data) CL_API_SUFFIX__VERSION_1_2;$/;"	t
+CL_API_SUFFIX__VERSION_1_2	ICD.h	54;"	d
+CL_API_SUFFIX__VERSION_1_2	ICD.h	65;"	d
+CL_COMMAND_ALLGATHER_BUFFER	CLCommand.h	62;"	d
+CL_COMMAND_ALLREDUCE_BUFFER	CLCommand.h	64;"	d
+CL_COMMAND_ALLTOALL_BUFFER	CLCommand.h	58;"	d
+CL_COMMAND_BROADCAST_BUFFER	CLCommand.h	59;"	d
+CL_COMMAND_BUILD_PROGRAM	CLCommand.h	51;"	d
+CL_COMMAND_COMPILE_PROGRAM	CLCommand.h	52;"	d
+CL_COMMAND_CUSTOM	CLCommand.h	55;"	d
+CL_COMMAND_GATHER_BUFFER	CLCommand.h	61;"	d
+CL_COMMAND_LINK_PROGRAM	CLCommand.h	53;"	d
+CL_COMMAND_NOP	CLCommand.h	56;"	d
+CL_COMMAND_REDUCESCATTER_BUFFER	CLCommand.h	65;"	d
+CL_COMMAND_REDUCE_BUFFER	CLCommand.h	63;"	d
+CL_COMMAND_SCAN_BUFFER	CLCommand.h	66;"	d
+CL_COMMAND_SCATTER_BUFFER	CLCommand.h	60;"	d
+CL_COMMAND_WAIT_FOR_EVENTS	CLCommand.h	54;"	d
+CL_EXT_PREFIX__VERSION_1_0_DEPRECATED	CLAPI.h	55;"	d
+CL_EXT_PREFIX__VERSION_1_0_DEPRECATED	CLAPI.h	66;"	d
+CL_EXT_PREFIX__VERSION_1_0_DEPRECATED	ICD.h	57;"	d
+CL_EXT_PREFIX__VERSION_1_0_DEPRECATED	ICD.h	68;"	d
+CL_EXT_PREFIX__VERSION_1_1_DEPRECATED	CLAPI.h	57;"	d
+CL_EXT_PREFIX__VERSION_1_1_DEPRECATED	CLAPI.h	68;"	d
+CL_EXT_PREFIX__VERSION_1_1_DEPRECATED	ICD.h	59;"	d
+CL_EXT_PREFIX__VERSION_1_1_DEPRECATED	ICD.h	70;"	d
+CL_EXT_SUFFIX__VERSION_1_0	CLAPI.h	49;"	d
+CL_EXT_SUFFIX__VERSION_1_0	CLAPI.h	60;"	d
+CL_EXT_SUFFIX__VERSION_1_0	ICD.h	51;"	d
+CL_EXT_SUFFIX__VERSION_1_0	ICD.h	62;"	d
+CL_EXT_SUFFIX__VERSION_1_0_DEPRECATED	CLAPI.h	54;"	d
+CL_EXT_SUFFIX__VERSION_1_0_DEPRECATED	CLAPI.h	65;"	d
+CL_EXT_SUFFIX__VERSION_1_0_DEPRECATED	ICD.h	/^    cl_command_queue_properties * old_properties) CL_EXT_SUFFIX__VERSION_1_0_DEPRECATED;$/;"	t
+CL_EXT_SUFFIX__VERSION_1_0_DEPRECATED	ICD.h	56;"	d
+CL_EXT_SUFFIX__VERSION_1_0_DEPRECATED	ICD.h	67;"	d
+CL_EXT_SUFFIX__VERSION_1_1	CLAPI.h	51;"	d
+CL_EXT_SUFFIX__VERSION_1_1	CLAPI.h	62;"	d
+CL_EXT_SUFFIX__VERSION_1_1	ICD.h	53;"	d
+CL_EXT_SUFFIX__VERSION_1_1	ICD.h	64;"	d
+CL_EXT_SUFFIX__VERSION_1_1_DEPRECATED	CLAPI.h	56;"	d
+CL_EXT_SUFFIX__VERSION_1_1_DEPRECATED	CLAPI.h	67;"	d
+CL_EXT_SUFFIX__VERSION_1_1_DEPRECATED	ICD.h	/^    cl_event *          event) CL_EXT_SUFFIX__VERSION_1_1_DEPRECATED;$/;"	t
+CL_EXT_SUFFIX__VERSION_1_1_DEPRECATED	ICD.h	/^    cl_int *                errcode_ret) CL_EXT_SUFFIX__VERSION_1_1_DEPRECATED;$/;"	t
+CL_EXT_SUFFIX__VERSION_1_1_DEPRECATED	ICD.h	/^    const cl_event * event_list) CL_EXT_SUFFIX__VERSION_1_1_DEPRECATED;$/;"	t
+CL_EXT_SUFFIX__VERSION_1_1_DEPRECATED	ICD.h	/^typedef CL_API_ENTRY cl_int (CL_API_CALL *pfn_clEnqueueBarrier)(cl_command_queue command_queue) CL_EXT_SUFFIX__VERSION_1_1_DEPRECATED;$/;"	t
+CL_EXT_SUFFIX__VERSION_1_1_DEPRECATED	ICD.h	/^typedef CL_API_ENTRY cl_int (CL_API_CALL *pfn_clUnloadCompiler)(void) CL_EXT_SUFFIX__VERSION_1_1_DEPRECATED;$/;"	t
+CL_EXT_SUFFIX__VERSION_1_1_DEPRECATED	ICD.h	/^typedef CL_API_ENTRY void * (CL_API_CALL *pfn_clGetExtensionFunctionAddress)(const char *function_name) CL_EXT_SUFFIX__VERSION_1_1_DEPRECATED;$/;"	t
+CL_EXT_SUFFIX__VERSION_1_1_DEPRECATED	ICD.h	58;"	d
+CL_EXT_SUFFIX__VERSION_1_1_DEPRECATED	ICD.h	69;"	d
+CL_EXT_SUFFIX__VERSION_1_2	CLAPI.h	53;"	d
+CL_EXT_SUFFIX__VERSION_1_2	CLAPI.h	64;"	d
+CL_EXT_SUFFIX__VERSION_1_2	ICD.h	55;"	d
+CL_EXT_SUFFIX__VERSION_1_2	ICD.h	66;"	d
+COMMAND_QUEUE_SIZE	CLCommandQueue.cpp	57;"	d	file:
+CPUComputeUnit	cpu/CPUComputeUnit.cpp	/^CPUComputeUnit::CPUComputeUnit(CLDevice* device, int id) {$/;"	f	class:CPUComputeUnit
+CPUComputeUnit	cpu/CPUComputeUnit.h	/^class CPUComputeUnit {$/;"	c
+CPUDevice	cpu/CPUDevice.cpp	/^CPUDevice::CPUDevice(int num_cores)$/;"	f	class:CPUDevice
+CPUDevice	cpu/CPUDevice.h	/^class CPUDevice: public CLDevice {$/;"	c
+CPUImageParam	cpu/CPUComputeUnit.h	/^} CPUImageParam;$/;"	t	typeref:struct:_CPUImageParam
+CPUKernelParam	cpu/CPUComputeUnit.h	/^} CPUKernelParam;$/;"	t	typeref:struct:_CPUKernelParam
+CPUSamplerAddressingModes	cpu/CPUDevice.cpp	/^enum CPUSamplerAddressingModes {$/;"	g	file:
+CPUSamplerFilterModes	cpu/CPUDevice.cpp	/^enum CPUSamplerFilterModes {$/;"	g	file:
+CPUSamplerNormalizedCoords	cpu/CPUDevice.cpp	/^enum CPUSamplerNormalizedCoords {$/;"	g	file:
+CPUWorkGroupAssignment	cpu/CPUComputeUnit.h	/^} CPUWorkGroupAssignment;$/;"	t	typeref:struct:_CPUWorkGroupAssignment
+CPU_SCHEDULE_DYNAMIC	cpu/CPUDevice.cpp	69;"	d	file:
+CXX	Makefile	/^CXX    := mpic++$/;"	m
+ChangeBinary	CLProgram.cpp	/^void CLProgram::ChangeBinary(CLDevice* device, CLProgramBinary* binary) {$/;"	f	class:CLProgram
+ChangeBuildLog	CLProgram.cpp	/^void CLProgram::ChangeBuildLog(CLDevice* device, char* log) {$/;"	f	class:CLProgram
+ChangeBuildOptions	CLProgram.cpp	/^void CLProgram::ChangeBuildOptions(CLDevice* device, char* options) {$/;"	f	class:CLProgram
+ChangeDeviceToReadMem	CLCommand.cpp	/^bool CLCommand::ChangeDeviceToReadMem(CLMem* mem, CLDevice*& device) {$/;"	f	class:CLCommand
+ChangeExecutable	CLProgram.cpp	/^void CLProgram::ChangeExecutable(CLDevice* device, void* executable) {$/;"	f	class:CLProgram
+CheckCompileResult	cpu/CPUDevice.cpp	/^bool CPUDevice::CheckCompileResult(char file_index[11]) {$/;"	f	class:CPUDevice
+CheckContextProperties	CLPlatform.cpp	/^size_t CLPlatform::CheckContextProperties($/;"	f	class:CLPlatform
+CheckKernelDir	cpu/CPUDevice.cpp	/^void CPUDevice::CheckKernelDir() {$/;"	f	class:CPUDevice
+CheckLinkResult	cpu/CPUDevice.cpp	/^bool CPUDevice::CheckLinkResult(char file_index[11]) {$/;"	f	class:CPUDevice
+CheckWaitEvents	cluster/ClusterDriver.cpp	/^void ClusterDriver::CheckWaitEvents() {$/;"	f	class:ClusterDriver
+CloneMem	CLCommand.cpp	/^CLEvent* CLCommand::CloneMem(CLDevice* dev_src, CLDevice* dev_dst,$/;"	f	class:CLCommand
+ClusterDevice	cluster/ClusterDevice.cpp	/^ClusterDevice::ClusterDevice(int node_id, size_t device_id,$/;"	f	class:ClusterDevice
+ClusterDevice	cluster/ClusterDevice.h	/^class ClusterDevice: public CLDevice {$/;"	c
+ClusterDriver	cluster/ClusterDriver.cpp	/^ClusterDriver::ClusterDriver() {$/;"	f	class:ClusterDriver
+ClusterDriver	cluster/ClusterDriver.h	/^class ClusterDriver {$/;"	c
+ClusterRecvMessage	cluster/ClusterMessage.cpp	/^ClusterRecvMessage::ClusterRecvMessage(bool fixed) {$/;"	f	class:ClusterRecvMessage
+ClusterRecvMessage	cluster/ClusterMessage.h	/^class ClusterRecvMessage {$/;"	c
+ClusterSendMessage	cluster/ClusterMessage.cpp	/^ClusterSendMessage::ClusterSendMessage(bool fixed) {$/;"	f	class:ClusterSendMessage
+ClusterSendMessage	cluster/ClusterMessage.h	/^class ClusterSendMessage {$/;"	c
+CompileProgram	CLProgram.cpp	/^cl_int CLProgram::CompileProgram(cl_uint num_devices,$/;"	f	class:CLProgram
+CompileProgram	cluster/ClusterDevice.cpp	/^void ClusterDevice::CompileProgram(CLCommand* command, CLProgram* program,$/;"	f	class:ClusterDevice
+CompileProgram	cpu/CPUDevice.cpp	/^void CPUDevice::CompileProgram(CLCommand* command, CLProgram* program,$/;"	f	class:CPUDevice
+CompileProgram	legacy/LegacyDevice.cpp	/^void LegacyDevice::CompileProgram(CLCommand* command, CLProgram* program,$/;"	f	class:LegacyDevice
+CompleteBuild	CLProgram.cpp	/^void CLProgram::CompleteBuild(CLDevice* device, cl_build_status status,$/;"	f	class:CLProgram
+ContextErrorNotificationCallback	Callbacks.h	/^  ContextErrorNotificationCallback($/;"	f	class:ContextErrorNotificationCallback
+ContextErrorNotificationCallback	Callbacks.h	/^class ContextErrorNotificationCallback {$/;"	c
+CopyBuffer	cluster/ClusterDevice.cpp	/^void ClusterDevice::CopyBuffer(CLCommand* command, CLMem* mem_src,$/;"	f	class:ClusterDevice
+CopyBuffer	cpu/CPUDevice.cpp	/^void CPUDevice::CopyBuffer(CLCommand* command, CLMem* mem_src, CLMem* mem_dst,$/;"	f	class:CPUDevice
+CopyBuffer	legacy/LegacyDevice.cpp	/^void LegacyDevice::CopyBuffer(CLCommand* command, CLMem* mem_src,$/;"	f	class:LegacyDevice
+CopyBufferRect	cluster/ClusterDevice.cpp	/^void ClusterDevice::CopyBufferRect(CLCommand* command, CLMem* mem_src,$/;"	f	class:ClusterDevice
+CopyBufferRect	cpu/CPUDevice.cpp	/^void CPUDevice::CopyBufferRect(CLCommand* command, CLMem* mem_src,$/;"	f	class:CPUDevice
+CopyBufferRect	legacy/LegacyDevice.cpp	/^void LegacyDevice::CopyBufferRect(CLCommand* command, CLMem* mem_src,$/;"	f	class:LegacyDevice
+CopyBufferToImage	cluster/ClusterDevice.cpp	/^void ClusterDevice::CopyBufferToImage(CLCommand* command, CLMem* mem_src,$/;"	f	class:ClusterDevice
+CopyBufferToImage	cpu/CPUDevice.cpp	/^void CPUDevice::CopyBufferToImage(CLCommand* command, CLMem* mem_src,$/;"	f	class:CPUDevice
+CopyBufferToImage	legacy/LegacyDevice.cpp	/^void LegacyDevice::CopyBufferToImage(CLCommand* command, CLMem* mem_src,$/;"	f	class:LegacyDevice
+CopyImage	cluster/ClusterDevice.cpp	/^void ClusterDevice::CopyImage(CLCommand* command, CLMem* mem_src,$/;"	f	class:ClusterDevice
+CopyImage	cpu/CPUDevice.cpp	/^void CPUDevice::CopyImage(CLCommand* command, CLMem* mem_src, CLMem* mem_dst,$/;"	f	class:CPUDevice
+CopyImage	legacy/LegacyDevice.cpp	/^void LegacyDevice::CopyImage(CLCommand* command, CLMem* mem_src,$/;"	f	class:LegacyDevice
+CopyImageToBuffer	cluster/ClusterDevice.cpp	/^void ClusterDevice::CopyImageToBuffer(CLCommand* command, CLMem* mem_src,$/;"	f	class:ClusterDevice
+CopyImageToBuffer	cpu/CPUDevice.cpp	/^void CPUDevice::CopyImageToBuffer(CLCommand* command, CLMem* mem_src,$/;"	f	class:CPUDevice
+CopyImageToBuffer	legacy/LegacyDevice.cpp	/^void LegacyDevice::CopyImageToBuffer(CLCommand* command, CLMem* mem_src,$/;"	f	class:LegacyDevice
+CopyRegion	Utils.cpp	/^void CopyRegion(void* src, void* dst, size_t dimension,$/;"	f
+CountdownBuildCallback	CLProgram.cpp	/^void CLProgram::CountdownBuildCallback(CLDevice* device) {$/;"	f	class:CLProgram
+CreateAlltoAllBuffer	CLCommand.cpp	/^CLCommand::CreateAlltoAllBuffer(CLContext* context, CLDevice* device,$/;"	f	class:CLCommand
+CreateBarrier	CLCommand.cpp	/^CLCommand::CreateBarrier(CLContext* context, CLDevice* device,$/;"	f	class:CLCommand
+CreateBroadcastBuffer	CLCommand.cpp	/^CLCommand::CreateBroadcastBuffer(CLContext* context, CLDevice* device,$/;"	f	class:CLCommand
+CreateBuffer	CLMem.cpp	/^CLMem* CLMem::CreateBuffer(CLContext* context, cl_mem_flags flags, size_t size,$/;"	f	class:CLMem
+CreateBuildProgram	CLCommand.cpp	/^CLCommand::CreateBuildProgram(CLDevice* device, CLProgram* program,$/;"	f	class:CLCommand
+CreateCommandQueue	CLCommandQueue.cpp	/^CLCommandQueue* CLCommandQueue::CreateCommandQueue($/;"	f	class:CLCommandQueue
+CreateCompileProgram	CLCommand.cpp	/^CLCommand::CreateCompileProgram(CLDevice* device, CLProgram* program,$/;"	f	class:CLCommand
+CreateContextFromDevices	CLPlatform.cpp	/^CLContext* CLPlatform::CreateContextFromDevices($/;"	f	class:CLPlatform
+CreateContextFromType	CLPlatform.cpp	/^CLContext* CLPlatform::CreateContextFromType($/;"	f	class:CLPlatform
+CreateCopyBuffer	CLCommand.cpp	/^CLCommand::CreateCopyBuffer(CLContext* context, CLDevice* device,$/;"	f	class:CLCommand
+CreateCopyBufferRect	CLCommand.cpp	/^CLCommand::CreateCopyBufferRect(CLContext* context, CLDevice* device,$/;"	f	class:CLCommand
+CreateCopyBufferToImage	CLCommand.cpp	/^CLCommand::CreateCopyBufferToImage(CLContext* context, CLDevice* device,$/;"	f	class:CLCommand
+CreateCopyImage	CLCommand.cpp	/^CLCommand::CreateCopyImage(CLContext* context, CLDevice* device,$/;"	f	class:CLCommand
+CreateCopyImageToBuffer	CLCommand.cpp	/^CLCommand::CreateCopyImageToBuffer(CLContext* context, CLDevice* device,$/;"	f	class:CLCommand
+CreateCustom	CLCommand.cpp	/^CLCommand::CreateCustom(CLContext* context, CLDevice* device,$/;"	f	class:CLCommand
+CreateCustomAlltoAllCommand	cluster/ClusterDriver.cpp	/^CLCommand* ClusterDriver::CreateCustomAlltoAllCommand(size_t device_id,$/;"	f	class:ClusterDriver
+CreateCustomBroadcastCommand	cluster/ClusterDriver.cpp	/^CLCommand* ClusterDriver::CreateCustomBroadcastCommand(size_t device_id,$/;"	f	class:ClusterDriver
+CreateCustomFreeCommand	cluster/ClusterDriver.cpp	/^CLCommand* ClusterDriver::CreateCustomFreeCommand(size_t device_id,$/;"	f	class:ClusterDriver
+CreateCustomRecvCommand	cluster/ClusterDriver.cpp	/^CLCommand* ClusterDriver::CreateCustomRecvCommand(size_t device_id, void* ptr,$/;"	f	class:ClusterDriver
+CreateCustomSendCommand	cluster/ClusterDriver.cpp	/^CLCommand* ClusterDriver::CreateCustomSendCommand(size_t device_id, void* ptr,$/;"	f	class:ClusterDriver
+CreateDevices	cluster/ClusterDevice.cpp	/^void ClusterDevice::CreateDevices() {$/;"	f	class:ClusterDevice
+CreateDevices	cpu/CPUDevice.cpp	/^void CPUDevice::CreateDevices() {$/;"	f	class:CPUDevice
+CreateDevices	legacy/LegacyDevice.cpp	/^void LegacyDevice::CreateDevices() {$/;"	f	class:LegacyDevice
+CreateFillBuffer	CLCommand.cpp	/^CLCommand::CreateFillBuffer(CLContext* context, CLDevice* device,$/;"	f	class:CLCommand
+CreateFillImage	CLCommand.cpp	/^CLCommand::CreateFillImage(CLContext* context, CLDevice* device,$/;"	f	class:CLCommand
+CreateImage	CLMem.cpp	/^CLMem* CLMem::CreateImage(CLContext* context, cl_mem_flags flags,$/;"	f	class:CLMem
+CreateKernel	CLProgram.cpp	/^CLKernel* CLProgram::CreateKernel(const char* kernel_name, cl_int* err) {$/;"	f	class:CLProgram
+CreateKernelsInProgram	CLProgram.cpp	/^cl_int CLProgram::CreateKernelsInProgram(cl_uint num_kernels,$/;"	f	class:CLProgram
+CreateLinkProgram	CLCommand.cpp	/^CLCommand::CreateLinkProgram(CLDevice* device, CLProgram* program,$/;"	f	class:CLCommand
+CreateMapBuffer	CLCommand.cpp	/^CLCommand::CreateMapBuffer(CLContext* context, CLDevice* device,$/;"	f	class:CLCommand
+CreateMapImage	CLCommand.cpp	/^CLCommand::CreateMapImage(CLContext* context, CLDevice* device,$/;"	f	class:CLCommand
+CreateMarker	CLCommand.cpp	/^CLCommand::CreateMarker(CLContext* context, CLDevice* device,$/;"	f	class:CLCommand
+CreateMigrateMemObjects	CLCommand.cpp	/^CLCommand::CreateMigrateMemObjects(CLContext* context, CLDevice* device,$/;"	f	class:CLCommand
+CreateNDRangeKernel	CLCommand.cpp	/^CLCommand::CreateNDRangeKernel(CLContext* context, CLDevice* device,$/;"	f	class:CLCommand
+CreateNativeKernel	CLCommand.cpp	/^CLCommand::CreateNativeKernel(CLContext* context, CLDevice* device,$/;"	f	class:CLCommand
+CreateNop	CLCommand.cpp	/^CLCommand::CreateNop(CLContext* context, CLDevice* device,$/;"	f	class:CLCommand
+CreateProgram	legacy/LegacyDevice.cpp	/^cl_program LegacyDevice::CreateProgram(CLProgramBinary* binary) {$/;"	f	class:LegacyDevice
+CreateProgram	legacy/LegacyDevice.cpp	/^cl_program LegacyDevice::CreateProgram(CLProgramSource* source) {$/;"	f	class:LegacyDevice
+CreateProgramWithBinary	CLProgram.cpp	/^CLProgram::CreateProgramWithBinary(CLContext* context, cl_uint num_devices,$/;"	f	class:CLProgram
+CreateProgramWithBuiltInKernels	CLProgram.cpp	/^CLProgram::CreateProgramWithBuiltInKernels(CLContext* context,$/;"	f	class:CLProgram
+CreateProgramWithNothing	CLProgram.cpp	/^CLProgram::CreateProgramWithNothing(CLContext* context, cl_uint num_devices,$/;"	f	class:CLProgram
+CreateProgramWithSource	CLProgram.cpp	/^CLProgram::CreateProgramWithSource(CLContext* context, cl_uint count,$/;"	f	class:CLProgram
+CreateReadBuffer	CLCommand.cpp	/^CLCommand::CreateReadBuffer(CLContext* context, CLDevice* device,$/;"	f	class:CLCommand
+CreateReadBufferRect	CLCommand.cpp	/^CLCommand::CreateReadBufferRect(CLContext* context, CLDevice* device,$/;"	f	class:CLCommand
+CreateReadImage	CLCommand.cpp	/^CLCommand::CreateReadImage(CLContext* context, CLDevice* device,$/;"	f	class:CLCommand
+CreateSubBuffer	CLMem.cpp	/^CLMem* CLMem::CreateSubBuffer(CLMem* parent, cl_mem_flags flags, size_t origin,$/;"	f	class:CLMem
+CreateSubDevices	CLDevice.cpp	/^cl_int CLDevice::CreateSubDevices($/;"	f	class:CLDevice
+CreateSubDevicesByAffinity	CLDevice.cpp	/^cl_int CLDevice::CreateSubDevicesByAffinity(cl_device_affinity_domain domain,$/;"	f	class:CLDevice
+CreateSubDevicesByCount	CLDevice.cpp	/^cl_int CLDevice::CreateSubDevicesByCount(const vector<unsigned int>& sizes,$/;"	f	class:CLDevice
+CreateSubDevicesEqually	CLDevice.cpp	/^cl_int CLDevice::CreateSubDevicesEqually(unsigned int n, cl_uint num_devices,$/;"	f	class:CLDevice
+CreateUnmapMemObject	CLCommand.cpp	/^CLCommand::CreateUnmapMemObject(CLContext* context, CLDevice* device,$/;"	f	class:CLCommand
+CreateWaitForEvents	CLCommand.cpp	/^CLCommand::CreateWaitForEvents(CLContext* context, CLDevice* device,$/;"	f	class:CLCommand
+CreateWriteBuffer	CLCommand.cpp	/^CLCommand::CreateWriteBuffer(CLContext* context, CLDevice* device,$/;"	f	class:CLCommand
+CreateWriteBufferRect	CLCommand.cpp	/^CLCommand::CreateWriteBufferRect(CLContext* context, CLDevice* device,$/;"	f	class:CLCommand
+CreateWriteImage	CLCommand.cpp	/^CLCommand::CreateWriteImage(CLContext* context, CLDevice* device,$/;"	f	class:CLCommand
+CustomAlltoAllData	cluster/ClusterDriver.cpp	/^} CustomAlltoAllData;$/;"	t	typeref:struct:_CustomAlltoAllData	file:
+CustomAlltoAllHandler	cluster/ClusterDriver.cpp	/^static void CustomAlltoAllHandler(void* ptr) {$/;"	f	file:
+CustomBroadcastData	cluster/ClusterDriver.cpp	/^} CustomBroadcastData;$/;"	t	typeref:struct:_CustomBroadcastData	file:
+CustomBroadcastHandler	cluster/ClusterDriver.cpp	/^static void CustomBroadcastHandler(void* ptr) {$/;"	f	file:
+CustomFreeHandler	cluster/ClusterDriver.cpp	/^static void CustomFreeHandler(void* ptr) {$/;"	f	file:
+CustomRecvData	cluster/ClusterDriver.cpp	/^} CustomRecvData;$/;"	t	typeref:struct:_CustomRecvData	file:
+CustomRecvHandler	cluster/ClusterDriver.cpp	/^static void CustomRecvHandler(void* ptr) {$/;"	f	file:
+CustomSendData	cluster/ClusterDriver.cpp	/^} CustomSendData;$/;"	t	typeref:struct:_CustomSendData	file:
+CustomSendHandler	cluster/ClusterDriver.cpp	/^static void CustomSendHandler(void* ptr) {$/;"	f	file:
+DEPS_DIR	Makefile	/^DEPS_DIR=$(patsubst %,$(OBJ_DIR)\/.deps\/%,$(SUBDIRS))$/;"	m
+DESERIALIZE_INFO	CLDevice.cpp	542;"	d	file:
+DESERIALIZE_INFO	CLDevice.cpp	650;"	d	file:
+DESERIALIZE_INFO	CLProgram.cpp	1141;"	d	file:
+DESERIALIZE_INFO_A	CLDevice.cpp	545;"	d	file:
+DESERIALIZE_INFO_A	CLDevice.cpp	651;"	d	file:
+DESERIALIZE_INFO_A	CLProgram.cpp	1144;"	d	file:
+DESERIALIZE_INFO_S	CLDevice.cpp	548;"	d	file:
+DESERIALIZE_INFO_S	CLDevice.cpp	652;"	d	file:
+DESERIALIZE_INFO_S	CLProgram.cpp	1147;"	d	file:
+Dequeue	CLCommandQueue.cpp	/^void CLInOrderCommandQueue::Dequeue(CLCommand* command) {$/;"	f	class:CLInOrderCommandQueue
+Dequeue	CLCommandQueue.cpp	/^void CLOutOfOrderCommandQueue::Dequeue(CLCommand* command) {$/;"	f	class:CLOutOfOrderCommandQueue
+Dequeue	Utils.cpp	/^bool LockFreeQueue::Dequeue(CLCommand** element) {$/;"	f	class:LockFreeQueue
+DequeueReadyQueue	CLDevice.cpp	/^CLCommand* CLDevice::DequeueReadyQueue() {$/;"	f	class:CLDevice
+DeserializeDeviceInfo	CLDevice.cpp	/^void CLDevice::DeserializeDeviceInfo(void* buffer) {$/;"	f	class:CLDevice
+DeserializeKernelInfo	CLProgram.cpp	/^void CLProgram::DeserializeKernelInfo(void* buffer, CLDevice* device) {$/;"	f	class:CLProgram
+EmptyLatest	CLMem.cpp	/^bool CLMem::EmptyLatest() {$/;"	f	class:CLMem
+Enqueue	CLCommandQueue.cpp	/^void CLInOrderCommandQueue::Enqueue(CLCommand* command) {$/;"	f	class:CLInOrderCommandQueue
+Enqueue	CLCommandQueue.cpp	/^void CLOutOfOrderCommandQueue::Enqueue(CLCommand* command) {$/;"	f	class:CLOutOfOrderCommandQueue
+Enqueue	Utils.cpp	/^bool LockFreeQueue::Enqueue(CLCommand* element) {$/;"	f	class:LockFreeQueue
+Enqueue	Utils.cpp	/^bool LockFreeQueueMS::Enqueue(CLCommand* element) {$/;"	f	class:LockFreeQueueMS
+EnqueueBuildProgram	CLDevice.cpp	/^CLEvent* CLDevice::EnqueueBuildProgram(CLProgram* program,$/;"	f	class:CLDevice
+EnqueueCompileProgram	CLDevice.cpp	/^CLEvent* CLDevice::EnqueueCompileProgram(CLProgram* program,$/;"	f	class:CLDevice
+EnqueueLinkProgram	CLDevice.cpp	/^CLEvent* CLDevice::EnqueueLinkProgram(CLProgram* program,$/;"	f	class:CLDevice
+EnqueueReadyQueue	CLDevice.cpp	/^void CLDevice::EnqueueReadyQueue(CLCommand* command) {$/;"	f	class:CLDevice
+EnterBuild	CLProgram.cpp	/^bool CLProgram::EnterBuild(CLDevice* target_device) {$/;"	f	class:CLProgram
+EnterBuild	CLProgram.cpp	/^bool CLProgram::EnterBuild(const vector<CLDevice*>& target_devices) {$/;"	f	class:CLProgram
+EventCallback	Callbacks.h	/^  EventCallback(void (CL_CALLBACK *pfn_notify)(cl_event, cl_int, void*),$/;"	f	class:EventCallback
+EventCallback	Callbacks.h	/^class EventCallback {$/;"	c
+Execute	CLCommand.cpp	/^void CLCommand::Execute() {$/;"	f	class:CLCommand
+ExportArgs	CLKernel.cpp	/^map<cl_uint, CLKernelArg*>* CLKernel::ExportArgs() {$/;"	f	class:CLKernel
+ExportEvent	CLCommand.cpp	/^CLEvent* CLCommand::ExportEvent() {$/;"	f	class:CLCommand
+FillBuffer	cluster/ClusterDevice.cpp	/^void ClusterDevice::FillBuffer(CLCommand* command, CLMem* mem_dst,$/;"	f	class:ClusterDevice
+FillBuffer	cpu/CPUDevice.cpp	/^void CPUDevice::FillBuffer(CLCommand* command, CLMem* mem_dst, void* pattern,$/;"	f	class:CPUDevice
+FillBuffer	legacy/LegacyDevice.cpp	/^void LegacyDevice::FillBuffer(CLCommand* command, CLMem* mem_dst,$/;"	f	class:LegacyDevice
+FillImage	cluster/ClusterDevice.cpp	/^void ClusterDevice::FillImage(CLCommand* command, CLMem* mem_dst,$/;"	f	class:ClusterDevice
+FillImage	cpu/CPUDevice.cpp	/^void CPUDevice::FillImage(CLCommand* command, CLMem* mem_dst,$/;"	f	class:CPUDevice
+FillImage	legacy/LegacyDevice.cpp	/^void LegacyDevice::FillImage(CLCommand* command, CLMem* mem_dst,$/;"	f	class:LegacyDevice
+FinishRegisterKernelInfo	CLProgram.cpp	/^void CLProgram::FinishRegisterKernelInfo() {$/;"	f	class:CLProgram
+FloatToHalf_rte	cpu/CPUDevice.cpp	/^cl_ushort CPUDevice::FloatToHalf_rte(float value) {$/;"	f	class:CPUDevice
+FloatToInt_rte	cpu/CPUDevice.cpp	/^int CPUDevice::FloatToInt_rte(float value) {$/;"	f	class:CPUDevice
+Flush	CLCommandQueue.h	/^  void Flush() {}$/;"	f	class:CLCommandQueue
+FreeExecutable	cluster/ClusterDevice.cpp	/^void ClusterDevice::FreeExecutable(CLProgram* program, void* executable) {$/;"	f	class:ClusterDevice
+FreeExecutable	cpu/CPUDevice.cpp	/^void CPUDevice::FreeExecutable(CLProgram* program, void* executable) {$/;"	f	class:CPUDevice
+FreeExecutable	legacy/LegacyDevice.cpp	/^void LegacyDevice::FreeExecutable(CLProgram* program, void* executable) {$/;"	f	class:LegacyDevice
+FreeKernel	CLDevice.cpp	/^void CLDevice::FreeKernel(CLKernel* kernel, void* dev_specific) {$/;"	f	class:CLDevice
+FreeKernel	cluster/ClusterDevice.cpp	/^void ClusterDevice::FreeKernel(CLKernel* kernel, void* dev_specific) {$/;"	f	class:ClusterDevice
+FreeKernel	legacy/LegacyDevice.cpp	/^void LegacyDevice::FreeKernel(CLKernel* kernel, void* dev_specific) {$/;"	f	class:LegacyDevice
+FreeMem	cluster/ClusterDevice.cpp	/^void ClusterDevice::FreeMem(CLMem* mem, void* dev_specific) {$/;"	f	class:ClusterDevice
+FreeMem	cpu/CPUDevice.cpp	/^void CPUDevice::FreeMem(CLMem* mem, void* dev_specific) {$/;"	f	class:CPUDevice
+FreeMem	legacy/LegacyDevice.cpp	/^void LegacyDevice::FreeMem(CLMem* mem, void* dev_specific) {$/;"	f	class:LegacyDevice
+FreeSampler	CLDevice.cpp	/^void CLDevice::FreeSampler(CLSampler* sampler, void* dev_specific) {$/;"	f	class:CLDevice
+FreeSampler	cluster/ClusterDevice.cpp	/^void ClusterDevice::FreeSampler(CLSampler* sampler, void* dev_specific) {$/;"	f	class:ClusterDevice
+FreeSampler	legacy/LegacyDevice.cpp	/^void LegacyDevice::FreeSampler(CLSampler* sampler, void* dev_specific) {$/;"	f	class:LegacyDevice
+FrontLatest	CLMem.cpp	/^CLDevice* CLMem::FrontLatest() {$/;"	f	class:CLMem
+GET_LEGACY_DEVICE_INFO	legacy/LegacyDevice.cpp	120;"	d	file:
+GET_LEGACY_DEVICE_INFO	legacy/LegacyDevice.cpp	357;"	d	file:
+GET_LEGACY_DEVICE_INFO_A	legacy/LegacyDevice.cpp	126;"	d	file:
+GET_LEGACY_DEVICE_INFO_A	legacy/LegacyDevice.cpp	358;"	d	file:
+GET_LEGACY_DEVICE_INFO_S	legacy/LegacyDevice.cpp	134;"	d	file:
+GET_LEGACY_DEVICE_INFO_S	legacy/LegacyDevice.cpp	359;"	d	file:
+GET_OBJECT_INFO	Utils.h	56;"	d
+GET_OBJECT_INFO_A	Utils.h	79;"	d
+GET_OBJECT_INFO_S	Utils.h	94;"	d
+GET_OBJECT_INFO_T	Utils.h	67;"	d
+GenerateFileIndex	cpu/CPUDevice.cpp	/^void CPUDevice::GenerateFileIndex(char file_index[11]) {$/;"	f	class:CPUDevice
+GenerateHeader	CLProgram.cpp	/^void CLProgramBinary::GenerateHeader(unsigned char* header,$/;"	f	class:CLProgramBinary
+GetBinary	CLProgram.cpp	/^CLProgramBinary* CLProgram::GetBinary(CLDevice* device) {$/;"	f	class:CLProgram
+GetBuildLog	CLProgram.cpp	/^const char* CLProgram::GetBuildLog(CLDevice* device) {$/;"	f	class:CLProgram
+GetBuildStatus	CLProgram.cpp	/^cl_build_status CLProgram::GetBuildStatus(CLDevice* device) {$/;"	f	class:CLProgram
+GetCommandQueueInfo	CLCommandQueue.cpp	/^cl_int CLCommandQueue::GetCommandQueueInfo(cl_command_queue_info param_name,$/;"	f	class:CLCommandQueue
+GetContextInfo	CLContext.cpp	/^cl_int CLContext::GetContextInfo(cl_context_info param_name,$/;"	f	class:CLContext
+GetCopyPattern	CLCommand.cpp	/^void CLCommand::GetCopyPattern(CLDevice* dev_src, CLDevice* dev_dst,$/;"	f	class:CLCommand
+GetDevSpecific	CLKernel.cpp	/^void* CLKernel::GetDevSpecific(CLDevice* device) {$/;"	f	class:CLKernel
+GetDevSpecific	CLMem.cpp	/^void* CLMem::GetDevSpecific(CLDevice* device) {$/;"	f	class:CLMem
+GetDevSpecific	CLSampler.cpp	/^void* CLSampler::GetDevSpecific(CLDevice* device) {$/;"	f	class:CLSampler
+GetDeviceIDs	CLPlatform.cpp	/^cl_int CLPlatform::GetDeviceIDs(cl_device_type device_type,$/;"	f	class:CLPlatform
+GetDeviceInfo	CLDevice.cpp	/^cl_int CLDevice::GetDeviceInfo(cl_device_info param_name,$/;"	f	class:CLDevice
+GetDevices	CLPlatform.cpp	/^void CLPlatform::GetDevices(std::vector<CLDevice*>& devices) {$/;"	f	class:CLPlatform
+GetDispatch	CLDispatch.cpp	/^struct _cl_icd_dispatch* CLDispatch::GetDispatch() {$/;"	f	class:CLDispatch
+GetDistance	CLDevice.cpp	/^int CLDevice::GetDistance(CLDevice* other) const {$/;"	f	class:CLDevice
+GetEventInfo	CLEvent.cpp	/^cl_int CLEvent::GetEventInfo(cl_event_info param_name, size_t param_value_size,$/;"	f	class:CLEvent
+GetEventProfilingInfo	CLEvent.cpp	/^cl_int CLEvent::GetEventProfilingInfo(cl_profiling_info param_name,$/;"	f	class:CLEvent
+GetExecutable	CLProgram.cpp	/^void* CLProgram::GetExecutable(CLDevice* device) {$/;"	f	class:CLProgram
+GetFirstDevice	CLIssuer.cpp	/^CLDevice* CLIssuer::GetFirstDevice() {$/;"	f	class:CLIssuer
+GetFirstDevice	CLPlatform.cpp	/^CLDevice* CLPlatform::GetFirstDevice() {$/;"	f	class:CLPlatform
+GetHostPtr	CLMem.cpp	/^void* CLMem::GetHostPtr() const {$/;"	f	class:CLMem
+GetImageInfo	CLMem.cpp	/^cl_int CLMem::GetImageInfo(cl_image_info param_name, size_t param_value_size,$/;"	f	class:CLMem
+GetImageRegion	CLMem.cpp	/^size_t* CLMem::GetImageRegion() {$/;"	f	class:CLMem
+GetKernelArgInfo	CLKernel.cpp	/^cl_int CLKernel::GetKernelArgInfo(cl_uint arg_index,$/;"	f	class:CLKernel
+GetKernelArgInfo	CLProgram.cpp	/^cl_int CLKernelInfo::GetKernelArgInfo(cl_uint arg_index,$/;"	f	class:CLKernelInfo
+GetKernelInfo	CLKernel.cpp	/^cl_int CLKernel::GetKernelInfo(cl_kernel_info param_name,$/;"	f	class:CLKernel
+GetKernelWorkGroupInfo	CLKernel.cpp	/^cl_int CLKernel::GetKernelWorkGroupInfo(CLDevice* device,$/;"	f	class:CLKernel
+GetKernelWorkGroupInfo	CLProgram.cpp	/^cl_int CLKernelInfo::GetKernelWorkGroupInfo($/;"	f	class:CLKernelInfo
+GetMapWritebackLayoutForBuffer	CLMem.cpp	/^bool CLMem::GetMapWritebackLayoutForBuffer(void* ptr, size_t* offset,$/;"	f	class:CLMem
+GetMapWritebackLayoutForImage	CLMem.cpp	/^bool CLMem::GetMapWritebackLayoutForImage(void* ptr, size_t* origin,$/;"	f	class:CLMem
+GetMemObjectInfo	CLMem.cpp	/^cl_int CLMem::GetMemObjectInfo(cl_mem_info param_name, size_t param_value_size,$/;"	f	class:CLMem
+GetNearestLatest	CLMem.cpp	/^CLDevice* CLMem::GetNearestLatest(CLDevice* device) {$/;"	f	class:CLMem
+GetPlatform	CLPlatform.cpp	/^CLPlatform* CLPlatform::GetPlatform() {$/;"	f	class:CLPlatform
+GetPlatformInfo	CLPlatform.cpp	/^cl_int CLPlatform::GetPlatformInfo(cl_platform_info param_name,$/;"	f	class:CLPlatform
+GetProgramBuildInfo	CLProgram.cpp	/^cl_int CLProgram::GetProgramBuildInfo(CLDevice* device,$/;"	f	class:CLProgram
+GetProgramInfo	CLProgram.cpp	/^cl_int CLProgram::GetProgramInfo(cl_program_info param_name,$/;"	f	class:CLProgram
+GetRegionSize	CLMem.cpp	/^size_t CLMem::GetRegionSize(const size_t* region) const {$/;"	f	class:CLMem
+GetSamplerInfo	CLSampler.cpp	/^cl_int CLSampler::GetSamplerInfo(cl_sampler_info param_name,$/;"	f	class:CLSampler
+GetSerializationSize	CLProgram.cpp	/^size_t CLKernelInfo::GetSerializationSize(CLDevice* device) {$/;"	f	class:CLKernelInfo
+GetSupportedImageFormats	CLContext.cpp	/^cl_int CLContext::GetSupportedImageFormats(cl_mem_flags flags,$/;"	f	class:CLContext
+GetTimestamp	CLEvent.cpp	/^cl_ulong CLEvent::GetTimestamp() {$/;"	f	class:CLEvent
+HAS_MISSING_EXECUTABLE_FOR_PROGRAM	CLAPI.cpp	146;"	d	file:
+HAS_NO_EXECUTABLE_FOR_PROGRAM	CLAPI.cpp	143;"	d	file:
+HandleAlltoAll	cluster/ClusterDriver.cpp	/^void ClusterDriver::HandleAlltoAll(ClusterRecvMessage& request) {$/;"	f	class:ClusterDriver
+HandleBroadcast	cluster/ClusterDriver.cpp	/^void ClusterDriver::HandleBroadcast(ClusterRecvMessage& request) {$/;"	f	class:ClusterDriver
+HandleBuildProgram	cluster/ClusterDriver.cpp	/^void ClusterDriver::HandleBuildProgram(ClusterRecvMessage& request) {$/;"	f	class:ClusterDriver
+HandleCommand	cluster/ClusterDriver.cpp	/^void ClusterDriver::HandleCommand(ClusterRecvMessage& request) {$/;"	f	class:ClusterDriver
+HandleCompileProgram	cluster/ClusterDriver.cpp	/^void ClusterDriver::HandleCompileProgram(ClusterRecvMessage& request) {$/;"	f	class:ClusterDriver
+HandleCopyBuffer	cluster/ClusterDriver.cpp	/^void ClusterDriver::HandleCopyBuffer(ClusterRecvMessage& request) {$/;"	f	class:ClusterDriver
+HandleCopyBufferRect	cluster/ClusterDriver.cpp	/^void ClusterDriver::HandleCopyBufferRect(ClusterRecvMessage& request) {$/;"	f	class:ClusterDriver
+HandleCopyBufferToImage	cluster/ClusterDriver.cpp	/^void ClusterDriver::HandleCopyBufferToImage(ClusterRecvMessage& request) {$/;"	f	class:ClusterDriver
+HandleCopyImage	cluster/ClusterDriver.cpp	/^void ClusterDriver::HandleCopyImage(ClusterRecvMessage& request) {$/;"	f	class:ClusterDriver
+HandleCopyImageToBuffer	cluster/ClusterDriver.cpp	/^void ClusterDriver::HandleCopyImageToBuffer(ClusterRecvMessage& request) {$/;"	f	class:ClusterDriver
+HandleDeviceInfo	cluster/ClusterDriver.cpp	/^void ClusterDriver::HandleDeviceInfo(ClusterRecvMessage& request) {$/;"	f	class:ClusterDriver
+HandleFillBuffer	cluster/ClusterDriver.cpp	/^void ClusterDriver::HandleFillBuffer(ClusterRecvMessage& request) {$/;"	f	class:ClusterDriver
+HandleFillImage	cluster/ClusterDriver.cpp	/^void ClusterDriver::HandleFillImage(ClusterRecvMessage& request) {$/;"	f	class:ClusterDriver
+HandleFreeKernel	cluster/ClusterDriver.cpp	/^void ClusterDriver::HandleFreeKernel(ClusterRecvMessage& request) {$/;"	f	class:ClusterDriver
+HandleFreeMem	cluster/ClusterDriver.cpp	/^void ClusterDriver::HandleFreeMem(ClusterRecvMessage& request) {$/;"	f	class:ClusterDriver
+HandleFreeProgram	cluster/ClusterDriver.cpp	/^void ClusterDriver::HandleFreeProgram(ClusterRecvMessage& request) {$/;"	f	class:ClusterDriver
+HandleFreeSampler	cluster/ClusterDriver.cpp	/^void ClusterDriver::HandleFreeSampler(ClusterRecvMessage& request) {$/;"	f	class:ClusterDriver
+HandleLaunchKernel	cluster/ClusterDriver.cpp	/^void ClusterDriver::HandleLaunchKernel(ClusterRecvMessage& request) {$/;"	f	class:ClusterDriver
+HandleLaunchNativeKernel	cluster/ClusterDriver.cpp	/^void ClusterDriver::HandleLaunchNativeKernel(ClusterRecvMessage& request) {$/;"	f	class:ClusterDriver
+HandleLinkProgram	cluster/ClusterDriver.cpp	/^void ClusterDriver::HandleLinkProgram(ClusterRecvMessage& request) {$/;"	f	class:ClusterDriver
+HandleNodeInfo	cluster/ClusterDriver.cpp	/^void ClusterDriver::HandleNodeInfo(ClusterRecvMessage& request) {$/;"	f	class:ClusterDriver
+HandleRecvBuffer	cluster/ClusterDriver.cpp	/^void ClusterDriver::HandleRecvBuffer(ClusterRecvMessage& request) {$/;"	f	class:ClusterDriver
+HandleRecvBufferRect	cluster/ClusterDriver.cpp	/^void ClusterDriver::HandleRecvBufferRect(ClusterRecvMessage& request) {$/;"	f	class:ClusterDriver
+HandleRecvImage	cluster/ClusterDriver.cpp	/^void ClusterDriver::HandleRecvImage(ClusterRecvMessage& request) {$/;"	f	class:ClusterDriver
+HandleSendBuffer	cluster/ClusterDriver.cpp	/^void ClusterDriver::HandleSendBuffer(ClusterRecvMessage& request) {$/;"	f	class:ClusterDriver
+HandleSendBufferRect	cluster/ClusterDriver.cpp	/^void ClusterDriver::HandleSendBufferRect(ClusterRecvMessage& request) {$/;"	f	class:ClusterDriver
+HandleSendImage	cluster/ClusterDriver.cpp	/^void ClusterDriver::HandleSendImage(ClusterRecvMessage& request) {$/;"	f	class:ClusterDriver
+HasAllExecutable	CLProgram.cpp	/^bool CLProgram::HasAllExecutable() const {$/;"	f	class:CLProgram
+HasDevSpecific	CLKernel.cpp	/^bool CLKernel::HasDevSpecific(CLDevice* device) {$/;"	f	class:CLKernel
+HasDevSpecific	CLMem.cpp	/^bool CLMem::HasDevSpecific(CLDevice* device) {$/;"	f	class:CLMem
+HasDevSpecific	CLSampler.cpp	/^bool CLSampler::HasDevSpecific(CLDevice* device) {$/;"	f	class:CLSampler
+HasLatest	CLMem.cpp	/^bool CLMem::HasLatest(CLDevice* device) {$/;"	f	class:CLMem
+HasOneExecutable	CLProgram.cpp	/^bool CLProgram::HasOneExecutable() const {$/;"	f	class:CLProgram
+HasSource	CLProgram.cpp	/^bool CLProgram::HasSource() const {$/;"	f	class:CLProgram
+HasValidBinary	CLProgram.cpp	/^bool CLProgram::HasValidBinary(CLDevice* device) {$/;"	f	class:CLProgram
+Hash	CLProgram.cpp	/^unsigned int CLProgramBinary::Hash(const unsigned char* str, size_t size) {$/;"	f	class:CLProgramBinary
+ICD_EXTENSION	legacy/LegacyDevice.cpp	73;"	d	file:
+ICD_SNUCL_CLUSTER_NAME	legacy/LegacyDevice.cpp	74;"	d	file:
+ICD_SNUCL_SINGLE_NAME	legacy/LegacyDevice.cpp	75;"	d	file:
+ICD_VENDOR_PATH	legacy/LegacyDevice.cpp	69;"	d	file:
+IDIV	cpu/CPUDevice.cpp	728;"	d	file:
+ISSUER_CLUSTER	CLPlatform.cpp	75;"	d	file:
+ISSUER_PER_DEVICE_BLOCKING	CLPlatform.cpp	61;"	d	file:
+ISSUER_PER_DEVICE_BLOCKING	CLPlatform.cpp	67;"	d	file:
+IS_COMPILER_NOT_AVAILABLE	CLAPI.cpp	137;"	d	file:
+IS_DEVICES_NOT_ASSOCIATED_WITH_CONTEXT	CLAPI.cpp	83;"	d	file:
+IS_DEVICES_NOT_ASSOCIATED_WITH_PROGRAM	CLAPI.cpp	127;"	d	file:
+IS_DEVICE_NOT_ASSOCIATED_WITH_CONTEXT	CLAPI.cpp	80;"	d	file:
+IS_DEVICE_NOT_ASSOCIATED_WITH_PROGRAM	CLAPI.cpp	124;"	d	file:
+IS_IMAGE_NOT_SUPPORTED	CLAPI.cpp	113;"	d	file:
+IS_INVALID_ARG_INDEX	CLAPI.cpp	151;"	d	file:
+IS_INVALID_BUFFER	CLAPI.cpp	90;"	d	file:
+IS_INVALID_BUFFER_CREATE_REGION	CLAPI.cpp	103;"	d	file:
+IS_INVALID_BUFFER_CREATE_TYPE	CLAPI.cpp	100;"	d	file:
+IS_INVALID_CHILD_MEM_FLAGS	CLAPI.cpp	97;"	d	file:
+IS_INVALID_COMMAND_QUEUE	CLAPI.cpp	86;"	d	file:
+IS_INVALID_CONTEXT	CLAPI.cpp	78;"	d	file:
+IS_INVALID_DEVICE	CLAPI.cpp	73;"	d	file:
+IS_INVALID_DEVICE_TYPE	CLAPI.cpp	67;"	d	file:
+IS_INVALID_IMAGE	CLAPI.cpp	95;"	d	file:
+IS_INVALID_IMAGE_DESCRIPTOR	CLAPI.cpp	/^static bool IS_INVALID_IMAGE_DESCRIPTOR(const cl_image_desc* image_desc) {$/;"	f	file:
+IS_INVALID_IMAGE_FORMAT	CLAPI.cpp	/^static bool IS_INVALID_IMAGE_FORMAT(const cl_image_format* image_format) {$/;"	f	file:
+IS_INVALID_IMAGE_SIZE	CLAPI.cpp	107;"	d	file:
+IS_INVALID_IMAGE_TYPE	CLAPI.cpp	116;"	d	file:
+IS_INVALID_KERNEL	CLAPI.cpp	149;"	d	file:
+IS_INVALID_MEM_FLAGS	CLAPI.cpp	/^static bool IS_INVALID_MEM_FLAGS(cl_mem_flags flags) {$/;"	f	file:
+IS_INVALID_MEM_OBJECT	CLAPI.cpp	88;"	d	file:
+IS_INVALID_PLATFORM	CLAPI.cpp	64;"	d	file:
+IS_INVALID_PROGRAM	CLAPI.cpp	122;"	d	file:
+IS_INVALID_SAMPLER	CLAPI.cpp	120;"	d	file:
+IS_INVALID_SAMPLER_ARGUMENTS	CLAPI.cpp	/^static bool IS_INVALID_SAMPLER_ARGUMENTS(cl_bool normalized_coords,$/;"	f	file:
+IS_INVALID_SUB_DEVICE	CLAPI.cpp	75;"	d	file:
+IS_LINKER_NOT_AVAILABLE	CLAPI.cpp	140;"	d	file:
+IS_NO_VALID_BINARY	CLAPI.cpp	134;"	d	file:
+IS_PROGRAM_FROM_BINARY	CLAPI.cpp	132;"	d	file:
+IS_PROGRAM_FROM_SOURCE	CLAPI.cpp	130;"	d	file:
+IS_SUB_BUFFER	CLAPI.cpp	93;"	d	file:
+IS_UNSUPPORTED_IMAGE_FORMAT	CLAPI.cpp	110;"	d	file:
+IcdGetDevices	legacy/LegacyDevice.cpp	/^cl_device_id* LegacyDevice::IcdGetDevices(cl_platform_id platform,$/;"	f	class:LegacyDevice
+IcdGetLibraryName	legacy/LegacyDevice.cpp	/^char* LegacyDevice::IcdGetLibraryName(const char* entry_name) {$/;"	f	class:LegacyDevice
+IcdGetPlatforms	legacy/LegacyDevice.cpp	/^cl_platform_id* LegacyDevice::IcdGetPlatforms(void* library,$/;"	f	class:LegacyDevice
+IcdPlatformAdd	legacy/LegacyDevice.cpp	/^void LegacyDevice::IcdPlatformAdd(const char* library_name,$/;"	f	class:LegacyDevice
+IcdVendorAdd	legacy/LegacyDevice.cpp	/^void LegacyDevice::IcdVendorAdd(const char* library_name) {$/;"	f	class:LegacyDevice
+InheritFlags	CLMem.cpp	/^void CLMem::InheritFlags(cl_mem_flags& child_flags) const {$/;"	f	class:CLMem
+Init	CLPlatform.cpp	/^void CLPlatform::Init() {$/;"	f	class:CLPlatform
+InitImageInfo	CLContext.cpp	/^void CLContext::InitImageInfo() {$/;"	f	class:CLContext
+InitSchedulers	CLPlatform.cpp	/^void CLPlatform::InitSchedulers(unsigned int num_schedulers,$/;"	f	class:CLPlatform
+InterpretImageFormat	CLMem.cpp	/^void CLMem::InterpretImageFormat(const cl_image_format* image_format,$/;"	f	class:CLMem
+Invalidate	CLProgram.cpp	/^void CLKernelInfo::Invalidate() {$/;"	f	class:CLKernelInfo
+Invoke	CLScheduler.cpp	/^void CLScheduler::Invoke() {$/;"	f	class:CLScheduler
+InvokeAllSchedulers	CLPlatform.cpp	/^void CLPlatform::InvokeAllSchedulers() {$/;"	f	class:CLPlatform
+InvokeReadyQueue	CLDevice.cpp	/^void CLDevice::InvokeReadyQueue() {$/;"	f	class:CLDevice
+InvokeScheduler	CLCommandQueue.cpp	/^void CLCommandQueue::InvokeScheduler() {$/;"	f	class:CLCommandQueue
+InvokeScheduler	CLDevice.cpp	/^void CLDevice::InvokeScheduler() {$/;"	f	class:CLDevice
+Irecv	cluster/ClusterMessage.cpp	/^MPI_Request ClusterRecvMessage::Irecv(int source, int tag) {$/;"	f	class:ClusterRecvMessage
+IsArgsDirty	CLKernel.h	/^  bool IsArgsDirty() { return args_dirty_; }$/;"	f	class:CLKernel
+IsAvailable	CLDevice.h	/^  bool IsAvailable() const { return available_; }$/;"	f	class:CLDevice
+IsBuffer	CLMem.h	/^  bool IsBuffer() const { return type_ == CL_MEM_OBJECT_BUFFER; }$/;"	f	class:CLMem
+IsCompilerAvailable	CLDevice.h	/^  bool IsCompilerAvailable() const { return compiler_available_; }$/;"	f	class:CLDevice
+IsCompilerAvailable	CLProgram.cpp	/^bool CLProgram::IsCompilerAvailable() {$/;"	f	class:CLProgram
+IsComplete	CLDevice.cpp	/^bool CLDevice::IsComplete(CLCommand* command) {$/;"	f	class:CLDevice
+IsComplete	CLEvent.h	/^  bool IsComplete() const {$/;"	f	class:CLEvent
+IsComplete	cluster/ClusterDevice.cpp	/^bool ClusterDevice::IsComplete(CLCommand* command) {$/;"	f	class:ClusterDevice
+IsError	CLEvent.h	/^  bool IsError() const {$/;"	f	class:CLEvent
+IsExecutable	CLCommand.cpp	/^bool CLCommand::IsExecutable() {$/;"	f	class:CLCommand
+IsHostReadable	CLMem.cpp	/^bool CLMem::IsHostReadable() const {$/;"	f	class:CLMem
+IsHostWritable	CLMem.cpp	/^bool CLMem::IsHostWritable() const {$/;"	f	class:CLMem
+IsIdle	cpu/CPUComputeUnit.cpp	/^bool CPUComputeUnit::IsIdle() const {$/;"	f	class:CPUComputeUnit
+IsImage	CLMem.h	/^  bool IsImage() const { return type_ != CL_MEM_OBJECT_BUFFER; }$/;"	f	class:CLMem
+IsImageSupported	CLContext.h	/^  bool IsImageSupported() const { return image_supported_; }$/;"	f	class:CLContext
+IsImageSupported	CLDevice.h	/^  bool IsImageSupported() const { return image_support_; }$/;"	f	class:CLDevice
+IsLinkerAvailable	CLDevice.h	/^  bool IsLinkerAvailable() const { return linker_available_; }$/;"	f	class:CLDevice
+IsLinkerAvailable	CLProgram.cpp	/^bool CLProgram::IsLinkerAvailable() {$/;"	f	class:CLProgram
+IsMapInitRequired	CLMem.cpp	/^bool CLMem::IsMapInitRequired(void* ptr) {$/;"	f	class:CLMem
+IsPartialCommand	CLCommand.cpp	/^bool CLCommand::IsPartialCommand() const {$/;"	f	class:CLCommand
+IsProfiled	CLCommandQueue.h	/^  bool IsProfiled() const {$/;"	f	class:CLCommandQueue
+IsSubBuffer	CLMem.h	/^  bool IsSubBuffer() const { return parent_ != NULL; }$/;"	f	class:CLMem
+IsSubDevice	CLDevice.h	/^  bool IsSubDevice() const { return (parent_ != NULL); }$/;"	f	class:CLDevice
+IsSupportedBuiltInKernels	CLDevice.cpp	/^bool CLDevice::IsSupportedBuiltInKernels(const char* kernel_names) const {$/;"	f	class:CLDevice
+IsSupportedImageFormat	CLContext.cpp	/^bool CLContext::IsSupportedImageFormat(cl_mem_flags flags,$/;"	f	class:CLContext
+IsSupportedImageSize	CLContext.cpp	/^bool CLContext::IsSupportedImageSize(const cl_image_desc* image_desc) {$/;"	f	class:CLContext
+IsValid	CLProgram.h	/^  bool IsValid() const { return type_ != CL_PROGRAM_BINARY_TYPE_NONE; }$/;"	f	class:CLProgramBinary
+IsValid	CLProgram.h	/^  bool IsValid() const { return valid_; }$/;"	f	class:CLKernelInfo
+IsValidChildFlags	CLMem.cpp	/^bool CLMem::IsValidChildFlags(cl_mem_flags child_flags) const {$/;"	f	class:CLMem
+IsValidDevice	CLContext.cpp	/^bool CLContext::IsValidDevice(CLDevice* device) {$/;"	f	class:CLContext
+IsValidDevice	CLProgram.cpp	/^bool CLProgram::IsValidDevice(CLDevice* device) const {$/;"	f	class:CLProgram
+IsValidDevices	CLContext.cpp	/^bool CLContext::IsValidDevices(cl_uint num_devices,$/;"	f	class:CLContext
+IsValidDevices	CLProgram.cpp	/^bool CLProgram::IsValidDevices(cl_uint num_devices,$/;"	f	class:CLProgram
+IsValidMem	CLContext.cpp	/^bool CLContext::IsValidMem(cl_mem mem) {$/;"	f	class:CLContext
+IsValidSampler	CLContext.cpp	/^bool CLContext::IsValidSampler(cl_sampler sampler) {$/;"	f	class:CLContext
+IsWithinRange	CLMem.cpp	/^bool CLMem::IsWithinRange(size_t offset, size_t cb) const {$/;"	f	class:CLMem
+IsWritable	CLMem.cpp	/^bool CLMem::IsWritable() const {$/;"	f	class:CLMem
+IssueCommandCallback	CLCommand.cpp	/^static void CL_CALLBACK IssueCommandCallback(cl_event event, cl_int status,$/;"	f	file:
+JoinSupportedImageSize	CLDevice.cpp	/^void CLDevice::JoinSupportedImageSize(size_t& image2d_max_width,$/;"	f	class:CLDevice
+LATEST_HOST	CLMem.h	53;"	d
+LEGACY_VERSION_1_0	legacy/LegacyDevice.cpp	64;"	d	file:
+LEGACY_VERSION_1_1	legacy/LegacyDevice.cpp	65;"	d	file:
+LEGACY_VERSION_1_2	legacy/LegacyDevice.cpp	66;"	d	file:
+Launch	cpu/CPUComputeUnit.cpp	/^void CPUComputeUnit::Launch(CPUWorkGroupAssignment* wga) {$/;"	f	class:CPUComputeUnit
+LaunchKernel	cluster/ClusterDevice.cpp	/^void ClusterDevice::LaunchKernel(CLCommand* command, CLKernel* kernel,$/;"	f	class:ClusterDevice
+LaunchKernel	cpu/CPUDevice.cpp	/^void CPUDevice::LaunchKernel(CLCommand* command, CLKernel* kernel,$/;"	f	class:CPUDevice
+LaunchKernel	legacy/LegacyDevice.cpp	/^void LegacyDevice::LaunchKernel(CLCommand* command, CLKernel* kernel,$/;"	f	class:LegacyDevice
+LaunchNativeKernel	cluster/ClusterDevice.cpp	/^void ClusterDevice::LaunchNativeKernel(CLCommand* command,$/;"	f	class:ClusterDevice
+LaunchNativeKernel	cpu/CPUDevice.cpp	/^void CPUDevice::LaunchNativeKernel(CLCommand* command,$/;"	f	class:CPUDevice
+LaunchNativeKernel	legacy/LegacyDevice.cpp	/^void LegacyDevice::LaunchNativeKernel(CLCommand* command,$/;"	f	class:LegacyDevice
+LegacyDevice	legacy/LegacyDevice.cpp	/^LegacyDevice::LegacyDevice(void* library, struct _cl_icd_dispatch* dispatch,$/;"	f	class:LegacyDevice
+LegacyDevice	legacy/LegacyDevice.h	/^class LegacyDevice: public CLDevice {$/;"	c
+LinkProgram	CLProgram.cpp	/^cl_int CLProgram::LinkProgram(const char* options, cl_uint num_input_programs,$/;"	f	class:CLProgram
+LinkProgram	cluster/ClusterDevice.cpp	/^void ClusterDevice::LinkProgram(CLCommand* command, CLProgram* program,$/;"	f	class:ClusterDevice
+LinkProgram	cpu/CPUDevice.cpp	/^void CPUDevice::LinkProgram(CLCommand* command, CLProgram* program,$/;"	f	class:CPUDevice
+LinkProgram	legacy/LegacyDevice.cpp	/^void LegacyDevice::LinkProgram(CLCommand* command, CLProgram* program,$/;"	f	class:LegacyDevice
+LocateMemOnDevice	CLCommand.cpp	/^bool CLCommand::LocateMemOnDevice(CLMem* mem) {$/;"	f	class:CLCommand
+LockFreeQueue	Utils.cpp	/^LockFreeQueue::LockFreeQueue(unsigned long size) {$/;"	f	class:LockFreeQueue
+LockFreeQueue	Utils.h	/^class LockFreeQueue {$/;"	c
+LockFreeQueueMS	Utils.cpp	/^LockFreeQueueMS::LockFreeQueueMS(unsigned long size)$/;"	f	class:LockFreeQueueMS
+LockFreeQueueMS	Utils.h	/^class LockFreeQueueMS: public LockFreeQueue {$/;"	c
+MPI_COMM_NODE	cluster/ClusterDriver.cpp	/^  MPI_Comm MPI_COMM_NODE;$/;"	m	struct:_CustomAlltoAllData	file:
+MPI_COMM_NODE	cluster/ClusterDriver.cpp	/^  MPI_Comm MPI_COMM_NODE;$/;"	m	struct:_CustomBroadcastData	file:
+MPI_COMM_NODE	cluster/ClusterDriver.h	/^  MPI_Comm MPI_COMM_NODE;$/;"	m	class:ClusterDriver
+MapAsBuffer	CLMem.cpp	/^void* CLMem::MapAsBuffer(cl_map_flags map_flags, size_t offset, size_t size) {$/;"	f	class:CLMem
+MapAsImage	CLMem.cpp	/^void* CLMem::MapAsImage(cl_map_flags map_flags, const size_t* origin,$/;"	f	class:CLMem
+MapBuffer	CLDevice.cpp	/^void CLDevice::MapBuffer(CLCommand* command, CLMem* mem_src,$/;"	f	class:CLDevice
+MapImage	CLDevice.cpp	/^void CLDevice::MapImage(CLCommand* command, CLMem* mem_src,$/;"	f	class:CLDevice
+MemObjectDestructorCallback	Callbacks.h	/^  MemObjectDestructorCallback(void (CL_CALLBACK *pfn_notify)(cl_mem, void*),$/;"	f	class:MemObjectDestructorCallback
+MemObjectDestructorCallback	Callbacks.h	/^class MemObjectDestructorCallback {$/;"	c
+MigrateMemObjects	CLDevice.cpp	/^void CLDevice::MigrateMemObjects(CLCommand* command, cl_uint num_mem_objects,$/;"	f	class:CLDevice
+NORMALIZE_UNSIGNED	cpu/CPUDevice.cpp	846;"	d	file:
+NotifyError	CLContext.cpp	/^void CLContext::NotifyError(const char* errinfo, const void* private_info,$/;"	f	class:CLContext
+OBJ_DIR	Makefile	/^OBJ_DIR=objs\/cluster$/;"	m
+OBJ_SUBDIRS	Makefile	/^OBJ_SUBDIRS=$(patsubst %,$(OBJ_DIR)\/%,$(SUBDIRS))$/;"	m
+OpenExecutable	cpu/CPUDevice.cpp	/^void* CPUDevice::OpenExecutable(char file_index[11]) {$/;"	f	class:CPUDevice
+PackImagePixel	cpu/CPUDevice.cpp	/^void CPUDevice::PackImagePixel(cl_float* src, void* dst, size_t image_channels,$/;"	f	class:CPUDevice
+PackImagePixel	cpu/CPUDevice.cpp	/^void CPUDevice::PackImagePixel(cl_int* src, void* dst, size_t image_channels,$/;"	f	class:CPUDevice
+PackImagePixel	cpu/CPUDevice.cpp	/^void CPUDevice::PackImagePixel(cl_uint* src, void* dst, size_t image_channels,$/;"	f	class:CPUDevice
+ParseHeader	CLProgram.cpp	/^cl_program_binary_type CLProgramBinary::ParseHeader($/;"	f	class:CLProgramBinary
+Peek	CLCommandQueue.cpp	/^CLCommand* CLInOrderCommandQueue::Peek() {$/;"	f	class:CLInOrderCommandQueue
+Peek	CLCommandQueue.cpp	/^CLCommand* CLOutOfOrderCommandQueue::Peek() {$/;"	f	class:CLOutOfOrderCommandQueue
+Peek	Utils.cpp	/^bool LockFreeQueue::Peek(CLCommand** element) {$/;"	f	class:LockFreeQueue
+PipeRead	Utils.cpp	/^size_t PipeRead(const char* filename, char* buf, size_t size) {$/;"	f
+ProgramCallback	Callbacks.h	/^  ProgramCallback(void (CL_CALLBACK *pfn_notify)(cl_program, void*),$/;"	f	class:ProgramCallback
+ProgramCallback	Callbacks.h	/^class ProgramCallback {$/;"	c
+READY_QUEUE_SIZE	CLDevice.cpp	63;"	d	file:
+ReadBinary	legacy/LegacyDevice.cpp	/^CLProgramBinary* LegacyDevice::ReadBinary(cl_program program) {$/;"	f	class:LegacyDevice
+ReadBool	cluster/ClusterMessage.cpp	/^bool ClusterRecvMessage::ReadBool() {$/;"	f	class:ClusterRecvMessage
+ReadBuffer	cluster/ClusterDevice.cpp	/^void ClusterDevice::ReadBuffer(CLCommand* command, CLMem* mem_src,$/;"	f	class:ClusterDevice
+ReadBuffer	cluster/ClusterMessage.cpp	/^void ClusterRecvMessage::ReadBuffer(void* p, size_t size) {$/;"	f	class:ClusterRecvMessage
+ReadBuffer	cluster/ClusterMessage.cpp	/^void* ClusterRecvMessage::ReadBuffer(size_t size) {$/;"	f	class:ClusterRecvMessage
+ReadBuffer	cpu/CPUDevice.cpp	/^void CPUDevice::ReadBuffer(CLCommand* command, CLMem* mem_src, size_t off_src,$/;"	f	class:CPUDevice
+ReadBuffer	legacy/LegacyDevice.cpp	/^void LegacyDevice::ReadBuffer(CLCommand* command, CLMem* mem_src,$/;"	f	class:LegacyDevice
+ReadBufferRect	cluster/ClusterDevice.cpp	/^void ClusterDevice::ReadBufferRect(CLCommand* command, CLMem* mem_src,$/;"	f	class:ClusterDevice
+ReadBufferRect	cpu/CPUDevice.cpp	/^void CPUDevice::ReadBufferRect(CLCommand* command, CLMem* mem_src,$/;"	f	class:CPUDevice
+ReadBufferRect	legacy/LegacyDevice.cpp	/^void LegacyDevice::ReadBufferRect(CLCommand* command, CLMem* mem_src,$/;"	f	class:LegacyDevice
+ReadBuildLog	legacy/LegacyDevice.cpp	/^char* LegacyDevice::ReadBuildLog(cl_program program) {$/;"	f	class:LegacyDevice
+ReadCompileLog	cpu/CPUDevice.cpp	/^char* CPUDevice::ReadCompileLog(char file_index[11]) {$/;"	f	class:CPUDevice
+ReadCompiledObject	cpu/CPUDevice.cpp	/^CLProgramBinary* CPUDevice::ReadCompiledObject(char file_index[11]) {$/;"	f	class:CPUDevice
+ReadExecutable	cpu/CPUDevice.cpp	/^CLProgramBinary* CPUDevice::ReadExecutable(char file_index[11]) {$/;"	f	class:CPUDevice
+ReadImage	cluster/ClusterDevice.cpp	/^void ClusterDevice::ReadImage(CLCommand* command, CLMem* mem_src,$/;"	f	class:ClusterDevice
+ReadImage	cpu/CPUDevice.cpp	/^void CPUDevice::ReadImage(CLCommand* command, CLMem* mem_src,$/;"	f	class:CPUDevice
+ReadImage	legacy/LegacyDevice.cpp	/^void LegacyDevice::ReadImage(CLCommand* command, CLMem* mem_src,$/;"	f	class:LegacyDevice
+ReadImageCommon	cpu/CPUDevice.cpp	/^void CPUDevice::ReadImageCommon(CLMem* mem_src, size_t src_origin[3],$/;"	f	class:CPUDevice
+ReadInt	cluster/ClusterMessage.cpp	/^int32_t ClusterRecvMessage::ReadInt() {$/;"	f	class:ClusterRecvMessage
+ReadKernelInfo	cpu/CPUDevice.cpp	/^void CPUDevice::ReadKernelInfo(char file_index[11], CLProgram* program) {$/;"	f	class:CPUDevice
+ReadKernelInfo	legacy/LegacyDevice.cpp	/^void LegacyDevice::ReadKernelInfo(cl_program legacy_program,$/;"	f	class:LegacyDevice
+ReadLinkLog	cpu/CPUDevice.cpp	/^char* CPUDevice::ReadLinkLog(char file_index[11]) {$/;"	f	class:CPUDevice
+ReadLong	cluster/ClusterMessage.cpp	/^int64_t ClusterRecvMessage::ReadLong() {$/;"	f	class:ClusterRecvMessage
+ReadString	cluster/ClusterMessage.cpp	/^char* ClusterRecvMessage::ReadString() {$/;"	f	class:ClusterRecvMessage
+ReadUInt	cluster/ClusterMessage.cpp	/^uint32_t ClusterRecvMessage::ReadUInt() {$/;"	f	class:ClusterRecvMessage
+ReadULong	cluster/ClusterMessage.cpp	/^uint64_t ClusterRecvMessage::ReadULong() {$/;"	f	class:ClusterRecvMessage
+Recv	cluster/ClusterMessage.cpp	/^void ClusterRecvMessage::Recv(int source, int tag) {$/;"	f	class:ClusterRecvMessage
+RecvBuildResult	cluster/ClusterDevice.cpp	/^static void RecvBuildResult(int node, int tag, void* ptr) {$/;"	f	file:
+RecvBuildResultInfo	cluster/ClusterDevice.cpp	/^} RecvBuildResultInfo;$/;"	t	typeref:struct:_RecvBuildResultInfo	file:
+RecvData	cluster/ClusterDevice.cpp	/^static void RecvData(int node, int tag, void* ptr) {$/;"	f	file:
+RecvDataAndUnpack	cluster/ClusterDevice.cpp	/^static void RecvDataAndUnpack(int node, int tag, void* ptr) {$/;"	f	file:
+RecvDataAndUnpackInfo	cluster/ClusterDevice.cpp	/^} RecvDataAndUnpackInfo;$/;"	t	typeref:struct:_RecvDataAndUnpackInfo	file:
+RecvDataInfo	cluster/ClusterDevice.cpp	/^} RecvDataInfo;$/;"	t	typeref:struct:_RecvDataInfo	file:
+RecvKernel	cluster/ClusterDriver.cpp	/^CLKernel* ClusterDriver::RecvKernel(ClusterRecvMessage& request) {$/;"	f	class:ClusterDriver
+RecvMem	cluster/ClusterDriver.cpp	/^CLMem* ClusterDriver::RecvMem(ClusterRecvMessage& request) {$/;"	f	class:ClusterDriver
+RecvPlainResponse	cluster/ClusterDevice.cpp	/^static void RecvPlainResponse(int node, int tag, void* ptr) {$/;"	f	file:
+RecvProgram	cluster/ClusterDriver.cpp	/^CLProgram* ClusterDriver::RecvProgram(ClusterRecvMessage& request) {$/;"	f	class:ClusterDriver
+RecvSampler	cluster/ClusterDriver.cpp	/^CLSampler* ClusterDriver::RecvSampler(ClusterRecvMessage& request) {$/;"	f	class:ClusterDriver
+RegisterKernelArgInfo	CLProgram.cpp	/^void CLProgram::RegisterKernelArgInfo($/;"	f	class:CLProgram
+RegisterKernelInfo	CLProgram.cpp	/^void CLProgram::RegisterKernelInfo($/;"	f	class:CLProgram
+Release	CLObject.h	/^  void Release() {$/;"	f	class:CLObject
+ReleaseKernel	CLProgram.cpp	/^void CLProgram::ReleaseKernel() {$/;"	f	class:CLProgram
+RemoveCommandQueue	CLDevice.cpp	/^void CLDevice::RemoveCommandQueue(CLCommandQueue* queue) {$/;"	f	class:CLDevice
+RemoveCommandQueue	CLScheduler.cpp	/^void CLScheduler::RemoveCommandQueue(CLCommandQueue* queue) {$/;"	f	class:CLScheduler
+RemoveDevice	CLIssuer.cpp	/^void CLIssuer::RemoveDevice(CLDevice* device) {$/;"	f	class:CLIssuer
+RemoveDevice	CLPlatform.cpp	/^void CLPlatform::RemoveDevice(CLDevice* device) {$/;"	f	class:CLPlatform
+RemoveDeviceFromFirstIssuer	CLPlatform.cpp	/^void CLPlatform::RemoveDeviceFromFirstIssuer(CLDevice* device) {$/;"	f	class:CLPlatform
+RemoveIssuerOfDevice	CLPlatform.cpp	/^void CLPlatform::RemoveIssuerOfDevice(CLDevice* device) {$/;"	f	class:CLPlatform
+RemoveMem	CLContext.cpp	/^void CLContext::RemoveMem(CLMem* mem) {$/;"	f	class:CLContext
+RemoveSampler	CLContext.cpp	/^void CLContext::RemoveSampler(CLSampler* sampler) {$/;"	f	class:CLContext
+ResolveConsistency	CLCommand.cpp	/^bool CLCommand::ResolveConsistency() {$/;"	f	class:CLCommand
+ResolveConsistencyOfAlltoAll	CLCommand.cpp	/^bool CLCommand::ResolveConsistencyOfAlltoAll() {$/;"	f	class:CLCommand
+ResolveConsistencyOfBroadcast	CLCommand.cpp	/^bool CLCommand::ResolveConsistencyOfBroadcast() {$/;"	f	class:CLCommand
+ResolveConsistencyOfCopyMem	CLCommand.cpp	/^bool CLCommand::ResolveConsistencyOfCopyMem() {$/;"	f	class:CLCommand
+ResolveConsistencyOfLaunchKernel	CLCommand.cpp	/^bool CLCommand::ResolveConsistencyOfLaunchKernel() {$/;"	f	class:CLCommand
+ResolveConsistencyOfLaunchNativeKernel	CLCommand.cpp	/^bool CLCommand::ResolveConsistencyOfLaunchNativeKernel() {$/;"	f	class:CLCommand
+ResolveConsistencyOfMap	CLCommand.cpp	/^bool CLCommand::ResolveConsistencyOfMap() {$/;"	f	class:CLCommand
+ResolveConsistencyOfReadMem	CLCommand.cpp	/^bool CLCommand::ResolveConsistencyOfReadMem() {$/;"	f	class:CLCommand
+ResolveConsistencyOfUnmap	CLCommand.cpp	/^bool CLCommand::ResolveConsistencyOfUnmap() {$/;"	f	class:CLCommand
+ResolveConsistencyOfWriteMem	CLCommand.cpp	/^bool CLCommand::ResolveConsistencyOfWriteMem() {$/;"	f	class:CLCommand
+Retain	CLObject.h	/^  void Retain() {$/;"	f	class:CLObject
+Run	CLIssuer.cpp	/^void CLIssuer::Run() {$/;"	f	class:CLIssuer
+Run	CLScheduler.cpp	/^void CLScheduler::Run() {$/;"	f	class:CLScheduler
+Run	cpu/CPUComputeUnit.cpp	/^void CPUComputeUnit::Run() {$/;"	f	class:CPUComputeUnit
+RunCompiler	cpu/CPUDevice.cpp	/^void CPUDevice::RunCompiler(char file_index[11], const char* options) {$/;"	f	class:CPUDevice
+RunCompute	cluster/ClusterDriver.cpp	/^int ClusterDriver::RunCompute() {$/;"	f	class:ClusterDriver
+RunLinker	cpu/CPUDevice.cpp	/^void CPUDevice::RunLinker(char output_index[11], size_t num_inputs,$/;"	f	class:CPUDevice
+SATURATE	cpu/CPUDevice.cpp	843;"	d	file:
+SCHEDULER_CLUSTER	CLPlatform.cpp	74;"	d	file:
+SCHEDULER_SINGLE	CLPlatform.cpp	60;"	d	file:
+SCHEDULER_SINGLE	CLPlatform.cpp	66;"	d	file:
+SERIALIZE_INFO	CLDevice.cpp	427;"	d	file:
+SERIALIZE_INFO	CLDevice.cpp	534;"	d	file:
+SERIALIZE_INFO	CLProgram.cpp	368;"	d	file:
+SERIALIZE_INFO	CLProgram.cpp	396;"	d	file:
+SERIALIZE_INFO	CLProgram.cpp	407;"	d	file:
+SERIALIZE_INFO	CLProgram.cpp	449;"	d	file:
+SERIALIZE_INFO_A	CLDevice.cpp	430;"	d	file:
+SERIALIZE_INFO_A	CLDevice.cpp	535;"	d	file:
+SERIALIZE_INFO_A	CLProgram.cpp	370;"	d	file:
+SERIALIZE_INFO_A	CLProgram.cpp	398;"	d	file:
+SERIALIZE_INFO_A	CLProgram.cpp	416;"	d	file:
+SERIALIZE_INFO_A	CLProgram.cpp	451;"	d	file:
+SERIALIZE_INFO_S	CLDevice.cpp	433;"	d	file:
+SERIALIZE_INFO_S	CLDevice.cpp	536;"	d	file:
+SERIALIZE_INFO_S	CLProgram.cpp	371;"	d	file:
+SERIALIZE_INFO_S	CLProgram.cpp	399;"	d	file:
+SERIALIZE_INFO_S	CLProgram.cpp	419;"	d	file:
+SERIALIZE_INFO_S	CLProgram.cpp	452;"	d	file:
+SERIALIZE_INFO_T	CLProgram.cpp	369;"	d	file:
+SERIALIZE_INFO_T	CLProgram.cpp	397;"	d	file:
+SERIALIZE_INFO_T	CLProgram.cpp	410;"	d	file:
+SERIALIZE_INFO_T	CLProgram.cpp	450;"	d	file:
+SET_DISPATCH	CLDispatch.cpp	190;"	d	file:
+SET_DISPATCH	CLDispatch.cpp	51;"	d	file:
+SET_ERROR_AND_RETURN	CLAPI.cpp	257;"	d	file:
+SNUCL_API_FUNCTION	CLAPI.h	71;"	d
+SNUCL_API_FUNCTION	CLAPI.h	73;"	d
+SNUCL_BUILD_DIR	cpu/CPUDevice.cpp	71;"	d	file:
+SNUCL_CPU_BUILD_DIR	cpu/CPUDevice.cpp	72;"	d	file:
+SNUCL_ERROR	Utils.h	49;"	d
+SNUCL_ERROR	Utils.h	52;"	d
+SNUCL_INFO	Utils.h	50;"	d
+SNUCL_INFO	Utils.h	53;"	d
+SUBDIRS	Makefile	/^SUBDIRS=legacy cluster$/;"	m
+SWIZZLE_VECTOR	cpu/CPUDevice.cpp	836;"	d	file:
+ScheduleDynamic	cpu/CPUDevice.cpp	/^void CPUDevice::ScheduleDynamic(size_t nwg[3], CPUWorkGroupAssignment* wga) {$/;"	f	class:CPUDevice
+ScheduleStatic	cpu/CPUDevice.cpp	/^void CPUDevice::ScheduleStatic(size_t nwg[3], CPUWorkGroupAssignment* wga) {$/;"	f	class:CPUDevice
+Send	cluster/ClusterMessage.cpp	/^void ClusterSendMessage::Send(int target, int tag) {$/;"	f	class:ClusterSendMessage
+SendBuildResult	cluster/ClusterDriver.cpp	/^void ClusterDriver::SendBuildResult(ClusterSendMessage& response,$/;"	f	class:ClusterDriver
+SendKernel	cluster/ClusterDevice.cpp	/^void ClusterDevice::SendKernel(ClusterSendMessage& request, CLKernel* kernel) {$/;"	f	class:ClusterDevice
+SendMem	cluster/ClusterDevice.cpp	/^void ClusterDevice::SendMem(ClusterSendMessage& request, CLMem* mem) {$/;"	f	class:ClusterDevice
+SendProgram	cluster/ClusterDevice.cpp	/^void ClusterDevice::SendProgram(ClusterSendMessage& request,$/;"	f	class:ClusterDevice
+SendSampler	cluster/ClusterDevice.cpp	/^void ClusterDevice::SendSampler(ClusterSendMessage& request,$/;"	f	class:ClusterDevice
+SerializeDeviceInfo	CLDevice.cpp	/^void CLDevice::SerializeDeviceInfo(void* buffer) {$/;"	f	class:CLDevice
+SerializeKernelInfo	CLProgram.cpp	/^void* CLKernelInfo::SerializeKernelInfo(void* buffer, CLDevice* device) {$/;"	f	class:CLKernelInfo
+SerializeKernelInfo	CLProgram.cpp	/^void* CLProgram::SerializeKernelInfo(CLDevice* device, size_t* size) {$/;"	f	class:CLProgram
+SetArgInfo	CLProgram.cpp	/^void CLKernelInfo::SetArgInfo($/;"	f	class:CLKernelInfo
+SetAsComplete	CLCommand.cpp	/^void CLCommand::SetAsComplete() {$/;"	f	class:CLCommand
+SetAsPartialCommand	CLCommand.cpp	/^void CLCommand::SetAsPartialCommand(CLCommand* root) {$/;"	f	class:CLCommand
+SetAsRunning	CLCommand.cpp	/^void CLCommand::SetAsRunning() {$/;"	f	class:CLCommand
+SetError	CLCommand.cpp	/^void CLCommand::SetError(cl_int error) {$/;"	f	class:CLCommand
+SetErrorNotificationCallback	CLContext.cpp	/^void CLContext::SetErrorNotificationCallback($/;"	f	class:CLContext
+SetHeaderName	CLProgram.cpp	/^void CLProgramSource::SetHeaderName(const char* header_name) {$/;"	f	class:CLProgramSource
+SetHostPtr	CLMem.cpp	/^void CLMem::SetHostPtr(void* host_ptr) {$/;"	f	class:CLMem
+SetKernelArg	CLKernel.cpp	/^cl_int CLKernel::SetKernelArg(cl_uint arg_index, size_t arg_size,$/;"	f	class:CLKernel
+SetKernelParam	cpu/CPUDevice.cpp	/^size_t CPUDevice::SetKernelParam(CPUKernelParam* param, CLKernel* kernel,$/;"	f	class:CPUDevice
+SetLatest	CLMem.cpp	/^void CLMem::SetLatest(CLDevice* device) {$/;"	f	class:CLMem
+SetSnuCLIndex	CLProgram.cpp	/^void CLKernelInfo::SetSnuCLIndex(int snucl_index) {$/;"	f	class:CLKernelInfo
+SetStatus	CLEvent.cpp	/^void CLEvent::SetStatus(cl_int status) {$/;"	f	class:CLEvent
+SetSubCommand	cluster/ClusterDriver.cpp	/^void ClusterDriver::SetSubCommand(CLCommand* prior, CLCommand* posterior) {$/;"	f	class:ClusterDriver
+SetSubCommand	cluster/ClusterDriver.cpp	/^void ClusterDriver::SetSubCommand(CLEvent* prior, CLCommand* posterior) {$/;"	f	class:ClusterDriver
+SetSubResponse	cluster/ClusterDriver.cpp	/^void ClusterDriver::SetSubResponse(CLCommand* prior, unsigned long event_id) {$/;"	f	class:ClusterDriver
+SetSubResponse	cluster/ClusterDriver.cpp	/^void ClusterDriver::SetSubResponse(CLEvent* prior, unsigned long event_id) {$/;"	f	class:ClusterDriver
+SetUserEventStatus	CLEvent.cpp	/^cl_int CLEvent::SetUserEventStatus(cl_int execution_status) {$/;"	f	class:CLEvent
+SetWaitList	CLCommand.cpp	/^void CLCommand::SetWaitList(cl_uint num_events_in_wait_list,$/;"	f	class:CLCommand
+SetWorkGroupInfo	CLProgram.cpp	/^void CLKernelInfo::SetWorkGroupInfo(CLDevice* device, size_t work_group_size,$/;"	f	class:CLKernelInfo
+Size	Utils.cpp	/^unsigned long LockFreeQueue::Size() {$/;"	f	class:LockFreeQueue
+Start	CLIssuer.cpp	/^void CLIssuer::Start() {$/;"	f	class:CLIssuer
+Start	CLScheduler.cpp	/^void CLScheduler::Start() {$/;"	f	class:CLScheduler
+Stop	CLIssuer.cpp	/^void CLIssuer::Stop() {$/;"	f	class:CLIssuer
+Stop	CLScheduler.cpp	/^void CLScheduler::Stop() {$/;"	f	class:CLScheduler
+Submit	CLCommand.cpp	/^void CLCommand::Submit() {$/;"	f	class:CLCommand
+Sync	cpu/CPUComputeUnit.cpp	/^void CPUComputeUnit::Sync() {$/;"	f	class:CPUComputeUnit
+TARGET	Makefile	/^TARGET := $(SNUCLROOT)\/lib\/libsnucl_cluster.so$/;"	m
+ThreadFunc	CLIssuer.cpp	/^void* CLIssuer::ThreadFunc(void *argp) {$/;"	f	class:CLIssuer
+ThreadFunc	CLScheduler.cpp	/^void* CLScheduler::ThreadFunc(void* argp) {$/;"	f	class:CLScheduler
+ThreadFunc	cpu/CPUComputeUnit.cpp	/^void* CPUComputeUnit::ThreadFunc(void* argp) {$/;"	f	class:CPUComputeUnit
+UPDATE_ERROR	legacy/LegacyDevice.cpp	98;"	d	file:
+Unmap	CLMem.cpp	/^void CLMem::Unmap(void* ptr) {$/;"	f	class:CLMem
+UnmapMemObject	CLDevice.cpp	/^void CLDevice::UnmapMemObject(CLCommand* command, CLMem* mem_src,$/;"	f	class:CLDevice
+Update	CLProgram.cpp	/^void CLKernelInfo::Update(const char* name, cl_uint num_args,$/;"	f	class:CLKernelInfo
+UpdateConsistencyOfAlltoAll	CLCommand.cpp	/^void CLCommand::UpdateConsistencyOfAlltoAll() {$/;"	f	class:CLCommand
+UpdateConsistencyOfBroadcast	CLCommand.cpp	/^void CLCommand::UpdateConsistencyOfBroadcast() {$/;"	f	class:CLCommand
+UpdateConsistencyOfCopyMem	CLCommand.cpp	/^void CLCommand::UpdateConsistencyOfCopyMem() {$/;"	f	class:CLCommand
+UpdateConsistencyOfLaunchKernel	CLCommand.cpp	/^void CLCommand::UpdateConsistencyOfLaunchKernel() {$/;"	f	class:CLCommand
+UpdateConsistencyOfLaunchNativeKernel	CLCommand.cpp	/^void CLCommand::UpdateConsistencyOfLaunchNativeKernel() {$/;"	f	class:CLCommand
+UpdateConsistencyOfMap	CLCommand.cpp	/^void CLCommand::UpdateConsistencyOfMap() {$/;"	f	class:CLCommand
+UpdateConsistencyOfReadMem	CLCommand.cpp	/^void CLCommand::UpdateConsistencyOfReadMem() {$/;"	f	class:CLCommand
+UpdateConsistencyOfUnmap	CLCommand.cpp	/^void CLCommand::UpdateConsistencyOfUnmap() {$/;"	f	class:CLCommand
+UpdateConsistencyOfWriteMem	CLCommand.cpp	/^void CLCommand::UpdateConsistencyOfWriteMem() {$/;"	f	class:CLCommand
+Wait	CLEvent.cpp	/^cl_int CLEvent::Wait() {$/;"	f	class:CLEvent
+WaitReadyQueue	CLDevice.cpp	/^void CLDevice::WaitReadyQueue() {$/;"	f	class:CLDevice
+WaitingBuildResult	cluster/ClusterDevice.cpp	/^void ClusterDevice::WaitingBuildResult(CLCommand* command,$/;"	f	class:ClusterDevice
+WaitingData	cluster/ClusterDevice.cpp	/^void ClusterDevice::WaitingData(CLCommand* command, unsigned long event_id,$/;"	f	class:ClusterDevice
+WaitingDataAndUnpack	cluster/ClusterDevice.cpp	/^void ClusterDevice::WaitingDataAndUnpack(CLCommand* command,$/;"	f	class:ClusterDevice
+WaitingPlainResponse	cluster/ClusterDevice.cpp	/^void ClusterDevice::WaitingPlainResponse(CLCommand* command,$/;"	f	class:ClusterDevice
+Write	cluster/ClusterMessage.cpp	/^void ClusterSendMessage::Write(const void* data, size_t size) {$/;"	f	class:ClusterSendMessage
+WriteBool	cluster/ClusterMessage.cpp	/^void ClusterSendMessage::WriteBool(bool v) {$/;"	f	class:ClusterSendMessage
+WriteBuffer	cluster/ClusterDevice.cpp	/^void ClusterDevice::WriteBuffer(CLCommand* command, CLMem* mem_dst,$/;"	f	class:ClusterDevice
+WriteBuffer	cluster/ClusterMessage.cpp	/^void ClusterSendMessage::WriteBuffer(const void* p, size_t size) {$/;"	f	class:ClusterSendMessage
+WriteBuffer	cpu/CPUDevice.cpp	/^void CPUDevice::WriteBuffer(CLCommand* command, CLMem* mem_dst, size_t off_dst,$/;"	f	class:CPUDevice
+WriteBuffer	legacy/LegacyDevice.cpp	/^void LegacyDevice::WriteBuffer(CLCommand* command, CLMem* mem_dst,$/;"	f	class:LegacyDevice
+WriteBufferRect	cluster/ClusterDevice.cpp	/^void ClusterDevice::WriteBufferRect(CLCommand* command, CLMem* mem_dst,$/;"	f	class:ClusterDevice
+WriteBufferRect	cpu/CPUDevice.cpp	/^void CPUDevice::WriteBufferRect(CLCommand* command, CLMem* mem_dst,$/;"	f	class:CPUDevice
+WriteBufferRect	legacy/LegacyDevice.cpp	/^void LegacyDevice::WriteBufferRect(CLCommand* command, CLMem* mem_dst,$/;"	f	class:LegacyDevice
+WriteCompiledObject	cpu/CPUDevice.cpp	/^void CPUDevice::WriteCompiledObject(CLProgramBinary* binary,$/;"	f	class:CPUDevice
+WriteExecutable	cpu/CPUDevice.cpp	/^void CPUDevice::WriteExecutable(CLProgramBinary* binary, char file_index[11]) {$/;"	f	class:CPUDevice
+WriteHeader	cpu/CPUDevice.cpp	/^void CPUDevice::WriteHeader(CLProgramSource* source) {$/;"	f	class:CPUDevice
+WriteImage	cluster/ClusterDevice.cpp	/^void ClusterDevice::WriteImage(CLCommand* command, CLMem* mem_dst,$/;"	f	class:ClusterDevice
+WriteImage	cpu/CPUDevice.cpp	/^void CPUDevice::WriteImage(CLCommand* command, CLMem* mem_dst,$/;"	f	class:CPUDevice
+WriteImage	legacy/LegacyDevice.cpp	/^void LegacyDevice::WriteImage(CLCommand* command, CLMem* mem_dst,$/;"	f	class:LegacyDevice
+WriteImageCommon	cpu/CPUDevice.cpp	/^void CPUDevice::WriteImageCommon(CLMem* mem_dst, size_t dst_origin[3],$/;"	f	class:CPUDevice
+WriteInt	cluster/ClusterMessage.cpp	/^void ClusterSendMessage::WriteInt(int32_t v) {$/;"	f	class:ClusterSendMessage
+WriteLong	cluster/ClusterMessage.cpp	/^void ClusterSendMessage::WriteLong(int64_t v) {$/;"	f	class:ClusterSendMessage
+WriteSource	cpu/CPUDevice.cpp	/^void CPUDevice::WriteSource(CLProgramSource* source, char file_index[11]) {$/;"	f	class:CPUDevice
+WriteString	cluster/ClusterMessage.cpp	/^void ClusterSendMessage::WriteString(const char* str) {$/;"	f	class:ClusterSendMessage
+WriteUInt	cluster/ClusterMessage.cpp	/^void ClusterSendMessage::WriteUInt(uint32_t v) {$/;"	f	class:ClusterSendMessage
+WriteULong	cluster/ClusterMessage.cpp	/^void ClusterSendMessage::WriteULong(uint64_t v) {$/;"	f	class:ClusterSendMessage
+_CLKernelArg	CLKernel.h	/^typedef struct _CLKernelArg {$/;"	s
+_CLMapWritebackLayout	CLMem.h	/^typedef struct _CLMapWritebackLayout {$/;"	s
+_CPUImageParam	cpu/CPUComputeUnit.h	/^typedef struct _CPUImageParam {$/;"	s
+_CPUKernelParam	cpu/CPUComputeUnit.h	/^typedef struct _CPUKernelParam {$/;"	s
+_CPUWorkGroupAssignment	cpu/CPUComputeUnit.h	/^typedef struct _CPUWorkGroupAssignment {$/;"	s
+_CustomAlltoAllData	cluster/ClusterDriver.cpp	/^typedef struct _CustomAlltoAllData {$/;"	s	file:
+_CustomBroadcastData	cluster/ClusterDriver.cpp	/^typedef struct _CustomBroadcastData {$/;"	s	file:
+_CustomRecvData	cluster/ClusterDriver.cpp	/^typedef struct _CustomRecvData {$/;"	s	file:
+_CustomSendData	cluster/ClusterDriver.cpp	/^typedef struct _CustomSendData {$/;"	s	file:
+_RecvBuildResultInfo	cluster/ClusterDevice.cpp	/^typedef struct _RecvBuildResultInfo {$/;"	s	file:
+_RecvDataAndUnpackInfo	cluster/ClusterDevice.cpp	/^typedef struct _RecvDataAndUnpackInfo {$/;"	s	file:
+_RecvDataInfo	cluster/ClusterDevice.cpp	/^typedef struct _RecvDataInfo {$/;"	s	file:
+__SNUCL__CALLBACKS_H	Callbacks.h	43;"	d
+__SNUCL__CLUSTER_DEVICE_H	cluster/ClusterDevice.h	43;"	d
+__SNUCL__CLUSTER_DRIVER_H	cluster/ClusterDriver.h	43;"	d
+__SNUCL__CLUSTER_MESSAGE_H	cluster/ClusterMessage.h	43;"	d
+__SNUCL__CL_API_H	CLAPI.h	43;"	d
+__SNUCL__CL_COMMAND_H	CLCommand.h	43;"	d
+__SNUCL__CL_COMMAND_QUEUE_H	CLCommandQueue.h	43;"	d
+__SNUCL__CL_CONTEXT_H	CLContext.h	43;"	d
+__SNUCL__CL_DEVICE_H	CLDevice.h	43;"	d
+__SNUCL__CL_DISPATCH_H	CLDispatch.h	43;"	d
+__SNUCL__CL_EVENT_H	CLEvent.h	43;"	d
+__SNUCL__CL_ISSUER_H	CLIssuer.h	43;"	d
+__SNUCL__CL_KERNEL_H	CLKernel.h	43;"	d
+__SNUCL__CL_MEM_H	CLMem.h	43;"	d
+__SNUCL__CL_OBJECT_H	CLObject.h	43;"	d
+__SNUCL__CL_PLATFORM_H	CLPlatform.h	43;"	d
+__SNUCL__CL_PROGRAM_H	CLProgram.h	43;"	d
+__SNUCL__CL_SAMPLER_H	CLSampler.h	43;"	d
+__SNUCL__CL_SCHEDULER_H	CLScheduler.h	43;"	d
+__SNUCL__CPU_COMPUTE_UNIT_H	cpu/CPUComputeUnit.h	43;"	d
+__SNUCL__CPU_DEVICE_H	cpu/CPUDevice.h	43;"	d
+__SNUCL__ICD_H	ICD.h	43;"	d
+__SNUCL__LEGACY_DEVICE_H	legacy/LegacyDevice.h	43;"	d
+__SNUCL__STRUCTS_H	Structs.h	43;"	d
+__SNUCL__UTILS_H	Utils.h	43;"	d
+_cl_command_queue	Structs.h	/^struct _cl_command_queue {$/;"	s
+_cl_context	Structs.h	/^struct _cl_context {$/;"	s
+_cl_device_id	Structs.h	/^struct _cl_device_id {$/;"	s
+_cl_event	Structs.h	/^struct _cl_event {$/;"	s
+_cl_icd_dispatch	ICD.h	/^struct _cl_icd_dispatch {$/;"	s
+_cl_kernel	Structs.h	/^struct _cl_kernel {$/;"	s
+_cl_mem	Structs.h	/^struct _cl_mem {$/;"	s
+_cl_platform_id	Structs.h	/^struct _cl_platform_id {$/;"	s
+_cl_program	Structs.h	/^struct _cl_program {$/;"	s
+_cl_sampler	Structs.h	/^struct _cl_sampler {$/;"	s
+address_bits_	CLDevice.h	/^  cl_uint address_bits_;$/;"	m	class:CLDevice
+addressing_mode	CLSampler.h	/^  cl_addressing_mode addressing_mode() const { return addressing_mode_; }$/;"	f	class:CLSampler
+addressing_mode_	CLSampler.h	/^  cl_addressing_mode addressing_mode_;$/;"	m	class:CLSampler
+affinity_domain_	CLDevice.h	/^  cl_device_affinity_domain affinity_domain_;$/;"	m	class:CLDevice
+alloc_host_	CLMem.h	/^  bool alloc_host_;$/;"	m	class:CLMem
+arg_access_qualifiers_	CLProgram.h	/^  cl_kernel_arg_access_qualifier* arg_access_qualifiers_;$/;"	m	class:CLKernelInfo
+arg_address_qualifiers_	CLProgram.h	/^  cl_kernel_arg_address_qualifier* arg_address_qualifiers_;$/;"	m	class:CLKernelInfo
+arg_names_	CLProgram.h	/^  char** arg_names_;$/;"	m	class:CLKernelInfo
+arg_type_names_	CLProgram.h	/^  char** arg_type_names_;$/;"	m	class:CLKernelInfo
+arg_type_qualifiers_	CLProgram.h	/^  cl_kernel_arg_type_qualifier* arg_type_qualifiers_;$/;"	m	class:CLKernelInfo
+args	cpu/CPUComputeUnit.h	/^  char args[1024];$/;"	m	struct:_CPUKernelParam
+args_	CLKernel.h	/^  std::map<cl_uint, CLKernelArg*> args_;$/;"	m	class:CLKernel
+args_dirty_	CLKernel.h	/^  bool args_dirty_;$/;"	m	class:CLKernel
+args_size	cpu/CPUComputeUnit.h	/^  size_t args_size;$/;"	m	struct:_CPUWorkGroupAssignment
+attributes	CLProgram.h	/^  const char* attributes() const { return attributes_; }$/;"	f	class:CLKernelInfo
+attributes_	CLProgram.h	/^  char* attributes_;$/;"	m	class:CLKernelInfo
+available_	CLDevice.h	/^  cl_bool available_;$/;"	m	class:CLDevice
+binary_	CLCommand.h	/^  CLProgramBinary* binary_;$/;"	m	class:CLCommand
+binary_	CLProgram.h	/^  std::map<CLDevice*, CLProgramBinary*> binary_;$/;"	m	class:CLProgram
+binary_	CLProgram.h	/^  unsigned char* binary_;$/;"	m	class:CLProgramBinary
+blocking_	CLIssuer.h	/^  bool blocking_;$/;"	m	class:CLIssuer
+build_callback_	CLProgram.h	/^  std::map<CLDevice*, ProgramCallback*> build_callback_;$/;"	m	class:CLProgram
+build_in_progress_cnt_	CLProgram.h	/^  int build_in_progress_cnt_;$/;"	m	class:CLProgram
+build_log_	CLProgram.h	/^  std::map<CLDevice*, char*> build_log_;$/;"	m	class:CLProgram
+build_options_	CLProgram.h	/^  std::map<CLDevice*, char*> build_options_;$/;"	m	class:CLProgram
+build_status_	CLProgram.h	/^  std::map<CLDevice*, cl_build_status> build_status_;$/;"	m	class:CLProgram
+build_success_cnt_	CLProgram.h	/^  int build_success_cnt_;$/;"	m	class:CLProgram
+built_in_kernels_	CLDevice.h	/^  const char* built_in_kernels_;$/;"	m	class:CLDevice
+busy_waiting_	CLScheduler.h	/^  bool busy_waiting_;$/;"	m	class:CLScheduler
+c_obj	Structs.h	/^  CLCommandQueue* c_obj;$/;"	m	struct:_cl_command_queue
+c_obj	Structs.h	/^  CLContext* c_obj;$/;"	m	struct:_cl_context
+c_obj	Structs.h	/^  CLDevice* c_obj;$/;"	m	struct:_cl_device_id
+c_obj	Structs.h	/^  CLEvent* c_obj;$/;"	m	struct:_cl_event
+c_obj	Structs.h	/^  CLKernel* c_obj;$/;"	m	struct:_cl_kernel
+c_obj	Structs.h	/^  CLMem* c_obj; $/;"	m	struct:_cl_mem
+c_obj	Structs.h	/^  CLPlatform* c_obj;$/;"	m	struct:_cl_platform_id
+c_obj	Structs.h	/^  CLProgram* c_obj;$/;"	m	struct:_cl_program
+c_obj	Structs.h	/^  CLSampler* c_obj; $/;"	m	struct:_cl_sampler
+callback_	CLContext.h	/^  ContextErrorNotificationCallback* callback_;$/;"	m	class:CLContext
+callbacks_	CLEvent.h	/^  std::vector<EventCallback*> callbacks_;$/;"	m	class:CLEvent
+callbacks_	CLMem.h	/^  std::vector<MemObjectDestructorCallback*> callbacks_;$/;"	m	class:CLMem
+chunks_	cluster/ClusterMessage.h	/^  std::vector<char*> chunks_;$/;"	m	class:ClusterSendMessage
+clBuildProgram	ICD.h	/^  pfn_clBuildProgram                           clBuildProgram;$/;"	m	struct:_cl_icd_dispatch
+clCompileProgram	ICD.h	/^  pfn_clCompileProgram                         clCompileProgram;$/;"	m	struct:_cl_icd_dispatch
+clCreateBuffer	ICD.h	/^  pfn_clCreateBuffer                           clCreateBuffer;$/;"	m	struct:_cl_icd_dispatch
+clCreateCommandQueue	ICD.h	/^  pfn_clCreateCommandQueue                     clCreateCommandQueue;$/;"	m	struct:_cl_icd_dispatch
+clCreateContext	ICD.h	/^  pfn_clCreateContext                          clCreateContext;$/;"	m	struct:_cl_icd_dispatch
+clCreateContextFromType	ICD.h	/^  pfn_clCreateContextFromType                  clCreateContextFromType;$/;"	m	struct:_cl_icd_dispatch
+clCreateEventFromGLsyncKHR	ICD.h	/^  pfn_clCreateEventFromGLsyncKHR               clCreateEventFromGLsyncKHR;$/;"	m	struct:_cl_icd_dispatch
+clCreateFromD3D10BufferKHR	ICD.h	/^  pfn_clCreateFromD3D10BufferKHR               clCreateFromD3D10BufferKHR;$/;"	m	struct:_cl_icd_dispatch
+clCreateFromD3D10Texture2DKHR	ICD.h	/^  pfn_clCreateFromD3D10Texture2DKHR            clCreateFromD3D10Texture2DKHR;$/;"	m	struct:_cl_icd_dispatch
+clCreateFromD3D10Texture3DKHR	ICD.h	/^  pfn_clCreateFromD3D10Texture3DKHR            clCreateFromD3D10Texture3DKHR;$/;"	m	struct:_cl_icd_dispatch
+clCreateFromD3D11BufferKHR	ICD.h	/^  pfn_clCreateFromD3D11BufferKHR               clCreateFromD3D11BufferKHR;$/;"	m	struct:_cl_icd_dispatch
+clCreateFromD3D11Texture2DKHR	ICD.h	/^  pfn_clCreateFromD3D11Texture2DKHR            clCreateFromD3D11Texture2DKHR;$/;"	m	struct:_cl_icd_dispatch
+clCreateFromD3D11Texture3DKHR	ICD.h	/^  pfn_clCreateFromD3D11Texture3DKHR            clCreateFromD3D11Texture3DKHR;$/;"	m	struct:_cl_icd_dispatch
+clCreateFromDX9MediaSurfaceKHR	ICD.h	/^  pfn_clCreateFromDX9MediaSurfaceKHR           clCreateFromDX9MediaSurfaceKHR;$/;"	m	struct:_cl_icd_dispatch
+clCreateFromGLBuffer	ICD.h	/^  pfn_clCreateFromGLBuffer                     clCreateFromGLBuffer;$/;"	m	struct:_cl_icd_dispatch
+clCreateFromGLRenderbuffer	ICD.h	/^  pfn_clCreateFromGLRenderbuffer               clCreateFromGLRenderbuffer;$/;"	m	struct:_cl_icd_dispatch
+clCreateFromGLTexture	ICD.h	/^  pfn_clCreateFromGLTexture                    clCreateFromGLTexture;$/;"	m	struct:_cl_icd_dispatch
+clCreateFromGLTexture2D	ICD.h	/^  pfn_clCreateFromGLTexture2D                  clCreateFromGLTexture2D;$/;"	m	struct:_cl_icd_dispatch
+clCreateFromGLTexture3D	ICD.h	/^  pfn_clCreateFromGLTexture3D                  clCreateFromGLTexture3D;$/;"	m	struct:_cl_icd_dispatch
+clCreateImage	ICD.h	/^  pfn_clCreateImage                            clCreateImage;$/;"	m	struct:_cl_icd_dispatch
+clCreateImage2D	ICD.h	/^  pfn_clCreateImage2D                          clCreateImage2D;$/;"	m	struct:_cl_icd_dispatch
+clCreateImage3D	ICD.h	/^  pfn_clCreateImage3D                          clCreateImage3D;$/;"	m	struct:_cl_icd_dispatch
+clCreateKernel	ICD.h	/^  pfn_clCreateKernel                           clCreateKernel;$/;"	m	struct:_cl_icd_dispatch
+clCreateKernelsInProgram	ICD.h	/^  pfn_clCreateKernelsInProgram                 clCreateKernelsInProgram;$/;"	m	struct:_cl_icd_dispatch
+clCreateProgramWithBinary	ICD.h	/^  pfn_clCreateProgramWithBinary                clCreateProgramWithBinary;$/;"	m	struct:_cl_icd_dispatch
+clCreateProgramWithBuiltInKernels	ICD.h	/^  pfn_clCreateProgramWithBuiltInKernels        clCreateProgramWithBuiltInKernels;$/;"	m	struct:_cl_icd_dispatch
+clCreateProgramWithSource	ICD.h	/^  pfn_clCreateProgramWithSource                clCreateProgramWithSource;$/;"	m	struct:_cl_icd_dispatch
+clCreateSampler	ICD.h	/^  pfn_clCreateSampler                          clCreateSampler;$/;"	m	struct:_cl_icd_dispatch
+clCreateSubBuffer	ICD.h	/^  pfn_clCreateSubBuffer                        clCreateSubBuffer;$/;"	m	struct:_cl_icd_dispatch
+clCreateSubDevices	ICD.h	/^  pfn_clCreateSubDevices                       clCreateSubDevices;$/;"	m	struct:_cl_icd_dispatch
+clCreateSubDevicesEXT	ICD.h	/^  pfn_clCreateSubDevicesEXT                    clCreateSubDevicesEXT;$/;"	m	struct:_cl_icd_dispatch
+clCreateUserEvent	ICD.h	/^  pfn_clCreateUserEvent                        clCreateUserEvent;$/;"	m	struct:_cl_icd_dispatch
+clEnqueueAcquireD3D10ObjectsKHR	ICD.h	/^  pfn_clEnqueueAcquireD3D10ObjectsKHR          clEnqueueAcquireD3D10ObjectsKHR;$/;"	m	struct:_cl_icd_dispatch
+clEnqueueAcquireD3D11ObjectsKHR	ICD.h	/^  pfn_clEnqueueAcquireD3D11ObjectsKHR          clEnqueueAcquireD3D11ObjectsKHR;$/;"	m	struct:_cl_icd_dispatch
+clEnqueueAcquireDX9MediaSurfacesKHR	ICD.h	/^  pfn_clEnqueueAcquireDX9MediaSurfacesKHR      clEnqueueAcquireDX9MediaSurfacesKHR;$/;"	m	struct:_cl_icd_dispatch
+clEnqueueAcquireGLObjects	ICD.h	/^  pfn_clEnqueueAcquireGLObjects                clEnqueueAcquireGLObjects;$/;"	m	struct:_cl_icd_dispatch
+clEnqueueAlltoAllBuffer	CLAPI.cpp	/^SNUCL_API_FUNCTION(clEnqueueAlltoAllBuffer)($/;"	f
+clEnqueueBarrier	ICD.h	/^  pfn_clEnqueueBarrier                         clEnqueueBarrier;$/;"	m	struct:_cl_icd_dispatch
+clEnqueueBarrierWithWaitList	ICD.h	/^  pfn_clEnqueueBarrierWithWaitList             clEnqueueBarrierWithWaitList;$/;"	m	struct:_cl_icd_dispatch
+clEnqueueBroadcastBuffer	CLAPI.cpp	/^SNUCL_API_FUNCTION(clEnqueueBroadcastBuffer)($/;"	f
+clEnqueueCopyBuffer	ICD.h	/^  pfn_clEnqueueCopyBuffer                      clEnqueueCopyBuffer;$/;"	m	struct:_cl_icd_dispatch
+clEnqueueCopyBufferRect	ICD.h	/^  pfn_clEnqueueCopyBufferRect                  clEnqueueCopyBufferRect;$/;"	m	struct:_cl_icd_dispatch
+clEnqueueCopyBufferToImage	ICD.h	/^  pfn_clEnqueueCopyBufferToImage               clEnqueueCopyBufferToImage;$/;"	m	struct:_cl_icd_dispatch
+clEnqueueCopyImage	ICD.h	/^  pfn_clEnqueueCopyImage                       clEnqueueCopyImage;$/;"	m	struct:_cl_icd_dispatch
+clEnqueueCopyImageToBuffer	ICD.h	/^  pfn_clEnqueueCopyImageToBuffer               clEnqueueCopyImageToBuffer;$/;"	m	struct:_cl_icd_dispatch
+clEnqueueFillBuffer	ICD.h	/^  pfn_clEnqueueFillBuffer                      clEnqueueFillBuffer;$/;"	m	struct:_cl_icd_dispatch
+clEnqueueFillImage	ICD.h	/^  pfn_clEnqueueFillImage                       clEnqueueFillImage;$/;"	m	struct:_cl_icd_dispatch
+clEnqueueMapBuffer	ICD.h	/^  pfn_clEnqueueMapBuffer                       clEnqueueMapBuffer;$/;"	m	struct:_cl_icd_dispatch
+clEnqueueMapImage	ICD.h	/^  pfn_clEnqueueMapImage                        clEnqueueMapImage;$/;"	m	struct:_cl_icd_dispatch
+clEnqueueMarker	ICD.h	/^  pfn_clEnqueueMarker                          clEnqueueMarker;$/;"	m	struct:_cl_icd_dispatch
+clEnqueueMarkerWithWaitList	ICD.h	/^  pfn_clEnqueueMarkerWithWaitList              clEnqueueMarkerWithWaitList;$/;"	m	struct:_cl_icd_dispatch
+clEnqueueMigrateMemObjects	ICD.h	/^  pfn_clEnqueueMigrateMemObjects               clEnqueueMigrateMemObjects;$/;"	m	struct:_cl_icd_dispatch
+clEnqueueNDRangeKernel	ICD.h	/^  pfn_clEnqueueNDRangeKernel                   clEnqueueNDRangeKernel;$/;"	m	struct:_cl_icd_dispatch
+clEnqueueNativeKernel	ICD.h	/^  pfn_clEnqueueNativeKernel                    clEnqueueNativeKernel;$/;"	m	struct:_cl_icd_dispatch
+clEnqueueReadBuffer	ICD.h	/^  pfn_clEnqueueReadBuffer                      clEnqueueReadBuffer;$/;"	m	struct:_cl_icd_dispatch
+clEnqueueReadBufferRect	ICD.h	/^  pfn_clEnqueueReadBufferRect                  clEnqueueReadBufferRect;$/;"	m	struct:_cl_icd_dispatch
+clEnqueueReadImage	ICD.h	/^  pfn_clEnqueueReadImage                       clEnqueueReadImage;$/;"	m	struct:_cl_icd_dispatch
+clEnqueueReleaseD3D10ObjectsKHR	ICD.h	/^  pfn_clEnqueueReleaseD3D10ObjectsKHR          clEnqueueReleaseD3D10ObjectsKHR;$/;"	m	struct:_cl_icd_dispatch
+clEnqueueReleaseD3D11ObjectsKHR	ICD.h	/^  pfn_clEnqueueReleaseD3D11ObjectsKHR          clEnqueueReleaseD3D11ObjectsKHR;$/;"	m	struct:_cl_icd_dispatch
+clEnqueueReleaseDX9MediaSurfacesKHR	ICD.h	/^  pfn_clEnqueueReleaseDX9MediaSurfacesKHR      clEnqueueReleaseDX9MediaSurfacesKHR;$/;"	m	struct:_cl_icd_dispatch
+clEnqueueReleaseGLObjects	ICD.h	/^  pfn_clEnqueueReleaseGLObjects                clEnqueueReleaseGLObjects;$/;"	m	struct:_cl_icd_dispatch
+clEnqueueTask	ICD.h	/^  pfn_clEnqueueTask                            clEnqueueTask;$/;"	m	struct:_cl_icd_dispatch
+clEnqueueUnmapMemObject	ICD.h	/^  pfn_clEnqueueUnmapMemObject                  clEnqueueUnmapMemObject;$/;"	m	struct:_cl_icd_dispatch
+clEnqueueWaitForEvents	ICD.h	/^  pfn_clEnqueueWaitForEvents                   clEnqueueWaitForEvents;$/;"	m	struct:_cl_icd_dispatch
+clEnqueueWriteBuffer	ICD.h	/^  pfn_clEnqueueWriteBuffer                     clEnqueueWriteBuffer;$/;"	m	struct:_cl_icd_dispatch
+clEnqueueWriteBufferRect	ICD.h	/^  pfn_clEnqueueWriteBufferRect                 clEnqueueWriteBufferRect;$/;"	m	struct:_cl_icd_dispatch
+clEnqueueWriteImage	ICD.h	/^  pfn_clEnqueueWriteImage                      clEnqueueWriteImage;$/;"	m	struct:_cl_icd_dispatch
+clFinish	ICD.h	/^  pfn_clFinish                                 clFinish;$/;"	m	struct:_cl_icd_dispatch
+clFlush	ICD.h	/^  pfn_clFlush                                  clFlush;$/;"	m	struct:_cl_icd_dispatch
+clGetCommandQueueInfo	ICD.h	/^  pfn_clGetCommandQueueInfo                    clGetCommandQueueInfo;$/;"	m	struct:_cl_icd_dispatch
+clGetContextInfo	ICD.h	/^  pfn_clGetContextInfo                         clGetContextInfo;$/;"	m	struct:_cl_icd_dispatch
+clGetDeviceIDs	ICD.h	/^  pfn_clGetDeviceIDs                           clGetDeviceIDs;$/;"	m	struct:_cl_icd_dispatch
+clGetDeviceIDsFromD3D10KHR	ICD.h	/^  pfn_clGetDeviceIDsFromD3D10KHR               clGetDeviceIDsFromD3D10KHR;$/;"	m	struct:_cl_icd_dispatch
+clGetDeviceIDsFromD3D11KHR	ICD.h	/^  pfn_clGetDeviceIDsFromD3D11KHR               clGetDeviceIDsFromD3D11KHR;$/;"	m	struct:_cl_icd_dispatch
+clGetDeviceIDsFromDX9MediaAdapterKHR	ICD.h	/^  pfn_clGetDeviceIDsFromDX9MediaAdapterKHR     clGetDeviceIDsFromDX9MediaAdapterKHR;$/;"	m	struct:_cl_icd_dispatch
+clGetDeviceInfo	ICD.h	/^  pfn_clGetDeviceInfo                          clGetDeviceInfo;$/;"	m	struct:_cl_icd_dispatch
+clGetEventInfo	ICD.h	/^  pfn_clGetEventInfo                           clGetEventInfo;$/;"	m	struct:_cl_icd_dispatch
+clGetEventProfilingInfo	ICD.h	/^  pfn_clGetEventProfilingInfo                  clGetEventProfilingInfo;$/;"	m	struct:_cl_icd_dispatch
+clGetExtensionFunctionAddress	ICD.h	/^  pfn_clGetExtensionFunctionAddress            clGetExtensionFunctionAddress;$/;"	m	struct:_cl_icd_dispatch
+clGetExtensionFunctionAddressForPlatform	ICD.h	/^  pfn_clGetExtensionFunctionAddressForPlatform clGetExtensionFunctionAddressForPlatform;$/;"	m	struct:_cl_icd_dispatch
+clGetGLContextInfoKHR	ICD.h	/^  pfn_clGetGLContextInfoKHR                    clGetGLContextInfoKHR;$/;"	m	struct:_cl_icd_dispatch
+clGetGLObjectInfo	ICD.h	/^  pfn_clGetGLObjectInfo                        clGetGLObjectInfo;$/;"	m	struct:_cl_icd_dispatch
+clGetGLTextureInfo	ICD.h	/^  pfn_clGetGLTextureInfo                       clGetGLTextureInfo;$/;"	m	struct:_cl_icd_dispatch
+clGetImageInfo	ICD.h	/^  pfn_clGetImageInfo                           clGetImageInfo;$/;"	m	struct:_cl_icd_dispatch
+clGetKernelArgInfo	ICD.h	/^  pfn_clGetKernelArgInfo                       clGetKernelArgInfo;$/;"	m	struct:_cl_icd_dispatch
+clGetKernelInfo	ICD.h	/^  pfn_clGetKernelInfo                          clGetKernelInfo;$/;"	m	struct:_cl_icd_dispatch
+clGetKernelWorkGroupInfo	ICD.h	/^  pfn_clGetKernelWorkGroupInfo                 clGetKernelWorkGroupInfo;$/;"	m	struct:_cl_icd_dispatch
+clGetMemObjectInfo	ICD.h	/^  pfn_clGetMemObjectInfo                       clGetMemObjectInfo;$/;"	m	struct:_cl_icd_dispatch
+clGetPlatformIDs	ICD.h	/^  pfn_clGetPlatformIDs                         clGetPlatformIDs;$/;"	m	struct:_cl_icd_dispatch
+clGetPlatformInfo	ICD.h	/^  pfn_clGetPlatformInfo                        clGetPlatformInfo;$/;"	m	struct:_cl_icd_dispatch
+clGetProgramBuildInfo	ICD.h	/^  pfn_clGetProgramBuildInfo                    clGetProgramBuildInfo;$/;"	m	struct:_cl_icd_dispatch
+clGetProgramInfo	ICD.h	/^  pfn_clGetProgramInfo                         clGetProgramInfo;$/;"	m	struct:_cl_icd_dispatch
+clGetSamplerInfo	ICD.h	/^  pfn_clGetSamplerInfo                         clGetSamplerInfo;$/;"	m	struct:_cl_icd_dispatch
+clGetSupportedImageFormats	ICD.h	/^  pfn_clGetSupportedImageFormats               clGetSupportedImageFormats;$/;"	m	struct:_cl_icd_dispatch
+clIcdGetPlatformIDsKHR	CLAPI.cpp	/^SNUCL_API_FUNCTION(clIcdGetPlatformIDsKHR)($/;"	f
+clIcdGetPlatformIDsKHR	CLAPI.cpp	/^clIcdGetPlatformIDsKHR($/;"	f
+clLinkProgram	ICD.h	/^  pfn_clLinkProgram                            clLinkProgram;$/;"	m	struct:_cl_icd_dispatch
+clReleaseCommandQueue	ICD.h	/^  pfn_clReleaseCommandQueue                    clReleaseCommandQueue;$/;"	m	struct:_cl_icd_dispatch
+clReleaseContext	ICD.h	/^  pfn_clReleaseContext                         clReleaseContext;$/;"	m	struct:_cl_icd_dispatch
+clReleaseDevice	ICD.h	/^  pfn_clReleaseDevice                          clReleaseDevice;$/;"	m	struct:_cl_icd_dispatch
+clReleaseDeviceEXT	ICD.h	/^  pfn_clReleaseDeviceEXT                       clReleaseDeviceEXT;$/;"	m	struct:_cl_icd_dispatch
+clReleaseEvent	ICD.h	/^  pfn_clReleaseEvent                           clReleaseEvent;$/;"	m	struct:_cl_icd_dispatch
+clReleaseKernel	ICD.h	/^  pfn_clReleaseKernel                          clReleaseKernel;$/;"	m	struct:_cl_icd_dispatch
+clReleaseMemObject	ICD.h	/^  pfn_clReleaseMemObject                       clReleaseMemObject;$/;"	m	struct:_cl_icd_dispatch
+clReleaseProgram	ICD.h	/^  pfn_clReleaseProgram                         clReleaseProgram;$/;"	m	struct:_cl_icd_dispatch
+clReleaseSampler	ICD.h	/^  pfn_clReleaseSampler                         clReleaseSampler;$/;"	m	struct:_cl_icd_dispatch
+clRetainCommandQueue	ICD.h	/^  pfn_clRetainCommandQueue                     clRetainCommandQueue;$/;"	m	struct:_cl_icd_dispatch
+clRetainContext	ICD.h	/^  pfn_clRetainContext                          clRetainContext;$/;"	m	struct:_cl_icd_dispatch
+clRetainDevice	ICD.h	/^  pfn_clRetainDevice                           clRetainDevice;$/;"	m	struct:_cl_icd_dispatch
+clRetainDeviceEXT	ICD.h	/^  pfn_clRetainDeviceEXT                        clRetainDeviceEXT;$/;"	m	struct:_cl_icd_dispatch
+clRetainEvent	ICD.h	/^  pfn_clRetainEvent                            clRetainEvent;$/;"	m	struct:_cl_icd_dispatch
+clRetainKernel	ICD.h	/^  pfn_clRetainKernel                           clRetainKernel;$/;"	m	struct:_cl_icd_dispatch
+clRetainMemObject	ICD.h	/^  pfn_clRetainMemObject                        clRetainMemObject;$/;"	m	struct:_cl_icd_dispatch
+clRetainProgram	ICD.h	/^  pfn_clRetainProgram                          clRetainProgram;$/;"	m	struct:_cl_icd_dispatch
+clRetainSampler	ICD.h	/^  pfn_clRetainSampler                          clRetainSampler;$/;"	m	struct:_cl_icd_dispatch
+clSetCommandQueueProperty	ICD.h	/^  pfn_clSetCommandQueueProperty                clSetCommandQueueProperty;$/;"	m	struct:_cl_icd_dispatch
+clSetEventCallback	ICD.h	/^  pfn_clSetEventCallback                       clSetEventCallback;$/;"	m	struct:_cl_icd_dispatch
+clSetKernelArg	ICD.h	/^  pfn_clSetKernelArg                           clSetKernelArg;$/;"	m	struct:_cl_icd_dispatch
+clSetMemObjectDestructorCallback	ICD.h	/^  pfn_clSetMemObjectDestructorCallback         clSetMemObjectDestructorCallback;$/;"	m	struct:_cl_icd_dispatch
+clSetUserEventStatus	ICD.h	/^  pfn_clSetUserEventStatus                     clSetUserEventStatus;$/;"	m	struct:_cl_icd_dispatch
+clUnloadCompiler	ICD.h	/^  pfn_clUnloadCompiler                         clUnloadCompiler;$/;"	m	struct:_cl_icd_dispatch
+clUnloadPlatformCompiler	ICD.h	/^  pfn_clUnloadPlatformCompiler                 clUnloadPlatformCompiler;$/;"	m	struct:_cl_icd_dispatch
+clWaitForEvents	ICD.h	/^  pfn_clWaitForEvents                          clWaitForEvents;$/;"	m	struct:_cl_icd_dispatch
+comm_event_	cluster/ClusterDriver.h	/^  std::map<MPI_Request, CLEvent*> comm_event_;$/;"	m	class:ClusterDriver
+comm_event_map	cluster/ClusterDriver.cpp	/^  map<MPI_Request, CLEvent*>* comm_event_map;$/;"	m	struct:_CustomRecvData	file:
+comm_event_map	cluster/ClusterDriver.cpp	/^  map<MPI_Request, CLEvent*>* comm_event_map;$/;"	m	struct:_CustomSendData	file:
+command_exec_callback_type_	Callbacks.h	/^  cl_int command_exec_callback_type_;$/;"	m	class:EventCallback
+command_type_	CLEvent.h	/^  cl_command_type command_type_;$/;"	m	class:CLEvent
+commands_	CLCommandQueue.h	/^  std::list<CLCommand*> commands_;$/;"	m	class:CLOutOfOrderCommandQueue
+compile_work_group_size_	CLProgram.h	/^  size_t compile_work_group_size_[3];$/;"	m	class:CLKernelInfo
+compiler_available_	CLDevice.h	/^  cl_bool compiler_available_;$/;"	m	class:CLDevice
+compute_units_	cpu/CPUDevice.h	/^  CPUComputeUnit** compute_units_;$/;"	m	class:CPUDevice
+concat_source	CLProgram.h	/^  const char* concat_source() const { return concat_source_.c_str(); }$/;"	f	class:CLProgramSource
+concat_source_	CLProgram.h	/^  std::string concat_source_;$/;"	m	class:CLProgramSource
+concat_source_length	CLProgram.h	/^  size_t concat_source_length() const { return concat_source_.length(); }$/;"	f	class:CLProgramSource
+cond_complete_	CLEvent.h	/^  pthread_cond_t cond_complete_;$/;"	m	class:CLEvent
+cond_devices_remove_	CLIssuer.h	/^  pthread_cond_t cond_devices_remove_;$/;"	m	class:CLIssuer
+cond_queues_remove_	CLScheduler.h	/^  pthread_cond_t cond_queues_remove_;$/;"	m	class:CLScheduler
+cond_work_queue_	cpu/CPUComputeUnit.h	/^  pthread_cond_t cond_work_queue_;$/;"	m	class:CPUComputeUnit
+consistency_resolved_	CLCommand.h	/^  bool consistency_resolved_;$/;"	m	class:CLCommand
+context	CLCommand.h	/^  CLContext* context() const { return context_; }$/;"	f	class:CLCommand
+context	CLCommandQueue.h	/^  CLContext* context() const { return context_; }$/;"	f	class:CLCommandQueue
+context	CLEvent.h	/^  CLContext* context() const { return context_; }$/;"	f	class:CLEvent
+context	CLKernel.h	/^  CLContext* context() const { return context_; }$/;"	f	class:CLKernel
+context	CLMem.h	/^  CLContext* context() const { return context_; }$/;"	f	class:CLMem
+context	CLProgram.h	/^  CLContext* context() const { return context_; }$/;"	f	class:CLProgram
+context_	CLCommand.h	/^  CLContext* context_;$/;"	m	class:CLCommand
+context_	CLCommandQueue.h	/^  CLContext* context_;$/;"	m	class:CLCommandQueue
+context_	CLEvent.h	/^  CLContext* context_;$/;"	m	class:CLEvent
+context_	CLKernel.h	/^  CLContext* context_;$/;"	m	class:CLKernel
+context_	CLMem.h	/^  CLContext* context_;$/;"	m	class:CLMem
+context_	CLProgram.h	/^  CLContext* context_;$/;"	m	class:CLProgram
+context_	CLSampler.h	/^  CLContext* context_;$/;"	m	class:CLSampler
+context_	cluster/ClusterDriver.h	/^  CLContext* context_;$/;"	m	class:ClusterDriver
+context_	legacy/LegacyDevice.h	/^  cl_context context_;$/;"	m	class:LegacyDevice
+core	CLProgram.h	/^  const unsigned char* core() const { return binary_ + 16; }$/;"	f	class:CLProgramBinary
+core_size	CLProgram.h	/^  size_t core_size() const { return size_ - 16; }$/;"	f	class:CLProgramBinary
+count_	Callbacks.h	/^  int count_;$/;"	m	class:ProgramCallback
+countdown	Callbacks.h	/^  bool countdown(cl_program program) {$/;"	f	class:ProgramCallback
+current_chunk_	cluster/ClusterMessage.h	/^  char* current_chunk_;$/;"	m	class:ClusterSendMessage
+custom_data_	CLCommand.h	/^  void* custom_data_;$/;"	m	class:CLCommand
+custom_function_	CLCommand.h	/^  void (*custom_function_)(void*);$/;"	m	class:CLCommand
+default_device_type_	CLPlatform.h	/^  cl_device_type default_device_type_;$/;"	m	class:CLPlatform
+destination_device	CLCommand.h	/^  CLDevice* destination_device() const { return dev_dst_; }$/;"	f	class:CLCommand
+destination_node	CLCommand.h	/^  int destination_node() const { return node_dst_; }$/;"	f	class:CLCommand
+dev_dst_	CLCommand.h	/^  CLDevice* dev_dst_;$/;"	m	class:CLCommand
+dev_latest_	CLMem.h	/^  std::set<CLDevice*> dev_latest_;$/;"	m	class:CLMem
+dev_specific_	CLKernel.h	/^  std::map<CLDevice*, void*> dev_specific_;$/;"	m	class:CLKernel
+dev_specific_	CLMem.h	/^  std::map<CLDevice*, void*> dev_specific_;$/;"	m	class:CLMem
+dev_specific_	CLSampler.h	/^  std::map<CLDevice*, void*> dev_specific_;$/;"	m	class:CLSampler
+dev_src_	CLCommand.h	/^  CLDevice* dev_src_;$/;"	m	class:CLCommand
+device	CLCommand.h	/^  CLDevice* device() const { return device_; }$/;"	f	class:CLCommand
+device	CLCommandQueue.h	/^  CLDevice* device() const { return device_; }$/;"	f	class:CLCommandQueue
+device	CLProgram.h	/^  CLDevice* device() const { return device_; }$/;"	f	class:CLProgramBinary
+device	cluster/ClusterDevice.cpp	/^  CLDevice* device;$/;"	m	struct:_RecvBuildResultInfo	file:
+device_	CLCommand.h	/^  CLDevice* device_;$/;"	m	class:CLCommand
+device_	CLCommandQueue.h	/^  CLDevice* device_;$/;"	m	class:CLCommandQueue
+device_	CLProgram.h	/^  CLDevice* device_;$/;"	m	class:CLProgramBinary
+device_	cpu/CPUComputeUnit.h	/^  CLDevice* device_;$/;"	m	class:CPUComputeUnit
+device_extensions_	CLDevice.h	/^  const char* device_extensions_;$/;"	m	class:CLDevice
+device_id_	cluster/ClusterDevice.h	/^  size_t device_id_;$/;"	m	class:ClusterDevice
+device_id_	legacy/LegacyDevice.h	/^  cl_device_id device_id_;$/;"	m	class:LegacyDevice
+device_version_	CLDevice.h	/^  const char* device_version_;$/;"	m	class:CLDevice
+devices	CLContext.h	/^  const std::vector<CLDevice*>& devices() const { return devices_; }$/;"	f	class:CLContext
+devices_	CLContext.h	/^  std::vector<CLDevice*> devices_;$/;"	m	class:CLContext
+devices_	CLIssuer.h	/^  std::vector<CLDevice*> devices_;$/;"	m	class:CLIssuer
+devices_	CLPlatform.h	/^  std::vector<CLDevice*> devices_;$/;"	m	class:CLPlatform
+devices_	CLProgram.h	/^  std::set<CLDevice*> devices_;$/;"	m	class:CLKernelInfo
+devices_	CLProgram.h	/^  std::vector<CLDevice*> devices_;$/;"	m	class:CLProgram
+devices_	cluster/ClusterDriver.h	/^  std::vector<CLDevice*> devices_;$/;"	m	class:ClusterDriver
+devices_updated_	CLIssuer.h	/^  bool devices_updated_;$/;"	m	class:CLIssuer
+dispatch	Structs.h	/^  struct _cl_icd_dispatch *dispatch;$/;"	m	struct:_cl_command_queue	typeref:struct:_cl_command_queue::_cl_icd_dispatch
+dispatch	Structs.h	/^  struct _cl_icd_dispatch *dispatch;$/;"	m	struct:_cl_context	typeref:struct:_cl_context::_cl_icd_dispatch
+dispatch	Structs.h	/^  struct _cl_icd_dispatch *dispatch;$/;"	m	struct:_cl_device_id	typeref:struct:_cl_device_id::_cl_icd_dispatch
+dispatch	Structs.h	/^  struct _cl_icd_dispatch *dispatch;$/;"	m	struct:_cl_event	typeref:struct:_cl_event::_cl_icd_dispatch
+dispatch	Structs.h	/^  struct _cl_icd_dispatch *dispatch;$/;"	m	struct:_cl_kernel	typeref:struct:_cl_kernel::_cl_icd_dispatch
+dispatch	Structs.h	/^  struct _cl_icd_dispatch *dispatch;$/;"	m	struct:_cl_mem	typeref:struct:_cl_mem::_cl_icd_dispatch
+dispatch	Structs.h	/^  struct _cl_icd_dispatch *dispatch;$/;"	m	struct:_cl_platform_id	typeref:struct:_cl_platform_id::_cl_icd_dispatch
+dispatch	Structs.h	/^  struct _cl_icd_dispatch *dispatch;$/;"	m	struct:_cl_program	typeref:struct:_cl_program::_cl_icd_dispatch
+dispatch	Structs.h	/^  struct _cl_icd_dispatch *dispatch;$/;"	m	struct:_cl_sampler	typeref:struct:_cl_sampler::_cl_icd_dispatch
+dispatch_	CLDispatch.h	/^  struct _cl_icd_dispatch* dispatch_;$/;"	m	class:CLDispatch	typeref:struct:CLDispatch::_cl_icd_dispatch
+dispatch_	legacy/LegacyDevice.h	/^  struct _cl_icd_dispatch* dispatch_;$/;"	m	class:LegacyDevice	typeref:struct:LegacyDevice::_cl_icd_dispatch
+double_fp_config_	CLDevice.h	/^  cl_device_fp_config double_fp_config_;$/;"	m	class:CLDevice
+driver_version_	CLDevice.h	/^  const char* driver_version_;$/;"	m	class:CLDevice
+dst_origin	cluster/ClusterDevice.cpp	/^  size_t dst_origin[3];$/;"	m	struct:_RecvDataAndUnpackInfo	file:
+dst_origin_	CLCommand.h	/^  size_t dst_origin_[3];$/;"	m	class:CLCommand
+dst_row_pitch	cluster/ClusterDevice.cpp	/^  size_t dst_row_pitch;$/;"	m	struct:_RecvDataAndUnpackInfo	file:
+dst_row_pitch_	CLCommand.h	/^  size_t dst_row_pitch_;$/;"	m	class:CLCommand
+dst_slice_pitch	cluster/ClusterDevice.cpp	/^  size_t dst_slice_pitch;$/;"	m	struct:_RecvDataAndUnpackInfo	file:
+dst_slice_pitch_	CLCommand.h	/^  size_t dst_slice_pitch_;$/;"	m	class:CLCommand
+element_size	cluster/ClusterDevice.cpp	/^  size_t element_size;$/;"	m	struct:_RecvDataAndUnpackInfo	file:
+elements_	Utils.h	/^  volatile CLCommand** elements_;$/;"	m	class:LockFreeQueue
+endian_little_	CLDevice.h	/^  cl_bool endian_little_;$/;"	m	class:CLDevice
+error_	CLCommand.h	/^  cl_int error_;$/;"	m	class:CLCommand
+error_correction_support_	CLDevice.h	/^  cl_bool error_correction_support_;$/;"	m	class:CLDevice
+event	cluster/ClusterDriver.cpp	/^  CLEvent* event;$/;"	m	struct:_CustomRecvData	file:
+event	cluster/ClusterDriver.cpp	/^  CLEvent* event;$/;"	m	struct:_CustomSendData	file:
+event_	CLCommand.h	/^  CLEvent* event_;$/;"	m	class:CLCommand
+event_id	CLCommand.h	/^  unsigned long event_id() const { return event_id_; }$/;"	f	class:CLCommand
+event_id	cluster/ClusterDriver.cpp	/^  unsigned long event_id;$/;"	m	struct:_CustomRecvData	file:
+event_id	cluster/ClusterDriver.cpp	/^  unsigned long event_id;$/;"	m	struct:_CustomSendData	file:
+event_id_	CLCommand.h	/^  size_t event_id_;$/;"	m	class:CLCommand
+executable_	CLProgram.h	/^  std::map<CLDevice*, void*> executable_;$/;"	m	class:CLProgram
+execution_capabilities_	CLDevice.h	/^  cl_device_exec_capabilities execution_capabilities_;$/;"	m	class:CLDevice
+extensions_	CLPlatform.h	/^  const char* extensions_;$/;"	m	class:CLPlatform
+file_index	cpu/CPUComputeUnit.h	/^  int file_index;$/;"	m	struct:_CPUKernelParam
+filter_mode	CLSampler.h	/^  cl_filter_mode filter_mode() const { return filter_mode_; }$/;"	f	class:CLSampler
+filter_mode_	CLSampler.h	/^  cl_filter_mode filter_mode_;$/;"	m	class:CLSampler
+finalize_data_	cluster/ClusterDevice.h	/^  std::map<CLCommand*, void*> finalize_data_;$/;"	m	class:ClusterDevice
+finalize_function_	cluster/ClusterDevice.h	/^  std::map<CLCommand*, void (*)(int, int, void*)> finalize_function_;$/;"	m	class:ClusterDevice
+first_chunk_	cluster/ClusterMessage.h	/^  char* first_chunk_;$/;"	m	class:ClusterRecvMessage
+fixed_	cluster/ClusterMessage.h	/^  bool fixed_;$/;"	m	class:ClusterRecvMessage
+fixed_	cluster/ClusterMessage.h	/^  bool fixed_;$/;"	m	class:ClusterSendMessage
+flags	CLKernel.h	/^  cl_mem_flags flags;$/;"	m	struct:_CLKernelArg
+flags	CLMem.h	/^  cl_mem_flags flags() const { return flags_; }$/;"	f	class:CLMem
+flags_	CLMem.h	/^  cl_mem_flags flags_;$/;"	m	class:CLMem
+full	CLProgram.h	/^  const unsigned char* full() const { return binary_; }$/;"	f	class:CLProgramBinary
+full_size	CLProgram.h	/^  size_t full_size() const { return size_; }$/;"	f	class:CLProgramBinary
+global_mem_cache_size_	CLDevice.h	/^  cl_ulong global_mem_cache_size_;$/;"	m	class:CLDevice
+global_mem_cache_type_	CLDevice.h	/^  cl_device_mem_cache_type global_mem_cache_type_;$/;"	m	class:CLDevice
+global_mem_cacheline_size_	CLDevice.h	/^  cl_uint global_mem_cacheline_size_;$/;"	m	class:CLDevice
+global_mem_size_	CLDevice.h	/^  cl_ulong global_mem_size_;$/;"	m	class:CLDevice
+gwo	cpu/CPUComputeUnit.h	/^  size_t gwo[3];$/;"	m	struct:_CPUKernelParam
+gwo_	CLCommand.h	/^  size_t gwo_[3];$/;"	m	class:CLCommand
+gws_	CLCommand.h	/^  size_t gws_[3];$/;"	m	class:CLCommand
+handle	cpu/CPUComputeUnit.h	/^  void* handle;$/;"	m	struct:_CPUWorkGroupAssignment
+has_executable	cluster/ClusterDevice.cpp	/^  bool has_executable;$/;"	m	struct:_RecvBuildResultInfo	file:
+header_name	CLProgram.h	/^  const char* header_name() const { return header_name_.c_str(); }$/;"	f	class:CLProgramSource
+header_name_	CLProgram.h	/^  std::string header_name_;$/;"	m	class:CLProgramSource
+headers_	CLCommand.h	/^  CLProgramSource** headers_;$/;"	m	class:CLCommand
+hit	Callbacks.h	/^  bool hit(cl_int status) {$/;"	f	class:EventCallback
+host_ptr_	CLMem.h	/^  void* host_ptr_;$/;"	m	class:CLMem
+host_unified_memory_	CLDevice.h	/^  cl_bool host_unified_memory_;$/;"	m	class:CLDevice
+id	CLObject.h	/^  unsigned long id() const { return id_; }$/;"	f	class:CLObject
+id_	CLObject.h	/^  unsigned long id_;$/;"	m	class:CLObject
+id_	cpu/CPUComputeUnit.h	/^  int id_;$/;"	m	class:CPUComputeUnit
+idx_r_	Utils.h	/^  volatile unsigned long idx_r_;$/;"	m	class:LockFreeQueue
+idx_w_	Utils.h	/^  volatile unsigned long idx_w_;$/;"	m	class:LockFreeQueue
+idx_w_cas_	Utils.h	/^  volatile unsigned long idx_w_cas_;$/;"	m	class:LockFreeQueueMS
+image2d_max_height_	CLDevice.h	/^  size_t image2d_max_height_;$/;"	m	class:CLDevice
+image2d_max_width_	CLDevice.h	/^  size_t image2d_max_width_;$/;"	m	class:CLDevice
+image3d_max_depth_	CLDevice.h	/^  size_t image3d_max_depth_;$/;"	m	class:CLDevice
+image3d_max_height_	CLDevice.h	/^  size_t image3d_max_height_;$/;"	m	class:CLDevice
+image3d_max_width_	CLDevice.h	/^  size_t image3d_max_width_;$/;"	m	class:CLDevice
+image_channels	CLMem.h	/^  size_t image_channels() const { return image_channels_; }$/;"	f	class:CLMem
+image_channels	cpu/CPUComputeUnit.h	/^  size_t image_channels;$/;"	m	struct:_CPUImageParam
+image_channels_	CLMem.h	/^  size_t image_channels_;$/;"	m	class:CLMem
+image_depth	CLMem.h	/^  size_t image_depth() const { return image_desc_.image_depth; }$/;"	f	class:CLMem
+image_desc	CLMem.h	/^  cl_image_desc image_desc() const { return image_desc_; }$/;"	f	class:CLMem
+image_desc	cpu/CPUComputeUnit.h	/^  cl_image_desc image_desc;$/;"	m	struct:_CPUImageParam
+image_desc_	CLMem.h	/^  cl_image_desc image_desc_;$/;"	m	class:CLMem
+image_elem_size	cpu/CPUComputeUnit.h	/^  size_t image_elem_size;$/;"	m	struct:_CPUImageParam
+image_element_size	CLMem.h	/^  size_t image_element_size() const { return image_element_size_; }$/;"	f	class:CLMem
+image_element_size_	CLMem.h	/^  size_t image_element_size_;$/;"	m	class:CLMem
+image_format	CLMem.h	/^  cl_image_format image_format() const { return image_format_; }$/;"	f	class:CLMem
+image_format	cpu/CPUComputeUnit.h	/^  cl_image_format image_format;$/;"	m	struct:_CPUImageParam
+image_format_	CLMem.h	/^  cl_image_format image_format_;$/;"	m	class:CLMem
+image_height	CLMem.h	/^  size_t image_height() const { return image_desc_.image_height; }$/;"	f	class:CLMem
+image_max_array_size_	CLDevice.h	/^  size_t image_max_array_size_;$/;"	m	class:CLDevice
+image_max_buffer_size_	CLDevice.h	/^  size_t image_max_buffer_size_;$/;"	m	class:CLDevice
+image_region_	CLMem.h	/^  size_t image_region_[3];$/;"	m	class:CLMem
+image_row_pitch	CLMem.h	/^  size_t image_row_pitch() const { return image_row_pitch_; }$/;"	f	class:CLMem
+image_row_pitch	cpu/CPUComputeUnit.h	/^  size_t image_row_pitch;$/;"	m	struct:_CPUImageParam
+image_row_pitch_	CLMem.h	/^  size_t image_row_pitch_;$/;"	m	class:CLMem
+image_slice_pitch	CLMem.h	/^  size_t image_slice_pitch() const { return image_slice_pitch_; }$/;"	f	class:CLMem
+image_slice_pitch	cpu/CPUComputeUnit.h	/^  size_t image_slice_pitch;$/;"	m	struct:_CPUImageParam
+image_slice_pitch_	CLMem.h	/^  size_t image_slice_pitch_;$/;"	m	class:CLMem
+image_support_	CLDevice.h	/^  cl_bool image_support_;$/;"	m	class:CLDevice
+image_supported_	CLContext.h	/^  bool image_supported_;$/;"	m	class:CLContext
+image_width	CLMem.h	/^  size_t image_width() const { return image_desc_.image_width; }$/;"	f	class:CLMem
+indexes_	CLProgram.h	/^  std::set<cl_uint> indexes_;$/;"	m	class:CLKernelInfo
+is_host_	CLPlatform.h	/^  bool is_host_;$/;"	m	class:CLPlatform
+issuers_	CLPlatform.h	/^  std::vector<CLIssuer*> issuers_;$/;"	m	class:CLPlatform
+kernel_	CLCommand.h	/^  CLKernel* kernel_;$/;"	m	class:CLCommand
+kernel_args_	CLCommand.h	/^  std::map<cl_uint, CLKernelArg*>* kernel_args_;$/;"	m	class:CLCommand
+kernel_dir_	cpu/CPUDevice.h	/^  char* kernel_dir_;$/;"	m	class:CPUDevice
+kernel_idx	cpu/CPUComputeUnit.h	/^  int kernel_idx;$/;"	m	struct:_CPUKernelParam
+kernel_info_	CLKernel.h	/^  CLKernelInfo* kernel_info_;$/;"	m	class:CLKernel
+kernel_queue_	legacy/LegacyDevice.h	/^  cl_command_queue kernel_queue_;$/;"	m	class:LegacyDevice
+kernels_	CLProgram.h	/^  std::vector<CLKernelInfo*> kernels_;$/;"	m	class:CLProgram
+kernels_	cluster/ClusterDriver.h	/^  std::map<unsigned long, CLKernel*> kernels_;$/;"	m	class:ClusterDriver
+kernels_ref_cnt_	CLProgram.h	/^  int kernels_ref_cnt_;$/;"	m	class:CLProgram
+last_event_	CLCommandQueue.h	/^  CLEvent* last_event_;$/;"	m	class:CLInOrderCommandQueue
+launch_id	cpu/CPUComputeUnit.h	/^  unsigned int launch_id;$/;"	m	struct:_CPUKernelParam
+library_	legacy/LegacyDevice.h	/^  void* library_;$/;"	m	class:LegacyDevice
+link_binaries_	CLCommand.h	/^  CLProgramBinary** link_binaries_;$/;"	m	class:CLCommand
+linker_available_	CLDevice.h	/^  cl_bool linker_available_;$/;"	m	class:CLDevice
+local	CLKernel.h	/^  bool local;$/;"	m	struct:_CLKernelArg
+local_mem_size_	CLDevice.h	/^  cl_ulong local_mem_size_;$/;"	m	class:CLDevice
+local_mem_size_	CLProgram.h	/^  std::map<CLDevice*, cl_ulong> local_mem_size_;$/;"	m	class:CLKernelInfo
+local_mem_type_	CLDevice.h	/^  cl_device_local_mem_type local_mem_type_;$/;"	m	class:CLDevice
+lws	cpu/CPUComputeUnit.h	/^  size_t lws[3];$/;"	m	struct:_CPUKernelParam
+lws_	CLCommand.h	/^  size_t lws_[3];$/;"	m	class:CLCommand
+map_count_	CLMem.h	/^  cl_uint map_count_;$/;"	m	class:CLMem
+map_flags_	CLCommand.h	/^  cl_map_flags map_flags_;$/;"	m	class:CLCommand
+map_writeback_	CLMem.h	/^  std::map<void*, CLMapWritebackLayout> map_writeback_;$/;"	m	class:CLMem
+max_clock_frequency_	CLDevice.h	/^  cl_uint max_clock_frequency_;$/;"	m	class:CLDevice
+max_compute_units_	CLDevice.h	/^  cl_uint max_compute_units_;$/;"	m	class:CLDevice
+max_constant_args_	CLDevice.h	/^  cl_uint max_constant_args_;$/;"	m	class:CLDevice
+max_constant_buffer_size_	CLDevice.h	/^  cl_ulong max_constant_buffer_size_;$/;"	m	class:CLDevice
+max_mem_alloc_size_	CLDevice.h	/^  cl_ulong max_mem_alloc_size_;$/;"	m	class:CLDevice
+max_parameter_size_	CLDevice.h	/^  size_t max_parameter_size_;$/;"	m	class:CLDevice
+max_read_image_args_	CLDevice.h	/^  cl_uint max_read_image_args_;$/;"	m	class:CLDevice
+max_samplers_	CLDevice.h	/^  cl_uint max_samplers_;$/;"	m	class:CLDevice
+max_work_group_size_	CLDevice.h	/^  size_t max_work_group_size_;$/;"	m	class:CLDevice
+max_work_item_dimensions_	CLDevice.h	/^  cl_uint max_work_item_dimensions_;$/;"	m	class:CLDevice
+max_work_item_sizes_	CLDevice.h	/^  size_t max_work_item_sizes_[3];$/;"	m	class:CLDevice
+max_write_image_args_	CLDevice.h	/^  cl_uint max_write_image_args_;$/;"	m	class:CLDevice
+mem	CLKernel.h	/^  CLMem* mem;$/;"	m	struct:_CLKernelArg
+mem_base_addr_align_	CLDevice.h	/^  cl_uint mem_base_addr_align_;$/;"	m	class:CLDevice
+mem_dst_	CLCommand.h	/^  CLMem* mem_dst_;$/;"	m	class:CLCommand
+mem_list_	CLCommand.h	/^  CLMem** mem_list_;$/;"	m	class:CLCommand
+mem_offsets_	CLCommand.h	/^  ptrdiff_t* mem_offsets_;$/;"	m	class:CLCommand
+mem_queue_	legacy/LegacyDevice.h	/^  cl_command_queue mem_queue_;$/;"	m	class:LegacyDevice
+mem_src_	CLCommand.h	/^  CLMem* mem_src_;$/;"	m	class:CLCommand
+mems_	CLContext.h	/^  std::vector<CLMem*> mems_;$/;"	m	class:CLContext
+mems_	cluster/ClusterDriver.h	/^  std::map<unsigned long, CLMem*> mems_;$/;"	m	class:ClusterDriver
+message_	cluster/ClusterMessage.h	/^  char* message_;$/;"	m	class:ClusterRecvMessage
+migration_flags_	CLCommand.h	/^  cl_mem_migration_flags migration_flags_;$/;"	m	class:CLCommand
+min_data_type_align_size_	CLDevice.h	/^  cl_uint min_data_type_align_size_;$/;"	m	class:CLDevice
+misc_queue_	legacy/LegacyDevice.h	/^  cl_command_queue misc_queue_;$/;"	m	class:LegacyDevice
+mutex_build_	CLProgram.h	/^  pthread_mutex_t mutex_build_;$/;"	m	class:CLProgram
+mutex_callbacks_	CLEvent.h	/^  pthread_mutex_t mutex_callbacks_;$/;"	m	class:CLEvent
+mutex_callbacks_	CLMem.h	/^  pthread_mutex_t mutex_callbacks_;$/;"	m	class:CLMem
+mutex_commands_	CLCommandQueue.h	/^  pthread_mutex_t mutex_commands_;$/;"	m	class:CLOutOfOrderCommandQueue
+mutex_complete_	CLEvent.h	/^  pthread_mutex_t mutex_complete_;$/;"	m	class:CLEvent
+mutex_dev_latest_	CLMem.h	/^  pthread_mutex_t mutex_dev_latest_;$/;"	m	class:CLMem
+mutex_dev_specific_	CLKernel.h	/^  pthread_mutex_t mutex_dev_specific_;$/;"	m	class:CLKernel
+mutex_dev_specific_	CLMem.h	/^  pthread_mutex_t mutex_dev_specific_;$/;"	m	class:CLMem
+mutex_dev_specific_	CLSampler.h	/^  pthread_mutex_t mutex_dev_specific_;$/;"	m	class:CLSampler
+mutex_devices_	CLIssuer.h	/^  pthread_mutex_t mutex_devices_;$/;"	m	class:CLIssuer
+mutex_devices_	CLPlatform.h	/^  pthread_mutex_t mutex_devices_;$/;"	m	class:CLPlatform
+mutex_host_ptr_	CLMem.h	/^  pthread_mutex_t mutex_host_ptr_;$/;"	m	class:CLMem
+mutex_issuers_	CLPlatform.h	/^  pthread_mutex_t mutex_issuers_;$/;"	m	class:CLPlatform
+mutex_map_	CLMem.h	/^  pthread_mutex_t mutex_map_;$/;"	m	class:CLMem
+mutex_mems_	CLContext.h	/^  pthread_mutex_t mutex_mems_;$/;"	m	class:CLContext
+mutex_queues_	CLScheduler.h	/^  pthread_mutex_t mutex_queues_;$/;"	m	class:CLScheduler
+mutex_samplers_	CLContext.h	/^  pthread_mutex_t mutex_samplers_;$/;"	m	class:CLContext
+mutex_work_queue_	cpu/CPUComputeUnit.h	/^  pthread_mutex_t mutex_work_queue_;$/;"	m	class:CPUComputeUnit
+name	CLKernel.h	/^  const char* name() const { return name_; }$/;"	f	class:CLKernel
+name	CLProgram.h	/^  const char* name() const { return name_; }$/;"	f	class:CLKernelInfo
+name_	CLDevice.h	/^  const char* name_;$/;"	m	class:CLDevice
+name_	CLKernel.h	/^  const char* name_;$/;"	m	class:CLKernel
+name_	CLPlatform.h	/^  const char* name_;$/;"	m	class:CLPlatform
+name_	CLProgram.h	/^  char* name_;$/;"	m	class:CLKernelInfo
+native_args_	CLCommand.h	/^  void* native_args_;$/;"	m	class:CLCommand
+native_vector_width_char_	CLDevice.h	/^  cl_uint native_vector_width_char_;$/;"	m	class:CLDevice
+native_vector_width_double_	CLDevice.h	/^  cl_uint native_vector_width_double_;$/;"	m	class:CLDevice
+native_vector_width_float_	CLDevice.h	/^  cl_uint native_vector_width_float_;$/;"	m	class:CLDevice
+native_vector_width_half_	CLDevice.h	/^  cl_uint native_vector_width_half_;$/;"	m	class:CLDevice
+native_vector_width_int_	CLDevice.h	/^  cl_uint native_vector_width_int_;$/;"	m	class:CLDevice
+native_vector_width_long_	CLDevice.h	/^  cl_uint native_vector_width_long_;$/;"	m	class:CLDevice
+native_vector_width_short_	CLDevice.h	/^  cl_uint native_vector_width_short_;$/;"	m	class:CLDevice
+node_dst_	CLCommand.h	/^  int node_dst_;$/;"	m	class:CLCommand
+node_id	CLDevice.h	/^  int node_id() const { return node_id_; }$/;"	f	class:CLDevice
+node_id	cluster/ClusterDriver.cpp	/^  int node_id;$/;"	m	struct:_CustomRecvData	file:
+node_id	cluster/ClusterDriver.cpp	/^  int node_id;$/;"	m	struct:_CustomSendData	file:
+node_id_	CLDevice.h	/^  int node_id_;$/;"	m	class:CLDevice
+node_src_	CLCommand.h	/^  int node_src_;$/;"	m	class:CLCommand
+normalized_coords	CLSampler.h	/^  cl_bool normalized_coords() const { return normalized_coords_; }$/;"	f	class:CLSampler
+normalized_coords_	CLSampler.h	/^  cl_bool normalized_coords_;$/;"	m	class:CLSampler
+num_args	CLKernel.cpp	/^cl_uint CLKernel::num_args() const {$/;"	f	class:CLKernel
+num_args	CLProgram.h	/^  cl_uint num_args() const { return num_args_; }$/;"	f	class:CLKernelInfo
+num_args_	CLProgram.h	/^  cl_uint num_args_;$/;"	m	class:CLKernelInfo
+num_cores_	cpu/CPUDevice.h	/^  int num_cores_;$/;"	m	class:CPUDevice
+num_mem_objects_	CLCommand.h	/^  cl_uint num_mem_objects_;$/;"	m	class:CLCommand
+num_partition_properties_	CLDevice.h	/^  size_t num_partition_properties_;$/;"	m	class:CLDevice
+num_properties_	CLContext.h	/^  size_t num_properties_;$/;"	m	class:CLContext
+nwg_	CLCommand.h	/^  size_t nwg_[3];$/;"	m	class:CLCommand
+off_dst_	CLCommand.h	/^  size_t off_dst_;$/;"	m	class:CLCommand
+off_src_	CLCommand.h	/^  size_t off_src_;$/;"	m	class:CLCommand
+offset	CLMem.h	/^  size_t offset() const { return offset_; }$/;"	f	class:CLMem
+offset_	CLMem.h	/^  size_t offset_;$/;"	m	class:CLMem
+offset_	cluster/ClusterMessage.h	/^  size_t offset_;$/;"	m	class:ClusterRecvMessage
+offset_	cluster/ClusterMessage.h	/^  size_t offset_;$/;"	m	class:ClusterSendMessage
+opencl_c_version_	CLDevice.h	/^  const char* opencl_c_version_;$/;"	m	class:CLDevice
+options_	CLCommand.h	/^  const char* options_;$/;"	m	class:CLCommand
+orig_grid	cpu/CPUComputeUnit.h	/^  size_t orig_grid[3];$/;"	m	struct:_CPUKernelParam
+origin	CLMem.h	/^  size_t origin[3];$/;"	m	struct:_CLMapWritebackLayout
+param	cpu/CPUComputeUnit.h	/^  CPUKernelParam* param;$/;"	m	struct:_CPUWorkGroupAssignment
+parent	CLMem.h	/^  CLMem* parent() const { return parent_; }$/;"	f	class:CLMem
+parent_	CLDevice.h	/^  CLDevice* parent_;$/;"	m	class:CLDevice
+parent_	CLMem.h	/^  CLMem* parent_;$/;"	m	class:CLMem
+partition_max_compute_units_	CLDevice.h	/^  cl_uint partition_max_compute_units_;$/;"	m	class:CLDevice
+partition_max_sub_devices_	CLDevice.h	/^  cl_uint partition_max_sub_devices_;$/;"	m	class:CLDevice
+partition_properties_	CLDevice.h	/^  cl_device_partition_property partition_properties_[3];$/;"	m	class:CLDevice
+partition_type_	CLDevice.h	/^  cl_device_partition_property* partition_type_;$/;"	m	class:CLDevice
+partition_type_len_	CLDevice.h	/^  size_t partition_type_len_;$/;"	m	class:CLDevice
+passed	Callbacks.h	/^  bool passed(cl_int status) {$/;"	f	class:EventCallback
+pattern_	CLCommand.h	/^  void* pattern_;$/;"	m	class:CLCommand
+pattern_size_	CLCommand.h	/^  size_t pattern_size_;$/;"	m	class:CLCommand
+pfn_clCreateEventFromGLsyncKHR	ICD.h	/^typedef CL_API_ENTRY cl_event (CL_API_CALL *pfn_clCreateEventFromGLsyncKHR)($/;"	t
+pfn_clCreateFromD3D10BufferKHR	ICD.h	/^typedef void *pfn_clCreateFromD3D10BufferKHR;$/;"	t
+pfn_clCreateFromD3D10Texture2DKHR	ICD.h	/^typedef void *pfn_clCreateFromD3D10Texture2DKHR;$/;"	t
+pfn_clCreateFromD3D10Texture3DKHR	ICD.h	/^typedef void *pfn_clCreateFromD3D10Texture3DKHR;$/;"	t
+pfn_clCreateFromD3D11BufferKHR	ICD.h	/^typedef void *pfn_clCreateFromD3D11BufferKHR;$/;"	t
+pfn_clCreateFromD3D11Texture2DKHR	ICD.h	/^typedef void *pfn_clCreateFromD3D11Texture2DKHR;$/;"	t
+pfn_clCreateFromD3D11Texture3DKHR	ICD.h	/^typedef void *pfn_clCreateFromD3D11Texture3DKHR;$/;"	t
+pfn_clCreateFromDX9MediaSurfaceKHR	ICD.h	/^typedef void *pfn_clCreateFromDX9MediaSurfaceKHR;$/;"	t
+pfn_clCreateSubDevices	ICD.h	/^typedef CL_API_ENTRY cl_int (CL_API_CALL *pfn_clCreateSubDevices)($/;"	t
+pfn_clCreateSubDevicesEXT	ICD.h	/^typedef CL_API_ENTRY cl_int (CL_API_CALL *pfn_clCreateSubDevicesEXT)($/;"	t
+pfn_clEnqueueAcquireD3D10ObjectsKHR	ICD.h	/^typedef void *pfn_clEnqueueAcquireD3D10ObjectsKHR;$/;"	t
+pfn_clEnqueueAcquireD3D11ObjectsKHR	ICD.h	/^typedef void *pfn_clEnqueueAcquireD3D11ObjectsKHR;$/;"	t
+pfn_clEnqueueAcquireDX9MediaSurfacesKHR	ICD.h	/^typedef void *pfn_clEnqueueAcquireDX9MediaSurfacesKHR;$/;"	t
+pfn_clEnqueueReleaseD3D10ObjectsKHR	ICD.h	/^typedef void *pfn_clEnqueueReleaseD3D10ObjectsKHR;$/;"	t
+pfn_clEnqueueReleaseD3D11ObjectsKHR	ICD.h	/^typedef void *pfn_clEnqueueReleaseD3D11ObjectsKHR;$/;"	t
+pfn_clEnqueueReleaseDX9MediaSurfacesKHR	ICD.h	/^typedef void *pfn_clEnqueueReleaseDX9MediaSurfacesKHR;$/;"	t
+pfn_clGetDeviceIDsFromD3D10KHR	ICD.h	/^typedef void *pfn_clGetDeviceIDsFromD3D10KHR;$/;"	t
+pfn_clGetDeviceIDsFromD3D11KHR	ICD.h	/^typedef void *pfn_clGetDeviceIDsFromD3D11KHR;$/;"	t
+pfn_clGetDeviceIDsFromDX9MediaAdapterKHR	ICD.h	/^typedef void *pfn_clGetDeviceIDsFromDX9MediaAdapterKHR;$/;"	t
+pfn_clGetGLContextInfoKHR	ICD.h	/^typedef CL_API_ENTRY cl_int (CL_API_CALL *pfn_clGetGLContextInfoKHR)($/;"	t
+pfn_notify_	Callbacks.h	/^  void (CL_CALLBACK *pfn_notify_)(cl_mem, void*);$/;"	m	class:MemObjectDestructorCallback
+pfn_notify_	Callbacks.h	/^  void (CL_CALLBACK *pfn_notify_)(cl_program, void*);$/;"	m	class:ProgramCallback
+pfn_notify_	Callbacks.h	/^  void (CL_CALLBACK *pfn_notify_)(const char*, const void*, size_t, void*);$/;"	m	class:ContextErrorNotificationCallback
+pfn_notify_	Callbacks.h	/^  void (CL_CALLBACK* pfn_notify_)(cl_event, cl_int, void*);$/;"	m	class:EventCallback
+platform_	CLScheduler.h	/^  CLPlatform* platform_;$/;"	m	class:CLScheduler
+platform_	cluster/ClusterDriver.h	/^  CLPlatform* platform_;$/;"	m	class:ClusterDriver
+platform_id_	legacy/LegacyDevice.h	/^  cl_platform_id platform_id_;$/;"	m	class:LegacyDevice
+preferred_interop_user_sync_	CLDevice.h	/^  cl_bool preferred_interop_user_sync_;$/;"	m	class:CLDevice
+preferred_vector_width_char_	CLDevice.h	/^  cl_uint preferred_vector_width_char_;$/;"	m	class:CLDevice
+preferred_vector_width_double_	CLDevice.h	/^  cl_uint preferred_vector_width_double_;$/;"	m	class:CLDevice
+preferred_vector_width_float_	CLDevice.h	/^  cl_uint preferred_vector_width_float_;$/;"	m	class:CLDevice
+preferred_vector_width_half_	CLDevice.h	/^  cl_uint preferred_vector_width_half_;$/;"	m	class:CLDevice
+preferred_vector_width_int_	CLDevice.h	/^  cl_uint preferred_vector_width_int_;$/;"	m	class:CLDevice
+preferred_vector_width_long_	CLDevice.h	/^  cl_uint preferred_vector_width_long_;$/;"	m	class:CLDevice
+preferred_vector_width_short_	CLDevice.h	/^  cl_uint preferred_vector_width_short_;$/;"	m	class:CLDevice
+preferred_work_group_size_multiple_	CLProgram.h	/^  std::map<CLDevice*, size_t> preferred_work_group_size_multiple_;$/;"	m	class:CLKernelInfo
+printf_buffer_size_	CLDevice.h	/^  size_t printf_buffer_size_;$/;"	m	class:CLDevice
+private_mem_size_	CLProgram.h	/^  std::map<CLDevice*, cl_ulong> private_mem_size_;$/;"	m	class:CLKernelInfo
+profile_	CLDevice.h	/^  const char* profile_;$/;"	m	class:CLDevice
+profile_	CLEvent.h	/^  cl_ulong profile_[4];$/;"	m	class:CLEvent
+profile_	CLPlatform.h	/^  const char* profile_;$/;"	m	class:CLPlatform
+profiled_	CLEvent.h	/^  bool profiled_;$/;"	m	class:CLEvent
+profiling_timer_resolution_	CLDevice.h	/^  size_t profiling_timer_resolution_;$/;"	m	class:CLDevice
+program	CLKernel.h	/^  CLProgram* program() const { return program_; }$/;"	f	class:CLKernel
+program	cluster/ClusterDevice.cpp	/^  CLProgram* program;$/;"	m	struct:_RecvBuildResultInfo	file:
+program_	CLCommand.h	/^  CLProgram* program_;$/;"	m	class:CLCommand
+program_	CLKernel.h	/^  CLProgram* program_;$/;"	m	class:CLKernel
+programs_	cluster/ClusterDriver.h	/^  std::map<unsigned long, CLProgram*> programs_;$/;"	m	class:ClusterDriver
+properties_	CLCommandQueue.h	/^  cl_command_queue_properties properties_;$/;"	m	class:CLCommandQueue
+properties_	CLContext.h	/^  cl_context_properties* properties_;$/;"	m	class:CLContext
+ptr	cluster/ClusterDevice.cpp	/^  void* ptr;$/;"	m	struct:_RecvDataAndUnpackInfo	file:
+ptr	cluster/ClusterDevice.cpp	/^  void* ptr;$/;"	m	struct:_RecvDataInfo	file:
+ptr	cluster/ClusterDriver.cpp	/^  void* ptr;$/;"	m	struct:_CustomBroadcastData	file:
+ptr	cluster/ClusterDriver.cpp	/^  void* ptr;$/;"	m	struct:_CustomRecvData	file:
+ptr	cluster/ClusterDriver.cpp	/^  void* ptr;$/;"	m	struct:_CustomSendData	file:
+ptr	cluster/ClusterMessage.h	/^  char* ptr() { return current_chunk_ + offset_; }$/;"	f	class:ClusterSendMessage
+ptr	cluster/ClusterMessage.h	/^  char* ptr() { return message_ + offset_; }$/;"	f	class:ClusterRecvMessage
+ptr	cpu/CPUComputeUnit.h	/^  void* ptr;$/;"	m	struct:_CPUImageParam
+ptr_	CLCommand.h	/^  void* ptr_;$/;"	m	class:CLCommand
+queue_	CLCommand.h	/^  CLCommandQueue* queue_;$/;"	m	class:CLCommand
+queue_	CLCommandQueue.h	/^  LockFreeQueueMS queue_;$/;"	m	class:CLInOrderCommandQueue
+queue_	CLEvent.h	/^  CLCommandQueue* queue_;$/;"	m	class:CLEvent
+queue_properties_	CLDevice.h	/^  cl_command_queue_properties queue_properties_;$/;"	m	class:CLDevice
+queues_	CLScheduler.h	/^  std::vector<CLCommandQueue*> queues_;$/;"	m	class:CLScheduler
+queues_updated_	CLScheduler.h	/^  bool queues_updated_;$/;"	m	class:CLScheduler
+rank_	cluster/ClusterDriver.h	/^  int rank_;$/;"	m	class:ClusterDriver
+read_ptr	cluster/ClusterDriver.cpp	/^  void* read_ptr;$/;"	m	struct:_CustomAlltoAllData	file:
+ready_queue_	CLDevice.h	/^  LockFreeQueueMS ready_queue_;$/;"	m	class:CLDevice
+ref_cnt	CLObject.h	/^  int ref_cnt() const { return ref_cnt_; }$/;"	f	class:CLObject
+ref_cnt_	CLObject.h	/^  int ref_cnt_;$/;"	m	class:CLObject
+region	CLMem.h	/^  size_t region[3];$/;"	m	struct:_CLMapWritebackLayout
+region	cluster/ClusterDevice.cpp	/^  size_t region[3];$/;"	m	struct:_RecvDataAndUnpackInfo	file:
+region_	CLCommand.h	/^  size_t region_[3];$/;"	m	class:CLCommand
+run	Callbacks.h	/^  void run(cl_event event, cl_int status) {$/;"	f	class:EventCallback
+run	Callbacks.h	/^  void run(cl_mem mem) {$/;"	f	class:MemObjectDestructorCallback
+run	Callbacks.h	/^  void run(cl_program program) {$/;"	f	class:ProgramCallback
+run	Callbacks.h	/^  void run(const char* errinfo, const void* private_info, size_t cb) {$/;"	f	class:ContextErrorNotificationCallback
+run_if	Callbacks.h	/^  void run_if(cl_event event, cl_int status) {$/;"	f	class:EventCallback
+running_	cluster/ClusterDriver.h	/^  bool running_;$/;"	m	class:ClusterDriver
+running_commands_	CLIssuer.h	/^  std::list<CLCommand*> running_commands_;$/;"	m	class:CLIssuer
+sampler	CLKernel.h	/^  CLSampler* sampler;$/;"	m	struct:_CLKernelArg
+samplers_	CLContext.h	/^  std::vector<CLSampler*> samplers_;$/;"	m	class:CLContext
+samplers_	cluster/ClusterDriver.h	/^  std::map<unsigned long, CLSampler*> samplers_;$/;"	m	class:ClusterDriver
+scheduler_	CLDevice.h	/^  CLScheduler* scheduler_;$/;"	m	class:CLDevice
+schedulers_	CLPlatform.h	/^  std::vector<CLScheduler*> schedulers_;$/;"	m	class:CLPlatform
+sem_ready_queue_	CLDevice.h	/^  sem_t sem_ready_queue_;$/;"	m	class:CLDevice
+sem_schedule_	CLScheduler.h	/^  sem_t sem_schedule_;$/;"	m	class:CLScheduler
+set_count	Callbacks.h	/^  void set_count(int count) {$/;"	f	class:ProgramCallback
+single_fp_config_	CLDevice.h	/^  cl_device_fp_config single_fp_config_;$/;"	m	class:CLDevice
+singleton_	CLDispatch.cpp	/^CLDispatch* CLDispatch::singleton_ = NULL;$/;"	m	class:CLDispatch	file:
+singleton_	CLDispatch.h	/^  static CLDispatch* singleton_;$/;"	m	class:CLDispatch
+singleton_	CLPlatform.cpp	/^CLPlatform* CLPlatform::singleton_ = NULL;$/;"	m	class:CLPlatform	file:
+singleton_	CLPlatform.h	/^  static CLPlatform* singleton_;$/;"	m	class:CLPlatform
+singleton_driver	cluster/ClusterDriver.cpp	/^ClusterDriver singleton_driver;$/;"	v
+size	CLKernel.h	/^  size_t size;$/;"	m	struct:_CLKernelArg
+size	CLMem.h	/^  size_t size() const { return size_; }$/;"	f	class:CLMem
+size	cluster/ClusterDevice.cpp	/^  size_t size;$/;"	m	struct:_RecvDataInfo	file:
+size	cluster/ClusterDriver.cpp	/^  size_t size;$/;"	m	struct:_CustomAlltoAllData	file:
+size	cluster/ClusterDriver.cpp	/^  size_t size;$/;"	m	struct:_CustomBroadcastData	file:
+size	cluster/ClusterDriver.cpp	/^  size_t size;$/;"	m	struct:_CustomRecvData	file:
+size	cluster/ClusterDriver.cpp	/^  size_t size;$/;"	m	struct:_CustomSendData	file:
+size	cpu/CPUComputeUnit.h	/^  size_t size;$/;"	m	struct:_CPUImageParam
+size_	CLCommand.h	/^  size_t size_;$/;"	m	class:CLCommand
+size_	CLMem.h	/^  size_t size_;$/;"	m	class:CLMem
+size_	CLProgram.h	/^  size_t size_;$/;"	m	class:CLProgramBinary
+size_	Utils.h	/^  unsigned long size_;$/;"	m	class:LockFreeQueue
+size_	cluster/ClusterDriver.h	/^  int size_;$/;"	m	class:ClusterDriver
+snucl_index	CLKernel.cpp	/^int CLKernel::snucl_index() const {$/;"	f	class:CLKernel
+snucl_index	CLProgram.h	/^  int snucl_index() const { return snucl_index_; }$/;"	f	class:CLKernelInfo
+snucl_index_	CLProgram.h	/^  int snucl_index_;$/;"	m	class:CLKernelInfo
+source_	CLCommand.h	/^  CLProgramSource* source_;$/;"	m	class:CLCommand
+source_	CLProgram.h	/^  CLProgramSource* source_;$/;"	m	class:CLProgram
+source_device	CLCommand.h	/^  CLDevice* source_device() const { return dev_src_; }$/;"	f	class:CLCommand
+source_node	CLCommand.h	/^  int source_node() const { return node_src_; }$/;"	f	class:CLCommand
+sources_	CLProgram.h	/^  std::vector<std::string> sources_;$/;"	m	class:CLProgramSource
+src_node_id	cluster/ClusterDriver.cpp	/^  int src_node_id;$/;"	m	struct:_CustomBroadcastData	file:
+src_origin_	CLCommand.h	/^  size_t src_origin_[3];$/;"	m	class:CLCommand
+src_row_pitch_	CLCommand.h	/^  size_t src_row_pitch_;$/;"	m	class:CLCommand
+src_slice_pitch_	CLCommand.h	/^  size_t src_slice_pitch_;$/;"	m	class:CLCommand
+st_obj	CLObject.h	/^  st_obj_type* st_obj() { return &st_obj_; }$/;"	f	class:CLObject
+st_obj_	CLObject.h	/^  st_obj_type st_obj_;$/;"	m	class:CLObject
+status_	CLEvent.h	/^  cl_int status_;$/;"	m	class:CLEvent
+sub_command_	cluster/ClusterDriver.h	/^  std::map<CLEvent*, CLCommand*> sub_command_;$/;"	m	class:ClusterDriver
+sub_response_	cluster/ClusterDriver.h	/^  std::map<CLEvent*, unsigned long> sub_response_;$/;"	m	class:ClusterDriver
+suffix_	CLPlatform.h	/^  const char* suffix_;$/;"	m	class:CLPlatform
+supported_image2d_max_height_	CLContext.h	/^  size_t supported_image2d_max_height_;$/;"	m	class:CLContext
+supported_image2d_max_width_	CLContext.h	/^  size_t supported_image2d_max_width_;$/;"	m	class:CLContext
+supported_image3d_max_depth_	CLContext.h	/^  size_t supported_image3d_max_depth_;$/;"	m	class:CLContext
+supported_image3d_max_height_	CLContext.h	/^  size_t supported_image3d_max_height_;$/;"	m	class:CLContext
+supported_image3d_max_width_	CLContext.h	/^  size_t supported_image3d_max_width_;$/;"	m	class:CLContext
+supported_image_formats_	CLContext.h	/^  std::vector<cl_image_format> supported_image_formats_;$/;"	m	class:CLContext
+supported_image_max_array_size_	CLContext.h	/^  size_t supported_image_max_array_size_;$/;"	m	class:CLContext
+supported_image_max_buffer_size_	CLContext.h	/^  size_t supported_image_max_buffer_size_;$/;"	m	class:CLContext
+temp_buf_	CLCommand.h	/^  void* temp_buf_;$/;"	m	class:CLCommand
+thread_	CLIssuer.h	/^  pthread_t thread_;$/;"	m	class:CLIssuer
+thread_	CLScheduler.h	/^  pthread_t thread_;$/;"	m	class:CLScheduler
+thread_	cpu/CPUComputeUnit.h	/^  pthread_t thread_;$/;"	m	class:CPUComputeUnit
+thread_running_	CLIssuer.h	/^  bool thread_running_;$/;"	m	class:CLIssuer
+thread_running_	CLScheduler.h	/^  bool thread_running_;$/;"	m	class:CLScheduler
+thread_running_	cpu/CPUComputeUnit.h	/^  bool thread_running_;$/;"	m	class:CPUComputeUnit
+type	CLCommand.h	/^  cl_command_type type() const { return type_; }$/;"	f	class:CLCommand
+type	CLDevice.h	/^  cl_device_type type() const { return type_; }$/;"	f	class:CLDevice
+type	CLMem.h	/^  cl_mem_object_type type() const { return type_; }$/;"	f	class:CLMem
+type	CLProgram.h	/^  cl_program_binary_type type() const { return type_; }$/;"	f	class:CLProgramBinary
+type_	CLCommand.h	/^  cl_command_type type_;$/;"	m	class:CLCommand
+type_	CLDevice.h	/^  cl_device_type type_;$/;"	m	class:CLDevice
+type_	CLMem.h	/^  cl_mem_object_type type_;$/;"	m	class:CLMem
+type_	CLProgram.h	/^  cl_program_binary_type type_;$/;"	m	class:CLProgramBinary
+use_host_	CLMem.h	/^  bool use_host_;$/;"	m	class:CLMem
+user_data_	Callbacks.h	/^  void* user_data_;$/;"	m	class:ContextErrorNotificationCallback
+user_data_	Callbacks.h	/^  void* user_data_;$/;"	m	class:EventCallback
+user_data_	Callbacks.h	/^  void* user_data_;$/;"	m	class:MemObjectDestructorCallback
+user_data_	Callbacks.h	/^  void* user_data_;$/;"	m	class:ProgramCallback
+user_func_	CLCommand.h	/^  void (*user_func_)(void*);$/;"	m	class:CLCommand
+valid_	CLProgram.h	/^  bool valid_;$/;"	m	class:CLKernelInfo
+value	CLKernel.h	/^  char value[256];$/;"	m	struct:_CLKernelArg
+vendor_	CLDevice.h	/^  const char* vendor_;$/;"	m	class:CLDevice
+vendor_	CLPlatform.h	/^  const char* vendor_;$/;"	m	class:CLPlatform
+vendor_id_	CLDevice.h	/^  cl_uint vendor_id_;$/;"	m	class:CLDevice
+version_	CLPlatform.h	/^  const char* version_;$/;"	m	class:CLPlatform
+version_	cluster/ClusterDevice.h	/^  int version_;$/;"	m	class:ClusterDevice
+version_	legacy/LegacyDevice.h	/^  int version_;$/;"	m	class:LegacyDevice
+wait_events_	CLCommand.h	/^  std::vector<CLEvent*> wait_events_;$/;"	m	class:CLCommand
+wait_events_complete_	CLCommand.h	/^  bool wait_events_complete_;$/;"	m	class:CLCommand
+wait_events_good_	CLCommand.h	/^  bool wait_events_good_;$/;"	m	class:CLCommand
+waiting_response_	cluster/ClusterDevice.h	/^  std::map<CLCommand*, int> waiting_response_;$/;"	m	class:ClusterDevice
+wg_id_begin	cpu/CPUComputeUnit.h	/^  size_t wg_id_begin[3];$/;"	m	struct:_CPUKernelParam
+wg_id_end	cpu/CPUComputeUnit.h	/^  size_t wg_id_end;$/;"	m	struct:_CPUKernelParam
+wg_id_end	cpu/CPUComputeUnit.h	/^  size_t wg_id_end;$/;"	m	struct:_CPUWorkGroupAssignment
+wg_id_size	cpu/CPUComputeUnit.h	/^  size_t wg_id_size[3];$/;"	m	struct:_CPUKernelParam
+wg_id_start	cpu/CPUComputeUnit.h	/^  size_t wg_id_start;$/;"	m	struct:_CPUKernelParam
+wg_id_start	cpu/CPUComputeUnit.h	/^  size_t wg_id_start;$/;"	m	struct:_CPUWorkGroupAssignment
+work_dim	cpu/CPUComputeUnit.h	/^  unsigned int work_dim;$/;"	m	struct:_CPUKernelParam
+work_dim_	CLCommand.h	/^  cl_uint work_dim_;$/;"	m	class:CLCommand
+work_group_size_	CLProgram.h	/^  std::map<CLDevice*, size_t> work_group_size_;$/;"	m	class:CLKernelInfo
+work_queue_	cpu/CPUComputeUnit.h	/^  std::deque<CPUWorkGroupAssignment*> work_queue_;$/;"	m	class:CPUComputeUnit
+work_to_do_	cpu/CPUComputeUnit.h	/^  bool work_to_do_;$/;"	m	class:CPUComputeUnit
+write_ptr	cluster/ClusterDriver.cpp	/^  void* write_ptr;$/;"	m	struct:_CustomAlltoAllData	file:
+~CLCommand	CLCommand.cpp	/^CLCommand::~CLCommand() {$/;"	f	class:CLCommand
+~CLCommandQueue	CLCommandQueue.cpp	/^CLCommandQueue::~CLCommandQueue() {$/;"	f	class:CLCommandQueue
+~CLContext	CLContext.cpp	/^CLContext::~CLContext() {$/;"	f	class:CLContext
+~CLDevice	CLDevice.cpp	/^CLDevice::~CLDevice() {$/;"	f	class:CLDevice
+~CLDispatch	CLDispatch.cpp	/^CLDispatch::~CLDispatch() {$/;"	f	class:CLDispatch
+~CLEvent	CLEvent.cpp	/^CLEvent::~CLEvent() {$/;"	f	class:CLEvent
+~CLInOrderCommandQueue	CLCommandQueue.cpp	/^CLInOrderCommandQueue::~CLInOrderCommandQueue() {$/;"	f	class:CLInOrderCommandQueue
+~CLIssuer	CLIssuer.cpp	/^CLIssuer::~CLIssuer() {$/;"	f	class:CLIssuer
+~CLKernel	CLKernel.cpp	/^CLKernel::~CLKernel() {$/;"	f	class:CLKernel
+~CLKernelInfo	CLProgram.cpp	/^CLKernelInfo::~CLKernelInfo() {$/;"	f	class:CLKernelInfo
+~CLMem	CLMem.cpp	/^CLMem::~CLMem() {$/;"	f	class:CLMem
+~CLObject	CLObject.h	/^  virtual ~CLObject() {}$/;"	f	class:CLObject
+~CLOutOfOrderCommandQueue	CLCommandQueue.cpp	/^CLOutOfOrderCommandQueue::~CLOutOfOrderCommandQueue() {$/;"	f	class:CLOutOfOrderCommandQueue
+~CLPlatform	CLPlatform.cpp	/^CLPlatform::~CLPlatform() {$/;"	f	class:CLPlatform
+~CLProgram	CLProgram.cpp	/^CLProgram::~CLProgram() {$/;"	f	class:CLProgram
+~CLProgramBinary	CLProgram.cpp	/^CLProgramBinary::~CLProgramBinary() {$/;"	f	class:CLProgramBinary
+~CLProgramSource	CLProgram.h	/^  ~CLProgramSource() {}$/;"	f	class:CLProgramSource
+~CLSampler	CLSampler.cpp	/^CLSampler::~CLSampler() {$/;"	f	class:CLSampler
+~CLScheduler	CLScheduler.cpp	/^CLScheduler::~CLScheduler() {$/;"	f	class:CLScheduler
+~CPUComputeUnit	cpu/CPUComputeUnit.cpp	/^CPUComputeUnit::~CPUComputeUnit() {$/;"	f	class:CPUComputeUnit
+~CPUDevice	cpu/CPUDevice.cpp	/^CPUDevice::~CPUDevice() {$/;"	f	class:CPUDevice
+~ClusterDevice	cluster/ClusterDevice.cpp	/^ClusterDevice::~ClusterDevice() {$/;"	f	class:ClusterDevice
+~ClusterDriver	cluster/ClusterDriver.cpp	/^ClusterDriver::~ClusterDriver() {$/;"	f	class:ClusterDriver
+~ClusterRecvMessage	cluster/ClusterMessage.cpp	/^ClusterRecvMessage::~ClusterRecvMessage() {$/;"	f	class:ClusterRecvMessage
+~ClusterSendMessage	cluster/ClusterMessage.cpp	/^ClusterSendMessage::~ClusterSendMessage() {$/;"	f	class:ClusterSendMessage
+~LegacyDevice	legacy/LegacyDevice.cpp	/^LegacyDevice::~LegacyDevice() {$/;"	f	class:LegacyDevice
+~LockFreeQueue	Utils.cpp	/^LockFreeQueue::~LockFreeQueue() {$/;"	f	class:LockFreeQueue
+~LockFreeQueueMS	Utils.cpp	/^LockFreeQueueMS::~LockFreeQueueMS() {$/;"	f	class:LockFreeQueueMS

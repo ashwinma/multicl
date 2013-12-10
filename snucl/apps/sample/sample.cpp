@@ -43,7 +43,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
-//#include "mpi.h"
+#include "mpi.h"
 
 #if defined(SAMPLE_CPU)
 #define PLATFORM_NAME "SnuCL CPU"
@@ -68,7 +68,8 @@ const char* kernel_src =
     "}\n";
 
 int main(int argc, char** argv) {
-  cl_device_type    DEV_TYPE = CL_DEVICE_TYPE_ALL;
+  cl_device_type    DEV_TYPE = CL_DEVICE_TYPE_GPU;
+  //cl_device_type    DEV_TYPE = CL_DEVICE_TYPE_ALL;
   cl_uint           num_platforms;
   cl_platform_id*   platforms;
   size_t            platform_name_size;
@@ -91,7 +92,7 @@ int main(int argc, char** argv) {
   int               i;
   cl_int            err;
 
-//  MPI_Init(&argc, &argv);
+  MPI_Init(&argc, &argv);
 
   err = clGetPlatformIDs(0, NULL, &num_platforms);
   CHECK_ERROR(err);
@@ -127,6 +128,14 @@ int main(int argc, char** argv) {
 
   err = clGetDeviceIDs(snucl_platform, DEV_TYPE, 1, &device, NULL);
   CHECK_ERROR(err);
+
+  char device_name[1000];
+  err = clGetDeviceInfo(device, CL_DEVICE_NAME, 1000, &device_name, NULL);
+  CHECK_ERROR(err);
+  cl_device_type device_type;
+  err = clGetDeviceInfo(device, CL_DEVICE_TYPE, sizeof(cl_device_type), &device_type, NULL);
+  CHECK_ERROR(err);
+  printf("Chosen device is %d with name %s.\n", device_type, device_name);
 
   context_properties[0] = CL_CONTEXT_PLATFORM;
   context_properties[1] = (cl_context_properties)snucl_platform;
@@ -189,6 +198,6 @@ int main(int argc, char** argv) {
   clReleaseCommandQueue(command_queue);
   clReleaseContext(context);
 
-  //MPI_Finalize();
+  MPI_Finalize();
   return 0;
 }

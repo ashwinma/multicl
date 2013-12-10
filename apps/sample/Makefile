@@ -1,7 +1,5 @@
 CC=mpic++
 #CC=g++
-cpu:
-	$(CC) -o sample sample.cpp -DSAMPLE_CPU -I$(SNUCLROOT)/inc -lOpenCL
 
 single:
 	$(CC) -o sample sample.cpp -DSAMPLE_SINGLE -I$(SNUCLROOT)/inc -lOpenCL
@@ -11,3 +9,8 @@ cluster:
 
 opencl:
 	$(CC) -o sample sample.cpp -I$(SNUCLROOT)/inc -lOpenCL
+
+cpu:
+	$(CC) -o sample sample.cpp -DSAMPLE_CPU -I$(SNUCLROOT)/inc -lOpenCL
+
+default: single

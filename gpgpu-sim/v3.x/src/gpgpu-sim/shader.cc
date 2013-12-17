@@ -41,6 +41,7 @@
 #include "mem_latency_stat.h"
 #include "visualizer.h"
 #include "../statwrapper.h"
+#include "../interconnect_interface.h"
 #include "icnt_wrapper.h"
 #include <string.h>
 #include <limits.h>
@@ -76,6 +77,8 @@ shader_core_ctx::shader_core_ctx( class gpgpu_sim *gpu,
      m_barriers( config->max_warps_per_shader, config->max_cta_per_core ),
      m_dynamic_warp_id(0)
 {
+	m_rsegment_counts = NULL;
+	m_wsegment_counts = NULL;
     m_cluster = cluster;
     m_config = config;
     m_memory_config = mem_config;

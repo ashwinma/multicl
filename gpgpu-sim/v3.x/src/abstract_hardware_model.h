@@ -63,6 +63,7 @@ enum FuncCache
 #include <string.h>
 #include <stdio.h>
 
+extern unsigned int g_hack_nvtesla_emu;
 typedef unsigned long long new_addr_type;
 typedef unsigned address_type;
 typedef unsigned addr_t;
@@ -133,6 +134,7 @@ enum _memory_op_t {
 #include <stdlib.h>
 #include <map>
 #include <deque>
+//#include <unordered_set>
 
 #if !defined(__VECTOR_TYPES_H__)
 struct dim3 {
@@ -1011,6 +1013,9 @@ class core_t {
         class ptx_thread_info ** m_thread;
         unsigned m_warp_size;
         unsigned m_warp_count;
+		// Three address maps, one each for 32B, 64B and 128B mem accesses
+        std::map<unsigned long int, unsigned int> *m_rsegment_counts;
+        std::map<unsigned long int, unsigned int> *m_wsegment_counts;
 };
 
 

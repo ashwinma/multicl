@@ -85,11 +85,16 @@ void set_param_gpgpu_num_shaders(int num_shaders);
 class functionalCoreSim: public core_t
 {    
 public:
-    functionalCoreSim(kernel_info_t * kernel, gpgpu_sim *g, unsigned warp_size)
+    functionalCoreSim(kernel_info_t * kernel, gpgpu_sim *g, unsigned warp_size, 
+			std::map<unsigned long int, unsigned int> *rsegcounts,
+			std::map<unsigned long int, unsigned int> *wsegcounts)
         : core_t( g, kernel, warp_size, kernel->threads_per_cta() )
     {
         m_warpAtBarrier =  new bool [m_warp_count];
         m_liveThreadCount = new unsigned [m_warp_count];
+		m_rsegment_counts = rsegcounts;
+		m_wsegment_counts = wsegcounts;
+		m_coalesced_transactions = 0;
     }
     virtual ~functionalCoreSim(){
         warp_exit(0);
@@ -104,6 +109,7 @@ public:
         return (m_warpAtBarrier[warp_id] || !(m_liveThreadCount[warp_id]>0));
     }
     
+	unsigned int m_coalesced_transactions;
 private:
     void executeWarp(unsigned, bool &, bool &);
     //initializes threads in the CTA block which we are executing

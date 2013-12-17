@@ -168,11 +168,24 @@ void warp_inst_t::do_atomic( const active_mask_t& access_mask,bool forceDo ) {
 void warp_inst_t::generate_mem_accesses()
 {
     if( empty() || op == MEMORY_BARRIER_OP || m_mem_accesses_created ) 
+	{
+	/*	if(empty())
+			printf("Maybe Empty\n");
+		else 
+			printf("May not be empty\n");
+	*/
         return;
+	}
     if ( !((op == LOAD_OP) || (op == STORE_OP)) )
+	{
+	//	printf("Maybe not load or store\n");
         return; 
+	}
     if( m_warp_active_mask.count() == 0 ) 
+	{
+	//	printf("Maybe predicated off\n");
         return; // predicated off
+	}
 
     const size_t starting_queue_size = m_accessq.size();
 
@@ -748,17 +761,260 @@ void simt_stack::update( simt_mask_t &thread_done, addr_vector_t &next_pc, addre
 
 void core_t::execute_warp_inst_t(warp_inst_t &inst, unsigned warpId)
 {
-    for ( unsigned t=0; t < m_warp_size; t++ ) {
+	// 0 -- 32B
+	// 1 -- 64B
+	// 2 -- 128B
+	const int mem_segment_types = 3;
+	int cur_mem_segment_type = 2; //128B transaction by default
+	unsigned t = 0;
+	//std::unordered_set<unsigned long int> local_rseg_count[mem_segment_types];
+	//std::unordered_set<unsigned long int> local_wseg_count[mem_segment_types];
+	std::map<unsigned long int, std::pair<unsigned long int, unsigned long int> > local_rseg_map;
+	std::map<unsigned long int, std::pair<unsigned long int, unsigned long int> > local_wseg_map;
+	local_rseg_map.clear();
+	local_wseg_map.clear();
+	/*
+	for(int i = 0; i < mem_segment_types; i++)
+	{
+		local_rseg_count[i].clear();
+		local_wseg_count[i].clear();
+	}
+	*/
+    for ( t=0; t < m_warp_size/2; t++ ) {
         if( inst.active(t) ) {
             if(warpId==(unsigned (-1)))
                 warpId = inst.warp_id();
             unsigned tid=m_warp_size*warpId+t;
             m_thread[tid]->ptx_exec_inst(inst,t);
             
+	  		// HACK to get the mem transactions 
+      		if(inst.space == global_space)
+			{
+      			addr_t addr = inst.get_addr(t);
+				unsigned long int mem_segment_id = addr/128;
+				if(g_hack_nvtesla_emu == 1)
+				{
+					if(inst.data_size == 1)
+						mem_segment_id = addr/32;
+					else if(inst.data_size == 2)
+						mem_segment_id = addr/64;
+				}
+				if(inst.memory_op == memory_load)
+				{
+					auto it = local_rseg_map.find(mem_segment_id);
+					if(it != local_rseg_map.end()) //found
+					{
+						std::pair<unsigned long int, unsigned long int> tmp_pair = it->second;
+						if(addr < tmp_pair.first) // new minimum
+							tmp_pair.first = addr;
+						else if(addr > tmp_pair.second) // new maximum
+							tmp_pair.second = addr;
+						local_rseg_map[mem_segment_id] = std::make_pair(tmp_pair.first, tmp_pair.second);
+					}
+					else
+					{
+						local_rseg_map[mem_segment_id] = std::make_pair(addr, addr);
+					}
+					//local_rseg_count.insert(addr/128);
+				}
+				else if(inst.memory_op == memory_store)
+				{
+					auto it = local_wseg_map.find(mem_segment_id);
+					if(it != local_wseg_map.end()) //found
+					{
+						std::pair<unsigned long int, unsigned long int> tmp_pair = it->second;
+						if(addr < tmp_pair.first) // new minimum
+							tmp_pair.first = addr;
+						else if(addr > tmp_pair.second) // new maximum
+							tmp_pair.second = addr;
+						local_wseg_map[mem_segment_id] = std::make_pair(tmp_pair.first, tmp_pair.second);
+					}
+					else
+					{
+						local_wseg_map[mem_segment_id] = std::make_pair(addr, addr);
+					}
+					//local_wseg_count.insert(addr/128);
+				}
+      			//inst.data_size may not be too useful? 
+      			//assert( inst.memory_op == memory_load || memory_store );
+			}
+            //virtual function
+            checkExecutionStatusAndUpdate(inst,t,tid);
+        }
+    }
+	// For TESLA GPUs treat each half warp as independent transaction generators
+	// For FERMI, this is done at the end of the entire warp
+	if(g_hack_nvtesla_emu == 1)
+	{
+		for(auto it = local_rseg_map.begin(); it != local_rseg_map.end(); it++)
+		{
+			std::pair<unsigned long int, unsigned long int> tmp_pair = it->second;
+			//if(g_hack_nvtesla_emu == 1)
+			{
+				if(tmp_pair.first/32 == tmp_pair.second/32)
+					(m_rsegment_counts[0])[tmp_pair.first/32]++;
+				else if(tmp_pair.first/64 == tmp_pair.second/64)
+					(m_rsegment_counts[1])[tmp_pair.first/64]++;
+				else 
+					(m_rsegment_counts[2])[tmp_pair.first/128]++;
+			}
+			//else
+			//{
+		//		(m_rsegment_counts[2])[tmp_pair.first/128]++;
+		//	}
+		}	
+		for(auto it = local_wseg_map.begin(); it != local_wseg_map.end(); it++)
+		{
+			std::pair<unsigned long int, unsigned long int> tmp_pair = it->second;
+		//	if(g_hack_nvtesla_emu == 1)
+			{
+				if(tmp_pair.first/32 == tmp_pair.second/32)
+					(m_wsegment_counts[0])[tmp_pair.first/32]++;
+				else if(tmp_pair.first/64 == tmp_pair.second/64)
+					(m_wsegment_counts[1])[tmp_pair.first/64]++;
+				else 
+					(m_wsegment_counts[2])[tmp_pair.first/128]++;
+			}
+		//	else
+		//	{
+		//		(m_wsegment_counts[2])[tmp_pair.first/128]++;
+		//	}
+		}
+		//if(!local_rseg_map.empty())
+		//	printf("At halfwarp, found new %d segments and total segments= %d\n", local_rseg_map.size(), m_rsegment_counts[2].size());
+		local_rseg_map.clear();
+		local_wseg_map.clear();
+	}
+	/*
+	for(int i = 0; i < mem_segment_types; i++)
+	{
+		if(m_rsegment_counts[i] != NULL && m_wsegment_counts[i] != NULL)
+		{
+			for ( auto it = local_rseg_count[i].begin(); it != local_rseg_count[i].end(); ++it )
+				(*m_rsegment_counts[i])[*it]++;
+			for ( auto it = local_wseg_count[i].begin(); it != local_wseg_count[i].end(); ++it )
+				(*m_wsegment_counts[i])[*it]++;
+			// renew the local sets and data structures
+			local_rseg_count[i].clear();
+			local_wseg_count[i].clear();
+		}
+	}
+	*/
+    for ( ; t < warpSize; t++ ) {
+        if( inst.active(t) ) {
+            if(warpId==(unsigned (-1)))
+                warpId = inst.warp_id();
+            unsigned tid=warpSize*warpId+t;
+            m_thread[tid]->ptx_exec_inst(inst,t);
+            
+	  		// HACK to get the mem transactions 
+      		if(inst.space == global_space)
+			{
+      			addr_t addr = inst.get_addr(t);
+				unsigned long int mem_segment_id = addr/128;
+				if(g_hack_nvtesla_emu == 1)
+				{
+					if(inst.data_size == 1)
+						mem_segment_id = addr/32;
+					else if(inst.data_size == 2)
+						mem_segment_id = addr/64;
+				}
+				if(inst.memory_op == memory_load)
+				{
+					auto it = local_rseg_map.find(mem_segment_id);
+					if(it != local_rseg_map.end()) //found
+					{
+						std::pair<unsigned long int, unsigned long int> tmp_pair = it->second;
+						if(addr < tmp_pair.first) // new minimum
+							tmp_pair.first = addr;
+						else if(addr > tmp_pair.second) // new maximum
+							tmp_pair.second = addr;
+						local_rseg_map[mem_segment_id] = std::make_pair(tmp_pair.first, tmp_pair.second);
+					}
+					else
+					{
+						local_rseg_map[mem_segment_id] = std::make_pair(addr, addr);
+					}
+					//local_rseg_count.insert(addr/128);
+				}
+				else if(inst.memory_op == memory_store)
+				{	
+					auto it = local_wseg_map.find(mem_segment_id);
+					if(it != local_wseg_map.end()) //found
+					{
+						std::pair<unsigned long int, unsigned long int> tmp_pair = it->second;
+						if(addr < tmp_pair.first) // new minimum
+							tmp_pair.first = addr;
+						else if(addr > tmp_pair.second) // new maximum
+							tmp_pair.second = addr;
+						local_wseg_map[mem_segment_id] = std::make_pair(tmp_pair.first, tmp_pair.second);
+					}
+					else
+					{
+						local_wseg_map[mem_segment_id] = std::make_pair(addr, addr);
+					}
+					//local_wseg_count.insert(addr/128);
+				}
+				//inst.data_size may not be too useful? 
+      			//assert( inst.memory_op == memory_load || memory_store );
+			}
             //virtual function
             checkExecutionStatusAndUpdate(inst,t,tid);
         }
     } 
+	for(auto it = local_rseg_map.begin(); it != local_rseg_map.end(); it++)
+	{
+		std::pair<unsigned long int, unsigned long int> tmp_pair = it->second;
+		if(g_hack_nvtesla_emu == 1)
+		{
+			if(tmp_pair.first/32 == tmp_pair.second/32)
+				(m_rsegment_counts[0])[tmp_pair.first/32]++;
+			else if(tmp_pair.first/64 == tmp_pair.second/64)
+				(m_rsegment_counts[1])[tmp_pair.first/64]++;
+			else 
+				(m_rsegment_counts[2])[tmp_pair.first/128]++;
+		}
+		else
+		{
+			(m_rsegment_counts[2])[tmp_pair.first/128]++;
+		}
+	}
+	for(auto it = local_wseg_map.begin(); it != local_wseg_map.end(); it++)
+	{
+		std::pair<unsigned long int, unsigned long int> tmp_pair = it->second;
+		if(g_hack_nvtesla_emu == 1)
+		{
+			if(tmp_pair.first/32 == tmp_pair.second/32)
+				(m_wsegment_counts[0])[tmp_pair.first/32]++;
+			else if(tmp_pair.first/64 == tmp_pair.second/64)
+				(m_wsegment_counts[1])[tmp_pair.first/64]++;
+			else 
+				(m_wsegment_counts[2])[tmp_pair.first/128]++;
+		}
+		else
+		{
+			(m_wsegment_counts[2])[tmp_pair.first/128]++;
+		}
+	}
+	//if(!local_rseg_map.empty())
+//		printf("At fullwarp, found new %d segments and total segments= %d\n", local_rseg_map.size(), m_rsegment_counts[2].size());
+	local_rseg_map.clear();
+	local_wseg_map.clear();
+	/*
+	for(int i = 0; i < mem_segment_types; i++)
+	{
+		if(m_rsegment_counts[i] != NULL && m_wsegment_counts[i] != NULL)
+		{
+			for ( auto it = local_rseg_count[i].begin(); it != local_rseg_count[i].end(); ++it )
+				(*m_rsegment_counts[i])[*it]++;
+			for ( auto it = local_wseg_count[i].begin(); it != local_wseg_count[i].end(); ++it )
+				(*m_wsegment_counts[i])[*it]++;
+			// renew the local sets and data structures
+			local_rseg_count[i].clear();
+			local_wseg_count[i].clear();
+		}
+	}
+	*/
 }
   
 bool  core_t::ptx_thread_done( unsigned hw_thread_id ) const  

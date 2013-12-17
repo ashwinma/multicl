@@ -87,6 +87,7 @@ public:
     ptx_file_line_stats() 
         : exec_count(0), latency(0), dram_traffic(0), 
           smem_n_way_bank_conflict_total(0), smem_warp_count(0),
+          smem_n_way_bank_conflict_total_w(0), smem_warp_count_w(0),
           gmem_n_access_total(0), gmem_warp_count(0), exposed_latency(0),
           warp_divergence(0)
     { }
@@ -94,6 +95,8 @@ public:
     unsigned long exec_count;
     unsigned long long latency;
     unsigned long long dram_traffic;
+    unsigned long long smem_n_way_bank_conflict_total_w;  // total number of banks accessed by this instruction
+    unsigned long smem_warp_count_w;                      // number of warps accessing shared memory
     unsigned long long smem_n_way_bank_conflict_total;  // total number of banks accessed by this instruction
     unsigned long smem_warp_count;                      // number of warps accessing shared memory
     unsigned long long gmem_n_access_total; // number of uncoalesced access in total from this instruction
@@ -127,7 +130,7 @@ void ptx_file_line_stats_write_file()
     FILE * pfile;
 
     pfile = fopen(ptx_line_stats_filename, "w");
-    fprintf(pfile,"kernel line : count latency dram_traffic smem_bk_conflicts smem_warp gmem_access_generated gmem_warp exposed_latency warp_divergence\n");
+    fprintf(pfile,"kernel line : count latency dram_traffic smem_bk_conflicts_read smem_warp_read smem_bk_conflicts_write smem_warp_write gmem_access_generated gmem_warp exposed_latency warp_divergence\n");
     for( it=ptx_file_line_stats_tracker.begin(); it != ptx_file_line_stats_tracker.end(); it++ ) {
         fprintf(pfile, "%s %i : ", it->first.st.c_str(), it->first.line);
         fprintf(pfile, "%lu ", it->second.exec_count);
@@ -135,6 +138,8 @@ void ptx_file_line_stats_write_file()
         fprintf(pfile, "%llu ", it->second.dram_traffic);
         fprintf(pfile, "%llu ", it->second.smem_n_way_bank_conflict_total);
         fprintf(pfile, "%lu ", it->second.smem_warp_count);
+        fprintf(pfile, "%llu ", it->second.smem_n_way_bank_conflict_total_w);
+        fprintf(pfile, "%lu ", it->second.smem_warp_count_w);
         fprintf(pfile, "%llu ", it->second.gmem_n_access_total);
         fprintf(pfile, "%lu ", it->second.gmem_warp_count);
         fprintf(pfile, "%llu ", it->second.exposed_latency);
@@ -175,10 +180,19 @@ void ptx_file_line_stats_add_dram_traffic(unsigned pc, unsigned dram_traffic)
 void ptx_file_line_stats_add_smem_bank_conflict(unsigned pc, unsigned n_way_bkconflict)
 {
     const ptx_instruction *pInsn = function_info::pc_to_instruction(pc);
+    bool is_write = pInsn->is_store();
     
     ptx_file_line_stats& line_stats = ptx_file_line_stats_tracker[ptx_file_line(pInsn->source_file(), pInsn->source_line())];
+    if(is_write)
+	{
+	line_stats.smem_n_way_bank_conflict_total_w += n_way_bkconflict;
+    line_stats.smem_warp_count_w += 1;
+	}
+	else
+	{
     line_stats.smem_n_way_bank_conflict_total += n_way_bkconflict;
     line_stats.smem_warp_count += 1;
+	}
 }
 
 // attribute a non-coalesced mem access to a ptx instruction 

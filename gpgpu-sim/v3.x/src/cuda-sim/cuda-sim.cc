@@ -58,6 +58,8 @@ int g_debug_thread_uid = 0;
 addr_t g_debug_pc = 0xBEEF1518;
 // Output debug information to file options
 
+unsigned int g_hack_one_block_emu = 0;
+unsigned int g_hack_nvtesla_emu = 0;
 unsigned g_ptx_sim_num_insn = 0;
 unsigned gpgpu_param_num_shaders = 0;
 
@@ -1291,7 +1293,7 @@ void ptx_thread_info::ptx_exec_inst( warp_inst_t &inst, unsigned lane_id)
    g_ptx_sim_num_insn++;
    
    //not using it with functional simulation mode
-   if(!(this->m_functionalSimulationMode))
+   //if(!(this->m_functionalSimulationMode))
        ptx_file_line_stats_add_exec_count(pI);
    
    if ( gpgpu_ptx_instruction_classification ) {
@@ -1633,6 +1635,14 @@ void read_sim_environment_variables()
    g_debug_execution = 0;
    g_interactive_debugger_enabled = false;
 
+   char *hack_nvtesla_emu = getenv("MYGPGPUSIM_TESLA");
+   if ( hack_nvtesla_emu )
+      sscanf(hack_nvtesla_emu,"%u", &g_hack_nvtesla_emu);
+   printf("GPGPU-Sim PTX: NVIDIA TESLA simulation mode %d (can change with MYGPGPUSIM_TESLA environment variable:\n", g_hack_nvtesla_emu);
+   char *hack_one_block_emu = getenv("MYGPGPUSIM_SINGLE_BLOCK_EMU");
+   if ( hack_one_block_emu )
+      sscanf(hack_one_block_emu,"%u", &g_hack_one_block_emu);
+   printf("GPGPU-Sim PTX: one block simulation mode %d (can change with MYGPGPUSIM_SINGLE_BLOCK_EMU environment variable:\n", g_hack_one_block_emu);
    char *mode = getenv("PTX_SIM_MODE_FUNC");
    if ( mode )
       sscanf(mode,"%u", &g_ptx_sim_mode);
@@ -1700,15 +1710,60 @@ void gpgpu_cuda_ptx_sim_main_func( kernel_info_t &kernel, bool openCL )
      //using a shader core object for book keeping, it is not needed but as most function built for performance simulation need it we use it here
     extern gpgpu_sim *g_the_gpu;
 
+	// 0 -- 32B
+	// 1 -- 64B
+	// 2 -- 128B
+	const int mem_segment_types = 3;
+    std::map<unsigned long int, unsigned int> m_rsegment_counts[mem_segment_types];
+    std::map<unsigned long int, unsigned int> m_wsegment_counts[mem_segment_types];
+	int count = 0;
+	unsigned int coalesced_transactions = 0;
+	for(int i = 0; i < mem_segment_types; i++)
+	{
+		m_rsegment_counts[i].clear();
+		m_wsegment_counts[i].clear();
+	}
     //we excute the kernel one CTA (Block) at the time, as synchronization functions work block wise
-    while(!kernel.no_more_ctas_to_run()){
-        functionalCoreSim cta(
-            &kernel,
-            g_the_gpu,
-            g_the_gpu->getShaderCoreConfig()->warp_size
-        );
-        cta.execute();
-    }
+	if(g_hack_one_block_emu == 1)
+	{
+		if(!kernel.no_more_ctas_to_run())
+		{
+			functionalCoreSim cta(&kernel, g_the_gpu, g_the_gpu->getShaderCoreConfig()->warp_size, &m_rsegment_counts[0], &m_wsegment_counts[0]);
+			cta.execute();
+			count++;
+			coalesced_transactions += cta.m_coalesced_transactions;
+		}
+	}
+	else
+	{
+		while(!kernel.no_more_ctas_to_run())
+		{
+			functionalCoreSim cta(&kernel, g_the_gpu, g_the_gpu->getShaderCoreConfig()->warp_size, &m_rsegment_counts[0], &m_wsegment_counts[0]);
+			cta.execute();
+			count++;
+			coalesced_transactions += cta.m_coalesced_transactions;
+		}
+	}
+	int r_mem_segments_accessed[mem_segment_types] = {0};
+	int w_mem_segments_accessed[mem_segment_types] = {0};
+	//show content:
+	printf("KernelBlockCount: %d KernelThreadsInBlock: %d\n", kernel.num_blocks(), kernel.threads_per_cta());
+	for(int i = 0; i < mem_segment_types; i++)
+	{
+		for (auto it=m_rsegment_counts[i].begin(); it!=m_rsegment_counts[i].end(); ++it)
+		{
+			//std::cout << it->first << " => " << it->second << '\n';
+			r_mem_segments_accessed[i] += it->second;
+		}
+		for (auto it=m_wsegment_counts[i].begin(); it!=m_wsegment_counts[i].end(); ++it)
+		{
+			//std::cout << it->first << " => " << it->second << '\n';
+			w_mem_segments_accessed[i] += it->second;
+		}
+		int halfwarpcount = 2 * ceil((double)kernel.threads_per_cta()/g_the_gpu->getShaderCoreConfig()->warp_size);
+		printf("SegmentType: %d CTAs: %d halfwarps_per_CTA: %d r_mem_segsments: %d r_mem_segments_accessed: %d w_mem_segments: %d w_mem_segments_accessed: %d\n", i, count, halfwarpcount, m_rsegment_counts[i].size(), r_mem_segments_accessed[i], m_wsegment_counts[i].size(), w_mem_segments_accessed[i]);
+	}
+	printf("Coalesced transactions: %d\n", coalesced_transactions);
     
    //registering this kernel as done      
    extern stream_manager *g_stream_manager;
@@ -1724,6 +1779,7 @@ void gpgpu_cuda_ptx_sim_main_func( kernel_info_t &kernel, bool openCL )
       StatDisp ( g_inst_op_classification_stat[g_ptx_kernel_count]);
    }
 
+   ptx_file_line_stats_write_file();
    //time_t variables used to calculate the total simulation time
    //the start time of simulation is hold by the global variable g_simulation_starttime
    //g_simulation_starttime is initilized by gpgpu_ptx_sim_init_perf() in gpgpusim_entrypoint.cc upon starting gpgpu-sim
@@ -1806,6 +1862,11 @@ void functionalCoreSim::executeWarp(unsigned i, bool &allAtBarrier, bool & someO
     if(!m_warpAtBarrier[i] && m_liveThreadCount[i]!=0){
         warp_inst_t inst =getExecuteWarp(i);
         execute_warp_inst_t(inst,i);
+		//HACK?
+    	inst.issue( m_simt_stack[i]->get_active_mask(), i, 0, i ); // dynamic instruction information
+		inst.generate_mem_accesses();
+		m_coalesced_transactions += inst.accessq_count();
+		//printf("Uncoalesced accesses: %d\n", inst.accessq_count());
         if(inst.isatomic()) inst.do_atomic(true);
         if(inst.op==BARRIER_OP || inst.op==MEMORY_BARRIER_OP ) m_warpAtBarrier[i]=true;
         updateSIMTStack( i, &inst );

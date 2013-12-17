@@ -84,6 +84,9 @@ PROG     =opencl
 
 CXX_SRCS =  opencl_runtime_api.cc
 CCFLAGS += -DCUDART_VERSION=$(CUDART_VERSION)
+ 
+CXXFLAGS += -L$(HOME)/opt/lib64 -L$(HOME)/opt/lib 
+CCFLAGS += -L$(HOME)/opt/lib64 -L$(HOME)/opt/lib 
 
 .PHONY: clean
 

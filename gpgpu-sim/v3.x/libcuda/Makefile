@@ -83,6 +83,9 @@ else
 	CCFLAGS += -Wall -Wno-unused-function -Wno-sign-compare -fPIC
 endif
 
+CXXFLAGS += -L$(HOME)/opt/lib64 -L$(HOME)/opt/lib
+CCFLAGS += -L$(HOME)/opt/lib64 -L$(HOME)/opt/lib
+
 PROG     =cuda
 
 CXX_SRCS =  cuda_runtime_api.cc

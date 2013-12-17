@@ -106,8 +106,8 @@ static void setErrCode(cl_int *errcode_ret, cl_int err_code) {
    }
 }
 
-struct _cl_context {
-   _cl_context( cl_device_id gpu );
+struct _emu_cl_context {
+   _emu_cl_context( cl_device_id gpu );
    cl_device_id get_first_device();
    cl_mem CreateBuffer(
                cl_mem_flags flags,
@@ -124,19 +124,19 @@ private:
    std::map<cl_mem/*device ptr*/,cl_mem> m_devptr_to_cl_mem;
 };
 
-struct _cl_device_id {
-   _cl_device_id(gpgpu_sim* gpu) {m_id = 0; m_next = NULL; m_gpgpu=gpu;}
-   struct _cl_device_id *next() { return m_next; }
+struct _emu_cl_device_id {
+   _emu_cl_device_id(gpgpu_sim* gpu) {m_id = 0; m_next = NULL; m_gpgpu=gpu;}
+   struct _emu_cl_device_id *next() { return m_next; }
    gpgpu_sim *the_device() const { return m_gpgpu; }
 private:
    unsigned m_id;
    gpgpu_sim *m_gpgpu;
-   struct _cl_device_id *m_next;
+   struct _emu_cl_device_id *m_next;
 };
 
-struct _cl_command_queue 
+struct _emu_cl_command_queue 
 { 
-   _cl_command_queue( cl_context context, cl_device_id device, cl_command_queue_properties properties ) 
+   _emu_cl_command_queue( cl_context context, cl_device_id device, cl_command_queue_properties properties ) 
    {
       m_valid = true;
       m_context = context;
@@ -154,8 +154,8 @@ private:
    cl_command_queue_properties    m_properties;
 };
 
-struct _cl_mem {
-   _cl_mem( cl_mem_flags flags, size_t size , void *host_ptr, cl_int *errcode_ret, cl_device_id gpu );
+struct _emu_cl_mem {
+   _emu_cl_mem( cl_mem_flags flags, size_t size , void *host_ptr, cl_int *errcode_ret, cl_device_id gpu );
    cl_mem device_ptr();
    void* host_ptr();
    bool is_on_host() { return m_is_on_host; }
@@ -174,8 +174,8 @@ struct pgm_info {
    std::map<std::string,function_info*> m_kernels;
 };
 
-struct _cl_program {
-   _cl_program( cl_context context,
+struct _emu_cl_program {
+   _emu_cl_program( cl_context context,
                 cl_uint           count, 
              const char **     strings,   
              const size_t *    lengths );
@@ -191,8 +191,8 @@ private:
    static unsigned m_kernels_compiled;
 };
 
-struct _cl_kernel {
-   _cl_kernel( cl_program prog, const char* kernel_name, class function_info *kernel_impl );
+struct _emu_cl_kernel {
+   _emu_cl_kernel( cl_program prog, const char* kernel_name, class function_info *kernel_impl );
    void SetKernelArg(
       cl_uint      arg_index,
       size_t       arg_size,
@@ -218,11 +218,11 @@ private:
    class function_info *m_kernel_impl;
 };
 
-struct _cl_platform_id {
+struct _emu_cl_platform_id {
    static const unsigned m_uid = 0;
 };
 
-struct _cl_platform_id g_gpgpu_sim_platform_id;
+struct _emu_cl_platform_id g_gpgpu_sim_platform_id;
 
 void gpgpusim_exit()
 {
@@ -240,7 +240,7 @@ void gpgpusim_opencl_error( const char* func, unsigned line, const char *desc )
    gpgpusim_exit();
 }
 
-_cl_kernel::_cl_kernel( cl_program prog, const char* kernel_name, class function_info *kernel_impl )
+_emu_cl_kernel::_emu_cl_kernel( cl_program prog, const char* kernel_name, class function_info *kernel_impl )
 {
    m_uid = sm_context_uid++;
    m_kernel_name = std::string(kernel_name);
@@ -248,7 +248,7 @@ _cl_kernel::_cl_kernel( cl_program prog, const char* kernel_name, class function
    m_prog = prog;
 }
 
-void _cl_kernel::SetKernelArg(
+void _emu_cl_kernel::SetKernelArg(
       cl_uint      arg_index,
       size_t       arg_size,
       const void * arg_value )
@@ -259,7 +259,7 @@ void _cl_kernel::SetKernelArg(
    m_args[arg_index] = arg;
 }
 
-cl_int _cl_kernel::bind_args( gpgpu_ptx_sim_arg_list_t &arg_list )
+cl_int _emu_cl_kernel::bind_args( gpgpu_ptx_sim_arg_list_t &arg_list )
 {
    assert( arg_list.empty() );
    unsigned k=0;
@@ -277,7 +277,7 @@ cl_int _cl_kernel::bind_args( gpgpu_ptx_sim_arg_list_t &arg_list )
 
 #define min(a,b) ((a<b)?(a):(b))
 
-size_t _cl_kernel::get_workgroup_size(cl_device_id device)
+size_t _emu_cl_kernel::get_workgroup_size(cl_device_id device)
 {
    unsigned nregs = ptx_kernel_nregs( m_kernel_impl );
    unsigned result_regs = (unsigned)-1;
@@ -288,18 +288,18 @@ size_t _cl_kernel::get_workgroup_size(cl_device_id device)
    return (size_t)result;
 }
 
-cl_mem _cl_mem::device_ptr()
+cl_mem _emu_cl_mem::device_ptr()
 {
    cl_mem result = (cl_mem)(void*)m_device_ptr;
    return result;
 }
 
-void* _cl_mem::host_ptr()
+void* _emu_cl_mem::host_ptr()
 {
    return m_host_ptr;
 }
 
-_cl_mem::_cl_mem(
+_emu_cl_mem::_emu_cl_mem(
    cl_mem_flags flags,
    size_t       size ,
    void *       host_ptr,
@@ -341,18 +341,18 @@ _cl_mem::_cl_mem(
    }
 }
 
-_cl_context::_cl_context( struct _cl_device_id *gpu ) 
+_emu_cl_context::_emu_cl_context( struct _emu_cl_device_id *gpu ) 
 { 
    m_uid = sm_context_uid++; 
    m_gpu = gpu;
 }
 
-cl_device_id _cl_context::get_first_device() 
+cl_device_id _emu_cl_context::get_first_device() 
 {
    return m_gpu;
 }
 
-cl_mem _cl_context::CreateBuffer(
+cl_mem _emu_cl_context::CreateBuffer(
                cl_mem_flags flags,
                size_t       size ,
                void *       host_ptr,
@@ -361,7 +361,7 @@ cl_mem _cl_context::CreateBuffer(
    if( host_ptr && (m_hostptr_to_cl_mem.find(host_ptr) != m_hostptr_to_cl_mem.end()) ) {
       printf("GPGPU-Sim OpenCL API: WARNING ** clCreateBuffer - buffer already created for this host variable\n");
    }
-   cl_mem result = new _cl_mem(flags,size,host_ptr,errcode_ret,m_gpu);
+   cl_mem result = new _emu_cl_mem(flags,size,host_ptr,errcode_ret,m_gpu);
    m_devptr_to_cl_mem[result->device_ptr()] = result;
    if( host_ptr ) 
       m_hostptr_to_cl_mem[host_ptr] = result;
@@ -371,7 +371,7 @@ cl_mem _cl_context::CreateBuffer(
       return (cl_mem) host_ptr;
 }
 
-cl_mem _cl_context::lookup_mem( cl_mem m )
+cl_mem _emu_cl_context::lookup_mem( cl_mem m )
 {
    std::map<cl_mem/*device ptr*/,cl_mem>::iterator i=m_devptr_to_cl_mem.find(m);
    if( i == m_devptr_to_cl_mem.end() ) {
@@ -386,8 +386,8 @@ cl_mem _cl_context::lookup_mem( cl_mem m )
    }
 }
 
-unsigned _cl_program::m_kernels_compiled = 0;
-_cl_program::_cl_program( cl_context        context,
+unsigned _emu_cl_program::m_kernels_compiled = 0;
+_emu_cl_program::_emu_cl_program( cl_context        context,
                           cl_uint           count, 
                           const char **     strings, 
                           const size_t *    lengths )
@@ -420,7 +420,7 @@ void register_ptx_function( const char *name, function_info *impl )
    ptxinfo_opencl_addinfo( sg_info->m_kernels );
 }
 
-void _cl_program::Build(const char *options)
+void _emu_cl_program::Build(const char *options)
 {
    printf("GPGPU-Sim OpenCL API: compiling OpenCL kernels...\n"); 
    std::map<cl_uint,pgm_info>::iterator i;
@@ -581,7 +581,7 @@ void _cl_program::Build(const char *options)
    printf("GPGPU-Sim OpenCL API: finished compiling OpenCL kernels.\n"); 
 }
 
-cl_kernel _cl_program::CreateKernel( const char *kernel_name, cl_int *errcode_ret )
+cl_kernel _emu_cl_program::CreateKernel( const char *kernel_name, cl_int *errcode_ret )
 {
    cl_kernel result = NULL;
    class function_info *finfo=NULL;
@@ -598,13 +598,13 @@ cl_kernel _cl_program::CreateKernel( const char *kernel_name, cl_int *errcode_re
    if( finfo == NULL ) 
       setErrCode( errcode_ret, CL_INVALID_PROGRAM_EXECUTABLE );
    else{ 
-      result = new _cl_kernel(this,kernel_name,finfo);
+      result = new _emu_cl_kernel(this,kernel_name,finfo);
       setErrCode( errcode_ret, CL_SUCCESS );
    }
    return result;
 }
 
-char *_cl_program::get_ptx()
+char *_emu_cl_program::get_ptx()
 {
    if( m_pgm.empty() ) {
       printf("GPGPU-Sim PTX OpenCL API: Cannot get PTX before building program\n");
@@ -626,7 +626,7 @@ char *_cl_program::get_ptx()
    return tmp;
 }
 
-size_t _cl_program::get_ptx_size()
+size_t _emu_cl_program::get_ptx_size()
 {
    size_t buffer_length=0;
    std::map<cl_uint,pgm_info>::iterator p;
@@ -636,15 +636,15 @@ size_t _cl_program::get_ptx_size()
    return buffer_length;
 }
 
-unsigned _cl_context::sm_context_uid = 0;
-unsigned _cl_kernel::sm_context_uid = 0;
+unsigned _emu_cl_context::sm_context_uid = 0;
+unsigned _emu_cl_kernel::sm_context_uid = 0;
 
-class _cl_device_id *GPGPUSim_Init()
+class _emu_cl_device_id *GPGPUSim_Init()
 {
-   static _cl_device_id *the_device = NULL;
+   static _emu_cl_device_id *the_device = NULL;
    if( !the_device ) { 
       gpgpu_sim *the_gpu = gpgpu_ptx_sim_init_perf(); 
-      the_device = new _cl_device_id(the_gpu);
+      the_device = new _emu_cl_device_id(the_gpu);
    } 
    start_sim_thread(2);
    return the_device;
@@ -673,13 +673,13 @@ void opencl_not_finished( const char* func, unsigned line )
 }
 
 extern CL_API_ENTRY cl_context CL_API_CALL
-clCreateContextFromType(const cl_context_properties * properties,
+emu_clCreateContextFromType(const cl_context_properties * properties,
                         cl_device_type          device_type,
                         void (*pfn_notify)(const char *, const void *, size_t, void *),
                         void *                  user_data,
                         cl_int *                errcode_ret) CL_API_SUFFIX__VERSION_1_0
 {
-   _cl_device_id *gpu = GPGPUSim_Init();
+   _emu_cl_device_id *gpu = GPGPUSim_Init();
 
    switch (device_type) {
    case CL_DEVICE_TYPE_GPU: 
@@ -700,13 +700,13 @@ clCreateContextFromType(const cl_context_properties * properties,
    }
    
    setErrCode( errcode_ret, CL_SUCCESS );
-   cl_context ctx = new _cl_context(gpu);
+   cl_context ctx = new _emu_cl_context(gpu);
    return ctx;
 }
 
 /***************************** Unimplemented shell functions *******************************************/
 extern CL_API_ENTRY cl_program CL_API_CALL
-clCreateProgramWithBinary(cl_context                     /* context */,
+emu_clCreateProgramWithBinary(cl_context                     /* context */,
                           cl_uint                        /* num_devices */,
                           const cl_device_id *           /* device_list */,
                           const size_t *                 /* lengths */,
@@ -719,7 +719,7 @@ clCreateProgramWithBinary(cl_context                     /* context */,
 }
 
 extern CL_API_ENTRY cl_int CL_API_CALL
-clGetEventProfilingInfo(cl_event            /* event */,
+emu_clGetEventProfilingInfo(cl_event            /* event */,
                         cl_profiling_info   /* param_name */,
                         size_t              /* param_value_size */,
                         void *              /* param_value */,
@@ -731,14 +731,14 @@ clGetEventProfilingInfo(cl_event            /* event */,
 
 
 extern CL_API_ENTRY cl_context CL_API_CALL
-clCreateContext(  const cl_context_properties * properties,
+emu_clCreateContext(  const cl_context_properties * properties,
                   cl_uint num_devices,
                   const cl_device_id *devices,
                   void (*pfn_notify)(const char *, const void *, size_t, void *),
                   void *                  user_data,
                   cl_int *                errcode_ret) CL_API_SUFFIX__VERSION_1_0
 {
-   struct _cl_device_id *gpu = GPGPUSim_Init();
+   struct _emu_cl_device_id *gpu = GPGPUSim_Init();
    if( properties != NULL ) {
       if( properties[0] != CL_CONTEXT_PLATFORM || properties[1] != (cl_context_properties)&g_gpgpu_sim_platform_id ) {
          setErrCode( errcode_ret, CL_INVALID_PLATFORM );
@@ -746,12 +746,12 @@ clCreateContext(  const cl_context_properties * properties,
       }
    }
    setErrCode( errcode_ret, CL_SUCCESS );
-   cl_context ctx = new _cl_context(gpu);
+   cl_context ctx = new _emu_cl_context(gpu);
    return ctx;
 }
 
 extern CL_API_ENTRY cl_int CL_API_CALL
-clGetContextInfo(cl_context         context, 
+emu_clGetContextInfo(cl_context         context, 
                  cl_context_info    param_name, 
                  size_t             param_value_size, 
                  void *             param_value, 
@@ -784,7 +784,7 @@ clGetContextInfo(cl_context         context,
 }
 
 extern CL_API_ENTRY cl_command_queue CL_API_CALL
-clCreateCommandQueue(cl_context                     context, 
+emu_clCreateCommandQueue(cl_context                     context, 
                      cl_device_id                   device, 
                      cl_command_queue_properties    properties,
                      cl_int *                       errcode_ret) CL_API_SUFFIX__VERSION_1_0
@@ -796,11 +796,11 @@ clCreateCommandQueue(cl_context                     context,
    if( (properties & CL_QUEUE_PROFILING_ENABLE) )
       gpgpusim_opencl_warning(__my_func__,__LINE__, "ignoring command queue property");
    setErrCode( errcode_ret, CL_SUCCESS );
-   return new _cl_command_queue(context,device,properties);
+   return new _emu_cl_command_queue(context,device,properties);
 }
 
 extern CL_API_ENTRY cl_mem CL_API_CALL
-clCreateBuffer(cl_context   context,
+emu_clCreateBuffer(cl_context   context,
                cl_mem_flags flags,
                size_t       size ,
                void *       host_ptr,
@@ -811,7 +811,7 @@ clCreateBuffer(cl_context   context,
 }
 
 extern CL_API_ENTRY cl_program CL_API_CALL
-clCreateProgramWithSource(cl_context        context,
+emu_clCreateProgramWithSource(cl_context        context,
                           cl_uint           count,
                           const char **     strings,
                           const size_t *    lengths,
@@ -819,12 +819,12 @@ clCreateProgramWithSource(cl_context        context,
 {
    if( !context ) { setErrCode( errcode_ret, CL_INVALID_CONTEXT );   return NULL; }
    setErrCode( errcode_ret, CL_SUCCESS );
-   return new _cl_program(context,count,strings,lengths);
+   return new _emu_cl_program(context,count,strings,lengths);
 }
 
 
 extern CL_API_ENTRY cl_int CL_API_CALL
-clBuildProgram(cl_program           program,
+emu_clBuildProgram(cl_program           program,
                cl_uint              num_devices,
                const cl_device_id * device_list,
                const char *         options, 
@@ -837,7 +837,7 @@ clBuildProgram(cl_program           program,
 }
 
 extern CL_API_ENTRY cl_kernel CL_API_CALL
-clCreateKernel(cl_program      program,
+emu_clCreateKernel(cl_program      program,
                const char *    kernel_name,
                cl_int *        errcode_ret) CL_API_SUFFIX__VERSION_1_0
 {
@@ -850,7 +850,7 @@ clCreateKernel(cl_program      program,
 }
 
 extern CL_API_ENTRY cl_int CL_API_CALL
-clSetKernelArg(cl_kernel    kernel,
+emu_clSetKernelArg(cl_kernel    kernel,
                cl_uint      arg_index,
                size_t       arg_size,
                const void * arg_value ) CL_API_SUFFIX__VERSION_1_0
@@ -860,7 +860,7 @@ clSetKernelArg(cl_kernel    kernel,
 }
 
 extern CL_API_ENTRY cl_int CL_API_CALL
-clEnqueueNDRangeKernel(cl_command_queue command_queue,
+emu_clEnqueueNDRangeKernel(cl_command_queue command_queue,
                        cl_kernel        kernel,
                        cl_uint          work_dim,
                        const size_t *   global_work_offset,
@@ -956,7 +956,7 @@ clEnqueueNDRangeKernel(cl_command_queue command_queue,
 }
 
 extern CL_API_ENTRY cl_int CL_API_CALL
-clEnqueueReadBuffer(cl_command_queue    command_queue,
+emu_clEnqueueReadBuffer(cl_command_queue    command_queue,
                     cl_mem              buffer,
                     cl_bool             blocking_read,
                     size_t              offset,
@@ -974,7 +974,7 @@ clEnqueueReadBuffer(cl_command_queue    command_queue,
 }
 
 extern CL_API_ENTRY cl_int CL_API_CALL
-clEnqueueWriteBuffer(cl_command_queue   command_queue, 
+emu_clEnqueueWriteBuffer(cl_command_queue   command_queue, 
                      cl_mem             buffer, 
                      cl_bool            blocking_write, 
                      size_t             offset, 
@@ -992,37 +992,37 @@ clEnqueueWriteBuffer(cl_command_queue   command_queue,
 }
 
 extern CL_API_ENTRY cl_int CL_API_CALL
-clReleaseMemObject(cl_mem /* memobj */) CL_API_SUFFIX__VERSION_1_0
+emu_clReleaseMemObject(cl_mem /* memobj */) CL_API_SUFFIX__VERSION_1_0
 {
    return CL_SUCCESS;
 }
 
 extern CL_API_ENTRY cl_int CL_API_CALL
-clReleaseKernel(cl_kernel   /* kernel */) CL_API_SUFFIX__VERSION_1_0
+emu_clReleaseKernel(cl_kernel   /* kernel */) CL_API_SUFFIX__VERSION_1_0
 {
    return CL_SUCCESS;
 }
 
 extern CL_API_ENTRY cl_int CL_API_CALL
-clReleaseProgram(cl_program /* program */) CL_API_SUFFIX__VERSION_1_0
+emu_clReleaseProgram(cl_program /* program */) CL_API_SUFFIX__VERSION_1_0
 {
    return CL_SUCCESS;
 }
 
 extern CL_API_ENTRY cl_int CL_API_CALL
-clReleaseCommandQueue(cl_command_queue /* command_queue */) CL_API_SUFFIX__VERSION_1_0
+emu_clReleaseCommandQueue(cl_command_queue /* command_queue */) CL_API_SUFFIX__VERSION_1_0
 {
    return CL_SUCCESS;
 }
 
 extern CL_API_ENTRY cl_int CL_API_CALL
-clReleaseContext(cl_context /* context */) CL_API_SUFFIX__VERSION_1_0
+emu_clReleaseContext(cl_context /* context */) CL_API_SUFFIX__VERSION_1_0
 {
    return CL_SUCCESS;
 }
 
 extern CL_API_ENTRY cl_int CL_API_CALL
-clGetPlatformIDs(cl_uint num_entries, cl_platform_id *platforms, cl_uint *num_platforms ) CL_API_SUFFIX__VERSION_1_0
+emu_clGetPlatformIDs(cl_uint num_entries, cl_platform_id *platforms, cl_uint *num_platforms ) CL_API_SUFFIX__VERSION_1_0
 {
    if( ((num_entries == 0) && (platforms != NULL)) ||
        ((num_platforms == NULL) && (platforms == NULL)) ) 
@@ -1070,7 +1070,7 @@ clGetPlatformIDs(cl_uint num_entries, cl_platform_id *platforms, cl_uint *num_pl
       if( param_value_size_ret ) *param_value_size_ret = sizeof(T);
 
 extern CL_API_ENTRY cl_int CL_API_CALL 
-clGetPlatformInfo(cl_platform_id   platform, 
+emu_clGetPlatformInfo(cl_platform_id   platform, 
                   cl_platform_info param_name,
                   size_t           param_value_size, 
                   void *           param_value,
@@ -1094,7 +1094,7 @@ clGetPlatformInfo(cl_platform_id   platform,
 #define NUM_DEVICES 1
 
 extern CL_API_ENTRY cl_int CL_API_CALL
-clGetDeviceIDs(cl_platform_id   platform,
+emu_clGetDeviceIDs(cl_platform_id   platform,
                cl_device_type   device_type, 
                cl_uint          num_entries, 
                cl_device_id *   devices, 
@@ -1128,7 +1128,7 @@ clGetDeviceIDs(cl_platform_id   platform,
 }
 
 extern CL_API_ENTRY cl_int CL_API_CALL
-clGetDeviceInfo(cl_device_id    device,
+emu_clGetDeviceInfo(cl_device_id    device,
                 cl_device_info  param_name, 
                 size_t          param_value_size, 
                 void *          param_value,
@@ -1195,13 +1195,13 @@ clGetDeviceInfo(cl_device_id    device,
 }
 
 extern CL_API_ENTRY cl_int CL_API_CALL
-clFinish(cl_command_queue /* command_queue */) CL_API_SUFFIX__VERSION_1_0
+emu_clFinish(cl_command_queue /* command_queue */) CL_API_SUFFIX__VERSION_1_0
 {
    return CL_SUCCESS;
 }
 
 extern CL_API_ENTRY cl_int CL_API_CALL
-clGetProgramInfo(cl_program         program,
+emu_clGetProgramInfo(cl_program         program,
                  cl_program_info    param_name,
                  size_t             param_value_size,
                  void *             param_value,
@@ -1254,7 +1254,7 @@ clGetProgramInfo(cl_program         program,
 }
 
 extern CL_API_ENTRY cl_int CL_API_CALL
-clEnqueueCopyBuffer(cl_command_queue    command_queue, 
+emu_clEnqueueCopyBuffer(cl_command_queue    command_queue, 
                     cl_mem              src_buffer,
                     cl_mem              dst_buffer, 
                     size_t              src_offset,
@@ -1287,7 +1287,7 @@ clEnqueueCopyBuffer(cl_command_queue    command_queue,
 }
 
 extern CL_API_ENTRY cl_int CL_API_CALL
-clGetKernelWorkGroupInfo(cl_kernel                  kernel,
+emu_clGetKernelWorkGroupInfo(cl_kernel                  kernel,
                          cl_device_id               device,
                          cl_kernel_work_group_info  param_name,
                          size_t                     param_value_size,
@@ -1313,20 +1313,20 @@ clGetKernelWorkGroupInfo(cl_kernel                  kernel,
 }
 
 extern CL_API_ENTRY cl_int CL_API_CALL
-clWaitForEvents(cl_uint             /* num_events */,
+emu_clWaitForEvents(cl_uint             /* num_events */,
                 const cl_event *    /* event_list */) CL_API_SUFFIX__VERSION_1_0
 {
    return CL_SUCCESS;
 }
 
 extern CL_API_ENTRY cl_int CL_API_CALL
-clReleaseEvent(cl_event /* event */) CL_API_SUFFIX__VERSION_1_0
+emu_clReleaseEvent(cl_event /* event */) CL_API_SUFFIX__VERSION_1_0
 {
    return CL_SUCCESS;
 }
 
 extern CL_API_ENTRY cl_int CL_API_CALL
-clGetCommandQueueInfo(cl_command_queue      command_queue,
+emu_clGetCommandQueueInfo(cl_command_queue      command_queue,
                       cl_command_queue_info param_name,
                       size_t                param_value_size,
                       void *                param_value,
@@ -1346,13 +1346,13 @@ clGetCommandQueueInfo(cl_command_queue      command_queue,
 }
 
 extern CL_API_ENTRY cl_int CL_API_CALL
-clFlush(cl_command_queue /* command_queue */) CL_API_SUFFIX__VERSION_1_0
+emu_clFlush(cl_command_queue /* command_queue */) CL_API_SUFFIX__VERSION_1_0
 {
    return CL_SUCCESS;
 }
 
 extern CL_API_ENTRY cl_int CL_API_CALL
-clGetSupportedImageFormats(cl_context           context,
+emu_clGetSupportedImageFormats(cl_context           context,
                            cl_mem_flags         flags,
                            cl_mem_object_type   image_type,
                            cl_uint              num_entries,
@@ -1449,7 +1449,7 @@ clGetSupportedImageFormats(cl_context           context,
 }
 
 extern CL_API_ENTRY void * CL_API_CALL
-clEnqueueMapBuffer(cl_command_queue command_queue,
+emu_clEnqueueMapBuffer(cl_command_queue command_queue,
                    cl_mem           buffer,
                    cl_bool          blocking_map, 
                    cl_map_flags     map_flags,
@@ -1460,14 +1460,14 @@ clEnqueueMapBuffer(cl_command_queue command_queue,
                    cl_event *       event,
                    cl_int *         errcode_ret ) CL_API_SUFFIX__VERSION_1_0
 {
-   _cl_mem *mem = command_queue->get_context()->lookup_mem(buffer);
+   _emu_cl_mem *mem = command_queue->get_context()->lookup_mem(buffer);
    assert( mem->is_on_host() );
    return mem->host_ptr();
 }
 
 
 extern CL_API_ENTRY cl_int CL_API_CALL
-clSetCommandQueueProperty( cl_command_queue command_queue,
+emu_clSetCommandQueueProperty( cl_command_queue command_queue,
                               cl_command_queue_properties properties,
                               cl_bool enable,
                               cl_command_queue_properties *old_properties

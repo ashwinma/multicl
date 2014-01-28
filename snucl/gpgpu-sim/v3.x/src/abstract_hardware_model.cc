@@ -900,11 +900,11 @@ void core_t::execute_warp_inst_t(warp_inst_t &inst, unsigned warpId)
 		}
 	}
 	*/
-    for ( ; t < warpSize; t++ ) {
+    for ( ; t < m_warp_size; t++ ) {
         if( inst.active(t) ) {
             if(warpId==(unsigned (-1)))
                 warpId = inst.warp_id();
-            unsigned tid=warpSize*warpId+t;
+            unsigned tid=m_warp_size*warpId+t;
             m_thread[tid]->ptx_exec_inst(inst,t);
             
 	  		// HACK to get the mem transactions 

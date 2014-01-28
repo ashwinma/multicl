@@ -69,7 +69,7 @@ ifeq  ($(NVOPENCL_LIBDIR),)
 else ifeq ($(NVOPENCL_INCDIR),)
 	TARGETS += no_opencl_support
 else
-	TARGETS += $(SIM_LIB_DIR)/libOpenCL.so
+	TARGETS += $(SIM_LIB_DIR)/libEmulatedOpenCL.so
 endif
 	TARGETS += cuobjdump_to_ptxplus/cuobjdump_to_ptxplus
 
@@ -164,8 +164,8 @@ $(SIM_LIB_DIR)/libcudart.dylib: makedirs $(LIBS) cudalib
 			$(MCPAT) \
 			-o $(SIM_LIB_DIR)/libcudart.dylib
 
-$(SIM_LIB_DIR)/libOpenCL.so: makedirs $(LIBS) opencllib
-	g++ -shared -Wl,-soname,libOpenCL.so \
+$(SIM_LIB_DIR)/libEmulatedOpenCL.so: makedirs $(LIBS) opencllib
+	g++ -shared -Wl,-soname,libEmulatedOpenCL.so \
 			$(SIM_OBJ_FILES_DIR)/libopencl/*.o \
 			$(SIM_OBJ_FILES_DIR)/cuda-sim/*.o \
 			$(SIM_OBJ_FILES_DIR)/cuda-sim/decuda_pred_table/*.o \
@@ -173,9 +173,9 @@ $(SIM_LIB_DIR)/libOpenCL.so: makedirs $(LIBS) opencllib
 			$(SIM_OBJ_FILES_DIR)/$(INTERSIM)/*.o \
 			$(SIM_OBJ_FILES_DIR)/*.o -lm -lz -lGL -pthread \
 			$(MCPAT) \
-			-o $(SIM_LIB_DIR)/libOpenCL.so 
-	if [ ! -f $(SIM_LIB_DIR)/libOpenCL.so.1 ]; then ln -s libOpenCL.so $(SIM_LIB_DIR)/libOpenCL.so.1; fi
-	if [ ! -f $(SIM_LIB_DIR)/libOpenCL.so.1.1 ]; then ln -s libOpenCL.so $(SIM_LIB_DIR)/libOpenCL.so.1.1; fi
+			-o $(SIM_LIB_DIR)/libEmulatedOpenCL.so 
+	if [ ! -f $(SIM_LIB_DIR)/libEmulatedOpenCL.so.1 ]; then ln -s libEmulatedOpenCL.so $(SIM_LIB_DIR)/libEmulatedOpenCL.so.1; fi
+	if [ ! -f $(SIM_LIB_DIR)/libEmulatedOpenCL.so.1.1 ]; then ln -s libEmulatedOpenCL.so $(SIM_LIB_DIR)/libEmulatedOpenCL.so.1.1; fi
 
 cudalib: makedirs cuda-sim
 	$(MAKE) -C ./libcuda/ depend

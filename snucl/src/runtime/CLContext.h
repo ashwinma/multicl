@@ -51,7 +51,8 @@
 class CLDevice;
 class ContextErrorNotificationCallback;
 
-class CLContext: public CLObject<struct _cl_context, CLContext> {
+class CLContext: public CLObject<struct _cl_context, CLContext, 
+												struct _emu_cl_context> {
  public:
   CLContext(const std::vector<CLDevice*>& devices, size_t num_properties,
             const cl_context_properties* properties);

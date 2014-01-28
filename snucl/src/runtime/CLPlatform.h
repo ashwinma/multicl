@@ -54,7 +54,8 @@ class CLIssuer;
 class CLScheduler;
 class ContextErrorNotificationCallback;
 
-class CLPlatform: public CLObject<struct _cl_platform_id, CLPlatform> {
+class CLPlatform: public CLObject<struct _cl_platform_id, CLPlatform,
+											struct _emu_cl_platform_id> {
  public:
   CLPlatform();
   virtual ~CLPlatform();

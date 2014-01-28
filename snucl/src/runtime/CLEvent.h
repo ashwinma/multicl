@@ -53,7 +53,8 @@ class CLCommandQueue;
 class CLContext;
 class EventCallback;
 
-class CLEvent: public CLObject<struct _cl_event, CLEvent> {
+class CLEvent: public CLObject<struct _cl_event, CLEvent, 
+											struct _emu_cl_event> {
  public:
   CLEvent(CLCommandQueue* queue, CLCommand* command);
   CLEvent(CLContext* context, CLCommand* command);

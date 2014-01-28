@@ -44,6 +44,8 @@
 
 #include <CL/cl.h>
 
+#include "opencl_gpgpusim.h"
+
 struct _cl_icd_dispatch;
 class CLPlatform;
 class CLDevice;

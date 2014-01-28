@@ -4,7 +4,7 @@ PERL   := perl
 INCLUDES  := -I$(SNUCLROOT)/inc -I$(RTDIR) -I/usr/include
 
 CC := gcc
-CXX_FLAGS := -O3 -fPIC $(INCLUDES)
+CXX_FLAGS := -g -O3 -fPIC $(INCLUDES)
 
 LINK      := -shared -fPIC -Wl,--version-script=snucl.lds
 SOURCES   := $(wildcard *.cpp)

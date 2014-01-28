@@ -51,7 +51,8 @@
 class CLContext;
 class CLDevice;
 
-class CLSampler: public CLObject<struct _cl_sampler, CLSampler> {
+class CLSampler: public CLObject<struct _cl_sampler, CLSampler, 
+									struct _emu_cl_sampler> {
  public:
   CLSampler(CLContext* context, cl_bool normalized_coords,
             cl_addressing_mode addressing_mode, cl_filter_mode filter_mode);

@@ -61,7 +61,7 @@ typedef struct _CLMapWritebackLayout {
   size_t region[3];
 } CLMapWritebackLayout;
 
-class CLMem: public CLObject<struct _cl_mem, CLMem> {
+class CLMem: public CLObject<struct _cl_mem, CLMem, struct _emu_cl_mem> {
  private:
   CLMem(CLContext* context);
 

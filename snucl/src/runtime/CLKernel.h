@@ -64,7 +64,8 @@ typedef struct _CLKernelArg {
   cl_mem_flags flags;
 } CLKernelArg;
 
-class CLKernel: public CLObject<struct _cl_kernel, CLKernel> {
+class CLKernel: public CLObject<struct _cl_kernel, CLKernel,
+											struct _emu_cl_kernel> {
 public:
   CLKernel(CLContext* context, CLProgram* program, CLKernelInfo* kernel_info);
   ~CLKernel();

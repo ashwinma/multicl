@@ -63,6 +63,11 @@
 
 #include "opencl_gpgpusim.h"
 
+struct _emu_cl_platform_id g_gpgpu_sim_platform_id;
+
+unsigned _emu_cl_context::sm_context_uid = 0;
+unsigned _emu_cl_kernel::sm_context_uid = 0;
+
 static void setErrCode(cl_int *errcode_ret, cl_int err_code) {
    if ( errcode_ret ) {
       *errcode_ret = err_code;
@@ -252,8 +257,6 @@ _emu_cl_program::_emu_cl_program( emu_cl_context        context,
       free(tmp);
    }
 }
-
-static pgm_info *sg_info;
 
 void register_ptx_function( const char *name, function_info *impl )
 {
@@ -481,8 +484,10 @@ size_t _emu_cl_program::get_ptx_size()
    return buffer_length;
 }
 
-unsigned _emu_cl_context::sm_context_uid = 0;
-unsigned _emu_cl_kernel::sm_context_uid = 0;
+void _emu_cl_platform_id::emu_clFoo()
+{
+	printf("[GPGPUSIM]: Inside the emulator!\n");
+}
 
 class _emu_cl_device_id *GPGPUSim_Init()
 {

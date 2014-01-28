@@ -41,7 +41,7 @@
 #include "mem_latency_stat.h"
 #include "visualizer.h"
 #include "../statwrapper.h"
-#include "../interconnect_interface.h"
+//#include "../interconnect_interface.h"
 #include "icnt_wrapper.h"
 #include <string.h>
 #include <limits.h>

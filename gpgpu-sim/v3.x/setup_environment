@@ -60,8 +60,8 @@ export QTINC=/usr/include
 # change NVOPENCL_LIBDIR to point to your opencl library directory, usually
 # /usr/lib or /usr/lib64. Not setting this variable will cause gpgpu-sim to
 # build without opencl support.
-if [ -f /usr/lib64/libOpenCL.so ]; then
-	export NVOPENCL_LIBDIR=/usr/lib64;
+if [ -f $HOME/opt/lib64/libOpenCL.so ]; then
+	export NVOPENCL_LIBDIR=$HOME/opt/lib64;
 
 	# change NVOPENCL_INCDIR to point to your opencl include directory.
 	if [ -f /usr/include/CL/cl.h ]; then

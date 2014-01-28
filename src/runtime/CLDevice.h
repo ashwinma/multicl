@@ -61,7 +61,8 @@ class CLProgramBinary;
 class CLProgramSource;
 class CLScheduler;
 
-class CLDevice: public CLObject<struct _cl_device_id, CLDevice> {
+class CLDevice: public CLObject<struct _cl_device_id, CLDevice, 
+											struct _emu_cl_device_id> {
  public:
   CLDevice(int node_id);
   CLDevice(CLDevice* parent);

@@ -129,6 +129,7 @@ class CLCommand {
   bool ResolveConsistency();
 
  private:
+  int ResolveDeviceOfLaunchKernel();
   bool ResolveConsistencyOfLaunchKernel();
   bool ResolveConsistencyOfLaunchNativeKernel();
   bool ResolveConsistencyOfReadMem();

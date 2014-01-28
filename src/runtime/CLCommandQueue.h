@@ -55,7 +55,7 @@ class CLDevice;
 class CLEvent;
 
 class CLCommandQueue: public CLObject<struct _cl_command_queue,
-                                      CLCommandQueue> {
+                                      CLCommandQueue, struct _emu_cl_command_queue> {
  protected:
   CLCommandQueue(CLContext* context, CLDevice* device,
                  cl_command_queue_properties properties);

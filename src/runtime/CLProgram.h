@@ -178,7 +178,7 @@ class CLKernelInfo {
   int snucl_index_;
 };
 
-class CLProgram: public CLObject<struct _cl_program, CLProgram> {
+class CLProgram: public CLObject<struct _cl_program, CLProgram, struct _emu_cl_program> {
  public:
   CLProgram(CLContext* context, const std::vector<CLDevice*>& devices);
   ~CLProgram();

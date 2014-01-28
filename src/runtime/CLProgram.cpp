@@ -662,6 +662,9 @@ cl_int CLProgram::BuildProgram(cl_uint num_devices,
       event->Wait();
     event->Release();
   }
+  
+  //perfmodel_->emulate(this);
+  /* We must have built a basic performance model by this stage */
   return CL_SUCCESS;
 }
 

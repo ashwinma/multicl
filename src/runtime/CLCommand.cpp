@@ -192,6 +192,7 @@ bool CLCommand::IsExecutable() {
 
 void CLCommand::Submit() {
   event_->SetStatus(CL_SUBMITTED);
+
   device_->EnqueueReadyQueue(this);
 }
 
@@ -358,6 +359,7 @@ bool CLCommand::ResolveConsistency() {
     switch (type_) {
       case CL_COMMAND_NDRANGE_KERNEL:
       case CL_COMMAND_TASK:
+		resolved = ResolveDeviceOfLaunchKernel();
         resolved = ResolveConsistencyOfLaunchKernel();
         break;
       case CL_COMMAND_NATIVE_KERNEL:
@@ -446,6 +448,71 @@ bool CLCommand::ResolveConsistency() {
     }
   }
   return resolved;
+}
+
+int CLCommand::ResolveDeviceOfLaunchKernel() {
+	cl_device_type device_type;
+	cl_uint vendor_id;
+	cl_uint device_id;
+	device_->GetDeviceInfo(CL_DEVICE_TYPE, sizeof(cl_device_type), &device_type, NULL);
+	device_->GetDeviceInfo(CL_DEVICE_VENDOR_ID, sizeof(cl_uint), &vendor_id, NULL);
+	const std::vector<CLDevice*> devices = context_->devices();
+	for(cl_uint i = 0; i < devices.size(); i++)
+	{
+		//SNUCL_INFO("Command's Device: %p <--> Other Device: %p\n", device_, devices[i]);
+		if(device_ == devices[i])
+		{
+			device_id = i;
+			break;
+		}
+	}
+	int chosen_device_id = 0;
+	SNUCL_INFO("(Before) Submitting %u command type to %u type device with ID %u (%u/%u)\n", type_, device_type, vendor_id, device_id, devices.size());
+
+	// If this is a kernel execution: (yes)
+	// 1) Extract the memory objects from the kernel (will do)
+	// 2) Find their latest device? (will do)
+	// 3) Do the copy to the chosen device? (snucl does this)
+	
+	// perfmodel_->EnqueueReadyQueue(this);
+	// perfmodel_->rankDevices(program, kernel, in_device_list,
+	// out_device_list);
+	// Performance model here?
+
+	for (map<cl_uint, CLKernelArg*>::iterator it = kernel_args_->begin();
+		it != kernel_args_->end();
+		++it) {
+		CLKernelArg* arg = it->second;
+		// 1) Find the distances
+		// 2) Rank the computes
+		// 3) Rank the memory bandwidths
+		// 4) Rank accorind to perf. model
+		// 5) Based on the user's runtime choice, choose the appropritae device
+		if (arg->mem != NULL)
+		{
+			if (arg->mem->HasLatest(device_) || mem->EmptyLatest())
+				return true;
+			CLDevice* source = mem->GetNearestLatest(device_);
+    		int distance = device_->GetDistance(source);
+		}
+	}
+	
+	// set the chosen device
+	device_ = devices[chosen_device_id];
+	device_->GetDeviceInfo(CL_DEVICE_TYPE, sizeof(cl_device_type), &device_type, NULL);
+	device_->GetDeviceInfo(CL_DEVICE_VENDOR_ID, sizeof(cl_uint), &vendor_id, NULL);
+	for(cl_uint i = 0; i < devices.size(); i++)
+	{
+		if(device_ == devices[i])
+		{
+			device_id = i;
+			break;
+		}
+	}
+
+	SNUCL_INFO("(After) Submitted %u command type to %u type device with ID %u (%u/%u)\n", type_, device_type, vendor_id, device_id, devices.size());
+
+	return 0;
 }
 
 bool CLCommand::ResolveConsistencyOfLaunchKernel() {

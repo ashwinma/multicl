@@ -139,6 +139,7 @@ void CLScheduler::Run() {
       CLCommandQueue* queue = *it;
       CLCommand* command = queue->Peek();
       if (command != NULL && command->ResolveConsistency()) {
+	  	// command should have the appropriate device already chosen at this point
         command->Submit();
         queue->Dequeue(command);
       }

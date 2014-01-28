@@ -1,15 +1,19 @@
 include Makefile.common
 
-TARGET := $(SNUCLROOT)/lib/libsnucl_cluster.so
-CXX    := mpic++
+TARGET := $(SNUCLROOT)/lib/libsnucl_single.so
+CXX    := g++
 
-CXX_FLAGS += -DCLUSTER_PLATFORM -DEXPORT_APIS -DSNUCL_DEBUG
+MORE_INCLUDES += -I$(SNUCLROOT)/gpgpu-sim/v3.x/libopencl -I$(CUDA_INSTALL_PATH)/include
+LIBRARY  += -lEmulatedOpenCL
+LINK += -L$(SNUCLROOT)/gpgpu-sim/v3.x/lib/gcc-4.5.3/cuda-5000/release
 
-SOURCES += $(wildcard legacy/*.cpp cluster/*.cpp)
+CXX_FLAGS += -DLEGACY_PLATFORM -DSNUCL_DEBUG $(MORE_INCLUDES) -std=c++0x
 
-OBJ_DIR=objs/cluster
+SOURCES += $(wildcard legacy/*.cpp)
 
-SUBDIRS=legacy cluster
+OBJ_DIR=objs/legacy
+
+SUBDIRS=legacy
 OBJ_SUBDIRS=$(patsubst %,$(OBJ_DIR)/%,$(SUBDIRS))
 DEPS_DIR=$(patsubst %,$(OBJ_DIR)/.deps/%,$(SUBDIRS))
 

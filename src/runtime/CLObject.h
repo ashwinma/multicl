@@ -46,7 +46,7 @@
 
 unsigned long CLObject_GetNewID();
 
-template <typename st_obj_type, class c_obj_type>
+template <typename st_obj_type, class c_obj_type, typename emu_obj_type>
 class CLObject {
  public:
   CLObject() {
@@ -60,6 +60,7 @@ class CLObject {
   unsigned long id() const { return id_; }
   int ref_cnt() const { return ref_cnt_; }
   st_obj_type* st_obj() { return &st_obj_; }
+  emu_obj_type* emu_obj() { return &emu_obj_; }
 
   void Retain() {
     int cur_ref_cnt;
@@ -83,6 +84,7 @@ class CLObject {
   unsigned long id_;
   int ref_cnt_;
   st_obj_type st_obj_;
+  emu_obj_type emu_obj_;
 };
 
 #endif // __SNUCL__CL_OBJECT_H

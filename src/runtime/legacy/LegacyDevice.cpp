@@ -410,6 +410,7 @@ void LegacyDevice::LaunchKernel(CLCommand* command, CLKernel* kernel,
                                 cl_uint work_dim, size_t gwo[3], size_t gws[3],
                                 size_t lws[3], size_t nwg[3],
                                 map<cl_uint, CLKernelArg*>* kernel_args) {
+  printf("Device Type: %d Ptr: %p\n", type_, device_id_);
   CHECK_ERROR(available_ == CL_FALSE, CL_DEVICE_NOT_AVAILABLE);
   cl_kernel legacy_kernel = (cl_kernel)kernel->GetDevSpecific(this);
   CHECK_ERROR(legacy_kernel == NULL, CL_INVALID_PROGRAM_EXECUTABLE);

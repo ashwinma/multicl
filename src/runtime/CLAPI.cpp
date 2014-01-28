@@ -317,6 +317,8 @@ SNUCL_API_FUNCTION(clGetDeviceIDs)(
     return CL_INVALID_VALUE;
 
   CLPlatform* p = platform->c_obj;
+  p->emu_obj()->emu_clFoo();
+  //p->emu_obj()->emu_clGetDeviceIDs(platform, device_type, num_entries, devices, num_devices);
   return p->GetDeviceIDs(device_type, num_entries, devices, num_devices);
 }
 
@@ -857,7 +859,10 @@ SNUCL_API_FUNCTION(clBuildProgram)(
     if (callback == NULL) return CL_OUT_OF_HOST_MEMORY;
   }
 
+
   CLProgram* p = program->c_obj;
+//  p->emu_obj()->emu_clBuildProgram(program->st_obj(), num_devices, device_list,
+//  	options, pfn_notify, user_data);
   return p->BuildProgram(num_devices, device_list, options, callback);
 }
 

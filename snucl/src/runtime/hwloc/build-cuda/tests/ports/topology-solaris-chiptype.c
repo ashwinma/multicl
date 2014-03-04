@@ -1,1 +1,0 @@
-../../../src/topology-solaris-chiptype.c

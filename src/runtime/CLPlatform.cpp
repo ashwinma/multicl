@@ -41,6 +41,8 @@
 
 #include "CLPlatform.h"
 #include <algorithm>
+#include <iterator>
+#include <limits>
 #include <vector>
 #include <pthread.h>
 #include <CL/cl.h>
@@ -104,11 +106,37 @@ CLPlatform::CLPlatform() {
   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
   is_host_ = (rank == 0);
 #endif
+  hwloc_topology_init(&topology_);
+  hwloc_topology_set_flags(topology_, HWLOC_TOPOLOGY_FLAG_IO_DEVICES);
+  hwloc_topology_load(topology_);
+  hwloc_initialized_ = 1;
+
   pthread_mutex_init(&mutex_devices_, NULL);
   pthread_mutex_init(&mutex_issuers_, NULL);
 }
 
 CLPlatform::~CLPlatform() {
+  if (hwloc_initialized_ == 1)
+  {
+  	hwloc_topology_destroy(topology_);
+	hwloc_initialized_ = 0;
+  }
+  hosts_.clear();
+  unsigned int device_id = 0;
+  for(device_id = 0; device_id < devices_.size(); device_id++)
+  {
+  	devices_hosts_distances_[device_id].clear();
+  }
+  devices_hosts_distances_.clear();
+  for(device_id = 0; device_id < devices_.size(); device_id++)
+  {
+  	devices_devices_distances_[device_id].clear();
+  }
+  devices_devices_distances_.clear();
+  devices_compute_perf_.clear();
+  devices_memory_perf_.clear();
+  devices_lmemory_perf_.clear();
+
   for (vector<CLDevice*>::iterator it = devices_.begin();
        it != devices_.end();
        ++it) {
@@ -164,6 +192,8 @@ void CLPlatform::Init() {
   unsigned int num_accelerator = 0;
   unsigned int num_custom = 0;
 
+  unsigned int device_id = 0;
+
   for (vector<CLDevice*>::const_iterator it = devices_.begin();
        it != devices_.end();
        ++it) {
@@ -186,11 +216,79 @@ void CLPlatform::Init() {
     }
   }
 
+  InitDeviceMetrics();
   SNUCL_INFO("SnuCL platform has been initialized.", 0);
   SNUCL_INFO("Total %u devices (%u CPUs, %lu GPUs, %u accelerators, "
              "and %u custom devices) are in the platform.",
              devices_.size(), num_cpu, num_gpu, num_accelerator, num_custom);
 #endif // SNUCL_DEBUG
+}
+
+void CLPlatform::InitDeviceMetrics()
+{
+  // Find number of "hosts" for the system.
+  // For now, hosts = number of CPU sockets (as per hwloc)
+  // FIXME: Verify if the above logic works for all modes of SnuCL, 
+  // i.e. Cluster, CPU and Single
+  int n_cpu_sockets = hwloc_get_nbobjs_by_type(topology_, HWLOC_OBJ_SOCKET); 
+  printf("Number of CPU sockets discovered: %d\n", n_cpu_sockets);
+  hosts_.resize(n_cpu_sockets);
+  unsigned int host_id = 0;
+  for(host_id = 0; host_id < n_cpu_sockets; host_id++)
+  {
+	hwloc_obj_t cpuset = hwloc_get_obj_by_type(topology_, HWLOC_OBJ_SOCKET, host_id);
+  	hosts_.push_back(cpuset);
+  }
+  // FIXME!!!! devices_hosts_distances_ should be a HxD matrix where each
+  // row corresponds to a host CPUset and each column represents a device
+  devices_hosts_distances_.resize(hosts_.size());
+  for(host_id = 0; host_id < hosts_.size(); host_id++)
+  {
+  	devices_hosts_distances_[host_id].resize(devices_.size());
+  	for(int next_device_id = 0; next_device_id < devices_.size(); next_device_id++)
+	{
+		// TODO: Arbitrary values are filled now, but need to be 
+		// replaced with actual bandwidth numbers
+  		devices_hosts_distances_[host_id][next_device_id] = 10;
+	}
+  }
+
+  unsigned int device_id = 0;
+  devices_devices_distances_.resize(devices_.size());
+  device_id = 0;
+  for(device_id = 0; device_id < devices_.size(); device_id++)
+  {
+  	devices_devices_distances_[device_id].resize(devices_.size());
+  	devices_devices_distances_[device_id][device_id] = numeric_limits<double>::max();
+  	for(int next_device_id = device_id+1; next_device_id < devices_.size(); next_device_id++)
+	{
+		// TODO: Arbitrary values are filled now, but need to be 
+		// replaced with actual bandwidth numbers
+  		devices_devices_distances_[device_id][next_device_id] = 10;
+  		devices_devices_distances_[next_device_id][device_id] = 1;
+	}
+  }
+
+  // TODO: Move the below individual metrics to be withing CLDevice
+  // itself. They should all be populated as and when the device obj
+  // get created.
+  devices_compute_perf_.resize(devices_.size());
+  for(device_id = 0; device_id < devices_.size(); device_id++)
+  {
+  	devices_compute_perf_[device_id] = devices_.size() - device_id;
+  }
+
+  devices_memory_perf_.resize(devices_.size());
+  for(device_id = 0; device_id < devices_.size(); device_id++)
+  {
+  	devices_memory_perf_[device_id] = device_id;
+  }
+
+  devices_lmemory_perf_.resize(devices_.size());
+  for(device_id = 0; device_id < devices_.size(); device_id++)
+  {
+  	devices_lmemory_perf_[device_id] = device_id;
+  }
 }
 
 cl_int CLPlatform::GetPlatformInfo(cl_platform_info param_name,
@@ -260,6 +358,9 @@ CLContext* CLPlatform::CreateContextFromDevices(
   vector<CLDevice*> selected_devices;
   selected_devices.reserve(num_devices);
 
+  vector<size_t> selected_devices_indices;
+  selected_devices_indices.reserve(num_devices);
+
   for (cl_uint i = 0; i < num_devices; i++) {
     if (devices[i] == NULL) {
       *err = CL_INVALID_DEVICE;
@@ -270,10 +371,30 @@ CLContext* CLPlatform::CreateContextFromDevices(
       return NULL;
     }
     selected_devices.push_back(devices[i]->c_obj);
+	// TODO
+	// Find the index of device[i]->c_obj in devices_
+	std::vector<CLDevice*>::iterator this_device_iter = std::find(devices_.begin(), devices_.end(), devices[i]->c_obj);
+	CLDevice *this_device = *this_device_iter;
+	if(this_device_iter == devices_.end())
+	{
+      *err = CL_INVALID_DEVICE;
+      return NULL;
+	}
+	size_t this_device_index = 0; 
+	this_device_index = std::distance(devices_.begin(), this_device_iter);
+	fprintf(stderr, "Adding device to ctx: ID: %d, Type: %d\n", this_device_index, this_device->type());
+	selected_devices_indices.push_back(this_device_index);
   }
 
   CLContext* context = new CLContext(selected_devices, num_properties,
-                                     properties);
+                                     properties,
+									 hosts_,
+									 devices_devices_distances_,
+									 devices_hosts_distances_,
+									 devices_compute_perf_,
+									 devices_memory_perf_,
+									 devices_lmemory_perf_,
+									 selected_devices_indices);
   if (context == NULL) {
     *err = CL_OUT_OF_HOST_MEMORY;
     return NULL;
@@ -281,6 +402,7 @@ CLContext* CLPlatform::CreateContextFromDevices(
 
   if (callback != NULL)
     context->SetErrorNotificationCallback(callback);
+  
   return context;
 }
 
@@ -304,6 +426,9 @@ CLContext* CLPlatform::CreateContextFromType(
   vector<CLDevice*> selected_devices;
   selected_devices.reserve(all_devices.size());
 
+  vector<size_t> selected_devices_indices;
+  selected_devices_indices.reserve(all_devices.size());
+
   size_t device_exist = false;
   for (vector<CLDevice*>::iterator it = all_devices.begin();
        it != all_devices.end();
@@ -311,11 +436,24 @@ CLContext* CLPlatform::CreateContextFromType(
     CLDevice* device = *it;
     if (device->IsSubDevice()) continue;
 
-    if (device->type() & device_type) {
-      device_exist = true;
-      if (device->IsAvailable())
-        selected_devices.push_back(device);
-    }
+	if (device->type() & device_type) {
+		device_exist = true;
+		if (device->IsAvailable())
+			selected_devices.push_back(device);
+		// TODO
+		// Find the index of device[i]->c_obj in all_devices
+		std::vector<CLDevice*>::iterator this_device_iter = std::find(all_devices.begin(), all_devices.end(), device);
+		CLDevice *this_device = *this_device_iter;
+		if(this_device_iter == all_devices.end())
+		{
+			*err = CL_INVALID_DEVICE;
+			return NULL;
+		}
+		size_t this_device_index = 0; 
+		this_device_index = std::distance(all_devices.begin(), this_device_iter);
+		fprintf(stderr, "Adding device to ctx: ID: %d, Type: %d\n", this_device_index, this_device->type());
+		selected_devices_indices.push_back(this_device_index);
+	}
   }
 
   if (!device_exist) {
@@ -328,7 +466,14 @@ CLContext* CLPlatform::CreateContextFromType(
   }
 
   CLContext* context = new CLContext(selected_devices, num_properties,
-                                     properties);
+                                     properties,
+									 hosts_,
+									 devices_devices_distances_,
+									 devices_hosts_distances_,
+									 devices_compute_perf_,
+									 devices_memory_perf_,
+									 devices_lmemory_perf_,
+									 selected_devices_indices);
   if (context == NULL) {
     *err = CL_OUT_OF_HOST_MEMORY;
     return NULL;

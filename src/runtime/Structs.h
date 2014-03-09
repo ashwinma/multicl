@@ -46,6 +46,9 @@
 
 #include "opencl_gpgpusim.h"
 
+typedef std::vector<unsigned int> index_vector;
+typedef std::vector<double> perf_vector;
+
 struct _cl_icd_dispatch;
 class CLPlatform;
 class CLDevice;

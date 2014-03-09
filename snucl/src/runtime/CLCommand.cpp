@@ -354,12 +354,16 @@ void CLCommand::Execute() {
 }
 
 bool CLCommand::ResolveConsistency() {
+  if(type_ == CL_COMMAND_NDRANGE_KERNEL 
+  			|| type_ == CL_COMMAND_TASK)
+  {
+  	int err = ResolveDeviceOfLaunchKernel();
+  }
   bool resolved = consistency_resolved_;
   if (!resolved) {
     switch (type_) {
       case CL_COMMAND_NDRANGE_KERNEL:
       case CL_COMMAND_TASK:
-		resolved = ResolveDeviceOfLaunchKernel();
         resolved = ResolveConsistencyOfLaunchKernel();
         break;
       case CL_COMMAND_NATIVE_KERNEL:
@@ -457,6 +461,36 @@ int CLCommand::ResolveDeviceOfLaunchKernel() {
 	device_->GetDeviceInfo(CL_DEVICE_TYPE, sizeof(cl_device_type), &device_type, NULL);
 	device_->GetDeviceInfo(CL_DEVICE_VENDOR_ID, sizeof(cl_uint), &vendor_id, NULL);
 	const std::vector<CLDevice*> devices = context_->devices();
+
+	int sched_type = 0;
+	char *sched_option = getenv("SNUCL_SCHED_TYPE");
+	if(sched_option != NULL)
+	{
+		SNUCL_INFO("Scheduler Type: %s\n", sched_option);
+		if(strcmp(sched_option, "SNUCL_SCHED_MAX_COMPUTE") == 0)
+		{
+			sched_type = SNUCL_SCHED_MAX_COMPUTE;
+		}
+		else if(strcmp(sched_option, "SNUCL_SCHED_MAX_MEMORY") == 0)
+		{
+			sched_type = SNUCL_SCHED_MAX_MEMORY;
+		}
+		else if(strcmp(sched_option, "SNUCL_SCHED_PERF_MODEL") == 0)
+		{
+			sched_type = SNUCL_SCHED_PERF_MODEL;
+		}
+		else 
+		{
+			// Default to closest device
+			sched_type = SNUCL_SCHED_CLOSEST;
+		}
+	}
+	else
+	{
+		SNUCL_INFO("Default Scheduler Type: SNUCL_SCHED_CLOSEST\n", 0);
+	    sched_type = SNUCL_SCHED_CLOSEST;
+	}
+
 	for(cl_uint i = 0; i < devices.size(); i++)
 	{
 		//SNUCL_INFO("Command's Device: %p <--> Other Device: %p\n", device_, devices[i]);
@@ -479,24 +513,53 @@ int CLCommand::ResolveDeviceOfLaunchKernel() {
 	// out_device_list);
 	// Performance model here?
 
-	for (map<cl_uint, CLKernelArg*>::iterator it = kernel_args_->begin();
-		it != kernel_args_->end();
-		++it) {
-		CLKernelArg* arg = it->second;
-		// 1) Find the distances
-		// 2) Rank the computes
-		// 3) Rank the memory bandwidths
-		// 4) Rank accorind to perf. model
-		// 5) Based on the user's runtime choice, choose the appropritae device
-		if (arg->mem != NULL)
+	if(sched_type == SNUCL_SCHED_CLOSEST)
+	{
+		float min_avg_distance = 10565.0f;
+		float avg_distance = 0.0f;
+		for(cl_uint i = 0; i < devices.size(); i++)
 		{
-			if (arg->mem->HasLatest(device_) || mem->EmptyLatest())
-				return true;
-			CLDevice* source = mem->GetNearestLatest(device_);
-    		int distance = device_->GetDistance(source);
+			int total_distance = 0;
+			int mem_args_count = 0;
+			CLDevice *cur_device = devices[i];
+			for (map<cl_uint, CLKernelArg*>::iterator it = kernel_args_->begin();
+					it != kernel_args_->end();
+					++it) {
+				CLKernelArg* arg = it->second;
+				// 1) Find the distances
+				// 2) Rank the computes
+				// 3) Rank the memory bandwidths
+				// 4) Rank accorind to perf. model
+				// 5) Based on the user's runtime choice, choose the appropritae device
+				if (arg->mem != NULL)
+				{
+					int cur_distance = 0;
+					if (arg->mem->HasLatest(cur_device) || arg->mem->EmptyLatest())
+						cur_distance = 0;
+					else
+					{
+						CLDevice* source = arg->mem->GetNearestLatest(cur_device);
+						cur_distance = cur_device->GetDistance(source);
+					}
+					total_distance += cur_distance;
+					mem_args_count++;
+				}
+			}
+			SNUCL_INFO("Total distance from device %d: %d\n", i, total_distance);
+			if(mem_args_count > 0)
+				avg_distance = total_distance / mem_args_count;
+			else
+				avg_distance = 0.0f;
+
+			if(avg_distance < min_avg_distance)
+			{
+				// Choose this device
+				//device_ = devices[i];
+				chosen_device_id = i;
+				min_avg_distance = avg_distance;
+			}
 		}
 	}
-	
 	// set the chosen device
 	device_ = devices[chosen_device_id];
 	device_->GetDeviceInfo(CL_DEVICE_TYPE, sizeof(cl_device_type), &device_type, NULL);

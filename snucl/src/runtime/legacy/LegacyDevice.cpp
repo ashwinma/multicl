@@ -330,29 +330,32 @@ LegacyDevice::LegacyDevice(void* library, struct _cl_icd_dispatch* dispatch,
 
   GET_LEGACY_DEVICE_INFO(CL_DEVICE_PREFERRED_INTEROP_USER_SYNC, cl_bool,
                          preferred_interop_user_sync_, CL_FALSE);
-
 /*
-  GET_LEGACY_DEVICE_INFO(CL_DEVICE_PARTITION_MAX_SUB_DEVICES, cl_uint,
-                         partition_max_sub_devices_, 0);
-  err = dispatch_->clGetDeviceInfo(device_id_, CL_DEVICE_PARTITION_PROPERTIES,
-                                   0, NULL, &num_partition_properties_);
-  if (err != CL_SUCCESS)
-    num_partition_properties_ = 0;
-  num_partition_properties_ /= sizeof(cl_device_partition_properties);
-  GET_LEGACY_DEVICE_INFO_A(CL_DEVICE_PARTITION_PROPERTIES,
-                           cl_device_partition_properties,
-                           partition_properties_, num_partition_properties_,
-                           0);
-  GET_LEGACY_DEVICE_INFO(CL_DEVICE_PARTITION_AFFINITY_DOMAIN,
-                         cl_device_partition_affinity_domain,
-                         affinity_domain_, 0);
-*/
-  partition_max_sub_devices_ = 1;
-  partition_max_compute_units_ = max_compute_units_;
-  num_partition_properties_ = 0;
-  affinity_domain_ = 0;
-  partition_type_ = NULL;
-  partition_type_len_ = 0;
+  if (version_ >= LEGACY_VERSION_1_2) {
+	  GET_LEGACY_DEVICE_INFO(CL_DEVICE_PARTITION_MAX_SUB_DEVICES, cl_uint,
+			  partition_max_sub_devices_, 0);
+	  err = dispatch_->clGetDeviceInfo(device_id_, CL_DEVICE_PARTITION_PROPERTIES,
+			  0, NULL, &num_partition_properties_);
+	  if (err != CL_SUCCESS)
+		  num_partition_properties_ = 0;
+	  num_partition_properties_ /= sizeof(cl_device_partition_properties);
+	  GET_LEGACY_DEVICE_INFO_A(CL_DEVICE_PARTITION_PROPERTIES,
+			  cl_device_partition_properties,
+			  partition_properties_, num_partition_properties_,
+			  0);
+	  GET_LEGACY_DEVICE_INFO(CL_DEVICE_PARTITION_AFFINITY_DOMAIN,
+			  cl_device_partition_affinity_domain,
+			  affinity_domain_, 0);
+  }
+  else */
+  {
+	  partition_max_sub_devices_ = 1;
+	  partition_max_compute_units_ = max_compute_units_;
+	  num_partition_properties_ = 0;
+	  affinity_domain_ = 0;
+	  partition_type_ = NULL;
+	  partition_type_len_ = 0;
+  }
 
 #undef GET_LEGACY_DEVICE_INFO
 #undef GET_LEGACY_DEVICE_INFO_A

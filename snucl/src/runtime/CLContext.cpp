@@ -58,8 +58,16 @@ using namespace std;
 
 CLContext::CLContext(const std::vector<CLDevice*>& devices,
                      size_t num_properties,
-                     const cl_context_properties* properties)
-    : devices_(devices) {
+                     const cl_context_properties* properties,
+					 std::vector<hwloc_obj_t> &hosts,
+					 std::vector<perf_vector> &d2d_distances,
+  					 std::vector<perf_vector> &d2h_distances,
+  					 perf_vector &d_compute_perfs,
+  					 perf_vector &d_mem_perfs,
+  					 perf_vector &d_lmem_perfs,
+					 vector<size_t> &filter_indices
+					 )
+    : devices_(devices), hosts_(hosts) {
   for (vector<CLDevice*>::iterator it = devices_.begin();
        it != devices_.end();
        ++it) {
@@ -76,7 +84,8 @@ CLContext::CLContext(const std::vector<CLDevice*>& devices,
     properties_ = NULL;
   }
   callback_ = NULL;
-
+  InitDeviceMetrics(d2d_distances, d2h_distances, d_compute_perfs, 
+  								d_mem_perfs, d_lmem_perfs, filter_indices);
   pthread_mutex_init(&mutex_mems_, NULL);
   pthread_mutex_init(&mutex_samplers_, NULL);
 
@@ -84,6 +93,23 @@ CLContext::CLContext(const std::vector<CLDevice*>& devices,
 }
 
 CLContext::~CLContext() {
+  unsigned int device_id = 0;
+  unsigned int host_id = 0;
+  for(host_id = 0; host_id < hosts_.size(); host_id++)
+  {
+  	devices_hosts_distances_[host_id].clear();
+  }
+  devices_hosts_distances_.clear();
+  hosts_.clear();
+  for(device_id = 0; device_id < devices_.size(); device_id++)
+  {
+  	devices_devices_distances_[device_id].clear();
+  }
+  devices_devices_distances_.clear();
+  devices_compute_perf_.clear();
+  devices_memory_perf_.clear();
+  devices_lmemory_perf_.clear();
+
   for (vector<CLDevice*>::iterator it = devices_.begin();
        it != devices_.end();
        ++it) {
@@ -96,6 +122,104 @@ CLContext::~CLContext() {
 
   pthread_mutex_destroy(&mutex_mems_);
   pthread_mutex_destroy(&mutex_samplers_);
+}
+
+void CLContext::InitDeviceMetrics(const std::vector<perf_vector> &d2d_distances,
+  						 const std::vector<perf_vector> &d2h_distances,
+  						 const perf_vector &d_compute_perfs,
+  						 const perf_vector &d_mem_perfs,
+  						 const perf_vector &d_lmem_perfs,
+						 const std::vector<size_t> &filter_indices
+						 )
+{
+	// Extract performance numbers of 'selected or filtered devices'
+	// to the context-specific performance vectors
+	unsigned int device_id = 0;
+	unsigned int host_id = 0;
+	size_t devices_size = filter_indices.size();
+	size_t hosts_size = hosts_.size();
+	devices_hosts_distances_.resize(hosts_size);
+  	for(host_id = 0; host_id < hosts_size; host_id++)
+	{
+		devices_hosts_distances_[host_id].resize(devices_size);
+	}
+
+	devices_devices_distances_.resize(devices_size);
+	for(device_id = 0; device_id < devices_size; device_id++)
+	{
+		devices_devices_distances_[device_id].resize(devices_size);
+	}
+
+	devices_compute_perf_.resize(devices_size);
+	devices_memory_perf_.resize(devices_size);
+	devices_lmemory_perf_.resize(devices_size);
+
+  	for(host_id = 0; host_id < hosts_size; host_id++)
+	{
+		for(int next_device_id = 0; next_device_id < devices_size; next_device_id++)
+		{
+			unsigned int global_next_device_id = filter_indices[next_device_id];
+			devices_hosts_distances_[host_id][next_device_id].first = d2h_distances[host_id][global_next_device_id];
+			devices_hosts_distances_[host_id][next_device_id].second = next_device_id; 
+		}
+	}
+
+	for(device_id = 0; device_id < devices_size; device_id++)
+	{
+		unsigned int global_device_id = filter_indices[device_id];
+		devices_compute_perf_[device_id].first = d_compute_perfs[global_device_id];
+		devices_compute_perf_[device_id].second = device_id;
+
+		devices_memory_perf_[device_id].first = d_mem_perfs[global_device_id];
+		devices_memory_perf_[device_id].second = device_id;
+
+		devices_lmemory_perf_[device_id].first = d_lmem_perfs[global_device_id];
+		devices_lmemory_perf_[device_id].second = device_id;
+
+		devices_devices_distances_[device_id][device_id].first = d2d_distances[global_device_id][global_device_id];
+		devices_devices_distances_[device_id][device_id].second = device_id;
+
+		for(int next_device_id = device_id+1; next_device_id < devices_size; next_device_id++)
+		{
+			unsigned int global_next_device_id = filter_indices[next_device_id];
+			devices_devices_distances_[device_id][next_device_id].first = d2d_distances[global_device_id][global_next_device_id];
+			devices_devices_distances_[device_id][next_device_id].second = next_device_id;
+
+			devices_devices_distances_[next_device_id][device_id].first = d2d_distances[global_next_device_id][global_device_id];
+			devices_devices_distances_[next_device_id][device_id].second = next_device_id;
+		}
+	}
+
+	// Test the sort functionality
+	print_perf_vector(devices_compute_perf_, "Compute");
+	print_perf_vector(devices_memory_perf_, "Memory");
+	print_perf_vector(devices_lmemory_perf_, "Local Memory");
+	// Populate the sorted/ordered vectors
+	std::sort(devices_compute_perf_.begin(), devices_compute_perf_.end(), sort_pred());
+	std::sort(devices_memory_perf_.begin(), devices_memory_perf_.end(), sort_pred());
+	std::sort(devices_lmemory_perf_.begin(), devices_lmemory_perf_.end(), sort_pred());
+  	for(host_id = 0; host_id < hosts_size; host_id++)
+	{
+		std::sort(devices_hosts_distances_[host_id].begin(), devices_hosts_distances_[host_id].end(), sort_pred());
+	}
+	for(device_id = 0; device_id < devices_size; device_id++)
+	{
+		std::sort(devices_devices_distances_[device_id].begin(), devices_devices_distances_[device_id].end(), sort_pred());
+	}
+	// Test the sort functionality
+	print_perf_vector(devices_compute_perf_, "Compute");
+	print_perf_vector(devices_memory_perf_, "Memory");
+	print_perf_vector(devices_lmemory_perf_, "Local Memory");
+}
+
+void CLContext::print_perf_vector(const perf_order_vector &vec, const char *vec_name)
+{
+	std::cout << " --------- " << vec_name << " ----------- " << std::endl;
+	for(int i = 0; i < vec.size(); i++)
+	{
+		std::cout << "[" << vec[i].second << "]: " << vec[i].first << "\t";
+	}
+	std::cout << std::endl;
 }
 
 cl_int CLContext::GetContextInfo(cl_context_info param_name,

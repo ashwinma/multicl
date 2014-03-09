@@ -3,7 +3,12 @@ include Makefile.common
 TARGET := $(SNUCLROOT)/lib/libsnucl_cluster.so
 CXX    := mpic++
 
-CXX_FLAGS += -DCLUSTER_PLATFORM -DEXPORT_APIS -DSNUCL_DEBUG
+MORE_INCLUDES += -I$(SNUCLROOT)/gpgpu-sim/v3.x/libopencl -I$(CUDA_INSTALL_PATH)/include
+LIBRARY  += -lEmulatedOpenCL
+LINK += -L$(SNUCLROOT)/gpgpu-sim/v3.x/lib/gcc-4.5.3/cuda-5000/release
+
+CXX_FLAGS += -DCLUSTER_PLATFORM -DEXPORT_APIS -DSNUCL_DEBUG $(MORE_INCLUDES) -std=c++0x
+
 
 SOURCES += $(wildcard legacy/*.cpp cluster/*.cpp)
 

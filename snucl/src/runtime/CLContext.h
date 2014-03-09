@@ -47,6 +47,7 @@
 #include <CL/cl.h>
 #include "CLObject.h"
 #include "Structs.h"
+#include "hwloc.h"
 
 class CLDevice;
 class ContextErrorNotificationCallback;
@@ -54,8 +55,17 @@ class ContextErrorNotificationCallback;
 class CLContext: public CLObject<struct _cl_context, CLContext, 
 												struct _emu_cl_context> {
  public:
+  typedef std::vector<std::pair<double, unsigned int> > perf_order_vector;
+
   CLContext(const std::vector<CLDevice*>& devices, size_t num_properties,
-            const cl_context_properties* properties);
+            const cl_context_properties* properties,
+					 std::vector<hwloc_obj_t> &hosts,
+					 std::vector<perf_vector> &d2d_distances,
+  					 std::vector<perf_vector> &d2h_distances,
+  					 perf_vector &d_compute_perfs,
+  					 perf_vector &d_mem_perfs,
+  					 perf_vector &d_lmem_perfs,
+					 std::vector<size_t> &filter_indices);
   ~CLContext();
 
   const std::vector<CLDevice*>& devices() const { return devices_; }
@@ -89,9 +99,39 @@ class CLContext: public CLObject<struct _cl_context, CLContext,
   void NotifyError(const char* errinfo, const void* private_info, size_t cb);
 
  private:
+  struct sort_pred {
+	  bool operator()(const std::pair<double, unsigned int> &left, const std::pair<double, unsigned int> &right) {
+		  return left.first < right.first;
+	  }
+  };
+
   void InitImageInfo();
 
+  void print_perf_vector(const perf_order_vector &vec, const char *vec_name);
+  void InitDeviceMetrics(const std::vector<perf_vector> &d2d_distances,
+  						 const std::vector<perf_vector> &d2h_distances,
+  						 const perf_vector &d_compute_perfs,
+  						 const perf_vector &d_mem_perfs,
+  						 const perf_vector &d_lmem_perfs,
+						 const std::vector<size_t> &filter_indices
+						 );
   std::vector<CLDevice*> devices_;
+
+  std::vector<hwloc_obj_t> hosts_;
+  /* Raw performance numbers in the same order as the devices_ 
+   * vector */
+  /* sorted device indices for different device choices.
+   * Always, best device is at index 0 */
+  perf_order_vector devices_compute_perf_;
+  perf_order_vector devices_memory_perf_;
+  perf_order_vector devices_lmemory_perf_;
+  /* 2D vector storing distances between CPUsets and OpenCL
+   * devices. Each row represents one CPUset */
+  std::vector<perf_order_vector> devices_hosts_distances_;
+  /* 2D (square) vector storing distances between OpenCL devices. 
+   * Each row represents one OpenCL device */
+  std::vector<perf_order_vector> devices_devices_distances_;
+
   size_t num_properties_;
   cl_context_properties* properties_;
   std::vector<CLMem*> mems_;

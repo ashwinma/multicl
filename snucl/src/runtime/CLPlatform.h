@@ -47,6 +47,7 @@
 #include <CL/cl.h>
 #include "CLObject.h"
 #include "Structs.h"
+#include "hwloc.h"
 
 class CLContext;
 class CLDevice;
@@ -84,6 +85,7 @@ class CLPlatform: public CLObject<struct _cl_platform_id, CLPlatform,
   void InvokeAllSchedulers();
 
  private:
+  void InitDeviceMetrics();
   size_t CheckContextProperties(const cl_context_properties* properties,
                                 cl_int* err);
 
@@ -104,10 +106,25 @@ class CLPlatform: public CLObject<struct _cl_platform_id, CLPlatform,
   bool is_host_;
 #endif
 
+  hwloc_topology_t topology_;
+  int hwloc_initialized_;
+  std::vector<hwloc_obj_t> hosts_;
+
   std::vector<CLDevice*> devices_;
   std::vector<CLScheduler*> schedulers_;
   std::vector<CLIssuer*> issuers_;
 
+  // Raw performance numbers in the same order as the devices_ vector.
+  perf_vector devices_compute_perf_;
+  perf_vector devices_memory_perf_;
+  perf_vector devices_lmemory_perf_;
+  /* 2D vector storing distances between CPUsets and OpenCL
+   * devices. Each row represents one CPUset. */
+  std::vector<perf_vector> devices_hosts_distances_;
+  /* 2D (square) vector storing distances between OpenCL devices. 
+   * Each row represents one OpenCL device */
+  std::vector<perf_vector> devices_devices_distances_;
+  
   pthread_mutex_t mutex_devices_;
   pthread_mutex_t mutex_issuers_;
 

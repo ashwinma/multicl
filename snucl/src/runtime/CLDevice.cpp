@@ -661,6 +661,7 @@ int CLDevice::GetDistance(CLDevice* other) const {
       if (type_ == CL_DEVICE_TYPE_CPU)
         return 1;
       else
+	  // TODO: Return 2 for closer GPU and 3 for further GPU?
         return 2;
     } else if (type_ == CL_DEVICE_TYPE_CPU) {
       return 4;

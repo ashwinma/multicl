@@ -135,7 +135,9 @@ class CLCommand {
   bool ResolveConsistency();
 
  private:
+  void ResolveDeviceCharacteristics();
   int ResolveDeviceOfLaunchKernel();
+  int ResolveDeviceOfWriteMem();
   bool ResolveConsistencyOfLaunchKernel();
   bool ResolveConsistencyOfLaunchNativeKernel();
   bool ResolveConsistencyOfReadMem();
@@ -230,6 +232,7 @@ class CLCommand {
   void (*custom_function_)(void*);
   void* custom_data_;
 
+  int sched_type_;
  public:
   static CLCommand*
   CreateReadBuffer(CLContext* context, CLDevice* device, CLCommandQueue* queue,

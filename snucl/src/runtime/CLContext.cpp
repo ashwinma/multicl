@@ -59,7 +59,7 @@ using namespace std;
 CLContext::CLContext(const std::vector<CLDevice*>& devices,
                      size_t num_properties,
                      const cl_context_properties* properties,
-					 std::vector<hwloc_obj_t> &hosts,
+					 const std::vector<hwloc_obj_t> &hosts,
 					 std::vector<perf_vector> &d2d_distances,
   					 std::vector<perf_vector> &d2h_distances,
   					 perf_vector &d_compute_perfs,
@@ -67,7 +67,7 @@ CLContext::CLContext(const std::vector<CLDevice*>& devices,
   					 perf_vector &d_lmem_perfs,
 					 vector<size_t> &filter_indices
 					 )
-    : devices_(devices), hosts_(hosts) {
+    : devices_(devices) {//, hosts_(hosts) {
   for (vector<CLDevice*>::iterator it = devices_.begin();
        it != devices_.end();
        ++it) {
@@ -84,6 +84,8 @@ CLContext::CLContext(const std::vector<CLDevice*>& devices,
     properties_ = NULL;
   }
   callback_ = NULL;
+  hosts_.clear();
+  hosts_ = hosts;
   InitDeviceMetrics(d2d_distances, d2h_distances, d_compute_perfs, 
   								d_mem_perfs, d_lmem_perfs, filter_indices);
   pthread_mutex_init(&mutex_mems_, NULL);
@@ -138,6 +140,7 @@ void CLContext::InitDeviceMetrics(const std::vector<perf_vector> &d2d_distances,
 	unsigned int host_id = 0;
 	size_t devices_size = filter_indices.size();
 	size_t hosts_size = hosts_.size();
+	SNUCL_INFO("Number of hosts: %u\n", hosts_size);
 	devices_hosts_distances_.resize(hosts_size);
   	for(host_id = 0; host_id < hosts_size; host_id++)
 	{
@@ -200,7 +203,9 @@ void CLContext::InitDeviceMetrics(const std::vector<perf_vector> &d2d_distances,
 	std::sort(devices_lmemory_perf_.begin(), devices_lmemory_perf_.end(), sort_pred());
   	for(host_id = 0; host_id < hosts_size; host_id++)
 	{
+		print_perf_vector(devices_hosts_distances_[host_id], "D2H Vector[i]");
 		std::sort(devices_hosts_distances_[host_id].begin(), devices_hosts_distances_[host_id].end(), sort_pred());
+		print_perf_vector(devices_hosts_distances_[host_id], "D2H Vector[i]");
 	}
 	for(device_id = 0; device_id < devices_size; device_id++)
 	{

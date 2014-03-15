@@ -230,14 +230,18 @@ void CLPlatform::InitDeviceMetrics()
   // For now, hosts = number of CPU sockets (as per hwloc)
   // FIXME: Verify if the above logic works for all modes of SnuCL, 
   // i.e. Cluster, CPU and Single
-  int n_cpu_sockets = hwloc_get_nbobjs_by_type(topology_, HWLOC_OBJ_SOCKET); 
+  int n_cpu_sockets = hwloc_get_nbobjs_by_type(topology_, HWLOC_OBJ_NODE); 
   printf("Number of CPU sockets discovered: %d\n", n_cpu_sockets);
+  hosts_.clear();
   hosts_.resize(n_cpu_sockets);
   unsigned int host_id = 0;
+  SNUCL_INFO("(Much before) Number of hosts: %u\n", hosts_.size());
   for(host_id = 0; host_id < n_cpu_sockets; host_id++)
   {
-	hwloc_obj_t cpuset = hwloc_get_obj_by_type(topology_, HWLOC_OBJ_SOCKET, host_id);
-  	hosts_.push_back(cpuset);
+	hosts_[host_id] = hwloc_get_obj_by_type(topology_, HWLOC_OBJ_NODE, host_id);
+  	//hosts_[host_id] = cpuset;
+    SNUCL_INFO("(During) Number of hosts: %u\n", hosts_.size());
+	SNUCL_INFO("Hosts hwloc ptr[%d]: %p\n", host_id, hosts_[host_id]);
   }
   // FIXME!!!! devices_hosts_distances_ should be a HxD matrix where each
   // row corresponds to a host CPUset and each column represents a device
@@ -249,16 +253,21 @@ void CLPlatform::InitDeviceMetrics()
 	{
 		// TODO: Arbitrary values are filled now, but need to be 
 		// replaced with actual bandwidth numbers
-  		devices_hosts_distances_[host_id][next_device_id] = 10;
+		int num_entities = devices_.size();
+  		devices_hosts_distances_[host_id][next_device_id] = (host_id + next_device_id) % num_entities;
 	}
   }
 
   unsigned int device_id = 0;
   devices_devices_distances_.resize(devices_.size());
   device_id = 0;
+  // We need separate loops because we will be initializing in a triangular fashion
   for(device_id = 0; device_id < devices_.size(); device_id++)
   {
   	devices_devices_distances_[device_id].resize(devices_.size());
+  }
+  for(device_id = 0; device_id < devices_.size(); device_id++)
+  {
   	devices_devices_distances_[device_id][device_id] = numeric_limits<double>::max();
   	for(int next_device_id = device_id+1; next_device_id < devices_.size(); next_device_id++)
 	{
@@ -386,6 +395,7 @@ CLContext* CLPlatform::CreateContextFromDevices(
 	selected_devices_indices.push_back(this_device_index);
   }
 
+  SNUCL_INFO("(Before) Number of hosts: %u\n", hosts_.size());
   CLContext* context = new CLContext(selected_devices, num_properties,
                                      properties,
 									 hosts_,
@@ -465,6 +475,7 @@ CLContext* CLPlatform::CreateContextFromType(
     return NULL;
   }
 
+  SNUCL_INFO("(Before) Number of hosts: %u\n", hosts_.size());
   CLContext* context = new CLContext(selected_devices, num_properties,
                                      properties,
 									 hosts_,

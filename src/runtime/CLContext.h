@@ -59,7 +59,7 @@ class CLContext: public CLObject<struct _cl_context, CLContext,
 
   CLContext(const std::vector<CLDevice*>& devices, size_t num_properties,
             const cl_context_properties* properties,
-					 std::vector<hwloc_obj_t> &hosts,
+					 const std::vector<hwloc_obj_t> &hosts,
 					 std::vector<perf_vector> &d2d_distances,
   					 std::vector<perf_vector> &d2h_distances,
   					 perf_vector &d_compute_perfs,
@@ -69,6 +69,13 @@ class CLContext: public CLObject<struct _cl_context, CLContext,
   ~CLContext();
 
   const std::vector<CLDevice*>& devices() const { return devices_; }
+  const std::vector<hwloc_obj_t>& hosts() const { return hosts_; }
+
+  const perf_order_vector& devices_compute_perf() const { return devices_compute_perf_; }
+  const perf_order_vector& devices_memory_perf() const { return devices_memory_perf_; }
+  const perf_order_vector& devices_lmemory_perf() const { return devices_lmemory_perf_; }
+  const std::vector<perf_order_vector>& d2d_distances() const { return devices_devices_distances_; }
+  const std::vector<perf_order_vector>& d2h_distances() const { return devices_hosts_distances_; }
 
   cl_int GetContextInfo(cl_context_info param_name, size_t param_value_size,
                         void* param_value, size_t* param_value_size_ret);

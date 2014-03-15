@@ -55,13 +55,17 @@
 #include "CLKernel.h"
 #include "CLMem.h"
 #include "CLProgram.h"
+#include "CLPlatform.h"
 #include "CLSampler.h"
 #include "Structs.h"
 
 using namespace std;
 
+class CLPlatform;
+
 CLCommand::CLCommand(CLContext* context, CLDevice* device,
                      CLCommandQueue* queue, cl_command_type type) {
+  sched_type_ = SNUCL_SCHED_CLOSEST;
   type_ = type;
   queue_ = queue;
   if (queue_ != NULL) {
@@ -354,10 +358,27 @@ void CLCommand::Execute() {
 }
 
 bool CLCommand::ResolveConsistency() {
-  if(type_ == CL_COMMAND_NDRANGE_KERNEL 
-  			|| type_ == CL_COMMAND_TASK)
+  ResolveDeviceCharacteristics();
+  switch(type_)
   {
-  	int err = ResolveDeviceOfLaunchKernel();
+  	case CL_COMMAND_NDRANGE_KERNEL:
+	case CL_COMMAND_TASK:
+  		ResolveDeviceOfLaunchKernel();
+		break;
+	case CL_COMMAND_WRITE_BUFFER:
+	case CL_COMMAND_WRITE_IMAGE:
+	case CL_COMMAND_WRITE_BUFFER_RECT:
+	case CL_COMMAND_FILL_BUFFER:
+	case CL_COMMAND_FILL_IMAGE:
+		ResolveDeviceOfWriteMem();
+		break;
+	case CL_COMMAND_READ_BUFFER:
+	case CL_COMMAND_READ_IMAGE:
+	case CL_COMMAND_READ_BUFFER_RECT:
+	   //ResolveDeviceOfReadMem();
+	    break;
+	default: 
+		break;
   }
   bool resolved = consistency_resolved_;
   if (!resolved) {
@@ -454,43 +475,69 @@ bool CLCommand::ResolveConsistency() {
   return resolved;
 }
 
+void CLCommand::ResolveDeviceCharacteristics()
+{
+	char *sched_option = getenv("SNUCL_SCHED_TYPE");
+	cl_command_queue_properties queue_props;
+	queue_->GetCommandQueueInfo(CL_QUEUE_PROPERTIES, sizeof(cl_command_queue_properties),
+								&queue_props, NULL);
+	switch(queue_props & 0xF0)
+	{
+		case CL_QUEUE_DEVICE_SELECT_MANUAL:
+			break;
+		case CL_QUEUE_DEVICE_SELECT_BEST_COMPUTE:
+			sched_type_ = SNUCL_SCHED_MAX_COMPUTE;
+			break;
+		case CL_QUEUE_DEVICE_SELECT_BEST_MEM:
+			sched_type_ = SNUCL_SCHED_MAX_MEMORY;
+			break;
+		case CL_QUEUE_DEVICE_SELECT_BEST_LMEM:
+			break;
+		case CL_QUEUE_DEVICE_SELECT_PERF_MODEL:
+			sched_type_ = SNUCL_SCHED_PERF_MODEL;
+			break;
+		case CL_QUEUE_DEVICE_SELECT_NEAREST:
+			sched_type_ = SNUCL_SCHED_CLOSEST;
+			SNUCL_INFO("Scheduler Type: %x\n", sched_type_);
+			break;
+	}
+	/*
+	if(sched_option != NULL)
+	{
+		//SNUCL_INFO("Scheduler Type: %s\n", sched_option);
+		if(strcmp(sched_option, "SNUCL_SCHED_MAX_COMPUTE") == 0)
+		{
+			sched_type_ = SNUCL_SCHED_MAX_COMPUTE;
+		}
+		else if(strcmp(sched_option, "SNUCL_SCHED_MAX_MEMORY") == 0)
+		{
+			sched_type_ = SNUCL_SCHED_MAX_MEMORY;
+		}
+		else if(strcmp(sched_option, "SNUCL_SCHED_PERF_MODEL") == 0)
+		{
+			sched_type_ = SNUCL_SCHED_PERF_MODEL;
+		}
+		else 
+		{
+			// Default to closest device
+			sched_type_ = SNUCL_SCHED_CLOSEST;
+		}
+	}
+	else
+	{
+		//SNUCL_INFO("Default Scheduler Type: SNUCL_SCHED_CLOSEST\n", 0);
+	    sched_type_ = SNUCL_SCHED_CLOSEST;
+	}*/
+}
+
 int CLCommand::ResolveDeviceOfLaunchKernel() {
 	cl_device_type device_type;
 	cl_uint vendor_id;
 	cl_uint device_id;
 	device_->GetDeviceInfo(CL_DEVICE_TYPE, sizeof(cl_device_type), &device_type, NULL);
 	device_->GetDeviceInfo(CL_DEVICE_VENDOR_ID, sizeof(cl_uint), &vendor_id, NULL);
+
 	const std::vector<CLDevice*> devices = context_->devices();
-
-	int sched_type = 0;
-	char *sched_option = getenv("SNUCL_SCHED_TYPE");
-	if(sched_option != NULL)
-	{
-		SNUCL_INFO("Scheduler Type: %s\n", sched_option);
-		if(strcmp(sched_option, "SNUCL_SCHED_MAX_COMPUTE") == 0)
-		{
-			sched_type = SNUCL_SCHED_MAX_COMPUTE;
-		}
-		else if(strcmp(sched_option, "SNUCL_SCHED_MAX_MEMORY") == 0)
-		{
-			sched_type = SNUCL_SCHED_MAX_MEMORY;
-		}
-		else if(strcmp(sched_option, "SNUCL_SCHED_PERF_MODEL") == 0)
-		{
-			sched_type = SNUCL_SCHED_PERF_MODEL;
-		}
-		else 
-		{
-			// Default to closest device
-			sched_type = SNUCL_SCHED_CLOSEST;
-		}
-	}
-	else
-	{
-		SNUCL_INFO("Default Scheduler Type: SNUCL_SCHED_CLOSEST\n", 0);
-	    sched_type = SNUCL_SCHED_CLOSEST;
-	}
-
 	for(cl_uint i = 0; i < devices.size(); i++)
 	{
 		//SNUCL_INFO("Command's Device: %p <--> Other Device: %p\n", device_, devices[i]);
@@ -502,7 +549,6 @@ int CLCommand::ResolveDeviceOfLaunchKernel() {
 	}
 	int chosen_device_id = 0;
 	SNUCL_INFO("(Before) Submitting %u command type to %u type device with ID %u (%u/%u)\n", type_, device_type, vendor_id, device_id, devices.size());
-
 	// If this is a kernel execution: (yes)
 	// 1) Extract the memory objects from the kernel (will do)
 	// 2) Find their latest device? (will do)
@@ -513,7 +559,7 @@ int CLCommand::ResolveDeviceOfLaunchKernel() {
 	// out_device_list);
 	// Performance model here?
 
-	if(sched_type == SNUCL_SCHED_CLOSEST)
+	if(sched_type_ == SNUCL_SCHED_CLOSEST)
 	{
 		float min_avg_distance = 10565.0f;
 		float avg_distance = 0.0f;
@@ -526,11 +572,6 @@ int CLCommand::ResolveDeviceOfLaunchKernel() {
 					it != kernel_args_->end();
 					++it) {
 				CLKernelArg* arg = it->second;
-				// 1) Find the distances
-				// 2) Rank the computes
-				// 3) Rank the memory bandwidths
-				// 4) Rank accorind to perf. model
-				// 5) Based on the user's runtime choice, choose the appropritae device
 				if (arg->mem != NULL)
 				{
 					int cur_distance = 0;
@@ -574,9 +615,82 @@ int CLCommand::ResolveDeviceOfLaunchKernel() {
 	}
 
 	SNUCL_INFO("(After) Submitted %u command type to %u type device with ID %u (%u/%u)\n", type_, device_type, vendor_id, device_id, devices.size());
-
 	return 0;
 }
+
+int CLCommand::ResolveDeviceOfWriteMem() {
+    static bool has_printed = false;
+	cl_device_type device_type;
+	cl_uint vendor_id;
+	cl_uint device_id;
+	device_->GetDeviceInfo(CL_DEVICE_TYPE, sizeof(cl_device_type), &device_type, NULL);
+	device_->GetDeviceInfo(CL_DEVICE_VENDOR_ID, sizeof(cl_uint), &vendor_id, NULL);
+
+	const std::vector<CLDevice*> devices = context_->devices();
+	const std::vector<hwloc_obj_t> hosts = context_->hosts();
+	for(cl_uint i = 0; i < devices.size(); i++)
+	{
+		//SNUCL_INFO("Command's Device: %p <--> Other Device: %p\n", device_, devices[i]);
+		if(device_ == devices[i])
+		{
+			device_id = i;
+			break;
+		}
+	}
+	unsigned int chosen_device_id = 0;
+	unsigned int chosen_host_id = 0;
+	if(!has_printed)
+		SNUCL_INFO("(Before) Submitting %u command type to %u type device with ID %u (%u/%u)\n", type_, device_type, vendor_id, device_id, devices.size());
+
+	if(sched_type_ == SNUCL_SCHED_CLOSEST)
+	{
+		// Find current host cpuset index/hwloc_obj_t
+		CLPlatform *platform = CLPlatform::GetPlatform();
+		hwloc_topology_t topology = platform->HWLOCTopology();
+		hwloc_cpuset_t cpuset;
+		cpuset = hwloc_bitmap_alloc();
+		hwloc_bitmap_zero(cpuset);
+		hwloc_get_cpubind(topology, cpuset, HWLOC_CPUBIND_THREAD);
+		hwloc_obj_t cpuset_obj = hwloc_get_next_obj_covering_cpuset_by_type(topology, cpuset, HWLOC_OBJ_NODE, NULL);
+		assert(cpuset_obj != NULL);
+
+		std::vector<CLContext::perf_order_vector> d2h_distances = context_->d2h_distances();
+		for(unsigned int idx = 0; idx < hosts.size(); idx++)
+		{
+			//SNUCL_INFO("Comparing cpuset obj: %p Hosts hwloc ptr[%d]: %p\n", cpuset_obj, idx, hosts[idx]);
+			if(hosts[idx] == cpuset_obj)
+			{
+				// choose this to find distance between this cpuset and all devices
+				chosen_host_id = idx;
+				// Nearest device will be at d2h_distances[idx][0];
+				chosen_device_id = d2h_distances[idx][0].second;
+				//SNUCL_INFO("Chosen ones...host ID: %u/%u and device ID: %u/%u\n", chosen_host_id, hosts.size(), chosen_device_id, devices.size());
+			}
+		}
+
+		hwloc_bitmap_free(cpuset);
+
+		// set the chosen device
+		device_ = devices[chosen_device_id];
+		device_->GetDeviceInfo(CL_DEVICE_TYPE, sizeof(cl_device_type), &device_type, NULL);
+		device_->GetDeviceInfo(CL_DEVICE_VENDOR_ID, sizeof(cl_uint), &vendor_id, NULL);
+		for(cl_uint i = 0; i < devices.size(); i++)
+		{
+			if(device_ == devices[i])
+			{
+				device_id = i;
+				break;
+			}
+		}
+	}
+	if(!has_printed)
+	{
+		SNUCL_INFO("(After) Submitted %u command type to %u type device with ID %u (%u/%u)\n", type_, device_type, vendor_id, device_id, devices.size());
+		has_printed = true;
+	}
+	return 0;
+}
+
 
 bool CLCommand::ResolveConsistencyOfLaunchKernel() {
   bool already_resolved = true;

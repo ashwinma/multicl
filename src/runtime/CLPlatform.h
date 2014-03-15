@@ -84,6 +84,7 @@ class CLPlatform: public CLObject<struct _cl_platform_id, CLPlatform,
   CLScheduler* AllocIdleScheduler();
   void InvokeAllSchedulers();
 
+  const hwloc_topology_t &HWLOCTopology() {return topology_;}
  private:
   void InitDeviceMetrics();
   size_t CheckContextProperties(const cl_context_properties* properties,

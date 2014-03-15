@@ -101,6 +101,7 @@ CLCommandQueue* CLCommandQueue::CreateCommandQueue(
     *err = CL_OUT_OF_HOST_MEMORY;
     return NULL;
   }
+  SNUCL_INFO("Command Queue Properties: %x\n", properties);
   return queue;
 }
 

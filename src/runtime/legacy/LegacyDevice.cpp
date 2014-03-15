@@ -169,6 +169,9 @@ LegacyDevice::LegacyDevice(void* library, struct _cl_icd_dispatch* dispatch,
     available_ = CL_FALSE;
   }
 
+  /* TODO: Get the values for mem_bw_, lmem_bw_ and compute_throughput_
+   * via microbenchmarks for this legacy device
+   */
   GET_LEGACY_DEVICE_INFO(CL_DEVICE_TYPE, cl_device_type, type_,
                          CL_DEVICE_TYPE_DEFAULT);
   GET_LEGACY_DEVICE_INFO(CL_DEVICE_VENDOR_ID, cl_uint, vendor_id_, 201111);

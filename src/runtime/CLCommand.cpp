@@ -65,7 +65,7 @@ class CLPlatform;
 
 CLCommand::CLCommand(CLContext* context, CLDevice* device,
                      CLCommandQueue* queue, cl_command_type type) {
-  sched_type_ = SNUCL_SCHED_CLOSEST;
+  sched_type_ = SNUCL_SCHED_MANUAL;
   type_ = type;
   queue_ = queue;
   if (queue_ != NULL) {
@@ -483,8 +483,6 @@ void CLCommand::ResolveDeviceCharacteristics()
 								&queue_props, NULL);
 	switch(queue_props & 0xF0)
 	{
-		case CL_QUEUE_DEVICE_SELECT_MANUAL:
-			break;
 		case CL_QUEUE_DEVICE_SELECT_BEST_COMPUTE:
 			sched_type_ = SNUCL_SCHED_MAX_COMPUTE;
 			break;
@@ -499,6 +497,10 @@ void CLCommand::ResolveDeviceCharacteristics()
 		case CL_QUEUE_DEVICE_SELECT_NEAREST:
 			sched_type_ = SNUCL_SCHED_CLOSEST;
 			SNUCL_INFO("Scheduler Type: %x\n", sched_type_);
+			break;
+		case CL_QUEUE_DEVICE_SELECT_MANUAL:
+		default:
+			sched_type_ = SNUCL_SCHED_MANUAL;
 			break;
 	}
 	/*

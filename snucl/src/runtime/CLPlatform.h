@@ -134,6 +134,7 @@ class CLPlatform: public CLObject<struct _cl_platform_id, CLPlatform,
 
  private:
   static CLPlatform* singleton_;
+  //static CLPlatform singleton_obj;
 };
 
 #endif // __SNUCL__CL_PLATFORM_H

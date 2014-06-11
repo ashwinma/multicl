@@ -58,9 +58,11 @@
 #include "CLSampler.h"
 #include "ICD.h"
 #include "Structs.h"
+#include "RealTimer.h"
 
 using namespace std;
-
+Global::RealTimer gTempTimer;
+Global::RealTimer gQueueFinishTimer;
 #define IS_INVALID_PLATFORM(platform) \
   (platform != CLPlatform::GetPlatform()->st_obj())
 
@@ -268,12 +270,15 @@ CL_API_ENTRY cl_int CL_API_CALL
 SNUCL_API_FUNCTION(clGetPlatformIDs)(
     cl_uint num_entries, cl_platform_id* platforms, cl_uint* num_platforms)
     CL_API_SUFFIX__VERSION_1_0 {
+  //std::cout << "InitSchedulers" << std::endl;
   if ((num_entries == 0 && platforms != NULL) ||
       (num_platforms == NULL && platforms == NULL))
     return CL_INVALID_VALUE;
 
   if (platforms) platforms[0] = CLPlatform::GetPlatform()->st_obj();
   if (num_platforms) *num_platforms = 1;
+  gTempTimer.Init();
+  gQueueFinishTimer.Init();
   return CL_SUCCESS;
 }
 
@@ -444,6 +449,8 @@ SNUCL_API_FUNCTION(clReleaseContext)(cl_context context)
     return CL_INVALID_CONTEXT;
 
   context->c_obj->Release();
+  std::cout << "Enqueue Timer: " << gTempTimer << std::endl;
+  std::cout << "CLFinish Timer: " << gQueueFinishTimer << std::endl;
   return CL_SUCCESS;
 }
 
@@ -495,6 +502,7 @@ SNUCL_API_FUNCTION(clReleaseCommandQueue)(cl_command_queue command_queue)
   if (IS_INVALID_COMMAND_QUEUE(command_queue))
     return CL_INVALID_COMMAND_QUEUE;
 
+  command_queue->c_obj->PrintInfo();
   command_queue->c_obj->Release();
   return CL_SUCCESS;
 }
@@ -1225,7 +1233,9 @@ SNUCL_API_FUNCTION(clFinish)(cl_command_queue command_queue)
 
   CLEvent* blocking = command->ExportEvent();
   q->Enqueue(command);
+  if(q->IsProfiled()) gQueueFinishTimer.Start();
   blocking->Wait();
+  if(q->IsProfiled()) gQueueFinishTimer.Stop();
   blocking->Release();
 
   return CL_SUCCESS;
@@ -1381,7 +1391,9 @@ SNUCL_API_FUNCTION(clEnqueueWriteBuffer)(
 
   CLEvent* blocking;
   if (blocking_write == CL_TRUE) blocking = command->ExportEvent();
+  if(q->IsProfiled()) gTempTimer.Start();
   q->Enqueue(command);
+  if(q->IsProfiled()) gTempTimer.Stop();
   if (blocking_write == CL_TRUE) {
     cl_int ret = blocking->Wait();
     blocking->Release();
@@ -1875,7 +1887,7 @@ SNUCL_API_FUNCTION(clEnqueueMapBuffer)(
     return NULL;
   }
 
-  void* mapped_ptr = b->MapAsBuffer(map_flags, offset, size);
+  void* mapped_ptr = b->MapAsBuffer(map_flags, offset, size, q);
   if (mapped_ptr == NULL) {
     if (errcode_ret) *errcode_ret = CL_OUT_OF_HOST_MEMORY;
     return NULL;

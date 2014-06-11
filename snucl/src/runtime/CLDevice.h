@@ -50,7 +50,7 @@
 #include "CLObject.h"
 #include "Structs.h"
 #include "Utils.h"
-
+#include "RealTimer.h"
 class CLCommand;
 class CLCommandQueue;
 class CLKernel;
@@ -199,8 +199,10 @@ class CLDevice: public CLObject<struct _cl_device_id, CLDevice,
 
   virtual bool IsComplete(CLCommand* command);
 
+  virtual void* AllocHostMem(CLMem *mem) = 0;
   virtual void* AllocMem(CLMem* mem) = 0;
   virtual void FreeMem(CLMem* mem, void* dev_specific) = 0;
+  virtual void FreeHostMem(CLMem* mem, void* dev_specific) = 0;
   virtual void* AllocSampler(CLSampler* sampler);
   virtual void FreeSampler(CLSampler* sampler, void* dev_specific);
 
@@ -220,6 +222,7 @@ class CLDevice: public CLObject<struct _cl_device_id, CLDevice,
                                             cl_uint* num_devices_ret);
 
  protected:
+  Global::RealTimer gLegacyTimer;
   CLScheduler* scheduler_;
   LockFreeQueueMS ready_queue_;
   int node_id_;
@@ -319,6 +322,10 @@ class CLDevice: public CLObject<struct _cl_device_id, CLDevice,
   cl_device_affinity_domain affinity_domain_;
   cl_device_partition_property* partition_type_;
   size_t partition_type_len_;
+
+  cl_ulong mem_bw_;
+  cl_ulong lmem_bw_;
+  cl_ulong compute_throughput_;
 };
 
 #endif // __SNUCL__CL_DEVICE_H

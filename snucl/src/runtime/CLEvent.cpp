@@ -54,6 +54,8 @@
 #include "Utils.h"
 
 using namespace std;
+Global::RealTimer gEventWaitTimer;
+Global::RealTimer gEventBcastTimer;
 
 CLEvent::CLEvent(CLCommandQueue* queue, CLCommand* command) {
   context_ = queue->context();
@@ -68,6 +70,8 @@ CLEvent::CLEvent(CLCommandQueue* queue, CLCommand* command) {
   if (profiled_)
     profile_[CL_QUEUED] = GetTimestamp();
 
+  gEventWaitTimer.Init();
+  gEventBcastTimer.Init();
   pthread_mutex_init(&mutex_complete_, NULL);
   pthread_cond_init(&cond_complete_, NULL);
   pthread_mutex_init(&mutex_callbacks_, NULL);
@@ -82,6 +86,8 @@ CLEvent::CLEvent(CLContext* context, CLCommand* command) {
   status_ = CL_SUBMITTED;
 
   profiled_ = false;
+  gEventWaitTimer.Init();
+  gEventBcastTimer.Init();
 
   pthread_mutex_init(&mutex_complete_, NULL);
   pthread_cond_init(&cond_complete_, NULL);
@@ -97,6 +103,8 @@ CLEvent::CLEvent(CLContext* context) {
   status_ = CL_SUBMITTED;
 
   profiled_ = false;
+  gEventWaitTimer.Init();
+  gEventBcastTimer.Init();
 
   pthread_mutex_init(&mutex_complete_, NULL);
   pthread_cond_init(&cond_complete_, NULL);
@@ -104,6 +112,8 @@ CLEvent::CLEvent(CLContext* context) {
 }
 
 CLEvent::~CLEvent() {
+  //std::cout << "CLEvent Broadcast Timer: " << gEventBcastTimer << std::endl;
+  //std::cout << "CLEvent Wait Timer: " << gEventWaitTimer << std::endl;
   if (queue_) queue_->Release();
   context_->Release();
 
@@ -163,7 +173,9 @@ void CLEvent::SetStatus(cl_int status) {
   if (status == CL_COMPLETE || status < 0) {
     pthread_mutex_lock(&mutex_complete_);
     status_ = status;
+  	//gEventBcastTimer.Start();
     pthread_cond_broadcast(&cond_complete_);
+  	//gEventBcastTimer.Stop();
     pthread_mutex_unlock(&mutex_complete_);
   } else {
     status_ = status;
@@ -196,7 +208,12 @@ void CLEvent::SetStatus(cl_int status) {
 cl_int CLEvent::Wait() {
   pthread_mutex_lock(&mutex_complete_);
   if (status_ != CL_COMPLETE && status_ > 0)
+  {
+  //	gEventWaitTimer.Start();
     pthread_cond_wait(&cond_complete_, &mutex_complete_);
+ // 	gEventWaitTimer.Stop();
+  //	gEventWaitTimer.PrintCurrent();
+  }
   pthread_mutex_unlock(&mutex_complete_);
   return status_;
 }

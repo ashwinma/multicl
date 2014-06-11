@@ -45,6 +45,7 @@
 #include <vector>
 #include <pthread.h>
 #include <semaphore.h>
+#include "RealTimer.h"
 
 class CLCommand;
 class CLCommandQueue;
@@ -63,6 +64,7 @@ class CLScheduler {
   void RemoveCommandQueue(CLCommandQueue* queue);
 
  private:
+  Global::RealTimer gSchedTimer;
   void Run();
 
   CLPlatform* platform_;

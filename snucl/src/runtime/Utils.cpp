@@ -40,113 +40,155 @@
 /*****************************************************************************/
 
 #include "Utils.h"
+#include <malloc.h>
+#include <sys/mman.h>
+#include "cuda_runtime_api.h"
 #include <stdio.h>
 
 LockFreeQueue::LockFreeQueue(unsigned long size) {
-  size_ = size;
-  idx_r_ = 0;
-  idx_w_ = 0;
-  elements_ = (volatile CLCommand**)(new CLCommand*[size]);
+	size_ = size;
+	idx_r_ = 0;
+	idx_w_ = 0;
+	elements_ = (volatile CLCommand**)(new CLCommand*[size]);
 }
 
 LockFreeQueue::~LockFreeQueue() {
-  delete[] elements_;
+	delete[] elements_;
 }
 
 bool LockFreeQueue::Enqueue(CLCommand* element) {
-  unsigned long next_idx_w = (idx_w_ + 1) % size_;
-  if (next_idx_w == idx_r_) return false;
-  elements_[idx_w_] = element;
-  __sync_synchronize();
-  idx_w_ = next_idx_w;
-  return true;
+	unsigned long next_idx_w = (idx_w_ + 1) % size_;
+	if (next_idx_w == idx_r_) return false;
+	elements_[idx_w_] = element;
+	__sync_synchronize();
+	idx_w_ = next_idx_w;
+	return true;
 }
 
 bool LockFreeQueue::Dequeue(CLCommand** element) {
-  if (idx_r_ == idx_w_) return false;
-  unsigned long next_idx_r = (idx_r_ + 1) % size_;
-  *element = (CLCommand*) elements_[idx_r_];
-  idx_r_ = next_idx_r;
-  return true;
+	if (idx_r_ == idx_w_) return false;
+	unsigned long next_idx_r = (idx_r_ + 1) % size_;
+	*element = (CLCommand*) elements_[idx_r_];
+	idx_r_ = next_idx_r;
+	return true;
 }
 
 bool LockFreeQueue::Peek(CLCommand** element) {
-  if (idx_r_ == idx_w_) return false;
-  *element = (CLCommand*) elements_[idx_r_];
-  return true;
+	if (idx_r_ == idx_w_) return false;
+	*element = (CLCommand*) elements_[idx_r_];
+	return true;
 }
 
 unsigned long LockFreeQueue::Size() {
-  if (idx_w_ >= idx_r_) return idx_w_ - idx_r_;
-  return size_ - idx_r_ + idx_w_;
+	if (idx_w_ >= idx_r_) return idx_w_ - idx_r_;
+	return size_ - idx_r_ + idx_w_;
 }
 
 LockFreeQueueMS::LockFreeQueueMS(unsigned long size)
-    : LockFreeQueue(size) {
-  idx_w_cas_ = 0;
-}
+	: LockFreeQueue(size) {
+		idx_w_cas_ = 0;
+	}
 
 LockFreeQueueMS::~LockFreeQueueMS() {
 }
 
 bool LockFreeQueueMS::Enqueue(CLCommand* element) {
-  while (true) {
-    unsigned long prev_idx_w = idx_w_cas_;
-    unsigned long next_idx_w = (prev_idx_w + 1) % size_;
-    if (next_idx_w == idx_r_) return false;
-    if (__sync_bool_compare_and_swap(&idx_w_cas_, prev_idx_w, next_idx_w)) {
-      elements_[prev_idx_w] = element;
-      while (!__sync_bool_compare_and_swap(&idx_w_, prev_idx_w, next_idx_w)) {}
-      break;
-    }
-  }
-  return true;
+	while (true) {
+		unsigned long prev_idx_w = idx_w_cas_;
+		unsigned long next_idx_w = (prev_idx_w + 1) % size_;
+		if (next_idx_w == idx_r_) return false;
+		if (__sync_bool_compare_and_swap(&idx_w_cas_, prev_idx_w, next_idx_w)) {
+			elements_[prev_idx_w] = element;
+			while (!__sync_bool_compare_and_swap(&idx_w_, prev_idx_w, next_idx_w)) {}
+			break;
+		}
+	}
+	return true;
 }
 
 size_t PipeRead(const char* filename, char* buf, size_t size) {
-  FILE* fp = popen(filename, "r");
-  size_t read_size = fread(buf, sizeof(char), size, fp);
-  pclose(fp);
-  return read_size;
+	FILE* fp = popen(filename, "r");
+	size_t read_size = fread(buf, sizeof(char), size, fp);
+	pclose(fp);
+	return read_size;
 }
 
 void CopyRegion(void* src, void* dst, size_t dimension,
-                const size_t* src_origin, const size_t* dst_origin,
-                const size_t* region, size_t element_size,
-                size_t src_row_pitch, size_t src_slice_pitch,
-                size_t dst_row_pitch, size_t dst_slice_pitch) {
-  if (src_row_pitch == 0)
-    src_row_pitch = region[0] * element_size;
-  if (src_slice_pitch == 0)
-    src_slice_pitch = region[1] * src_row_pitch;
-  if (dst_row_pitch == 0)
-    dst_row_pitch = region[0] * element_size;
-  if (dst_slice_pitch == 0)
-    dst_slice_pitch = region[1] * dst_row_pitch;
+		const size_t* src_origin, const size_t* dst_origin,
+		const size_t* region, size_t element_size,
+		size_t src_row_pitch, size_t src_slice_pitch,
+		size_t dst_row_pitch, size_t dst_slice_pitch) {
+	if (src_row_pitch == 0)
+		src_row_pitch = region[0] * element_size;
+	if (src_slice_pitch == 0)
+		src_slice_pitch = region[1] * src_row_pitch;
+	if (dst_row_pitch == 0)
+		dst_row_pitch = region[0] * element_size;
+	if (dst_slice_pitch == 0)
+		dst_slice_pitch = region[1] * dst_row_pitch;
 
-  if (dimension >= 3 && region[2] > 0 && region[1] > 0) {
-    size_t sz = src_origin[2], sy = src_origin[1];
-    size_t dz = dst_origin[2], dy = dst_origin[1];
-    for (size_t z = 0; z < region[2]; z++, sz++, dz++) {
-      for (size_t y = 0; y < region[1]; y++, sy++, dy++) {
-        size_t soff = sz * src_slice_pitch + sy * src_row_pitch +
-                      src_origin[0] * element_size;
-        size_t doff = dz * dst_slice_pitch + dy * dst_row_pitch +
-                      dst_origin[0] * element_size;
-        memcpy((char*)dst + doff, (char*)src + soff, region[0] * element_size);
-      }
-    }
-  } else if (dimension >= 2 && region[1] > 0) {
-    size_t sy = src_origin[1];
-    size_t dy = dst_origin[1];
-    for (size_t y = 0; y < region[1]; y++, sy++, dy++) {
-      size_t soff = sy * src_row_pitch + src_origin[0] * element_size;
-      size_t doff = dy * dst_row_pitch + dst_origin[0] * element_size;
-      memcpy((char*)dst + doff, (char*)src + soff, region[0] * element_size);
-    }
-  } else {
-    size_t soff = src_origin[0] * element_size;
-    size_t doff = dst_origin[0] * element_size;
-    memcpy((char*)dst + doff, (char*)src + soff, region[0] * element_size);
-  }
+	if (dimension >= 3 && region[2] > 0 && region[1] > 0) {
+		size_t sz = src_origin[2], sy = src_origin[1];
+		size_t dz = dst_origin[2], dy = dst_origin[1];
+		for (size_t z = 0; z < region[2]; z++, sz++, dz++) {
+			for (size_t y = 0; y < region[1]; y++, sy++, dy++) {
+				size_t soff = sz * src_slice_pitch + sy * src_row_pitch +
+					src_origin[0] * element_size;
+				size_t doff = dz * dst_slice_pitch + dy * dst_row_pitch +
+					dst_origin[0] * element_size;
+				memcpy((char*)dst + doff, (char*)src + soff, region[0] * element_size);
+			}
+		}
+	} else if (dimension >= 2 && region[1] > 0) {
+		size_t sy = src_origin[1];
+		size_t dy = dst_origin[1];
+		for (size_t y = 0; y < region[1]; y++, sy++, dy++) {
+			size_t soff = sy * src_row_pitch + src_origin[0] * element_size;
+			size_t doff = dy * dst_row_pitch + dst_origin[0] * element_size;
+			memcpy((char*)dst + doff, (char*)src + soff, region[0] * element_size);
+		}
+	} else {
+		size_t soff = src_origin[0] * element_size;
+		size_t doff = dst_origin[0] * element_size;
+		memcpy((char*)dst + doff, (char*)src + soff, region[0] * element_size);
+	}
 }
+
+void *aligned_malloc(const size_t sz)
+{
+	void *ptr = NULL;
+#if 1
+	ptr = memalign(4096, sz);
+	//mlock(ptr, sz);
+#else
+	cudaMallocHost(&ptr, sz);
+#endif
+	return ptr;
+}
+
+void aligned_free(void *ptr, const size_t sz)
+{
+#if 1
+	//munlock(ptr, sz);
+	free(ptr);
+#else
+	cudaFreeHost(&ptr);
+#endif
+}
+#if 0
+std::vector<std::string> &split(const std::string &s, char delim, std::vector<std::string> &elems) {
+	std::stringstream ss(s);
+	std::string item;
+	while (std::getline(ss, item, delim)) {
+		if(!elems.empty())
+			elems.push_back(item);
+	}
+	return elems;
+}
+
+std::vector<std::string> split(const std::string &s, char delim) {
+	std::vector<std::string> elems;
+	split(s, delim, elems);
+	return elems;
+}
+#endif

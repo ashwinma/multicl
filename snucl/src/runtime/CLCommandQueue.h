@@ -48,6 +48,7 @@
 #include "CLObject.h"
 #include "Structs.h"
 #include "Utils.h"
+#include "RealTimer.h"
 
 class CLCommand;
 class CLContext;
@@ -78,9 +79,11 @@ class CLCommandQueue: public CLObject<struct _cl_command_queue,
   virtual void Enqueue(CLCommand* command) = 0;
   virtual void Dequeue(CLCommand* command) = 0;
   void Flush() {}
+  void PrintInfo();
 
  protected:
   void InvokeScheduler();
+  Global::RealTimer gQueueTimer;
 
  private:
   CLContext* context_;

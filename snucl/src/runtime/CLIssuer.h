@@ -62,7 +62,10 @@ class CLIssuer {
   void AddDevice(CLDevice* device);
   void RemoveDevice(CLDevice* device);
 
+  int Index() {return thisIndex; }
+
  private:
+  int thisIndex;
   void Run();
 
   bool blocking_;

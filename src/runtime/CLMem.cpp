@@ -44,7 +44,6 @@
 #include <map>
 #include <set>
 #include <vector>
-#include <malloc.h>
 #include <pthread.h>
 #include <CL/cl.h>
 #include "Callbacks.h"
@@ -56,6 +55,12 @@
 
 using namespace std;
 
+#define UPDATE_ERROR(err)                         \
+  if (err != CL_SUCCESS) {                        \
+    SNUCL_ERROR("legacy vendor error %d\n", err); \
+    return;                                       \
+  }
+
 CLMem::CLMem(CLContext* context) {
   context_ = context;
   context_->Retain();
@@ -64,6 +69,7 @@ CLMem::CLMem(CLContext* context) {
   parent_ = NULL;
   host_ptr_ = NULL;
   alloc_host_ = use_host_ = false;
+  latest_queue_ = NULL;
   map_count_ = 0;
 
   pthread_mutex_init(&mutex_dev_specific_, NULL);
@@ -87,7 +93,14 @@ CLMem::~CLMem() {
     (it->first)->FreeMem(this, it->second);
   }
 
-  if (alloc_host_) free(host_ptr_);
+  if (alloc_host_) 
+  {
+  	if(latest_queue_ == NULL) aligned_free(host_ptr_, size_);
+	else
+	{
+		latest_queue_->device()->FreeHostMem(this, host_ptr_);
+	}
+  }
   if (parent_) parent_->Release();
   context_->RemoveMem(this);
   context_->Release();
@@ -205,17 +218,45 @@ void* CLMem::GetHostPtr() const {
   return host_ptr_;
 }
 
-void CLMem::AllocHostPtr() {
+void CLMem::AllocHostPtr(CLCommandQueue *q) {
   if (host_ptr_ == NULL) {
     pthread_mutex_lock(&mutex_host_ptr_);
     if (host_ptr_ == NULL) {
-      if (IsSubBuffer()) {
-        parent_->AllocHostPtr();
-        host_ptr_ = (void*)((size_t)parent_->host_ptr_ + offset_);
-      } else {
-        host_ptr_ = memalign(4096, size_);
-        alloc_host_ = true;
-      }
+		if (IsSubBuffer()) {
+			parent_->AllocHostPtr();
+			host_ptr_ = (void*)((size_t)parent_->host_ptr_ + offset_);
+		} else {
+			//host_ptr_ = aligned_malloc(size_);
+			if(q == NULL)
+				host_ptr_ = aligned_malloc(size_);
+			else
+			{
+				CLDevice *d = q->device();
+				host_ptr_ = d->AllocHostMem(this);
+				/*
+				if(q->device()->GetDispatch() == NULL)
+					host_ptr_ = aligned_malloc(size_);
+				else
+				{
+					cl_int err;
+					void *m = q->device()->GetDispatch()->clCreateBuffer(
+										q->context()->st_obj(),
+										CL_MEM_ALLOC_HOST_PTR,
+										size_, 
+										NULL,
+										&err);
+					UPDATE_ERROR(err);
+					host_ptr_ = q->device()->GetDispatch()->clEnqueueMapBuffer(
+										q->st_obj(),
+										(cl_mem)m,
+										CL_TRUE,
+										CL_MAP_WRITE|CL_MAP_READ,
+										0, 0, 0, NULL, NULL, &err);
+					UPDATE_ERROR(err);
+				}*/
+			}
+			alloc_host_ = true;
+		}
     }
     pthread_mutex_unlock(&mutex_host_ptr_);
   }
@@ -275,7 +316,8 @@ void CLMem::AddLatest(CLDevice* device) {
 
 void CLMem::SetLatest(CLDevice* device) {
   pthread_mutex_lock(&mutex_dev_latest_);
-  dev_latest_.clear();
+  if (!dev_latest_.empty())
+  	dev_latest_.clear();
   dev_latest_.insert(device);
   pthread_mutex_unlock(&mutex_dev_latest_);
 }
@@ -297,12 +339,27 @@ CLDevice* CLMem::GetNearestLatest(CLDevice* device) {
   return nearest;
 }
 
-void* CLMem::MapAsBuffer(cl_map_flags map_flags, size_t offset, size_t size) {
+void* CLMem::MapAsBuffer(cl_map_flags map_flags, size_t offset, size_t size, CLCommandQueue *q) {
   Retain();
 
   void* ptr;
-  if (use_host_)
+  if(alloc_host_)
+  {
+  	SNUCL_INFO("Changing pinned memory: %p\n", host_ptr_);
+	if(host_ptr_ != NULL)
+	{
+		free(host_ptr_);
+		host_ptr_ = NULL;
+	}
+	AllocHostPtr(q);
     ptr = (void*)((size_t)host_ptr_ + offset);
+	latest_queue_ = q;
+  }
+  else if (use_host_)
+  {
+  	SNUCL_INFO("Using aligned memory: %p\n", host_ptr_);
+    ptr = (void*)((size_t)host_ptr_ + offset);
+  }
   else
     ptr = malloc(size);
 
@@ -438,16 +495,17 @@ void CLMem::SetHostPtr(void* host_ptr) {
     use_host_ = true;
   } else if ((flags_ & CL_MEM_ALLOC_HOST_PTR) &&
              (flags_ & CL_MEM_COPY_HOST_PTR)) {
-    host_ptr_ = memalign(4096, size_);
+    host_ptr_ = aligned_malloc(size_);
     memcpy(host_ptr_, host_ptr, size_);
     alloc_host_ = true;
     use_host_ = true;
   } else if (flags_ & CL_MEM_ALLOC_HOST_PTR) {
-    host_ptr_ = memalign(4096, size_);
+    host_ptr_ = aligned_malloc(size_);
+  	SNUCL_INFO("Creating aligned memory: %p\n", host_ptr_);
     alloc_host_ = true;
     use_host_ = true;
   } else if (flags_ & CL_MEM_COPY_HOST_PTR) {
-    host_ptr_ = memalign(4096, size_);
+    host_ptr_ = aligned_malloc(size_);
     memcpy(host_ptr_, host_ptr, size_);
     alloc_host_ = true;
     SetLatest(LATEST_HOST);

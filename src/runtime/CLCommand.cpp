@@ -196,7 +196,6 @@ bool CLCommand::IsExecutable() {
 
 void CLCommand::Submit() {
   event_->SetStatus(CL_SUBMITTED);
-
   device_->EnqueueReadyQueue(this);
 }
 
@@ -358,7 +357,24 @@ void CLCommand::Execute() {
 }
 
 bool CLCommand::ResolveConsistency() {
-  ResolveDeviceCharacteristics();
+#if 1
+  switch(type_)
+  {
+  	case CL_COMMAND_NDRANGE_KERNEL:
+	case CL_COMMAND_TASK:
+	case CL_COMMAND_WRITE_BUFFER:
+	case CL_COMMAND_WRITE_IMAGE:
+	case CL_COMMAND_WRITE_BUFFER_RECT:
+	case CL_COMMAND_FILL_BUFFER:
+	case CL_COMMAND_FILL_IMAGE:
+	case CL_COMMAND_READ_BUFFER:
+	case CL_COMMAND_READ_IMAGE:
+	case CL_COMMAND_READ_BUFFER_RECT:
+  		ResolveDeviceCharacteristics();
+	    break;
+	default: 
+		break;
+  }
   switch(type_)
   {
   	case CL_COMMAND_NDRANGE_KERNEL:
@@ -375,11 +391,15 @@ bool CLCommand::ResolveConsistency() {
 	case CL_COMMAND_READ_BUFFER:
 	case CL_COMMAND_READ_IMAGE:
 	case CL_COMMAND_READ_BUFFER_RECT:
-	   //ResolveDeviceOfReadMem();
+		ResolveDeviceOfWriteMem();
+	    //ResolveDeviceOfReadMem();
+		//Is there a specific use case to have different algos for Read
+		//vs. Write?
 	    break;
 	default: 
 		break;
   }
+#endif
   bool resolved = consistency_resolved_;
   if (!resolved) {
     switch (type_) {
@@ -477,10 +497,11 @@ bool CLCommand::ResolveConsistency() {
 
 void CLCommand::ResolveDeviceCharacteristics()
 {
-	char *sched_option = getenv("SNUCL_SCHED_TYPE");
+	//char *sched_option = getenv("SNUCL_SCHED_TYPE");
 	cl_command_queue_properties queue_props;
 	queue_->GetCommandQueueInfo(CL_QUEUE_PROPERTIES, sizeof(cl_command_queue_properties),
 								&queue_props, NULL);
+	//SNUCL_INFO("Command Queue Properties for this command: %x\n", queue_props);
 	switch(queue_props & 0xF0)
 	{
 		case CL_QUEUE_DEVICE_SELECT_BEST_COMPUTE:
@@ -490,19 +511,20 @@ void CLCommand::ResolveDeviceCharacteristics()
 			sched_type_ = SNUCL_SCHED_MAX_MEMORY;
 			break;
 		case CL_QUEUE_DEVICE_SELECT_BEST_LMEM:
+			sched_type_ = SNUCL_SCHED_MAX_LMEMORY;
 			break;
 		case CL_QUEUE_DEVICE_SELECT_PERF_MODEL:
 			sched_type_ = SNUCL_SCHED_PERF_MODEL;
 			break;
 		case CL_QUEUE_DEVICE_SELECT_NEAREST:
 			sched_type_ = SNUCL_SCHED_CLOSEST;
-			SNUCL_INFO("Scheduler Type: %x\n", sched_type_);
 			break;
 		case CL_QUEUE_DEVICE_SELECT_MANUAL:
 		default:
 			sched_type_ = SNUCL_SCHED_MANUAL;
 			break;
 	}
+	//SNUCL_INFO("Scheduler Type: %x\n", sched_type_);
 	/*
 	if(sched_option != NULL)
 	{
@@ -550,7 +572,7 @@ int CLCommand::ResolveDeviceOfLaunchKernel() {
 		}
 	}
 	int chosen_device_id = 0;
-	SNUCL_INFO("(Before) Submitting %u command type to %u type device with ID %u (%u/%u)\n", type_, device_type, vendor_id, device_id, devices.size());
+	//SNUCL_INFO("(Before) Submitting %u command type to %u type device with ID %u (%u/%u)\n", type_, device_type, vendor_id, device_id, devices.size());
 	// If this is a kernel execution: (yes)
 	// 1) Extract the memory objects from the kernel (will do)
 	// 2) Find their latest device? (will do)
@@ -621,13 +643,14 @@ int CLCommand::ResolveDeviceOfLaunchKernel() {
 }
 
 int CLCommand::ResolveDeviceOfWriteMem() {
-    static bool has_printed = false;
+	static bool has_printed = false;
 	cl_device_type device_type;
 	cl_uint vendor_id;
-	cl_uint device_id;
 	device_->GetDeviceInfo(CL_DEVICE_TYPE, sizeof(cl_device_type), &device_type, NULL);
 	device_->GetDeviceInfo(CL_DEVICE_VENDOR_ID, sizeof(cl_uint), &vendor_id, NULL);
 
+	unsigned int chosen_device_id = 0;
+	unsigned int chosen_host_id = 0;
 	const std::vector<CLDevice*> devices = context_->devices();
 	const std::vector<hwloc_obj_t> hosts = context_->hosts();
 	for(cl_uint i = 0; i < devices.size(); i++)
@@ -635,17 +658,21 @@ int CLCommand::ResolveDeviceOfWriteMem() {
 		//SNUCL_INFO("Command's Device: %p <--> Other Device: %p\n", device_, devices[i]);
 		if(device_ == devices[i])
 		{
-			device_id = i;
+			chosen_device_id = i;
 			break;
 		}
 	}
-	unsigned int chosen_device_id = 0;
-	unsigned int chosen_host_id = 0;
-	if(!has_printed)
-		SNUCL_INFO("(Before) Submitting %u command type to %u type device with ID %u (%u/%u)\n", type_, device_type, vendor_id, device_id, devices.size());
+	/*if(!has_printed)
+	{
+		SNUCL_INFO("(Before) Submitting %u command type to %u type device with ID %u (%u/%u)\n", type_, device_type, vendor_id, chosen_device_id, devices.size());
+	}*/
 
 	if(sched_type_ == SNUCL_SCHED_CLOSEST)
 	{
+		if(!has_printed)
+		{
+			SNUCL_INFO("(Before) Submitting %u command type to %u type device with ID %u (%u/%u)\n", type_, device_type, vendor_id, chosen_device_id, devices.size());
+		}
 		// Find current host cpuset index/hwloc_obj_t
 		CLPlatform *platform = CLPlatform::GetPlatform();
 		hwloc_topology_t topology = platform->HWLOCTopology();
@@ -660,6 +687,7 @@ int CLCommand::ResolveDeviceOfWriteMem() {
 		for(unsigned int idx = 0; idx < hosts.size(); idx++)
 		{
 			//SNUCL_INFO("Comparing cpuset obj: %p Hosts hwloc ptr[%d]: %p\n", cpuset_obj, idx, hosts[idx]);
+			//SNUCL_INFO("Chosen ones...host ID: %u/%u and device ID: %u/%u\n", chosen_host_id, hosts.size(), chosen_device_id, devices.size());
 			if(hosts[idx] == cpuset_obj)
 			{
 				// choose this to find distance between this cpuset and all devices
@@ -672,24 +700,38 @@ int CLCommand::ResolveDeviceOfWriteMem() {
 
 		hwloc_bitmap_free(cpuset);
 
-		// set the chosen device
-		device_ = devices[chosen_device_id];
-		device_->GetDeviceInfo(CL_DEVICE_TYPE, sizeof(cl_device_type), &device_type, NULL);
-		device_->GetDeviceInfo(CL_DEVICE_VENDOR_ID, sizeof(cl_uint), &vendor_id, NULL);
-		for(cl_uint i = 0; i < devices.size(); i++)
+		if(!has_printed)
 		{
-			if(device_ == devices[i])
-			{
-				device_id = i;
-				break;
-			}
+			SNUCL_INFO("(After) Submitted %u command type to %u type device with ID %u (%u/%u)\n", type_, device_type, vendor_id, chosen_device_id, devices.size());
+			has_printed = true;
 		}
 	}
-	if(!has_printed)
+	else if(sched_type_ == SNUCL_SCHED_MAX_COMPUTE)
 	{
-		SNUCL_INFO("(After) Submitted %u command type to %u type device with ID %u (%u/%u)\n", type_, device_type, vendor_id, device_id, devices.size());
-		has_printed = true;
+		CLContext::perf_order_vector devs_compute = context_->devices_compute_perf();
+		chosen_device_id = devs_compute[0].second;
 	}
+	else if(sched_type_ == SNUCL_SCHED_MANUAL)
+	{
+		// No change to device_
+	}
+	// set the chosen device
+	device_ = devices[chosen_device_id];
+	device_->GetDeviceInfo(CL_DEVICE_TYPE, sizeof(cl_device_type), &device_type, NULL);
+	device_->GetDeviceInfo(CL_DEVICE_VENDOR_ID, sizeof(cl_uint), &vendor_id, NULL);
+	for(cl_uint i = 0; i < devices.size(); i++)
+	{
+		if(device_ == devices[i])
+		{
+			chosen_device_id = i;
+			break;
+		}
+	}
+	/*if(!has_printed)
+	{
+		SNUCL_INFO("(After) Submitted %u command type to %u type device with ID %u (%u/%u)\n", type_, device_type, vendor_id, chosen_device_id, devices.size());
+		has_printed = true;
+	}*/
 	return 0;
 }
 

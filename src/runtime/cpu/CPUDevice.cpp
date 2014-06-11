@@ -636,6 +636,19 @@ void* CPUDevice::AllocMem(CLMem* mem) {
   return m;
 }
 
+void* CPUDevice::AllocHostMem(CLMem *mem)
+{
+	void *m = mem->GetHostPtr();
+	if(m == NULL)
+		m = AllocMem(mem);
+	return m;
+}
+
+void FreeHostMem(CLMem* mem, void* dev_specific)
+{
+	FreeMem(mem, dev_specific);
+}
+
 void CPUDevice::FreeMem(CLMem* mem, void* dev_specific) {
   if (mem->IsImage()) {
     CPUImageParam* image = (CPUImageParam*)dev_specific;

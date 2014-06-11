@@ -197,7 +197,11 @@ CLDispatch::~CLDispatch() {
 CLDispatch* CLDispatch::singleton_ = NULL;
 
 struct _cl_icd_dispatch* CLDispatch::GetDispatch() {
+  static CLDispatch singleton_obj;
   if (singleton_ == NULL)
-    singleton_ = new CLDispatch();
+  {
+    //singleton_ = new CLDispatch();
+    singleton_ = &singleton_obj;
+  }
   return singleton_->dispatch_;
 }

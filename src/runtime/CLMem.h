@@ -49,6 +49,8 @@
 #include <CL/cl.h>
 #include "CLObject.h"
 #include "Structs.h"
+#include "ICD.h"
+#include "CLCommandQueue.h"
 
 #define LATEST_HOST ((CLDevice*)1)
 
@@ -105,7 +107,7 @@ class CLMem: public CLObject<struct _cl_mem, CLMem, struct _emu_cl_mem> {
   void InheritFlags(cl_mem_flags& child_flags) const;
 
   void* GetHostPtr() const;
-  void AllocHostPtr();
+  void AllocHostPtr(CLCommandQueue *q = NULL);
 
   bool HasDevSpecific(CLDevice* device);
   void* GetDevSpecific(CLDevice* device);
@@ -117,7 +119,7 @@ class CLMem: public CLObject<struct _cl_mem, CLMem, struct _emu_cl_mem> {
   void SetLatest(CLDevice* device);
   CLDevice* GetNearestLatest(CLDevice* device);
 
-  void* MapAsBuffer(cl_map_flags map_flags, size_t offset, size_t size);
+  void* MapAsBuffer(cl_map_flags map_flags, size_t offset, size_t size, CLCommandQueue *q);
   void* MapAsImage(cl_map_flags map_flags, const size_t* origin,
                    const size_t* region, size_t* image_row_pitch,
                    size_t* image_slice_pitch);
@@ -134,6 +136,7 @@ class CLMem: public CLObject<struct _cl_mem, CLMem, struct _emu_cl_mem> {
 
  private:
   CLContext* context_;
+  CLCommandQueue* latest_queue_;
   cl_mem_object_type type_;
   cl_mem_flags flags_;
   size_t size_;

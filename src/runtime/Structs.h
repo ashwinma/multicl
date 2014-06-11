@@ -51,8 +51,8 @@ typedef std::vector<double> perf_vector;
 
 struct _cl_icd_dispatch;
 class CLPlatform;
-class CLDevice;
 class CLContext;
+class CLDevice;
 class CLCommandQueue;
 class CLMem;
 class CLSampler;

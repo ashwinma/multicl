@@ -59,6 +59,7 @@ CLScheduler::CLScheduler(CLPlatform* platform, bool busy_waiting) {
   queues_updated_ = false;
   thread_ = (pthread_t)NULL;
   thread_running_ = false;
+  gSchedTimer.Init();
   if (!busy_waiting_)
     sem_init(&sem_schedule_, 0, 0);
   pthread_mutex_init(&mutex_queues_, NULL);
@@ -66,6 +67,7 @@ CLScheduler::CLScheduler(CLPlatform* platform, bool busy_waiting) {
 }
 
 CLScheduler::~CLScheduler() {
+  std::cout << "Scheduler Time: " << gSchedTimer << std::endl;
   Stop();
   if (!busy_waiting_)
     sem_destroy(&sem_schedule_);
@@ -85,13 +87,17 @@ void CLScheduler::Stop() {
     thread_running_ = false;
     Invoke();
     pthread_join(thread_, NULL);
+	SNUCL_INFO("CLScheduler joined main thread", 0);
     thread_ = (pthread_t)NULL;
   }
 }
 
 void CLScheduler::Invoke() {
   if (!busy_waiting_)
+  {
+  	//gSchedTimer.Start();
     sem_post(&sem_schedule_);
+  }
 }
 
 void CLScheduler::AddCommandQueue(CLCommandQueue* queue) {
@@ -120,7 +126,10 @@ void CLScheduler::Run() {
 
   while (thread_running_) {
     if (!busy_waiting_)
+	{
       sem_wait(&sem_schedule_);
+	  //if(!gSchedTimer.IsRunning()) gSchedTimer.Start();
+	}
 
     if (queues_updated_) {
       pthread_mutex_lock(&mutex_queues_);
@@ -145,9 +154,44 @@ void CLScheduler::Run() {
       }
     }
   }
+  //gSchedTimer.Stop();
 }
 
 void* CLScheduler::ThreadFunc(void* argp) {
-  ((CLScheduler*)argp)->Run();
-  return NULL;
+	pthread_t thread = pthread_self();
+#if 1
+#if 1	
+	hwloc_topology_t topology = CLPlatform::GetPlatform()->HWLOCTopology();
+    int n_pus = hwloc_get_nbobjs_by_type(topology, HWLOC_OBJ_PU);
+    int n_cores = hwloc_get_nbobjs_by_type(topology, HWLOC_OBJ_CORE);
+    int n_cpu_sockets = hwloc_get_nbobjs_by_type(topology, HWLOC_OBJ_NODE); 
+	int n_pus_per_socket = n_pus / n_cpu_sockets;
+	hwloc_cpuset_t cpuset = hwloc_bitmap_alloc();
+	hwloc_bitmap_zero(cpuset);
+	hwloc_get_cpubind(topology, cpuset, HWLOC_CPUBIND_THREAD);
+	hwloc_obj_t cpuset_obj = hwloc_get_next_obj_covering_cpuset_by_type(topology, cpuset, HWLOC_OBJ_NODE, NULL);
+	int socket_id = 0;
+    for(socket_id = 0; socket_id < n_cpu_sockets; socket_id++)
+    {
+	  hwloc_obj_t node_obj = hwloc_get_obj_by_type(topology, HWLOC_OBJ_NODE, socket_id);
+	  if(node_obj == cpuset_obj)
+	  	break;
+	}
+	SNUCL_INFO("Setting Scheduler Thread to Core: %d\n", socket_id * n_pus_per_socket + n_pus_per_socket - 1);
+	cpu_set_t c_set;
+	CPU_ZERO(&c_set);
+	CPU_SET(socket_id * n_pus_per_socket + n_pus_per_socket - 1, &c_set);
+	pthread_setaffinity_np(thread, sizeof(cpu_set_t), &c_set);
+	//cpuset_obj = hwloc_get_next_obj_by_type(topology, HWLOC_OBJ_NODE, cpuset_obj);
+	//hwloc_set_thread_cpubind(topology, thread, cpuset_obj->cpuset, HWLOC_CPUBIND_THREAD); 
+	hwloc_bitmap_free(cpuset);
+#else
+	cpu_set_t cpuset;
+	CPU_ZERO(&cpuset);
+	CPU_SET(5, &cpuset);
+	pthread_setaffinity_np(thread, sizeof(cpu_set_t), &cpuset);
+#endif
+#endif
+	((CLScheduler*)argp)->Run();
+	return NULL;
 }

@@ -47,9 +47,11 @@
 #include "CLCommand.h"
 #include "CLDevice.h"
 #include "CLEvent.h"
+#include "CLPlatform.h"
+#include "hwloc.h"
 
 using namespace std;
-
+static int g_curIssuer = 0;
 CLIssuer::CLIssuer(CLDevice* device, bool blocking) {
   blocking_ = blocking;
   devices_.push_back(device);
@@ -58,6 +60,8 @@ CLIssuer::CLIssuer(CLDevice* device, bool blocking) {
   thread_ = (pthread_t)NULL;
   thread_running_ = false;
 
+  thisIndex = g_curIssuer++;
+  SNUCL_INFO("CLIssuer has thisIndex %d", thisIndex);
   pthread_mutex_init(&mutex_devices_, NULL);
   pthread_cond_init(&cond_devices_remove_, NULL);
 }
@@ -68,6 +72,7 @@ CLIssuer::CLIssuer(bool blocking) {
   thread_ = (pthread_t)NULL;
   thread_running_ = false;
 
+  thisIndex = g_curIssuer++;
   pthread_mutex_init(&mutex_devices_, NULL);
   pthread_cond_init(&cond_devices_remove_, NULL);
 }
@@ -97,6 +102,7 @@ void CLIssuer::Stop() {
     }
     pthread_mutex_unlock(&mutex_devices_);
     pthread_join(thread_, NULL);
+	SNUCL_INFO("CLIssuer joined main thread", 0);
     thread_ = (pthread_t)NULL;
   }
 }
@@ -187,6 +193,49 @@ void CLIssuer::Run() {
 }
 
 void* CLIssuer::ThreadFunc(void *argp) {
+  pthread_t thread = pthread_self();
+#if 1
+#if 0
+	hwloc_topology_t topology = CLPlatform::GetPlatform()->HWLOCTopology();
+	hwloc_cpuset_t cpuset = hwloc_bitmap_alloc();
+	hwloc_bitmap_zero(cpuset);
+	hwloc_get_cpubind(topology, cpuset, HWLOC_CPUBIND_THREAD);
+	hwloc_obj_t cpuset_obj = hwloc_get_next_obj_covering_cpuset_by_type(topology, cpuset, HWLOC_OBJ_NODE, NULL);
+	cpuset_obj = hwloc_get_next_obj_by_type(topology, HWLOC_OBJ_NODE, cpuset_obj);
+	hwloc_set_thread_cpubind(topology, thread, cpuset_obj->cpuset, HWLOC_CPUBIND_THREAD); 
+	hwloc_bitmap_free(cpuset);
+#else
+  hwloc_topology_t topology = CLPlatform::GetPlatform()->HWLOCTopology();
+  int n_pus = hwloc_get_nbobjs_by_type(topology, HWLOC_OBJ_PU);
+  int n_cores = hwloc_get_nbobjs_by_type(topology, HWLOC_OBJ_CORE);
+  int n_sockets = hwloc_get_nbobjs_by_type(topology, HWLOC_OBJ_SOCKET);
+  SNUCL_INFO("Available Cores: %d, Available PUs: %d, Available sockets: %d\n", n_cores, n_pus, n_sockets);
+  int idx = ((CLIssuer *)argp)->Index();
+  cpu_set_t cpuset;
+  CPU_ZERO(&cpuset);
+  const char *snuclIssuerAffinityMapping = getenv("SNUCL_ISSUER_AFFINITY_MAPPING");
+  const char *snuclIssuerAffinityBaseCore = getenv("SNUCL_ISSUER_AFFINITY_BASE_CORE");
+  int base_core = 0;
+  if(snuclIssuerAffinityBaseCore != NULL)
+  {
+  	base_core = atoi(snuclIssuerAffinityBaseCore) % n_pus;
+  }
+  if(snuclIssuerAffinityMapping != NULL)
+  {
+	  if(strstr(snuclIssuerAffinityMapping, "cyclic") != NULL)
+	  {
+		  idx = (idx * (n_pus / n_sockets) + (idx / n_sockets) + base_core + 1) % n_pus;
+	  }
+	  else if(strstr(snuclIssuerAffinityMapping, "blocking") != NULL)
+	  {
+		  idx = (idx + base_core + 1) % n_pus;
+	  }
+  }
+  SNUCL_INFO("Selected core: (%d/%d)\n", idx, n_pus);
+  CPU_SET(idx, &cpuset);
+  pthread_setaffinity_np(thread, sizeof(cpu_set_t), &cpuset);
+#endif
+#endif
   ((CLIssuer*)argp)->Run();
   return NULL;
 }

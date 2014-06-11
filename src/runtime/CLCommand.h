@@ -71,6 +71,7 @@
 #define SNUCL_SCHED_MAX_MEMORY	0x0002
 #define SNUCL_SCHED_CLOSEST		0x0003
 #define SNUCL_SCHED_PERF_MODEL	0x0004
+#define SNUCL_SCHED_MAX_LMEMORY	0x0005
 
 class CLCommandQueue;
 class CLContext;

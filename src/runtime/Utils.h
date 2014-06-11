@@ -146,4 +146,6 @@ void CopyRegion(void* src, void* dst, size_t dimension,
                 size_t src_row_pitch, size_t src_slice_pitch,
                 size_t dst_row_pitch, size_t dst_slice_pitch);
 
+void *aligned_malloc(const size_t sz);
+void aligned_free(void *ptr, const size_t sz);
 #endif // __SNUCL__UTILS_H

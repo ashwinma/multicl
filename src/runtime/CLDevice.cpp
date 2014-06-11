@@ -192,8 +192,9 @@ CLDevice::CLDevice(CLDevice* parent)
 }
 
 CLDevice::~CLDevice() {
-  CLPlatform* platform = CLPlatform::GetPlatform();
-  platform->RemoveDevice(this);
+  //[Ashwin] the below seg faults...not sure why
+  //CLPlatform* platform = CLPlatform::GetPlatform();
+  //platform->RemoveDevice(this);
 
   sem_destroy(&sem_ready_queue_);
 }
@@ -203,6 +204,8 @@ cl_int CLDevice::GetDeviceInfo(cl_device_info param_name,
                                size_t* param_value_size_ret) {
   switch (param_name) {
     // TODO: GET_OBJECT_INFO(CL_DEVICE_MEM_BANDWIDTH, cl_ulong, mem_bw_);
+    // TODO: GET_OBJECT_INFO(CL_DEVICE_LMEM_BANDWIDTH, cl_ulong, lmem_bw_);
+    // TODO: GET_OBJECT_INFO(CL_DEVICE_COMPUTE_THROUGHPUT, cl_ulong, compute_throughput_);
     GET_OBJECT_INFO(CL_DEVICE_TYPE, cl_device_type, type_);
     GET_OBJECT_INFO(CL_DEVICE_VENDOR_ID, cl_uint, vendor_id_);
     GET_OBJECT_INFO(CL_DEVICE_MAX_COMPUTE_UNITS, cl_uint, max_compute_units_);

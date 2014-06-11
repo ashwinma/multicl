@@ -48,6 +48,7 @@
 #include "CLDevice.h"
 #include "CLKernel.h"
 #include "ICD.h"
+#include "RealTimer.h"
 
 class CLCommand;
 class CLKernel;
@@ -124,8 +125,10 @@ class LegacyDevice: public CLDevice {
                            size_t num_binaries, CLProgramBinary** binaries,
                            const char* options);
 
+  virtual void *AllocHostMem(CLMem *mem);
   virtual void* AllocMem(CLMem* mem);
   virtual void FreeMem(CLMem* mem, void* dev_specific);
+  virtual void FreeHostMem(CLMem* mem, void* dev_specific);
   virtual void* AllocSampler(CLSampler* sampler);
   virtual void FreeSampler(CLSampler* sampler, void* dev_specific);
 

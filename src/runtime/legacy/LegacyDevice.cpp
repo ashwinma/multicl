@@ -58,8 +58,8 @@
 #include "CLSampler.h"
 #include "ICD.h"
 #include "Utils.h"
-
 using namespace std;
+
 
 #define LEGACY_VERSION_1_0 10
 #define LEGACY_VERSION_1_1 11
@@ -102,9 +102,15 @@ typedef CL_API_ENTRY cl_int (CL_API_CALL *pfn_clIcdGetPlatformIDs)(
     return;                                       \
   }
 
+#define VERIFY_ERROR(err)                         \
+  if (err != CL_SUCCESS) {                        \
+    SNUCL_ERROR("legacy vendor error %d\n", err); \
+  }
+
 LegacyDevice::LegacyDevice(void* library, struct _cl_icd_dispatch* dispatch,
                            cl_platform_id platform_id, cl_device_id device_id)
     : CLDevice(0) {
+  gLegacyTimer.Init();
   library_ = library;
   dispatch_ = dispatch;
   platform_id_ = platform_id;
@@ -369,6 +375,7 @@ LegacyDevice::LegacyDevice(void* library, struct _cl_icd_dispatch* dispatch,
                                          0};
   context_ = dispatch_->clCreateContext(properties, 1, &device_id_, NULL, NULL,
                                         &err);
+  std::cout << "Done creating legacy device" << std::endl;
   if (err != CL_SUCCESS) {
     available_ = false;
   } else {
@@ -388,6 +395,8 @@ LegacyDevice::LegacyDevice(void* library, struct _cl_icd_dispatch* dispatch,
 }
 
 LegacyDevice::~LegacyDevice() {
+  if(gLegacyTimer.Count() > 0)
+	  std::cout << "Dispatch timer: " << gLegacyTimer << std::endl;
   if (kernel_queue_)
     dispatch_->clReleaseCommandQueue(kernel_queue_);
   if (mem_queue_)
@@ -497,8 +506,10 @@ void LegacyDevice::ReadBuffer(CLCommand* command, CLMem* mem_src,
   cl_mem mem_src_dev = (cl_mem)mem_src->GetDevSpecific(this);
   CHECK_ERROR(mem_src_dev == NULL, CL_INVALID_MEM_OBJECT);
   cl_int err;
+  gLegacyTimer.Start();
   err = dispatch_->clEnqueueReadBuffer(mem_queue_, mem_src_dev, CL_TRUE,
                                        off_src, size, ptr, 0, NULL, NULL);
+  gLegacyTimer.Stop();
   UPDATE_ERROR(err);
 }
 
@@ -510,6 +521,8 @@ void LegacyDevice::WriteBuffer(CLCommand* command, CLMem* mem_dst,
   cl_int err;
   err = dispatch_->clEnqueueWriteBuffer(mem_queue_, mem_dst_dev, CL_TRUE,
                                         off_dst, size, ptr, 0, NULL, NULL);
+  //err = dispatch_->clFinish(mem_queue_);
+  //SNUCL_INFO("Writing Buffer Ptr %p with dispatch ptr: %p\n", ptr, dispatch_);
   UPDATE_ERROR(err);
 }
 
@@ -851,10 +864,42 @@ void* LegacyDevice::AllocMem(CLMem* mem) {
     }
   } else {
     m = dispatch_->clCreateBuffer(context_, flags, mem->size(), NULL, &err);
+  	SNUCL_INFO("Creating Mem Buffer: %p\n", m);
   }
   if (err != CL_SUCCESS)
     m = NULL;
   return (void*)m;
+}
+
+void *LegacyDevice::AllocHostMem(CLMem *mem)
+{
+	void *ptr = NULL;
+	if(mem->flags() & CL_MEM_ALLOC_HOST_PTR)
+	{
+		cl_int err;
+		void *m = mem->GetDevSpecific(this);
+		ptr = dispatch_->clEnqueueMapBuffer(mem_queue_, 
+								(cl_mem)m, CL_TRUE, 
+								CL_MAP_READ|CL_MAP_WRITE, 0, mem->size(), 0, NULL, NULL,
+								&err);
+  		SNUCL_INFO("[Queue: %p] Overwriting aligned memory obj %p and ptr: %p\n", mem_queue_, m, ptr);
+		VERIFY_ERROR(err);
+	}
+	return ptr;
+}
+
+void LegacyDevice::FreeHostMem(CLMem* mem, void* dev_specific) {
+  return;
+  if (dev_specific != NULL) {
+	cl_int err;
+	void *m = mem->GetDevSpecific(this);
+	dispatch_->clFinish(mem_queue_);
+  	SNUCL_INFO("[Queue: %p] Unmapping aligned memory obj %p and ptr: %p\n", mem_queue_, m, dev_specific);
+    err = dispatch_->clEnqueueUnmapMemObject(mem_queue_, (cl_mem)m, dev_specific, 
+				0, NULL, NULL);
+	//VERIFY_ERROR(err);
+  	SNUCL_INFO("Unmapped aligned memory obj %p and ptr: %p\n", m, dev_specific);
+  }
 }
 
 void LegacyDevice::FreeMem(CLMem* mem, void* dev_specific) {
@@ -1188,7 +1233,9 @@ void LegacyDevice::IcdPlatformAdd(const char* library_name,
   cl_device_id* devices = IcdGetDevices(platform, &num_devices);
   if (devices != NULL) {
     for (cl_uint i = 0; i < num_devices; i++) {
+  	  //fprintf(stderr, "[Device] DLOpening %s\n", library_name);
       void* library = dlopen(library_name, RTLD_NOW);
+  	  //fprintf(stderr, "[Device] Platform Dispatch %p\n", platform->dispatch);
       LegacyDevice* device = new LegacyDevice(library, platform->dispatch,
                                               platform, devices[i]);
   	  fprintf(stderr, "[Device] 3\n");
@@ -1272,7 +1319,7 @@ cl_device_id* LegacyDevice::IcdGetDevices(cl_platform_id platform,
   cl_int err;
   err = platform->dispatch->clGetDeviceIDs(platform, CL_DEVICE_TYPE_ALL, 0,
                                            NULL, num_devices);
-  fprintf(stderr, "[Device] 2.5\n");
+  //fprintf(stderr, "[Device] 2.5\n");
   if (err != CL_SUCCESS)
     return NULL;
   cl_device_id* devices = (cl_device_id*)malloc(sizeof(cl_device_id) *

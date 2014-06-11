@@ -63,6 +63,7 @@ CLCommandQueue::CLCommandQueue(CLContext *context, CLDevice* device,
   device_ = device;
   device_->AddCommandQueue(this);
   properties_ = properties;
+  gQueueTimer.Init();
 }
 
 CLCommandQueue::~CLCommandQueue() {
@@ -83,6 +84,12 @@ cl_int CLCommandQueue::GetCommandQueueInfo(cl_command_queue_info param_name,
     default: return CL_INVALID_VALUE;
   }
   return CL_SUCCESS;
+}
+
+void CLCommandQueue::PrintInfo()
+{
+  if(IsProfiled())
+  	std::cout << "Queue Timer: " << gQueueTimer << std::endl;
 }
 
 void CLCommandQueue::InvokeScheduler() {
@@ -128,12 +135,21 @@ CLCommand* CLInOrderCommandQueue::Peek() {
 }
 
 void CLInOrderCommandQueue::Enqueue(CLCommand* command) {
+  if(command->type() == CL_COMMAND_WRITE_BUFFER && IsProfiled())
+  {
+	  //gQueueTimer.Start();
+  }
   if (last_event_ != NULL) {
     command->AddWaitEvent(last_event_);
     last_event_->Release();
   }
   last_event_ = command->ExportEvent();
   while (!queue_.Enqueue(command)) {}
+  /*if(command->type() == CL_COMMAND_WRITE_BUFFER)
+  {
+	 gQueueTimer.Stop();
+	 std::cout << "After dequeue" << std::endl;
+  }*/
   InvokeScheduler();
 }
 
@@ -144,6 +160,11 @@ void CLInOrderCommandQueue::Dequeue(CLCommand* command) {
   if (command != dequeued_command)
     SNUCL_ERROR("Invalid dequeue request", 0);
 #endif // SNUCL_DEBUG
+  if(command->type() == CL_COMMAND_WRITE_BUFFER && IsProfiled())
+  {
+	 //gQueueTimer.Stop();
+	 //std::cout << "After dequeue" << std::endl;
+  }
 }
 
 CLOutOfOrderCommandQueue::CLOutOfOrderCommandQueue(

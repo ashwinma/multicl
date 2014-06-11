@@ -123,9 +123,10 @@ CLPlatform::~CLPlatform() {
   }
   hosts_.clear();
   unsigned int device_id = 0;
-  for(device_id = 0; device_id < devices_.size(); device_id++)
+  unsigned int host_id = 0;
+  for(host_id = 0; host_id < hosts_.size(); host_id++)
   {
-  	devices_hosts_distances_[device_id].clear();
+  	devices_hosts_distances_[host_id].clear();
   }
   devices_hosts_distances_.clear();
   for(device_id = 0; device_id < devices_.size(); device_id++)
@@ -218,7 +219,7 @@ void CLPlatform::Init() {
 
   InitDeviceMetrics();
   SNUCL_INFO("SnuCL platform has been initialized.", 0);
-  SNUCL_INFO("Total %u devices (%u CPUs, %lu GPUs, %u accelerators, "
+  SNUCL_INFO("Total %u devices (%u CPUs, %u GPUs, %u accelerators, "
              "and %u custom devices) are in the platform.",
              devices_.size(), num_cpu, num_gpu, num_accelerator, num_custom);
 #endif // SNUCL_DEBUG
@@ -253,6 +254,7 @@ void CLPlatform::InitDeviceMetrics()
 	{
 		// TODO: Arbitrary values are filled now, but need to be 
 		// replaced with actual bandwidth numbers
+		// bandwidth = getH2DBandwidth(hosts_[host_id], devices_[next_device_id])
 		int num_entities = devices_.size();
   		devices_hosts_distances_[host_id][next_device_id] = (host_id + next_device_id) % num_entities;
 	}
@@ -642,10 +644,15 @@ void CLPlatform::RemoveDeviceFromFirstIssuer(CLDevice* device) {
 }
 
 CLPlatform* CLPlatform::singleton_ = NULL;
+//CLPlatform CLPlatform::singleton_obj;
 
 CLPlatform* CLPlatform::GetPlatform() {
+  static CLPlatform singleton_obj;
+  //singleton_ = &singleton_obj;
+  //return singleton_;
   if (singleton_ == NULL) {
-    singleton_ = new CLPlatform();
+    //singleton_ = new CLPlatform();
+    singleton_ = &singleton_obj;
     singleton_->Init();
   }
   return singleton_;

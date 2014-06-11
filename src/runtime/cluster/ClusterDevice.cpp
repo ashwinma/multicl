@@ -784,6 +784,12 @@ void* ClusterDevice::AllocMem(CLMem* mem) {
   return (void*)1;
 }
 
+void* ClusterDevice::AllocHostMem(CLMem* mem) {
+  return (void*)1;
+}
+
+void ClusterDevice::FreeHostMem(CLMem* mem, void* dev_specific) {}
+
 void ClusterDevice::FreeMem(CLMem* mem, void* dev_specific) {
   ClusterSendMessage request;
   request.WriteInt(CLUSTER_REQUEST_FREE_MEM);

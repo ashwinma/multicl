@@ -123,8 +123,10 @@ class CPUDevice: public CLDevice {
                            size_t num_binaries, CLProgramBinary** binaries,
                            const char* options);
 
+  virtual void *AllocHostMem(CLMem *mem);
   virtual void* AllocMem(CLMem* mem);
   virtual void FreeMem(CLMem* mem, void* dev_specific);
+  virtual void FreeHostMem(CLMem* mem, void* dev_specific);
 
   virtual void FreeExecutable(CLProgram* program, void* executable);
 

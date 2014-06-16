@@ -147,6 +147,14 @@ void CLScheduler::Run() {
          ++it) {
       CLCommandQueue* queue = *it;
       CLCommand* command = queue->Peek();
+	  //bool resolved = true;
+	  /*if(command != NULL)
+	  {
+	  if(!gSchedTimer.IsRunning()) gSchedTimer.Start();
+	  resolved = command->ResolveConsistency();
+  	  gSchedTimer.Stop();
+	  }*/
+      //if (command != NULL && resolved) {
       if (command != NULL && command->ResolveConsistency()) {
 	  	// command should have the appropriate device already chosen at this point
         command->Submit();

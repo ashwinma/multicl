@@ -65,6 +65,7 @@ class CLPlatform;
 
 CLCommand::CLCommand(CLContext* context, CLDevice* device,
                      CLCommandQueue* queue, cl_command_type type) {
+  //gCommandTimer.Init();
   sched_type_ = SNUCL_SCHED_MANUAL;
   type_ = type;
   queue_ = queue;
@@ -110,6 +111,7 @@ CLCommand::CLCommand(CLContext* context, CLDevice* device,
 }
 
 CLCommand::~CLCommand() {
+//  std::cout << "Command Timer: " << gCommandTimer << std::endl;
   if (queue_) queue_->Release();
   context_->Release();
   for (vector<CLEvent*>::iterator it = wait_events_.begin();
@@ -357,7 +359,7 @@ void CLCommand::Execute() {
 }
 
 bool CLCommand::ResolveConsistency() {
-#if 1
+#if 0
   switch(type_)
   {
   	case CL_COMMAND_NDRANGE_KERNEL:
@@ -497,7 +499,6 @@ bool CLCommand::ResolveConsistency() {
 
 void CLCommand::ResolveDeviceCharacteristics()
 {
-	//char *sched_option = getenv("SNUCL_SCHED_TYPE");
 	cl_command_queue_properties queue_props;
 	queue_->GetCommandQueueInfo(CL_QUEUE_PROPERTIES, sizeof(cl_command_queue_properties),
 								&queue_props, NULL);
@@ -525,33 +526,6 @@ void CLCommand::ResolveDeviceCharacteristics()
 			break;
 	}
 	//SNUCL_INFO("Scheduler Type: %x\n", sched_type_);
-	/*
-	if(sched_option != NULL)
-	{
-		//SNUCL_INFO("Scheduler Type: %s\n", sched_option);
-		if(strcmp(sched_option, "SNUCL_SCHED_MAX_COMPUTE") == 0)
-		{
-			sched_type_ = SNUCL_SCHED_MAX_COMPUTE;
-		}
-		else if(strcmp(sched_option, "SNUCL_SCHED_MAX_MEMORY") == 0)
-		{
-			sched_type_ = SNUCL_SCHED_MAX_MEMORY;
-		}
-		else if(strcmp(sched_option, "SNUCL_SCHED_PERF_MODEL") == 0)
-		{
-			sched_type_ = SNUCL_SCHED_PERF_MODEL;
-		}
-		else 
-		{
-			// Default to closest device
-			sched_type_ = SNUCL_SCHED_CLOSEST;
-		}
-	}
-	else
-	{
-		//SNUCL_INFO("Default Scheduler Type: SNUCL_SCHED_CLOSEST\n", 0);
-	    sched_type_ = SNUCL_SCHED_CLOSEST;
-	}*/
 }
 
 int CLCommand::ResolveDeviceOfLaunchKernel() {
@@ -673,6 +647,7 @@ int CLCommand::ResolveDeviceOfWriteMem() {
 		{
 			SNUCL_INFO("(Before) Submitting %u command type to %u type device with ID %u (%u/%u)\n", type_, device_type, vendor_id, chosen_device_id, devices.size());
 		}
+	  	//gCommandTimer.Start();
 		// Find current host cpuset index/hwloc_obj_t
 		CLPlatform *platform = CLPlatform::GetPlatform();
 		hwloc_topology_t topology = platform->HWLOCTopology();
@@ -700,6 +675,7 @@ int CLCommand::ResolveDeviceOfWriteMem() {
 
 		hwloc_bitmap_free(cpuset);
 
+	  	//gCommandTimer.Stop();
 		if(!has_printed)
 		{
 			SNUCL_INFO("(After) Submitted %u command type to %u type device with ID %u (%u/%u)\n", type_, device_type, vendor_id, chosen_device_id, devices.size());

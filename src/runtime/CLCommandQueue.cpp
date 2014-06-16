@@ -51,6 +51,7 @@
 #include "CLObject.h"
 #include "Structs.h"
 #include "Utils.h"
+#include "CLPlatform.h"
 
 using namespace std;
 
@@ -61,14 +62,109 @@ CLCommandQueue::CLCommandQueue(CLContext *context, CLDevice* device,
   context_ = context;
   context_->Retain();
   device_ = device;
-  device_->AddCommandQueue(this);
   properties_ = properties;
+  // FIXME: Automatic device selection before adding this to the device?
+  SNUCL_INFO("(Before) Device in Cmdqueue: %p\n", device_);
+  device_ = SelectBestDevice(context, device, properties);
+  SNUCL_INFO("(After) Device in Cmdqueue: %p\n", device_);
+  device_->AddCommandQueue(this);
   gQueueTimer.Init();
 }
 
 CLCommandQueue::~CLCommandQueue() {
   device_->RemoveCommandQueue(this);
   context_->Release();
+}
+
+CLDevice *CLCommandQueue::SelectBestDevice(CLContext *context, CLDevice* device, 
+                               cl_command_queue_properties properties) {
+	cl_command_queue_properties prop_mask = properties & 0xF0;
+	CLDevice* new_device = NULL;
+	static bool has_printed = false;
+	cl_device_type device_type;
+	cl_uint vendor_id;
+	device->GetDeviceInfo(CL_DEVICE_TYPE, sizeof(cl_device_type), &device_type, NULL);
+	device->GetDeviceInfo(CL_DEVICE_VENDOR_ID, sizeof(cl_uint), &vendor_id, NULL);
+
+	unsigned int chosen_device_id = 0;
+	unsigned int chosen_host_id = 0;
+	const std::vector<CLDevice*> devices = context->devices();
+	const std::vector<hwloc_obj_t> hosts = context->hosts();
+	for(cl_uint i = 0; i < devices.size(); i++)
+	{
+		//SNUCL_INFO("Command's Device: %p <--> Other Device: %p\n", device_, devices[i]);
+		if(device == devices[i])
+		{
+			chosen_device_id = i;
+			break;
+		}
+	}
+
+	if(prop_mask == CL_QUEUE_DEVICE_SELECT_NEAREST)
+	{
+		//if(!has_printed)
+		{
+			SNUCL_INFO("(Before) Cmdqueue with %u type device with ID %u (%u/%u)\n", 
+						device_type, vendor_id, chosen_device_id, devices.size());
+		}
+	  	//gCommandTimer.Start();
+		// Find current host cpuset index/hwloc_obj_t
+		CLPlatform *platform = CLPlatform::GetPlatform();
+		hwloc_topology_t topology = platform->HWLOCTopology();
+		hwloc_cpuset_t cpuset;
+		cpuset = hwloc_bitmap_alloc();
+		hwloc_bitmap_zero(cpuset);
+		hwloc_get_cpubind(topology, cpuset, HWLOC_CPUBIND_THREAD);
+		hwloc_obj_t cpuset_obj = hwloc_get_next_obj_covering_cpuset_by_type(topology, cpuset, HWLOC_OBJ_NODE, NULL);
+		assert(cpuset_obj != NULL);
+
+		std::vector<CLContext::perf_order_vector> d2h_distances = context->d2h_distances();
+		for(unsigned int idx = 0; idx < hosts.size(); idx++)
+		{
+			//SNUCL_INFO("Comparing cpuset obj: %p Hosts hwloc ptr[%d]: %p\n", cpuset_obj, idx, hosts[idx]);
+			//SNUCL_INFO("Chosen ones...host ID: %u/%u and device ID: %u/%u\n", chosen_host_id, hosts.size(), chosen_device_id, devices.size());
+			if(hosts[idx] == cpuset_obj)
+			{
+				// choose this to find distance between this cpuset and all devices
+				chosen_host_id = idx;
+				// Nearest device will be at d2h_distances[idx][0];
+				chosen_device_id = d2h_distances[idx][0].second;
+				//SNUCL_INFO("Chosen ones...host ID: %u/%u and device ID: %u/%u\n", chosen_host_id, hosts.size(), chosen_device_id, devices.size());
+			}
+		}
+
+		hwloc_bitmap_free(cpuset);
+
+	  	//gCommandTimer.Stop();
+		//if(!has_printed)
+		{
+			SNUCL_INFO("(After) Cmdqueue with %u type device with ID %u (%u/%u)\n", 
+						device_type, vendor_id, chosen_device_id, devices.size());
+			has_printed = true;
+		}
+	}
+	else if(prop_mask == CL_QUEUE_DEVICE_SELECT_BEST_COMPUTE)
+	{
+		CLContext::perf_order_vector devs_compute = context->devices_compute_perf();
+		chosen_device_id = devs_compute[0].second;
+	}
+	else //if(prop_mask == CL_QUEUE_DEVICE_SELECT_MANUAL)
+	{
+		// No change to device_
+	}
+	// set the chosen device
+	new_device = devices[chosen_device_id];
+	new_device->GetDeviceInfo(CL_DEVICE_TYPE, sizeof(cl_device_type), &device_type, NULL);
+	new_device->GetDeviceInfo(CL_DEVICE_VENDOR_ID, sizeof(cl_uint), &vendor_id, NULL);
+	for(cl_uint i = 0; i < devices.size(); i++)
+	{
+		if(new_device == devices[i])
+		{
+			chosen_device_id = i;
+			break;
+		}
+	}
+	return new_device;
 }
 
 cl_int CLCommandQueue::GetCommandQueueInfo(cl_command_queue_info param_name,

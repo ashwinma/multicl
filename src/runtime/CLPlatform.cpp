@@ -246,6 +246,7 @@ void CLPlatform::InitDeviceMetrics()
   }
   // FIXME!!!! devices_hosts_distances_ should be a HxD matrix where each
   // row corresponds to a host CPUset and each column represents a device
+  H2DMetricsManager h2dmmgr("h2d_distances.conf", topology_);
   devices_hosts_distances_.resize(hosts_.size());
   for(host_id = 0; host_id < hosts_.size(); host_id++)
   {
@@ -254,9 +255,10 @@ void CLPlatform::InitDeviceMetrics()
 	{
 		// TODO: Arbitrary values are filled now, but need to be 
 		// replaced with actual bandwidth numbers
-		// bandwidth = getH2DBandwidth(hosts_[host_id], devices_[next_device_id])
-		int num_entities = devices_.size();
-  		devices_hosts_distances_[host_id][next_device_id] = (host_id + next_device_id) % num_entities;
+		double latency = h2dmmgr.getH2DBandwidth(host_id, next_device_id, 512 * 1024, H2DMetricsManager::SNUCL_LATENCY);
+  		devices_hosts_distances_[host_id][next_device_id] = latency;
+		//int num_entities = devices_.size();
+  		//devices_hosts_distances_[host_id][next_device_id] = (host_id + next_device_id) % num_entities;
 	}
   }
 

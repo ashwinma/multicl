@@ -175,20 +175,34 @@ void aligned_free(void *ptr, const size_t sz)
 	cudaFreeHost(&ptr);
 #endif
 }
-#if 0
-std::vector<std::string> &split(const std::string &s, char delim, std::vector<std::string> &elems) {
+#if 1
+std::vector<std::string> &mysplit(const std::string &s, char delim, std::vector<std::string> &elems) {
 	std::stringstream ss(s);
 	std::string item;
 	while (std::getline(ss, item, delim)) {
-		if(!elems.empty())
+		SNUCL_INFO("Split into %s\n", item.c_str());
+		if(!item.empty())
+		{
+			SNUCL_INFO("Split into %s\n", item.c_str());
 			elems.push_back(item);
+		}
 	}
 	return elems;
 }
 
-std::vector<std::string> split(const std::string &s, char delim) {
+std::vector<std::string> mysplit(const std::string &s, char delim) {
 	std::vector<std::string> elems;
-	split(s, delim, elems);
+	//mysplit(s, delim, elems);
+	std::stringstream ss(s);
+	std::string item;
+	while (std::getline(ss, item, delim)) {
+		//SNUCL_INFO("Split into %s\n", item.c_str());
+		if(!item.empty())
+		{
+			SNUCL_INFO("Split into %s\n", item.c_str());
+			elems.push_back(item);
+		}
+	}
 	return elems;
 }
 #endif

@@ -48,6 +48,7 @@
 #include "CLObject.h"
 #include "Structs.h"
 #include "hwloc.h"
+#include "metrics.h"
 
 class CLContext;
 class CLDevice;

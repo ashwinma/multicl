@@ -43,6 +43,9 @@
 #define __SNUCL__UTILS_H
 
 #include <cstring>
+#include <sstream>
+#include <string>
+#include <vector>
 #include <stddef.h>
 
 #ifdef SNUCL_DEBUG
@@ -148,4 +151,6 @@ void CopyRegion(void* src, void* dst, size_t dimension,
 
 void *aligned_malloc(const size_t sz);
 void aligned_free(void *ptr, const size_t sz);
+std::vector<std::string> &mysplit(const std::string &s, char delim, std::vector<std::string> &elems);
+std::vector<std::string> mysplit(const std::string &s, char delim);
 #endif // __SNUCL__UTILS_H

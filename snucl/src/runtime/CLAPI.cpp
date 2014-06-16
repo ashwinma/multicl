@@ -1887,6 +1887,8 @@ SNUCL_API_FUNCTION(clEnqueueMapBuffer)(
     return NULL;
   }
 
+  // FIXME: We should be resolving devices of this too, no?
+  SNUCL_INFO("CLEnqueueMapBuffer with device: %p\n", q->device());
   void* mapped_ptr = b->MapAsBuffer(map_flags, offset, size, q);
   if (mapped_ptr == NULL) {
     if (errcode_ret) *errcode_ret = CL_OUT_OF_HOST_MEMORY;

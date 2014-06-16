@@ -47,6 +47,7 @@
 #include <CL/cl.h>
 #include "CLKernel.h"
 #include "Structs.h"
+#include "RealTimer.h"
 
 #define CL_COMMAND_BUILD_PROGRAM   0x1210
 #define CL_COMMAND_COMPILE_PROGRAM 0x1211
@@ -137,6 +138,7 @@ class CLCommand {
   bool ResolveConsistency();
 
  private:
+  Global::RealTimer gCommandTimer;
   void ResolveDeviceCharacteristics();
   int ResolveDeviceOfLaunchKernel();
   int ResolveDeviceOfWriteMem();

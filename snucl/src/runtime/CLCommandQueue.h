@@ -82,6 +82,8 @@ class CLCommandQueue: public CLObject<struct _cl_command_queue,
   void PrintInfo();
 
  protected:
+  CLDevice* SelectBestDevice(CLContext *context, CLDevice* device, 
+                               cl_command_queue_properties properties);
   void InvokeScheduler();
   Global::RealTimer gQueueTimer;
 

@@ -43,7 +43,7 @@
 #define __SNUCL__CL_OBJECT_H
 
 #include "CLDispatch.h"
-
+#include "Utils.h"
 unsigned long CLObject_GetNewID();
 
 template <typename st_obj_type, class c_obj_type, typename emu_obj_type>
@@ -76,7 +76,8 @@ class CLObject {
       cur_ref_cnt = ref_cnt_;
     } while (!__sync_bool_compare_and_swap(&ref_cnt_, cur_ref_cnt,
                                            cur_ref_cnt - 1));
-    if (cur_ref_cnt == 1)
+    //SNUCL_INFO("[TID: %p] Ref Count of %p is %d\n", pthread_self(), this, cur_ref_cnt);
+	if (cur_ref_cnt == 1)
       delete this;
   }
 

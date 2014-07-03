@@ -244,22 +244,14 @@ void CLPlatform::InitDeviceMetrics()
     SNUCL_INFO("(During) Number of hosts: %u\n", hosts_.size());
 	SNUCL_INFO("Hosts hwloc ptr[%d]: %p\n", host_id, hosts_[host_id]);
   }
-  // FIXME!!!! devices_hosts_distances_ should be a HxD matrix where each
-  // row corresponds to a host CPUset and each column represents a device
-  H2DMetricsManager h2dmmgr("h2d_distances.conf", topology_);
+  
+  // 1) Create the vectors 
+  // 2) Create the respective metrics managers
+  // 3) Populate the vectors with actual device-host metrics
   devices_hosts_distances_.resize(hosts_.size());
   for(host_id = 0; host_id < hosts_.size(); host_id++)
   {
   	devices_hosts_distances_[host_id].resize(devices_.size());
-  	for(int next_device_id = 0; next_device_id < devices_.size(); next_device_id++)
-	{
-		// TODO: Arbitrary values are filled now, but need to be 
-		// replaced with actual bandwidth numbers
-		double latency = h2dmmgr.getH2DBandwidth(host_id, next_device_id, 512 * 1024, H2DMetricsManager::SNUCL_LATENCY);
-  		devices_hosts_distances_[host_id][next_device_id] = latency;
-		//int num_entities = devices_.size();
-  		//devices_hosts_distances_[host_id][next_device_id] = (host_id + next_device_id) % num_entities;
-	}
   }
 
   unsigned int device_id = 0;
@@ -270,6 +262,25 @@ void CLPlatform::InitDeviceMetrics()
   {
   	devices_devices_distances_[device_id].resize(devices_.size());
   }
+  devices_compute_perf_.resize(devices_.size());
+  devices_memory_perf_.resize(devices_.size());
+  devices_lmemory_perf_.resize(devices_.size());
+
+  H2DMetricsManager h2dmmgr("h2d_distances.conf", topology_, 0);
+
+  for(host_id = 0; host_id < hosts_.size(); host_id++)
+  {
+  	for(int next_device_id = 0; next_device_id < devices_.size(); next_device_id++)
+	{
+		// TODO FIXME: How to calculate the pipeline msg size
+		// for which we need the metrics?
+		double latency = h2dmmgr.getH2DBandwidth(host_id, next_device_id, 512 * 1024, H2DMetricsManager::SNUCL_LATENCY);
+  		devices_hosts_distances_[host_id][next_device_id] = latency;
+		//int num_entities = devices_.size();
+  		//devices_hosts_distances_[host_id][next_device_id] = (host_id + next_device_id) % num_entities;
+	}
+  }
+
   for(device_id = 0; device_id < devices_.size(); device_id++)
   {
   	devices_devices_distances_[device_id][device_id] = numeric_limits<double>::max();
@@ -285,19 +296,16 @@ void CLPlatform::InitDeviceMetrics()
   // TODO: Move the below individual metrics to be withing CLDevice
   // itself. They should all be populated as and when the device obj
   // get created.
-  devices_compute_perf_.resize(devices_.size());
   for(device_id = 0; device_id < devices_.size(); device_id++)
   {
   	devices_compute_perf_[device_id] = devices_.size() - device_id;
   }
 
-  devices_memory_perf_.resize(devices_.size());
   for(device_id = 0; device_id < devices_.size(); device_id++)
   {
   	devices_memory_perf_[device_id] = device_id;
   }
 
-  devices_lmemory_perf_.resize(devices_.size());
   for(device_id = 0; device_id < devices_.size(); device_id++)
   {
   	devices_lmemory_perf_[device_id] = device_id;

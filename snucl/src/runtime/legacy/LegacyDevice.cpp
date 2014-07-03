@@ -396,7 +396,7 @@ LegacyDevice::LegacyDevice(void* library, struct _cl_icd_dispatch* dispatch,
 
 LegacyDevice::~LegacyDevice() {
   if(gLegacyTimer.Count() > 0)
-	  std::cout << "Dispatch timer: " << gLegacyTimer << std::endl;
+	  std::cout << "[Device " << name_ << "] Dispatch timer: " << gLegacyTimer << std::endl;
   if (kernel_queue_)
     dispatch_->clReleaseCommandQueue(kernel_queue_);
   if (mem_queue_)
@@ -506,17 +506,18 @@ void LegacyDevice::ReadBuffer(CLCommand* command, CLMem* mem_src,
   cl_mem mem_src_dev = (cl_mem)mem_src->GetDevSpecific(this);
   CHECK_ERROR(mem_src_dev == NULL, CL_INVALID_MEM_OBJECT);
   cl_int err;
-  gLegacyTimer.Start();
   err = dispatch_->clEnqueueReadBuffer(mem_queue_, mem_src_dev, CL_TRUE,
                                        off_src, size, ptr, 0, NULL, NULL);
-  gLegacyTimer.Stop();
   UPDATE_ERROR(err);
 }
 
 void LegacyDevice::WriteBuffer(CLCommand* command, CLMem* mem_dst,
                                size_t off_dst, size_t size, void* ptr) {
+  gLegacyTimer.Start();
   CHECK_ERROR(available_ == CL_FALSE, CL_DEVICE_NOT_AVAILABLE);
   cl_mem mem_dst_dev = (cl_mem)mem_dst->GetDevSpecific(this);
+  //SNUCL_INFO("[Queue: %p] Before WriteBuffer CLMem: %p, dev specific ptr: %p host ptr: %p\n",
+	//				mem_queue_, mem_dst, mem_dst_dev, ptr);
   CHECK_ERROR(mem_dst_dev == NULL, CL_INVALID_MEM_OBJECT);
   cl_int err;
   err = dispatch_->clEnqueueWriteBuffer(mem_queue_, mem_dst_dev, CL_TRUE,
@@ -524,6 +525,7 @@ void LegacyDevice::WriteBuffer(CLCommand* command, CLMem* mem_dst,
   //err = dispatch_->clFinish(mem_queue_);
   //SNUCL_INFO("Writing Buffer Ptr %p with dispatch ptr: %p\n", ptr, dispatch_);
   UPDATE_ERROR(err);
+  gLegacyTimer.Stop();
 }
 
 void LegacyDevice::CopyBuffer(CLCommand* command, CLMem* mem_src,
@@ -864,7 +866,7 @@ void* LegacyDevice::AllocMem(CLMem* mem) {
     }
   } else {
     m = dispatch_->clCreateBuffer(context_, flags, mem->size(), NULL, &err);
-  	SNUCL_INFO("Creating Mem Buffer: %p\n", m);
+  	//SNUCL_INFO("Mem: %p --> Dev Specific Mem: %p\n", mem, m);
   }
   if (err != CL_SUCCESS)
     m = NULL;
@@ -882,23 +884,24 @@ void *LegacyDevice::AllocHostMem(CLMem *mem)
 								(cl_mem)m, CL_TRUE, 
 								CL_MAP_READ|CL_MAP_WRITE, 0, mem->size(), 0, NULL, NULL,
 								&err);
-  		SNUCL_INFO("[Queue: %p] Overwriting aligned memory obj %p and ptr: %p\n", mem_queue_, m, ptr);
+  		//SNUCL_INFO("[Queue: %p] Mapping CLMem %p, dev specific obj %p and host ptr: %p\n", mem_queue_, mem, m, ptr);
 		VERIFY_ERROR(err);
 	}
 	return ptr;
 }
 
 void LegacyDevice::FreeHostMem(CLMem* mem, void* dev_specific) {
-  return;
   if (dev_specific != NULL) {
 	cl_int err;
 	void *m = mem->GetDevSpecific(this);
-	dispatch_->clFinish(mem_queue_);
-  	SNUCL_INFO("[Queue: %p] Unmapping aligned memory obj %p and ptr: %p\n", mem_queue_, m, dev_specific);
+	//dispatch_->clFinish(mem_queue_);
+  	//SNUCL_INFO("[Queue: %p] Unmapping aligned memory %p, dev specificobj %p and host ptr: %p\n", mem_queue_, mem, m, dev_specific);
     err = dispatch_->clEnqueueUnmapMemObject(mem_queue_, (cl_mem)m, dev_specific, 
 				0, NULL, NULL);
-	//VERIFY_ERROR(err);
-  	SNUCL_INFO("Unmapped aligned memory obj %p and ptr: %p\n", m, dev_specific);
+	VERIFY_ERROR(err);
+	err = dispatch_->clFinish(mem_queue_);
+	VERIFY_ERROR(err);
+  	//SNUCL_INFO("Unmapped aligned memory %p, dev specific obj %p and host ptr: %p\n", mem, m, dev_specific);
   }
 }
 

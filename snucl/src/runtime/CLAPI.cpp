@@ -502,7 +502,7 @@ SNUCL_API_FUNCTION(clReleaseCommandQueue)(cl_command_queue command_queue)
   if (IS_INVALID_COMMAND_QUEUE(command_queue))
     return CL_INVALID_COMMAND_QUEUE;
 
-  command_queue->c_obj->PrintInfo();
+  //command_queue->c_obj->PrintInfo();
   command_queue->c_obj->Release();
   return CL_SUCCESS;
 }
@@ -1888,7 +1888,7 @@ SNUCL_API_FUNCTION(clEnqueueMapBuffer)(
   }
 
   // FIXME: We should be resolving devices of this too, no?
-  SNUCL_INFO("CLEnqueueMapBuffer with device: %p\n", q->device());
+  //SNUCL_INFO("CLEnqueueMapBuffer with device: %p\n", q->device());
   void* mapped_ptr = b->MapAsBuffer(map_flags, offset, size, q);
   if (mapped_ptr == NULL) {
     if (errcode_ret) *errcode_ret = CL_OUT_OF_HOST_MEMORY;

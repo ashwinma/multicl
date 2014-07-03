@@ -119,6 +119,7 @@ CLCommand::~CLCommand() {
        ++it) {
     (*it)->Release();
   }
+//  SNUCL_INFO("[TID: %p] Destructor of Command: %p\n", pthread_self(), this); 
   if (mem_src_) mem_src_->Release();
   if (mem_dst_) mem_dst_->Release();
   if (pattern_) free(pattern_);
@@ -1073,6 +1074,7 @@ CLEvent* CLCommand::CloneMem(CLDevice* dev_src, CLDevice* dev_dst,
                  use_recv, use_rcopy, alloc_ptr, use_host_ptr);
 
   void* ptr = NULL;
+  //SNUCL_INFO("Cloning Mem\n", 0);
   if (alloc_ptr)
     ptr = memalign(4096, mem->size());
   if (use_host_ptr)
@@ -1428,6 +1430,7 @@ CLCommand::CreateMapBuffer(CLContext* context, CLDevice* device,
                                      CL_COMMAND_MAP_BUFFER);
   if (command == NULL) return NULL;
   command->mem_src_ = buffer;
+  command->mem_src_->Retain();
   command->map_flags_ = map_flags;
   command->off_src_ = offset;
   command->size_ = size;
@@ -1444,6 +1447,7 @@ CLCommand::CreateMapImage(CLContext* context, CLDevice* device,
                                      CL_COMMAND_MAP_IMAGE);
   if (command == NULL) return NULL;
   command->mem_src_ = image;
+  command->mem_src_->Retain();
   command->map_flags_ = map_flags;
   memcpy(command->src_origin_, origin, sizeof(size_t) * 3);
   memcpy(command->region_, region, sizeof(size_t) * 3);
@@ -1459,6 +1463,7 @@ CLCommand::CreateUnmapMemObject(CLContext* context, CLDevice* device,
                                      CL_COMMAND_UNMAP_MEM_OBJECT);
   if (command == NULL) return NULL;
   command->mem_src_ = mem;
+  command->mem_src_->Retain();
   command->ptr_ = mapped_ptr;
   return command;
 }

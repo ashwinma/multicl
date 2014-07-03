@@ -180,10 +180,10 @@ std::vector<std::string> &mysplit(const std::string &s, char delim, std::vector<
 	std::stringstream ss(s);
 	std::string item;
 	while (std::getline(ss, item, delim)) {
-		SNUCL_INFO("Split into %s\n", item.c_str());
+		//SNUCL_INFO("Split into %s\n", item.c_str());
 		if(!item.empty())
 		{
-			SNUCL_INFO("Split into %s\n", item.c_str());
+		//	SNUCL_INFO("Split into %s\n", item.c_str());
 			elems.push_back(item);
 		}
 	}
@@ -199,7 +199,7 @@ std::vector<std::string> mysplit(const std::string &s, char delim) {
 		//SNUCL_INFO("Split into %s\n", item.c_str());
 		if(!item.empty())
 		{
-			SNUCL_INFO("Split into %s\n", item.c_str());
+			//SNUCL_INFO("Split into %s\n", item.c_str());
 			elems.push_back(item);
 		}
 	}

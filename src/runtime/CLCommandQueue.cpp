@@ -63,10 +63,12 @@ CLCommandQueue::CLCommandQueue(CLContext *context, CLDevice* device,
   context_->Retain();
   device_ = device;
   properties_ = properties;
-  // FIXME: Automatic device selection before adding this to the device?
-  SNUCL_INFO("(Before) Device in Cmdqueue: %p\n", device_);
+  // Q: Automatic device selection before adding this to the device? 
+  // A: Only if we have all the information (nearest). If we don't have 
+  // all the info (kernel) then wait for the device selection
+  //SNUCL_INFO("(Before) Device in Cmdqueue: %p\n", device_);
   device_ = SelectBestDevice(context, device, properties);
-  SNUCL_INFO("(After) Device in Cmdqueue: %p\n", device_);
+  //SNUCL_INFO("(After) Device in Cmdqueue: %p\n", device_);
   device_->AddCommandQueue(this);
   gQueueTimer.Init();
 }
@@ -102,7 +104,7 @@ CLDevice *CLCommandQueue::SelectBestDevice(CLContext *context, CLDevice* device,
 
 	if(prop_mask == CL_QUEUE_DEVICE_SELECT_NEAREST)
 	{
-		//if(!has_printed)
+		if(!has_printed)
 		{
 			SNUCL_INFO("(Before) Cmdqueue with %u type device with ID %u (%u/%u)\n", 
 						device_type, vendor_id, chosen_device_id, devices.size());
@@ -136,7 +138,7 @@ CLDevice *CLCommandQueue::SelectBestDevice(CLContext *context, CLDevice* device,
 		hwloc_bitmap_free(cpuset);
 
 	  	//gCommandTimer.Stop();
-		//if(!has_printed)
+		if(!has_printed)
 		{
 			SNUCL_INFO("(After) Cmdqueue with %u type device with ID %u (%u/%u)\n", 
 						device_type, vendor_id, chosen_device_id, devices.size());
@@ -184,8 +186,8 @@ cl_int CLCommandQueue::GetCommandQueueInfo(cl_command_queue_info param_name,
 
 void CLCommandQueue::PrintInfo()
 {
-  if(IsProfiled())
-  	std::cout << "Queue Timer: " << gQueueTimer << std::endl;
+  //if(IsProfiled())
+  //	std::cout << "Queue Timer: " << gQueueTimer << std::endl;
 }
 
 void CLCommandQueue::InvokeScheduler() {
@@ -204,7 +206,7 @@ CLCommandQueue* CLCommandQueue::CreateCommandQueue(
     *err = CL_OUT_OF_HOST_MEMORY;
     return NULL;
   }
-  SNUCL_INFO("Command Queue Properties: %x\n", properties);
+  //SNUCL_INFO("Command Queue Properties: %x\n", properties);
   return queue;
 }
 
@@ -217,6 +219,7 @@ CLInOrderCommandQueue::CLInOrderCommandQueue(
 }
 
 CLInOrderCommandQueue::~CLInOrderCommandQueue() {
+  //SNUCL_INFO("Destructor of Inorder CLCommandQueue %p\n", this);
   if (last_event_)
     last_event_->Release();
 }

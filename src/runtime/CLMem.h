@@ -107,6 +107,7 @@ class CLMem: public CLObject<struct _cl_mem, CLMem, struct _emu_cl_mem> {
   void InheritFlags(cl_mem_flags& child_flags) const;
 
   void* GetHostPtr() const;
+  void FreeHostPtr(CLCommandQueue *q = NULL);
   void AllocHostPtr(CLCommandQueue *q = NULL);
 
   bool HasDevSpecific(CLDevice* device);

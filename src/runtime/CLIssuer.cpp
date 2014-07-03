@@ -102,7 +102,7 @@ void CLIssuer::Stop() {
     }
     pthread_mutex_unlock(&mutex_devices_);
     pthread_join(thread_, NULL);
-	SNUCL_INFO("CLIssuer joined main thread", 0);
+	SNUCL_INFO("CLIssuer joined main thread\n", 0);
     thread_ = (pthread_t)NULL;
   }
 }

@@ -93,14 +93,17 @@ CLMem::~CLMem() {
     (it->first)->FreeMem(this, it->second);
   }
 
-  if (alloc_host_) 
+  //SNUCL_INFO("Destructor of CLMem: %p, host ptr: %p\n", this, host_ptr_);
+  /*if (alloc_host_ && host_ptr_ != NULL) 
   {
   	if(latest_queue_ == NULL) aligned_free(host_ptr_, size_);
 	else
 	{
 		latest_queue_->device()->FreeHostMem(this, host_ptr_);
+		latest_queue_ = NULL;
 	}
-  }
+	host_ptr_ = NULL;
+  }*/
   if (parent_) parent_->Release();
   context_->RemoveMem(this);
   context_->Release();
@@ -218,6 +221,22 @@ void* CLMem::GetHostPtr() const {
   return host_ptr_;
 }
 
+void CLMem::FreeHostPtr(CLCommandQueue *q) {
+	if(host_ptr_ != NULL) {
+		if(latest_queue_ == NULL) {
+			aligned_free(host_ptr_, size_);
+		}
+		else {
+			//SNUCL_INFO("Free Host Ptr of CLMem: %p, host ptr: %p\n",
+			//		this, host_ptr_);
+			latest_queue_->device()->FreeHostMem(this, host_ptr_);
+			latest_queue_->Release();
+			latest_queue_ = NULL;
+		}
+	}
+	host_ptr_ = NULL;
+}
+
 void CLMem::AllocHostPtr(CLCommandQueue *q) {
   if (host_ptr_ == NULL) {
     pthread_mutex_lock(&mutex_host_ptr_);
@@ -254,6 +273,8 @@ void CLMem::AllocHostPtr(CLCommandQueue *q) {
 										0, 0, 0, NULL, NULL, &err);
 					UPDATE_ERROR(err);
 				}*/
+				latest_queue_ = q;
+				latest_queue_->Retain();
 			}
 			alloc_host_ = true;
 		}
@@ -345,19 +366,17 @@ void* CLMem::MapAsBuffer(cl_map_flags map_flags, size_t offset, size_t size, CLC
   void* ptr;
   if(alloc_host_)
   {
-  	SNUCL_INFO("Changing pinned memory: %p\n", host_ptr_);
+  	//SNUCL_INFO("Changing pinned memory: %p\n", host_ptr_);
 	if(host_ptr_ != NULL)
 	{
-		free(host_ptr_);
-		host_ptr_ = NULL;
+		FreeHostPtr(q);
 	}
 	AllocHostPtr(q);
+  	//SNUCL_INFO("Changed pinned memory: %p\n", host_ptr_);
     ptr = (void*)((size_t)host_ptr_ + offset);
-	latest_queue_ = q;
   }
   else if (use_host_)
   {
-  	SNUCL_INFO("Using aligned memory: %p\n", host_ptr_);
     ptr = (void*)((size_t)host_ptr_ + offset);
   }
   else
@@ -480,6 +499,8 @@ bool CLMem::GetMapWritebackLayoutForImage(void* ptr, size_t* origin,
 void CLMem::Unmap(void* ptr) {
   if (!use_host_)
     free(ptr);
+  //SNUCL_INFO("[TID: %p] Unmapping ptr: %p from CLMem obj: %p\n", pthread_self(), ptr, this);
+  FreeHostPtr(NULL);
   Release();
 }
 
@@ -501,7 +522,6 @@ void CLMem::SetHostPtr(void* host_ptr) {
     use_host_ = true;
   } else if (flags_ & CL_MEM_ALLOC_HOST_PTR) {
     host_ptr_ = aligned_malloc(size_);
-  	SNUCL_INFO("Creating aligned memory: %p\n", host_ptr_);
     alloc_host_ = true;
     use_host_ = true;
   } else if (flags_ & CL_MEM_COPY_HOST_PTR) {

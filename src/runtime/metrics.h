@@ -5,8 +5,34 @@
 #include <vector>
 #include <string>
 #include "hwloc.h"
+#include <CLPlatform.h>
+#include <CLContext.h>
 #include <CLDevice.h>
-class H2DMetricsManager
+#include <CLCommandQueue.h>
+
+cl_int CLFinish(CLCommandQueue *q);
+const char* getOpenCLErrorCodeStr(int input);
+class MetricsManager
+{
+	public: 
+		MetricsManager()
+		{
+		}
+	protected:
+		void clInit();
+		void clFinalize();
+
+		cl_uint _num_devices;
+		//cl_platform_id *_platforms;
+		//cl_context _context;
+		CLContext *_Context;
+		cl_device_id *_devices;
+		std::vector<CLDevice *>_Devices;
+		//cl_command_queue *_queues;
+		std::vector<CLCommandQueue *>_Queues;
+};
+
+class H2DMetricsManager : MetricsManager
 {
 	public:
 		enum metric_type {SNUCL_BANDWIDTH = 0, SNUCL_LATENCY};
@@ -34,7 +60,7 @@ class H2DMetricsManager
 		std::ifstream _ifile_stream;
 		std::ofstream _ofile_stream;
 		hwloc_topology_t _topology; // we could just use hwloc_obj_ts
-		std::vector<CLDevice *> _devices;
+		//std::vector<CLDevice *> _devices;
 		std::vector<hwloc_obj_t> _hosts;
   /* 2D vector storing distances between CPUsets and OpenCL
    * devices. Each row represents one CPUset. */

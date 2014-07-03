@@ -193,8 +193,8 @@ CLDevice::CLDevice(CLDevice* parent)
 
 CLDevice::~CLDevice() {
   //[Ashwin] the below seg faults...not sure why
-  //CLPlatform* platform = CLPlatform::GetPlatform();
-  //platform->RemoveDevice(this);
+  CLPlatform* platform = CLPlatform::GetPlatform();
+//  platform->RemoveDevice(this);
 
   sem_destroy(&sem_ready_queue_);
 }

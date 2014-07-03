@@ -50,7 +50,7 @@
 
 #ifdef SNUCL_DEBUG
 #define SNUCL_ERROR(fmt, ...)  fprintf(stdout, "* ERR * [%s:%d] " fmt "\n", __FILE__, __LINE__, __VA_ARGS__)
-#define SNUCL_INFO(fmt, ...)   fprintf(stdout, "* INF * [%s:%d] " fmt "\n", __FILE__, __LINE__, __VA_ARGS__)
+#define SNUCL_INFO(fmt, ...)   fprintf(stdout, "* INF * [%s:%d] " fmt "", __FILE__, __LINE__, __VA_ARGS__)
 #else
 #define SNUCL_ERROR(fmt, ...)
 #define SNUCL_INFO(fmt, ...)

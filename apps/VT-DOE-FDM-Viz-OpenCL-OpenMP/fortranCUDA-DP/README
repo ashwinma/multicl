@@ -1,0 +1,17 @@
+This code does computations in double precision on GPU
+
+Prerequisites:
+1) CUDA Toolkit version >4.0
+2) MPI library with fortran bindings
+
+Steps:
+1) In the Makefile, set the following environment variables to appropriate compilers
+MPIF90, MPICC , FF90 , CC
+
+2) In the Makefile, set the following environment variables to MPI installation and CUDA toolkit installation directories respectively:
+MPI_DIR, CUDA_DIR
+
+3) Running 'make' should compile the code
+
+4) mpirun -np X ./disfd # would launch simulation with X processes
+

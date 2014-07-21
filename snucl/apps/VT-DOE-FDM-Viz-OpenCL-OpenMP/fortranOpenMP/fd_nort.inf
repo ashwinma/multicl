@@ -1,0 +1,26 @@
+  Enter the name of file for store the information
+fd_nort.inf                                                             
+ Enter computing duration (sec) and print interval
+   50.0000000               1
+ Enter the angle (degree) from North to X-Axis (clockwise) of FD coordinate system
+   0.00000000    
+ Enter the (x,y) value of given reference pointin the FD coordinate system
+   0.00000000       0.00000000    
+ Partition number of FD zone in X, Y direction
+           2           4
+ Set the nodes number of PML zone in Region II
+ and the theoretical reflect factor
+          12   1.99999996E-02
+  Enter the name of file with velocity structure
+fd_north.mat                                                            
+  Enter the name of file list source file names
+source_model.list                                                       
+  Enter the name of file with receiver locations
+station_rock.list                                                       
+  Give the file name for outputing the Velocity.
+fd_nort.vel                                                             
+  
+ ERROR !
+ Multiplying (the partition number in X-axis)           2
+ by (the partition number in Y-axis)           4   (=           8 )
+ is greater than the number of processors           1

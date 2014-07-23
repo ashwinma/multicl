@@ -18,7 +18,7 @@
 #else
 # include <CL/opencl.h>
 #endif
-
+#include "papi_interface.h"
 #include "RealTimer.h"
 #define CHECK_ERROR(err, str) \
 	if (err != CL_SUCCESS) \
@@ -31,14 +31,15 @@
 	{\
 		fprintf(stderr, "Error creating memory objects in \"%s\"\n", str); \
 	}
-
+//#define DISFD_DEBUG
+#define DISFD_PAPI
 /***********************************************/
 /* for debug: check the output                 */
 /***********************************************/
 void write_output(float *arr, int size, const char *filename)
 {
     FILE *fp;
-    if((fp = fopen(filename, "w+")) == NULL)
+    if((fp = fopen(filename, "a")) == NULL)
     {
         fprintf(stderr, "File write error!\n");
     }
@@ -271,6 +272,10 @@ size_t LoadProgramSource(const char *filename, const char **progSrc)
 void init_cl(int *deviceID) 
 {
 	int i;
+#ifdef DISFD_PAPI
+	papi_init();
+	printf("PAPI Init Done\n");
+#endif
     cl_int errNum;
     cl_int err;
     // launch the device
@@ -347,7 +352,7 @@ void init_cl(int *deviceID)
 	{
 		int chosen_dev_id; 
 		//= (i + 2) % num_devices;
-		if(i == 0) chosen_dev_id = 0;
+		if(i == 0) chosen_dev_id = 2;
 		else if (i == 1) chosen_dev_id = 0;
 		printf("[OpenCL] %dth command queue uses Dev ID %d\n", i, chosen_dev_id);
 		_cl_commandQueues[i] = clCreateCommandQueue(_cl_context, _cl_devices[chosen_dev_id], CL_QUEUE_PROFILING_ENABLE, NULL);
@@ -380,7 +385,7 @@ void init_cl(int *deviceID)
     free((void *)progSrc);
     // -cl-mad-enable
     // -cl-opt-disable
-    errNum = clBuildProgram(_cl_program, num_devices, _cl_devices, "-cl-opt-disable", NULL, NULL);
+    errNum = clBuildProgram(_cl_program, num_devices, _cl_devices, "", NULL, NULL);
     //errNum = clBuildProgram(_cl_program, 1, &_cl_firstDevice, "-cl-opt-disable", NULL, NULL);
     if(errNum != CL_SUCCESS)
 	{
@@ -514,7 +519,10 @@ void free_device_memC_opencl(int *lbx, int *lby)
 	Print(&h2dTimerVelocity, "Velocity H2D Time");
 	Print(&d2hTimerStress, "Stress D2H Time");
 	Print(&d2hTimerVelocity, "Velocity D2H Time");
-
+#ifdef DISFD_PAPI
+	papi_print_all_events();
+	papi_stop_all_events();
+#endif
 	clReleaseMemObject(nd1_velD);
 	clReleaseMemObject(nd1_txyD);
 	clReleaseMemObject(nd1_txzD);
@@ -1902,6 +1910,9 @@ void compute_velocityC_opencl(int *nztop, int *nztm1, float *ca, int *lbx,
     for(i = 0; i < NUM_COMMAND_QUEUES; i++) {
 	Start(&kernelTimerVelocity[i]);
 	}
+#ifdef DISFD_PAPI
+	papi_start_all_events();
+#endif
 	size_t dimBlock[3] = {blockSizeX, blockSizeY, 1};
 	int gridSizeX1 = (nd1_vel[3] - nd1_vel[2])/blockSizeX + 1;
 	int gridSizeY1 = (nd1_vel[9] - nd1_vel[8])/blockSizeY + 1;
@@ -2267,6 +2278,12 @@ void compute_velocityC_opencl(int *nztop, int *nztm1, float *ca, int *lbx,
     }
 	Stop(&kernelTimerVelocity[i]);
     }
+#ifdef DISFD_PAPI
+	papi_accum_all_events();
+	//papi_stop_all_events();
+	papi_print_all_events();
+	//papi_reset_all_events();
+#endif
 	gettimeofday(&t2, NULL);
     tmpTime = 1000.0 * (t2.tv_sec - t1.tv_sec) + (t2.tv_usec - t1.tv_usec) / 1000.0;
     totalTimeCompV += tmpTime;
@@ -2279,15 +2296,16 @@ void compute_velocityC_opencl(int *nztop, int *nztm1, float *ca, int *lbx,
     tmpTime = 1000.0 * (t2.tv_sec - t1.tv_sec) + (t2.tv_usec - t1.tv_usec) / 1000.0;
     totalTimeD2HV += tmpTime;
 
-  // int size = (*nztop + 2) * (*nxtop + 3) * (*nytop + 3); 
-  // write_output(v1xM, size, "OUTPUT_ARRAYS/v1xM.txt");
-  // write_output(v1yM, size, "OUTPUT_ARRAYS/v1yM.txt");
-  // write_output(v1zM, size, "OUTPUT_ARRAYS/v1zM.txt");
-  // size = (*nzbtm + 1) * (*nxbtm + 3) * (*nybtm + 3);
-  // write_output(v2xM, size, "OUTPUT_ARRAYS/v2xM.txt");
-  // write_output(v2yM, size, "OUTPUT_ARRAYS/v2yM.txt");
-  // write_output(v2zM, size, "OUTPUT_ARRAYS/v2zM.txt");
-
+#ifdef DISFD_DEBUG
+  int size = (*nztop + 2) * (*nxtop + 3) * (*nytop + 3); 
+  write_output(v1xM, size, "OUTPUT_ARRAYS/v1xM.txt");
+  write_output(v1yM, size, "OUTPUT_ARRAYS/v1yM.txt");
+  write_output(v1zM, size, "OUTPUT_ARRAYS/v1zM.txt");
+  size = (*nzbtm + 1) * (*nxbtm + 3) * (*nybtm + 3);
+  write_output(v2xM, size, "OUTPUT_ARRAYS/v2xM.txt");
+  write_output(v2yM, size, "OUTPUT_ARRAYS/v2yM.txt");
+  write_output(v2zM, size, "OUTPUT_ARRAYS/v2zM.txt");
+#endif
     return;
 }
 
@@ -3716,31 +3734,32 @@ void compute_stressC_opencl(int *nxb1, int *nyb1, int *nx1p1, int *ny1p1, int *n
     tmpTime = 1000.0 * (t2.tv_sec - t1.tv_sec) + (t2.tv_usec - t1.tv_usec) / 1000.0;
     totalTimeD2HS += tmpTime;
 
-    // int size = (*nztop) * (*nxtop + 3) * (*nytop);
-    // write_output(t1xxM, size, "OUTPUT_ARRAYS/t1xxM.txt");
-    // size = (*nztop) * (*nxtop + 3) * (*nytop + 3);
-    // write_output(t1xyM, size, "OUTPUT_ARRAYS/t1xyM.txt");
-    // size = (*nztop + 1) * (*nxtop + 3) * (*nytop);
-    // write_output(t1xzM, size, "OUTPUT_ARRAYS/t1xzM.txt");
-    // size = (*nztop) * (*nxtop) * (*nytop + 3);
-    // write_output(t1yyM, size, "OUTPUT_ARRAYS/t1yyM.txt");
-    // size = (*nztop + 1) * (*nxtop) * (*nytop + 3);
-    // write_output(t1yzM, size, "OUTPUT_ARRAYS/t1yzM.txt");
-    // size = (*nztop) * (*nxtop) * (*nytop);
-    // write_output(t1zzM, size, "OUTPUT_ARRAYS/t1zzM.txt");
-    // size = (*nzbtm) * (*nxbtm + 3) * (*nybtm);
-    // write_output(t2xxM, size, "OUTPUT_ARRAYS/t2xxM.txt");
-    // size = (*nzbtm) * (*nxbtm + 3) * (*nybtm + 3);
-    // write_output(t2xyM, size, "OUTPUT_ARRAYS/t2xyM.txt");
-    // size = (*nzbtm + 1) * (*nxbtm + 3) * (*nybtm);
-    // write_output(t2xzM, size, "OUTPUT_ARRAYS/t2xzM.txt");
-    // size = (*nzbtm) * (*nxbtm) * (*nybtm + 3);
-    // write_output(t2yyM, size, "OUTPUT_ARRAYS/t2yyM.txt");
-    // size = (*nzbtm + 1) * (*nxbtm) * (*nybtm + 3);
-    // write_output(t2yzM, size, "OUTPUT_ARRAYS/t2yzM.txt");
-    // size = (*nzbtm + 1) * (*nxbtm) * (*nybtm);
-    // write_output(t2zzM, size, "OUTPUT_ARRAYS/t2zzM.txt");
-
+#ifdef DISFD_DEBUG
+    int size = (*nztop) * (*nxtop + 3) * (*nytop);
+    write_output(t1xxM, size, "OUTPUT_ARRAYS/t1xxM.txt");
+    size = (*nztop) * (*nxtop + 3) * (*nytop + 3);
+    write_output(t1xyM, size, "OUTPUT_ARRAYS/t1xyM.txt");
+    size = (*nztop + 1) * (*nxtop + 3) * (*nytop);
+    write_output(t1xzM, size, "OUTPUT_ARRAYS/t1xzM.txt");
+    size = (*nztop) * (*nxtop) * (*nytop + 3);
+    write_output(t1yyM, size, "OUTPUT_ARRAYS/t1yyM.txt");
+    size = (*nztop + 1) * (*nxtop) * (*nytop + 3);
+    write_output(t1yzM, size, "OUTPUT_ARRAYS/t1yzM.txt");
+    size = (*nztop) * (*nxtop) * (*nytop);
+    write_output(t1zzM, size, "OUTPUT_ARRAYS/t1zzM.txt");
+    size = (*nzbtm) * (*nxbtm + 3) * (*nybtm);
+    write_output(t2xxM, size, "OUTPUT_ARRAYS/t2xxM.txt");
+    size = (*nzbtm) * (*nxbtm + 3) * (*nybtm + 3);
+    write_output(t2xyM, size, "OUTPUT_ARRAYS/t2xyM.txt");
+    size = (*nzbtm + 1) * (*nxbtm + 3) * (*nybtm);
+    write_output(t2xzM, size, "OUTPUT_ARRAYS/t2xzM.txt");
+    size = (*nzbtm) * (*nxbtm) * (*nybtm + 3);
+    write_output(t2yyM, size, "OUTPUT_ARRAYS/t2yyM.txt");
+    size = (*nzbtm + 1) * (*nxbtm) * (*nybtm + 3);
+    write_output(t2yzM, size, "OUTPUT_ARRAYS/t2yzM.txt");
+    size = (*nzbtm + 1) * (*nxbtm) * (*nybtm);
+    write_output(t2zzM, size, "OUTPUT_ARRAYS/t2zzM.txt");
+#endif
     /************** correctness *********************/
 /*   
     FILE *fp;

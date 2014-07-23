@@ -1516,8 +1516,8 @@ end interface
 ! call opencl function
    include 'copy_inputs_to_gpu_opencl.h'
 !  include 'copy_outputs_to_gpu.h'
-   npt_out = 16
-   intprt = 16
+   npt_out = 4
+   intprt = 4
    call record_time(looptstart)
    do ntprt=1,npt_out
    do inne=1,intprt

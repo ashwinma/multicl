@@ -7,7 +7,7 @@ fd_nort.inf
  Enter the (x,y) value of given reference pointin the FD coordinate system
    0.0000000       0.0000000    
  Partition number of FD zone in X, Y direction
-           4           4
+           1           1
  Set the nodes number of PML zone in Region II
  and the theoretical reflect factor
           12  1.99999996E-02
@@ -29,19 +29,4 @@ fd_nort.vel
  Time step=  1.02000004E-02
   
      PID, nxtop, nytop, nztop, nxbtm, nybtm, nzbtm
-      1    105    108     24     35     36    101
-      2    129    108     24     43     36    101
-      3    129    108     24     43     36    101
-      4    103    108     24     35     36    101
-      5    105    135     24     35     45    101
-      6    129    135     24     43     45    101
-      7    129    135     24     43     45    101
-      8    103    135     24     35     45    101
-      9    105    135     24     35     45    101
-     10    129    135     24     43     45    101
-     11    129    135     24     43     45    101
-     12    103    135     24     35     45    101
-     13    105    106     24     35     36    101
-     14    129    106     24     43     36    101
-     15    129    106     24     43     36    101
-     16    103    106     24     35     36    101
+      1    466    484     24    156    162    101

@@ -365,8 +365,8 @@ MODULE random_initial
    do j=nl(3),nu(3)
    do i=nl(2),nu(2)
    do k=nl(1),nu(1)
-      arr(k,i,j) = coef*(ran1(iseed)-0.5)
-     !arr(k,i,j) = (ran1(iseed))
+     ! arr(k,i,j) = coef*(ran1(iseed)-0.5)
+     arr(k,i,j) = (ran1(iseed))
    enddo
    enddo
    enddo

@@ -14,7 +14,7 @@
 #PBS -l walltime=12:00:00
 
 # Set the number of nodes, and the number of processors per node (generally should be 12)
-#PBS -l nodes=16:ppn=12
+#PBS -l nodes=1:ppn=12
 
 # Access group, queue, and accounting project
 #PBS -W group_list=hokiespeed
@@ -33,9 +33,10 @@
 
 cd $PBS_O_WORKDIR
 
-NUM_NODES=16
+NUM_NODES=1
 
 # Simple single process examples:
-time mpirun -binding user:0 -np ${NUM_NODES} -ppn 1 -prepend-rank -print-rank-map ./disfd >& out.${NUM_NODES}.d2d2.txt
+#mpirun -binding user:0 -np ${NUM_NODES} -ppn 1 -prepend-rank -print-rank-map ./disfd >& out.${NUM_NODES}.d2d2.txt
+sprofile ./disfd >& out.${NUM_NODES}.d2d2.profile.txt
 
 exit;

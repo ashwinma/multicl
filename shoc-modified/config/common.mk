@@ -5,7 +5,7 @@ LD       = g++
 AR       = ar
 RANLIB   = ranlib
 
-CPPFLAGS += -I$(SHOC_ROOT)/src/common -I${SHOC_ROOT}/config -I/opt/AMDAPP/include/
+CPPFLAGS += -I${SNUCLROOT}/inc -I$(SHOC_ROOT)/src/common -I${SHOC_ROOT}/config -I/opt/AMDAPP/include/
 CFLAGS   += -g -O2
 CXXFLAGS += -g -O2
 NVCXXFLAGS += -g -O2
@@ -16,7 +16,7 @@ LIBS     = -L$(SHOC_ROOT)/lib  -lrt
 USE_MPI         = no
 MPICXX          = 
 
-OCL_CPPFLAGS    += -I${SHOC_ROOT}/src/opencl/common
+OCL_CPPFLAGS    += -I${SNUCLROOT}/inc -I${SHOC_ROOT}/src/opencl/common
 OCL_LIBS        = -lOpenCL
 
 NVCC            = 

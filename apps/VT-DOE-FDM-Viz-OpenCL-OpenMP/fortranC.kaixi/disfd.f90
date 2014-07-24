@@ -785,7 +785,8 @@ subroutine run_fd_simul(myid_world)
                    cptr_v1y, cptr_v1z,&
                    nxb2, nyb2, nxbtm, nybtm, nzbtm, mw2_pml, mw2_pml1, nd2_txy, nd2_txz, nd2_tyy, nd2_tyz, &
                    cptr_idmat2, cptr_drti2, cptr_drth2, cptr_damp2_x, cptr_damp2_y, cptr_damp2_z, &
-                   cptr_t2xx, cptr_t2xy, cptr_t2xz, cptr_t2yy, cptr_t2yz, cptr_t2zz, cptr_qt2xx, cptr_qt2xy, cptr_qt2xz, cptr_qt2yy, &
+                   cptr_t2xx, cptr_t2xy, cptr_t2xz, cptr_t2yy, cptr_t2yz, cptr_t2zz, &
+                   cptr_qt2xx, cptr_qt2xy, cptr_qt2xz, cptr_qt2yy, &
                    cptr_qt2yz, cptr_qt2zz, cptr_dxh2, cptr_dyh2, cptr_dzh2, cptr_dxi2, cptr_dyi2, cptr_dzi2, cptr_t2xx_px, &
                    cptr_t2xy_px, cptr_t2xz_px, cptr_t2yy_px, cptr_t2xx_py, cptr_t2xy_py, cptr_t2yy_py, cptr_t2yz_py, &
                    cptr_t2xx_pz, cptr_t2xz_pz, cptr_t2yz_pz, cptr_t2zz_pz, cptr_qt2xx_px, cptr_qt2xy_px, cptr_qt2xz_px, &
@@ -923,6 +924,12 @@ subroutine run_fd_simul(myid_world)
        integer(c_int), intent(in) :: myid
     end subroutine compute_stressCm
 
+    subroutine init_all_c() bind(c, name='init_all')
+      use, intrinsic :: iso_c_binding, ONLY: C_INT
+    end subroutine init_all_c 
+    subroutine finalize_all_c() bind(c, name='finalize_all')
+      use, intrinsic :: iso_c_binding, ONLY: C_INT
+    end subroutine finalize_all_c 
     ! subroutine free_device_memC(lbx, lby) bind(c, name='free_device_memC')
     !    use, intrinsic :: iso_c_binding, ONLY: C_INT, C_PTR
     !    integer(c_int), dimension(*), intent(in) :: lbx
@@ -1009,6 +1016,7 @@ end interface
 !------------------------------------------------------------------
    nstm=10
    deviceID = 0
+   call init_all_c()
 ! allocate all gpu memory by calling a funciton in the .h file
 ! call set_deviceC(deviceID)
 ! write(*,*) "fortran: call subroutine allocate_gpu_memC"
@@ -1016,8 +1024,8 @@ end interface
 ! write(*,*) "fortran: call subroutine cpy_h2d_xxxxInputsCOneTime"
 ! include 'copy_inputs_to_gpu.h'
 ! include 'copy_outputs_to_gpu.h'
-   npt_out = 1 
-   intprt = 1 
+   npt_out = 4
+   intprt = 4
    call record_time(looptstart)
    do ntprt=1,npt_out
    do inne=1,intprt
@@ -1089,6 +1097,7 @@ end interface
      call record_time(looptend)
      write(*,*) "TIME Loop :", looptend-looptstart
 
+   call finalize_all_c()
 ! call free_device_memC(lbx, lby)
 !------------------------------------------------------------------
 !  Close the output files

@@ -2,12 +2,16 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <papi.h>
-#define MAX_PAPI_EVENTS	4
+#define MAX_PAPI_EVENTS	8
 static int papi_events[MAX_PAPI_EVENTS] = {
 			PAPI_L1_DCM, 
 			PAPI_L2_DCM, 
 			PAPI_LD_INS,
-			PAPI_SR_INS
+			PAPI_SR_INS,
+			PAPI_L1_LDM,
+			PAPI_L1_STM,
+			PAPI_L1_TCM,
+			PAPI_L1_ICM
 			};
 
 static long long papi_values[MAX_PAPI_EVENTS] = {0};

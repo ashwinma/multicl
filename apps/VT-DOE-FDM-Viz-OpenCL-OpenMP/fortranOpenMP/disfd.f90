@@ -175,7 +175,8 @@ subroutine run_fd_simul(myid_world)
  use station_comm
  use grid_node_comm
  use wave_field_comm
- use, intrinsic :: iso_c_binding, ONLY: C_LOC
+ use ctimer
+ use, intrinsic :: iso_c_binding
 ! use c_call_interface
 ! include 'c_call_interface.inc'
 !
@@ -305,7 +306,8 @@ subroutine run_fd_simul(myid_world)
                    cptr_v1y, cptr_v1z,&
                    nxb2, nyb2, nxbtm, nybtm, nzbtm, mw2_pml, mw2_pml1, nd2_txy, nd2_txz, nd2_tyy, nd2_tyz, &
                    cptr_idmat2, cptr_drti2, cptr_drth2, cptr_damp2_x, cptr_damp2_y, cptr_damp2_z, &
-                   cptr_t2xx, cptr_t2xy, cptr_t2xz, cptr_t2yy, cptr_t2yz, cptr_t2zz, cptr_qt2xx, cptr_qt2xy, cptr_qt2xz, cptr_qt2yy, &
+                   cptr_t2xx, cptr_t2xy, cptr_t2xz, cptr_t2yy, cptr_t2yz, cptr_t2zz, &
+                   cptr_qt2xx, cptr_qt2xy, cptr_qt2xz, cptr_qt2yy, &
                    cptr_qt2yz, cptr_qt2zz, cptr_dxh2, cptr_dyh2, cptr_dzh2, cptr_dxi2, cptr_dyi2, cptr_dzi2, cptr_t2xx_px, &
                    cptr_t2xy_px, cptr_t2xz_px, cptr_t2yy_px, cptr_t2xx_py, cptr_t2xy_py, cptr_t2yy_py, cptr_t2yz_py, &
                    cptr_t2xx_pz, cptr_t2xz_pz, cptr_t2yz_pz, cptr_t2zz_pz, cptr_qt2xx_px, cptr_qt2xy_px, cptr_qt2xz_px, &
@@ -450,7 +452,11 @@ end interface
  integer :: nch2,nlch,nrc3,nstm,ntprt,inne,ipt,ierr, ierrt
  integer :: i,ii,jj,kk,krun,is_moment,getlen,maxpr 
  real :: tm0,tm1,tim,vp,vs,den,cl,sm
- real :: tm2(2), tm3, tm4, tmtmp,velocityComp,velocityComm,stressComp,stressComm
+ real :: tm2(2), tm3, tm4, tmtmp
+ real :: velocityComp,velocityComm,stressComp,stressComm
+ real(c_double) :: tstart, tend
+ real(c_double) :: itertstart, itertend
+ real(c_double) :: looptstart, looptend
 !
  maxpr=3
  if(myid_world >= nproc) return
@@ -522,41 +528,59 @@ end interface
    stressComp = 0.0
    stressComm = 0.0
    call timerInit(myid)
-!   npt_out = 1
-!   intprt = 1
+   npt_out = 4
+   intprt = 4
+   call record_time(looptstart)
    do ntprt=1,npt_out
    do inne=1,intprt
+     call record_time(itertstart)
      ipt=(ntprt-1)*intprt+inne
      tim=(ipt-0.5)*dt_fd
 
 !     call wtime(tm2, ierrt)
 ! Call the C version of the velocity calculation
+     call record_time(tstart)
      include 'call_computevelocityc.h'
+     call record_time(tend)
+     write(*,*) "TIME Velocity Computation :", tend-tstart
 !     call wdiff(tm2, ierrt, tmtmp);
 !     velocityComp = velocityComp+tmtmp;
 !
 ! Fortran MPI data exchange routines
 !     call wtime(tm2, ierrt)
+     call record_time(tstart)
      call comm_velocity(group_id, myid)
+     call record_time(tend)
+     write(*,*) "TIME Velocity Communication :", tend-tstart
 !     call wdiff(tm2, ierrt, tmtmp)
 !     velocityComm = velocityComm+tmtmp
 
 !     call wtime(tm2, ierrt)
+     call record_time(tstart)
      call add_dcs(tim)
+     call record_time(tend)
+     write(*,*) "TIME add_dcs :", tend-tstart
+     call record_time(tstart)
      include 'call_computestressc.h'
+     call record_time(tend)
+     write(*,*) "TIME Stress Computation :", tend-tstart
 !     call compute_stress(myid, tim)
 !     call wdiff(tm2, ierrt, tmtmp)
 !     stressComp = stressComp+tmtmp
  
 
 !     call wtime(tm2, ierrt)
+     call record_time(tstart)
      call comm_stress(group_id)
+     call record_time(tend)
+     write(*,*) "TIME Stress Communication :", tend-tstart
      !call update_stress(group_id,myid,tim)
 !     call wdiff(tm2, ierrt, tmtmp)
 !     stressComm = stressComm+tmtmp
      !write(13,*) 'ntprt= ',ntprt,'   inne=   ', inne, velocityComp, velocityComm, stressComp, stressComm
 
      !debug---------------------------------
+     call record_time(tstart)
      if(inne==1 .and. nrecs>0) then
        if(recv_type ==1 ) then
          call output_1(nrc3,syn_dti)
@@ -565,6 +589,10 @@ end interface
        endif
        write(21) syn_dti
      endif
+     call record_time(tend)
+     write(*,*) "TIME Stress Communication :", tend-tstart
+     call record_time(itertend)
+     write(*,*) "TIME Iteration :", itertend-itertstart
      !if(ntprt ==  nstm*npt_out/100 .and. myid==0) then
      !  tm1=MPI_wtime()
      !  if(myid == 0) write(13,*) nstm, '% finished ',tm1-tm0, tm3,tm4
@@ -577,6 +605,8 @@ end interface
      !endif
    enddo
    enddo
+     call record_time(looptend)
+     write(*,*) "TIME Loop :", looptend-looptstart
    call printTimer()
 !    print *,'myid=',myid,'ntprt= ', ntprt, 'inne=   ',inne, velocityComp, velocityComm, stressComp, stressComm
 !------------------------------------------------------------------

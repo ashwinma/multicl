@@ -54,6 +54,7 @@ public:
   /// Print the current state of the counter to the stream.
   void Print(std::ostream& o) const;
   void PrintCurrent() const;
+  double CurrentElapsed() const;
 
   /// Return the system time.
   double CurrentTime() const;
@@ -168,6 +169,13 @@ inline double RealTimer::CurrentTime() const
 //#endif
 }
 
+inline double RealTimer::CurrentElapsed() const {
+  static std::string functionName("inline float Timer::CurrentElapsed() const");
+  if (isRunning == true) {
+    std::cout << functionName << ": Warning: Timer " << fDesc << " is still running." <<  std::endl; 
+  }
+  return CurrentTime() - start_time;
+}
 
 inline void RealTimer::PrintCurrent() const
 {

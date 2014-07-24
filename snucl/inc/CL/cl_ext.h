@@ -174,6 +174,21 @@ typedef CL_API_ENTRY cl_int (CL_API_CALL *clTerminateContextKHR_fn)(cl_context /
 *********************************/
 #define CL_DEVICE_PROFILING_TIMER_OFFSET_AMD        0x4036
 
+#define CL_DEVICE_TOPOLOGY_AMD                      0x4037
+typedef union
+{
+    struct { cl_uint type; cl_uint data[5]; } raw;
+    struct { cl_uint type; cl_char unused[17]; cl_char bus; cl_char device; cl_char function; } pcie;
+} cl_device_topology_amd;
+
+#define CL_DEVICE_TOPOLOGY_TYPE_PCIE_AMD            1
+/*typedef union
+{
+    struct { cl_uint type; cl_uint data[5]; } raw;
+    struct { cl_uint type; cl_char unused[17]; cl_char bus; cl_char device; cl_char function; } pcie;
+} cl_device_topology_nvidia;
+*/
+
 #ifdef CL_VERSION_1_1
    /***********************************
     * cl_ext_device_fission extension *

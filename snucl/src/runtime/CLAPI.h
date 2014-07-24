@@ -150,6 +150,14 @@ SNUCL_API_FUNCTION(clCreateCommandQueue)(
     cl_command_queue_properties properties, cl_int* errcode_ret)
     CL_API_SUFFIX__VERSION_1_0;
 
+extern CL_API_ENTRY cl_command_queue CL_API_CALL
+SNUCL_API_FUNCTION(clCreateCommandQueueWithProperties)(
+	cl_context context,
+ 	cl_device_id device,
+ 	const cl_queue_properties *property_list,
+ 	cl_int *errcode_ret)
+	CL_API_SUFFIX__VERSION_1_1;
+
 extern CL_API_ENTRY cl_int CL_API_CALL
 SNUCL_API_FUNCTION(clRetainCommandQueue)(cl_command_queue command_queue)
     CL_API_SUFFIX__VERSION_1_0;

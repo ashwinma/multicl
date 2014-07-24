@@ -73,6 +73,7 @@
 #define SNUCL_SCHED_CLOSEST		0x0003
 #define SNUCL_SCHED_PERF_MODEL	0x0004
 #define SNUCL_SCHED_MAX_LMEMORY	0x0005
+#define SNUCL_SCHED_LEAST_LOADED	0x0006
 
 class CLCommandQueue;
 class CLContext;
@@ -135,6 +136,7 @@ class CLCommand {
   void SetAsPartialCommand(CLCommand* root);
 
   void Execute();
+  bool IsAlreadyCompleted();
   bool ResolveConsistency();
 
  private:
@@ -172,6 +174,7 @@ class CLCommand {
   void AccessMemOnDevice(CLMem* mem, bool write);
   bool ChangeDeviceToReadMem(CLMem* mem, CLDevice*& device);
 
+  bool alreadyCompleted_;
   cl_command_type type_;
   CLCommandQueue* queue_;
   CLContext* context_;
@@ -191,6 +194,8 @@ class CLCommand {
 
   CLMem* mem_src_;
   CLMem* mem_dst_;
+  cl_mem mem_src_dev_specific_;
+  cl_mem mem_dst_dev_specific_;
   size_t off_src_;
   size_t off_dst_;
   size_t size_;
@@ -270,7 +275,10 @@ class CLCommand {
 
   static CLCommand*
   CreateCopyBuffer(CLContext* context, CLDevice* device, CLCommandQueue* queue,
-                   CLMem* src_buffer, CLMem* dst_buffer, size_t src_offset,
+                   CLMem* src_buffer, CLMem* dst_buffer, 
+				   cl_mem src_buffer_dev_specific,
+				   cl_mem dst_buffer_dev_specific,
+				   size_t src_offset,
                    size_t dst_offset, size_t size);
 
   static CLCommand*

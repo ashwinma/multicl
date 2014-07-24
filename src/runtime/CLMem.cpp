@@ -73,6 +73,7 @@ CLMem::CLMem(CLContext* context) {
   map_count_ = 0;
 
   pthread_mutex_init(&mutex_dev_specific_, NULL);
+  pthread_mutex_init(&mutex_dev_specific_tmp_host_ptr_, NULL);
   pthread_mutex_init(&mutex_dev_latest_, NULL);
   pthread_mutex_init(&mutex_host_ptr_, NULL);
   pthread_mutex_init(&mutex_map_, NULL);
@@ -87,12 +88,6 @@ CLMem::~CLMem() {
     free(*it);
   }
 
-  for (map<CLDevice*, void*>::iterator it = dev_specific_.begin();
-       it != dev_specific_.end();
-       ++it) {
-    (it->first)->FreeMem(this, it->second);
-  }
-
   //SNUCL_INFO("Destructor of CLMem: %p, host ptr: %p\n", this, host_ptr_);
   /*if (alloc_host_ && host_ptr_ != NULL) 
   {
@@ -104,11 +99,27 @@ CLMem::~CLMem() {
 	}
 	host_ptr_ = NULL;
   }*/
+  /* Release dev_specific_ objects after
+   * dev_specific_tmp_host_ptr_ because of dependency?
+   */
+  for (map<CLDevice*, void*>::iterator it = dev_specific_tmp_host_ptr_.begin();
+       it != dev_specific_tmp_host_ptr_.end();
+       ++it) {
+    (it->first)->FreeHostMem(this, it->second);
+  }
+
+  for (map<CLDevice*, void*>::iterator it = dev_specific_.begin();
+       it != dev_specific_.end();
+       ++it) {
+    (it->first)->FreeMem(this, it->second);
+  }
+
   if (parent_) parent_->Release();
   context_->RemoveMem(this);
   context_->Release();
 
   pthread_mutex_destroy(&mutex_dev_specific_);
+  pthread_mutex_destroy(&mutex_dev_specific_tmp_host_ptr_);
   pthread_mutex_destroy(&mutex_dev_latest_);
   pthread_mutex_destroy(&mutex_host_ptr_);
   pthread_mutex_destroy(&mutex_map_);
@@ -226,14 +237,15 @@ void CLMem::FreeHostPtr(CLCommandQueue *q) {
 		if(latest_queue_ == NULL) {
 			aligned_free(host_ptr_, size_);
 		}
-		else {
+/*		else {
 			//SNUCL_INFO("Free Host Ptr of CLMem: %p, host ptr: %p\n",
 			//		this, host_ptr_);
 			latest_queue_->device()->FreeHostMem(this, host_ptr_);
 			latest_queue_->Release();
 			latest_queue_ = NULL;
-		}
+		}*/
 	}
+	latest_queue_ = NULL;
 	host_ptr_ = NULL;
 }
 
@@ -251,7 +263,8 @@ void CLMem::AllocHostPtr(CLCommandQueue *q) {
 			else
 			{
 				CLDevice *d = q->device();
-				host_ptr_ = d->AllocHostMem(this);
+				//host_ptr_ = d->AllocHostMem(this);
+				host_ptr_ = GetDevSpecificHostPtr(d);
 				/*
 				if(q->device()->GetDispatch() == NULL)
 					host_ptr_ = aligned_malloc(size_);
@@ -290,6 +303,13 @@ bool CLMem::HasDevSpecific(CLDevice* device) {
   return alloc;
 }
 
+bool CLMem::HasDevSpecificHostPtr(CLDevice* device) {
+  pthread_mutex_lock(&mutex_dev_specific_tmp_host_ptr_);
+  bool alloc = (dev_specific_tmp_host_ptr_.count(device) > 0);
+  pthread_mutex_unlock(&mutex_dev_specific_tmp_host_ptr_);
+  return alloc;
+}
+
 void* CLMem::GetDevSpecific(CLDevice* device) {
   pthread_mutex_lock(&mutex_dev_specific_);
   void* dev_specific;
@@ -303,6 +323,21 @@ void* CLMem::GetDevSpecific(CLDevice* device) {
   }
   pthread_mutex_unlock(&mutex_dev_specific_);
   return dev_specific;
+}
+
+void* CLMem::GetDevSpecificHostPtr(CLDevice* device) {
+  pthread_mutex_lock(&mutex_dev_specific_tmp_host_ptr_);
+  void* dev_specific_tmp_host_ptr;
+  if (dev_specific_tmp_host_ptr_.count(device) > 0) {
+    dev_specific_tmp_host_ptr = dev_specific_tmp_host_ptr_[device];
+  } else {
+    pthread_mutex_unlock(&mutex_dev_specific_tmp_host_ptr_);
+    dev_specific_tmp_host_ptr = device->AllocHostMem(this);
+    pthread_mutex_lock(&mutex_dev_specific_tmp_host_ptr_);
+    dev_specific_tmp_host_ptr_[device] = dev_specific_tmp_host_ptr;
+  }
+  pthread_mutex_unlock(&mutex_dev_specific_tmp_host_ptr_);
+  return dev_specific_tmp_host_ptr;
 }
 
 bool CLMem::EmptyLatest() {
@@ -547,6 +582,13 @@ CLMem* CLMem::CreateBuffer(CLContext* context, cl_mem_flags flags, size_t size,
   mem->size_ = size;
   mem->offset_ = 0;
   mem->SetHostPtr(host_ptr);
+
+  std::vector<CLDevice *> devs = context->devices();
+  for (vector<CLDevice*>::iterator it = devs.begin();
+       it != devs.end(); ++it) {
+	   void *foo1 = mem->GetDevSpecific(*it);
+	   void *foo2 = mem->GetDevSpecificHostPtr(*it);
+  }
   return mem;
 }
 

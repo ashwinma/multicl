@@ -70,6 +70,8 @@ CLDevice::CLDevice(int node_id)
   node_id_ = node_id;
   parent_ = NULL;
 
+  commandCount_ = 0;
+
   sem_init(&sem_ready_queue_, 0, 0);
 }
 
@@ -80,6 +82,8 @@ CLDevice::CLDevice(CLDevice* parent)
   scheduler_ = parent->scheduler_;
   node_id_ = parent->node_id_;
   parent_ = parent;
+
+  commandCount_ = 0;
 
   sem_init(&sem_ready_queue_, 0, 0);
 
@@ -710,6 +714,14 @@ void CLDevice::JoinSupportedImageSize(size_t& image2d_max_width,
     image_max_buffer_size = image_max_buffer_size_;
   if (image_max_array_size > image_max_array_size_)
     image_max_array_size = image_max_array_size_;
+}
+
+void CLDevice::AddCommand() {
+  commandCount_++;
+}
+
+void CLDevice::RemoveCommand() {
+  commandCount_--;
 }
 
 void CLDevice::AddCommandQueue(CLCommandQueue* queue) {

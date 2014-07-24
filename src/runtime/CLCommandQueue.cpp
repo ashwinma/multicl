@@ -56,19 +56,37 @@
 using namespace std;
 
 #define COMMAND_QUEUE_SIZE 4096
-
+/*
+CLCommandQueue::CLCommandQueue(CLContext *context, CLDevice* device,
+                               cl_queue_properties *properties) {
+  context_ = context;
+  context_->Retain();
+  device_ = device;
+  properties_ = properties;
+  type_ = (properties_ & 0xF0) ? CL_QUEUE_AUTO_DEVICE_SELECTION : CL_QUEUE_FIXED_DEVICE_SELECTION;
+  // Q: Automatic device selection before adding this to the device? 
+  // A: Only if we have all the information (nearest). If we don't have 
+  // all the info (kernel) then wait for the device selection
+  //SNUCL_INFO("(Before) Device in Cmdqueue Creation: %p\n", device_);
+  device_ = SelectBestDevice(context, device, properties);
+  //SNUCL_INFO("(After) Device in Cmdqueue Creation: %p\n", device_);
+  device_->AddCommandQueue(this);
+  gQueueTimer.Init();
+}
+*/
 CLCommandQueue::CLCommandQueue(CLContext *context, CLDevice* device,
                                cl_command_queue_properties properties) {
   context_ = context;
   context_->Retain();
   device_ = device;
   properties_ = properties;
+  type_ = (properties_ & 0xF0) ? CL_QUEUE_AUTO_DEVICE_SELECTION : CL_QUEUE_FIXED_DEVICE_SELECTION;
   // Q: Automatic device selection before adding this to the device? 
   // A: Only if we have all the information (nearest). If we don't have 
   // all the info (kernel) then wait for the device selection
-  //SNUCL_INFO("(Before) Device in Cmdqueue: %p\n", device_);
+  //SNUCL_INFO("(Before) Device in Cmdqueue Creation: %p\n", device_);
   device_ = SelectBestDevice(context, device, properties);
-  //SNUCL_INFO("(After) Device in Cmdqueue: %p\n", device_);
+  //SNUCL_INFO("(After) Device in Cmdqueue Creation: %p\n", device_);
   device_->AddCommandQueue(this);
   gQueueTimer.Init();
 }
@@ -106,8 +124,8 @@ CLDevice *CLCommandQueue::SelectBestDevice(CLContext *context, CLDevice* device,
 	{
 		if(!has_printed)
 		{
-			SNUCL_INFO("(Before) Cmdqueue with %u type device with ID %u (%u/%u)\n", 
-						device_type, vendor_id, chosen_device_id, devices.size());
+	//		SNUCL_INFO("(Before) Cmdqueue with %u type device with ID %u (%u/%u)\n", 
+	//					device_type, vendor_id, chosen_device_id, devices.size());
 		}
 	  	//gCommandTimer.Start();
 		// Find current host cpuset index/hwloc_obj_t
@@ -140,8 +158,8 @@ CLDevice *CLCommandQueue::SelectBestDevice(CLContext *context, CLDevice* device,
 	  	//gCommandTimer.Stop();
 		if(!has_printed)
 		{
-			SNUCL_INFO("(After) Cmdqueue with %u type device with ID %u (%u/%u)\n", 
-						device_type, vendor_id, chosen_device_id, devices.size());
+		//	SNUCL_INFO("(After) Cmdqueue with %u type device with ID %u (%u/%u)\n", 
+		//				device_type, vendor_id, chosen_device_id, devices.size());
 			has_printed = true;
 		}
 	}
@@ -179,6 +197,7 @@ cl_int CLCommandQueue::GetCommandQueueInfo(cl_command_queue_info param_name,
     GET_OBJECT_INFO_T(CL_QUEUE_REFERENCE_COUNT, cl_uint, ref_cnt());
     GET_OBJECT_INFO(CL_QUEUE_PROPERTIES, cl_command_queue_properties,
                     properties_);
+    GET_OBJECT_INFO(CL_QUEUE_TYPE, cl_command_queue_type, type_);
     default: return CL_INVALID_VALUE;
   }
   return CL_SUCCESS;
@@ -193,7 +212,46 @@ void CLCommandQueue::PrintInfo()
 void CLCommandQueue::InvokeScheduler() {
   device_->InvokeScheduler();
 }
+#if 0
+size_t CLCommandQueue::CheckQueueProperties(
+    const cl_queue_properties* properties, 
+	cl_command_queue_properties *command_queue_properties,
+	cl_int* err) {
+  if (properties == NULL) return 0;
 
+  size_t idx = 0;
+  bool set_command_queue_properties = false;
+  bool set_sched_policies = false;
+  while (properties[idx] > 0) {
+    if (properties[idx] == CL_QUEUE_PROPERTIES) {
+      if (set_command_queue_properties) {
+        *err = CL_INVALID_PROPERTY;
+        return 0;
+      }
+      set_command_queue_properties = true;
+      *command_queue_properties = (cl_command_queue_properties)properties[idx + 1];
+      idx += 2;
+    } else if (properties[idx] == CL_QUEUE_SCHEDULING_POLICIES) {
+	  if(set_sched_policies) {
+	  	*err = CL_INVALID_PROPERTY;
+		return 0;
+	  }
+	  /* Iterate over the list until we run out of scheduling policies */
+	  /*do {
+	  }while(properties[idx + 1] != CL_QUEUE_PROPERTIES ||
+	  		 properties[idx + 1] != CL_QUEUE_SCHEDULING_POLICIES ||
+			 properties[idx + 1] != 0);
+	  idx += howmuch;
+	 */
+	 set_sched_policies = true;
+    } else {
+      *err = CL_INVALID_PROPERTY;
+      return 0;
+    }
+  }
+  return idx + 1;
+}
+#endif
 CLCommandQueue* CLCommandQueue::CreateCommandQueue(
     CLContext* context, CLDevice* device,
     cl_command_queue_properties properties, cl_int* err) {
@@ -208,6 +266,16 @@ CLCommandQueue* CLCommandQueue::CreateCommandQueue(
   }
   //SNUCL_INFO("Command Queue Properties: %x\n", properties);
   return queue;
+}
+
+cl_int CLCommandQueue::set_device(CLDevice *d) {
+  	if(d == NULL || !context_->IsValidDevice(d))
+	{
+		// ERROR
+		return CL_INVALID_DEVICE;
+	}
+  	device_ = d; 
+	return CL_SUCCESS;
 }
 
 CLInOrderCommandQueue::CLInOrderCommandQueue(

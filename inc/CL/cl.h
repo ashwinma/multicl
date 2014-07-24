@@ -56,9 +56,11 @@ typedef cl_uint             cl_device_mem_cache_type;
 typedef cl_uint             cl_device_local_mem_type;
 typedef cl_bitfield         cl_device_exec_capabilities;
 typedef cl_bitfield         cl_command_queue_properties;
+typedef cl_bitfield         cl_command_queue_type;
 typedef intptr_t            cl_device_partition_property;
 typedef cl_bitfield         cl_device_affinity_domain;
 
+typedef intptr_t            cl_queue_properties;
 typedef intptr_t            cl_context_properties;
 typedef cl_uint             cl_context_info;
 typedef cl_uint             cl_command_queue_info;
@@ -307,6 +309,16 @@ typedef struct _cl_buffer_region {
 /* cl_command_queue_properties - bitfield */
 #define CL_QUEUE_OUT_OF_ORDER_EXEC_MODE_ENABLE      (1 << 0)
 #define CL_QUEUE_PROFILING_ENABLE                   (1 << 1)
+#define CL_QUEUE_DEVICE_SELECT_MANUAL				0x10
+#define CL_QUEUE_DEVICE_SELECT_BEST_COMPUTE			0x20
+#define CL_QUEUE_DEVICE_SELECT_BEST_MEM				0x30
+#define CL_QUEUE_DEVICE_SELECT_BEST_LMEM			0x40
+#define CL_QUEUE_DEVICE_SELECT_PERF_MODEL			0x50
+#define CL_QUEUE_DEVICE_SELECT_NEAREST				0x60
+#define CL_QUEUE_DEVICE_SELECT_LEAST_LOADED			0x70
+//#define CL_QUEUE_DEVICE_SELECTION_MODE_ENABLE		(1 << 2)
+// Having a separate command queue bitfield property is better 
+// than adding a new bit to the above bitfield..but how to query it?
 
 /* cl_context_info  */
 #define CL_CONTEXT_REFERENCE_COUNT                  0x1080
@@ -317,7 +329,7 @@ typedef struct _cl_buffer_region {
 /* cl_context_properties */
 #define CL_CONTEXT_PLATFORM                         0x1084
 #define CL_CONTEXT_INTEROP_USER_SYNC                0x1085
-    
+
 /* cl_device_partition_property */
 #define CL_DEVICE_PARTITION_EQUALLY                 0x1086
 #define CL_DEVICE_PARTITION_BY_COUNTS               0x1087
@@ -337,6 +349,16 @@ typedef struct _cl_buffer_region {
 #define CL_QUEUE_DEVICE                             0x1091
 #define CL_QUEUE_REFERENCE_COUNT                    0x1092
 #define CL_QUEUE_PROPERTIES                         0x1093
+#define CL_QUEUE_TYPE		        				0x1094
+/* cl_queue_properties */
+#define CL_QUEUE_SCHEDULING_POLICIES                0x1095
+#define CL_QUEUE_DEFAULT_DEVICE                     0x1096
+#define CL_QUEUE_LATEST_DEVICE                      0x1097
+#define CL_QUEUE_NUM_SCHEDULING_POLICIES            0x1098
+    
+/* cl_command_queue_device_selection_mode */
+#define CL_QUEUE_FIXED_DEVICE_SELECTION				(1 << 0)
+#define CL_QUEUE_AUTO_DEVICE_SELECTION				(1 << 1)
 
 /* cl_mem_flags - bitfield */
 #define CL_MEM_READ_WRITE                           (1 << 0)
@@ -1151,6 +1173,15 @@ clEnqueueBarrierWithWaitList(cl_command_queue /* command_queue */,
                              cl_uint           /* num_events_in_wait_list */,
                              const cl_event *  /* event_wait_list */,
                              cl_event *        /* event */) CL_API_SUFFIX__VERSION_1_2;
+
+extern CL_API_ENTRY cl_int CL_API_CALL
+clSetPrintfCallback(cl_context          /* context */,
+                    void (CL_CALLBACK * /* pfn_notify */)(cl_context /* program */, 
+                                                          cl_uint /*printf_data_len */, 
+                                                          char * /* printf_data_ptr */, 
+                                                          void * /* user_data */),
+                    void *              /* user_data */) CL_API_SUFFIX__VERSION_1_2;
+
 
 
 /* Extension function access

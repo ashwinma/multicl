@@ -111,7 +111,9 @@ class CLMem: public CLObject<struct _cl_mem, CLMem, struct _emu_cl_mem> {
   void AllocHostPtr(CLCommandQueue *q = NULL);
 
   bool HasDevSpecific(CLDevice* device);
+  bool HasDevSpecificHostPtr(CLDevice* device);
   void* GetDevSpecific(CLDevice* device);
+  void* GetDevSpecificHostPtr(CLDevice* device);
 
   bool EmptyLatest();
   bool HasLatest(CLDevice* device);
@@ -157,6 +159,7 @@ class CLMem: public CLObject<struct _cl_mem, CLMem, struct _emu_cl_mem> {
   size_t image_slice_pitch_;
   size_t image_region_[3];
 
+  std::map<CLDevice*, void*> dev_specific_tmp_host_ptr_;
   std::map<CLDevice*, void*> dev_specific_;
   std::set<CLDevice*> dev_latest_;
   std::vector<MemObjectDestructorCallback*> callbacks_;
@@ -165,6 +168,7 @@ class CLMem: public CLObject<struct _cl_mem, CLMem, struct _emu_cl_mem> {
   std::map<void*, CLMapWritebackLayout> map_writeback_;
 
   pthread_mutex_t mutex_dev_specific_;
+  pthread_mutex_t mutex_dev_specific_tmp_host_ptr_;
   pthread_mutex_t mutex_dev_latest_;
   pthread_mutex_t mutex_host_ptr_;
   pthread_mutex_t mutex_map_;

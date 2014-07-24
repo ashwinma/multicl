@@ -43,7 +43,10 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
-#include "mpi.h"
+//#include "mpi.h"
+
+//extern struct _cl_device_id ANY_DEVICE_OBJ;
+//extern struct _cl_device_id *ANY_DEVICE;
 
 #if defined(SAMPLE_CPU)
 #define PLATFORM_NAME "SnuCL CPU"
@@ -68,17 +71,18 @@ const char* kernel_src =
     "}\n";
 
 int main(int argc, char** argv) {
-  cl_device_type    DEV_TYPE = CL_DEVICE_TYPE_GPU;
-  //cl_device_type    DEV_TYPE = CL_DEVICE_TYPE_ALL;
+  //cl_device_type    DEV_TYPE = CL_DEVICE_TYPE_GPU;
+  //cl_device_type    DEV_TYPE = CL_DEVICE_TYPE_CPU;
+  cl_device_type    DEV_TYPE = CL_DEVICE_TYPE_ALL;
   cl_uint           num_platforms;
   cl_platform_id*   platforms;
   size_t            platform_name_size;
   char*             platform_name;
   cl_platform_id    snucl_platform = NULL;
-  cl_device_id      device;
+  //cl_device_id      device;
   cl_context_properties context_properties[3];
   cl_context        context;
-  cl_command_queue  command_queue;
+  cl_command_queue  *command_queues;
   cl_program        program;
   cl_kernel         kernel;
   int*              host_src;
@@ -92,7 +96,7 @@ int main(int argc, char** argv) {
   int               i;
   cl_int            err;
 
-  MPI_Init(&argc, &argv);
+  //MPI_Init(&argc, &argv);
 
   err = clGetPlatformIDs(0, NULL, &num_platforms);
   CHECK_ERROR(err);
@@ -126,29 +130,43 @@ int main(int argc, char** argv) {
     //exit(EXIT_FAILURE);
   }
 
-  err = clGetDeviceIDs(snucl_platform, DEV_TYPE, 1, &device, NULL);
+  cl_uint num_devices = 3;
+  err = clGetDeviceIDs(snucl_platform, DEV_TYPE, 0, NULL, &num_devices);
+  printf("Number of devices: %d\n", num_devices);
+  CHECK_ERROR(err);
+  cl_device_id devices[num_devices];// = (cl_device_id *)malloc(sizeof(cl_device_id) * num_devices);
+  err = clGetDeviceIDs(snucl_platform, DEV_TYPE, num_devices, devices, NULL);
   CHECK_ERROR(err);
 
-  char device_name[1000];
-  err = clGetDeviceInfo(device, CL_DEVICE_NAME, 1000, &device_name, NULL);
-  CHECK_ERROR(err);
-  cl_device_type device_type;
-  err = clGetDeviceInfo(device, CL_DEVICE_TYPE, sizeof(cl_device_type), &device_type, NULL);
-  CHECK_ERROR(err);
-  printf("Chosen device is %d with name %s.\n", device_type, device_name);
-
+  
   context_properties[0] = CL_CONTEXT_PLATFORM;
   context_properties[1] = (cl_context_properties)snucl_platform;
   context_properties[2] = NULL;
-  context = clCreateContext(context_properties, 1, &device, NULL, NULL, &err);
+  context = clCreateContext(context_properties, num_devices, devices, NULL, NULL, &err);
   CHECK_ERROR(err);
-  command_queue = clCreateCommandQueue(context, device, 0, &err);
-  CHECK_ERROR(err);
+  command_queues = (cl_command_queue*)malloc(sizeof(cl_command_queue) * num_devices);
+  for(int i = 0; i < num_devices; i++)
+  {
+	  command_queues[i] = clCreateCommandQueue(context, devices[i], CL_QUEUE_PROFILING_ENABLE, &err);
+	  //command_queues[i] = clCreateCommandQueue(context, devices[i], CL_QUEUE_PROFILING_ENABLE | CL_QUEUE_DEVICE_SELECT_NEAREST, &err);
+	  CHECK_ERROR(err);
+
+	  char device_name[1000];
+	  err = clGetDeviceInfo(devices[i], CL_DEVICE_NAME, 1000, &device_name, NULL);
+	  CHECK_ERROR(err);
+	  cl_device_type device_type;
+	  err = clGetDeviceInfo(devices[i], CL_DEVICE_TYPE, sizeof(cl_device_type), &device_type, NULL);
+	  CHECK_ERROR(err);
+	  cl_uint vendor_id;
+	  err = clGetDeviceInfo(devices[i], CL_DEVICE_VENDOR_ID, sizeof(cl_uint), &vendor_id, NULL);
+	  CHECK_ERROR(err);
+	  printf("[Device %d] has ID %d, vendor ID %u, and name \"%s\"\n", i, device_type, vendor_id, device_name);
+  }
 
   program = clCreateProgramWithSource(context, 1, (const char**)&kernel_src,
                                       NULL, &err);
   CHECK_ERROR(err);
-  err = clBuildProgram(program, 1, &device, NULL, NULL, NULL);
+  err = clBuildProgram(program, 0, NULL, NULL, NULL, NULL);
   CHECK_ERROR(err);
   kernel = clCreateKernel(program, "sample", &err);
   CHECK_ERROR(err);
@@ -158,14 +176,16 @@ int main(int argc, char** argv) {
   for (i = 0; i < size; i++)
     host_src[i] = i * 10;
 
-  buffer_src = clCreateBuffer(context, CL_MEM_READ_ONLY, sizeof(int) * size,
+  buffer_src = clCreateBuffer(context, CL_MEM_READ_WRITE, sizeof(int) * size,
                               NULL, &err);
   CHECK_ERROR(err);
-  buffer_dst = clCreateBuffer(context, CL_MEM_WRITE_ONLY, sizeof(int) * size,
+  buffer_dst = clCreateBuffer(context, CL_MEM_READ_WRITE, sizeof(int) * size,
                               NULL, &err);
   CHECK_ERROR(err);
 
-  err = clEnqueueWriteBuffer(command_queue, buffer_src, CL_TRUE, 0,
+  int chosen_device_id = 0;
+  printf("H2D (%p -> %p) on Dev %d\n", host_src, buffer_src, (chosen_device_id + 2) % num_devices);
+  err = clEnqueueWriteBuffer(command_queues[(chosen_device_id + 2) % num_devices], buffer_src, CL_TRUE, 0,
                              sizeof(int) * size, host_src, 0, NULL, NULL);
   CHECK_ERROR(err);
 
@@ -177,11 +197,29 @@ int main(int argc, char** argv) {
   err = clSetKernelArg(kernel, 2, sizeof(cl_int), (void*)&offset);
   CHECK_ERROR(err);
 
-  err = clEnqueueNDRangeKernel(command_queue, kernel, 1, NULL, &global, &local,
+  printf("Kernel (%p, %p) on Dev %d\n", buffer_dst, buffer_src, (chosen_device_id + 1) % num_devices);
+  err = clEnqueueNDRangeKernel(command_queues[(chosen_device_id + 1) % num_devices], kernel, 1, NULL, &global, &local,
                                0, NULL, NULL);
   CHECK_ERROR(err);
+  err = clFinish(command_queues[(chosen_device_id + 1) % num_devices]);
+  CHECK_ERROR(err);
 
-  err = clEnqueueReadBuffer(command_queue, buffer_dst, CL_TRUE, 0,
+  err = clSetKernelArg(kernel, 1, sizeof(cl_mem), (void*)&buffer_dst);
+  CHECK_ERROR(err);
+  err = clSetKernelArg(kernel, 0, sizeof(cl_mem), (void*)&buffer_src);
+  CHECK_ERROR(err);
+  printf("Kernel (%p, %p) on Dev %d\n", buffer_src, buffer_dst, (chosen_device_id + 2) % num_devices);
+  err = clEnqueueNDRangeKernel(command_queues[(chosen_device_id + 2) % num_devices], kernel, 1, NULL, &global, &local,
+                               0, NULL, NULL);
+  CHECK_ERROR(err);
+  err = clFinish(command_queues[(chosen_device_id + 2) % num_devices]);
+  CHECK_ERROR(err);
+  
+  //err = clEnqueueReadBuffer(command_queues[(chosen_device_id + 2) % num_devices], buffer_dst, CL_TRUE, 0,
+  //                          sizeof(int) * size, host_dst, 0, NULL, NULL);
+  printf("D2H cmdq: %d\n", (chosen_device_id + 2) % num_devices);
+  printf("D2H (%p -> %p) on Dev %d\n", buffer_src, host_dst, (chosen_device_id + 2) % num_devices);
+  err = clEnqueueReadBuffer(command_queues[(chosen_device_id + 2) % num_devices], buffer_src, CL_TRUE, 0,
                             sizeof(int) * size, host_dst, 0, NULL, NULL);
   CHECK_ERROR(err);
 
@@ -195,9 +233,10 @@ int main(int argc, char** argv) {
   clReleaseMemObject(buffer_dst);
   clReleaseKernel(kernel);
   clReleaseProgram(program);
-  clReleaseCommandQueue(command_queue);
+  for(int i = 0; i < num_devices; i++)
+	  clReleaseCommandQueue(command_queues[i]);
   clReleaseContext(context);
 
-  MPI_Finalize();
+//  MPI_Finalize();
   return 0;
 }

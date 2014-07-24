@@ -962,7 +962,8 @@ subroutine run_fd_simul(myid_world)
                    cptr_v1y, cptr_v1z,&
                    nxb2, nyb2, nxbtm, nybtm, nzbtm, mw2_pml, mw2_pml1, nd2_txy, nd2_txz, nd2_tyy, nd2_tyz, &
                    cptr_idmat2, cptr_drti2, cptr_drth2, cptr_damp2_x, cptr_damp2_y, cptr_damp2_z, &
-                   cptr_t2xx, cptr_t2xy, cptr_t2xz, cptr_t2yy, cptr_t2yz, cptr_t2zz, cptr_qt2xx, cptr_qt2xy, cptr_qt2xz, cptr_qt2yy, &
+                   cptr_t2xx, cptr_t2xy, cptr_t2xz, cptr_t2yy, cptr_t2yz, cptr_t2zz, &
+                   cptr_qt2xx, cptr_qt2xy, cptr_qt2xz, cptr_qt2yy, &
                    cptr_qt2yz, cptr_qt2zz, cptr_dxh2, cptr_dyh2, cptr_dzh2, cptr_dxi2, cptr_dyi2, cptr_dzi2, cptr_t2xx_px, &
                    cptr_t2xy_px, cptr_t2xz_px, cptr_t2yy_px, cptr_t2xx_py, cptr_t2xy_py, cptr_t2yy_py, cptr_t2yz_py, &
                    cptr_t2xx_pz, cptr_t2xz_pz, cptr_t2yz_pz, cptr_t2zz_pz, cptr_qt2xx_px, cptr_qt2xy_px, cptr_qt2xz_px, &
@@ -1114,8 +1115,10 @@ subroutine run_fd_simul(myid_world)
                    cptr_v1y, cptr_v1z,&
                    nxb2, nyb2, nxbtm, nybtm, nzbtm, mw2_pml, mw2_pml1, nd2_txy, nd2_txz, nd2_tyy, nd2_tyz, &
                    cptr_idmat2, cptr_drti2, cptr_drth2, cptr_damp2_x, cptr_damp2_y, cptr_damp2_z, &
-                   cptr_t2xx, cptr_t2xy, cptr_t2xz, cptr_t2yy, cptr_t2yz, cptr_t2zz, cptr_qt2xx, cptr_qt2xy, cptr_qt2xz, cptr_qt2yy, &
-                   cptr_qt2yz, cptr_qt2zz, cptr_dxh2, cptr_dyh2, cptr_dzh2, cptr_dxi2, cptr_dyi2, cptr_dzi2, cptr_t2xx_px, &
+                   cptr_t2xx, cptr_t2xy, cptr_t2xz, cptr_t2yy, cptr_t2yz, cptr_t2zz, &
+                   cptr_qt2xx, cptr_qt2xy, cptr_qt2xz, cptr_qt2yy, &
+                   cptr_qt2yz, cptr_qt2zz, cptr_dxh2, cptr_dyh2, cptr_dzh2, &
+                   cptr_dxi2, cptr_dyi2, cptr_dzi2, cptr_t2xx_px, &
                    cptr_t2xy_px, cptr_t2xz_px, cptr_t2yy_px, cptr_t2xx_py, cptr_t2xy_py, cptr_t2yy_py, cptr_t2yz_py, &
                    cptr_t2xx_pz, cptr_t2xz_pz, cptr_t2yz_pz, cptr_t2zz_pz, cptr_qt2xx_px, cptr_qt2xy_px, cptr_qt2xz_px, &
                    cptr_qt2yy_px, cptr_qt2xx_py, cptr_qt2xy_py, cptr_qt2yy_py, cptr_qt2yz_py, cptr_qt2xx_pz, cptr_qt2xz_pz, &
@@ -1266,8 +1269,10 @@ subroutine run_fd_simul(myid_world)
                    cptr_v1y, cptr_v1z,&
                    nxb2, nyb2, nxbtm, nybtm, nzbtm, mw2_pml, mw2_pml1, nd2_txy, nd2_txz, nd2_tyy, nd2_tyz, &
                    cptr_idmat2, cptr_drti2, cptr_drth2, cptr_damp2_x, cptr_damp2_y, cptr_damp2_z, &
-                   cptr_t2xx, cptr_t2xy, cptr_t2xz, cptr_t2yy, cptr_t2yz, cptr_t2zz, cptr_qt2xx, cptr_qt2xy, cptr_qt2xz, cptr_qt2yy, &
-                   cptr_qt2yz, cptr_qt2zz, cptr_dxh2, cptr_dyh2, cptr_dzh2, cptr_dxi2, cptr_dyi2, cptr_dzi2, cptr_t2xx_px, &
+                   cptr_t2xx, cptr_t2xy, cptr_t2xz, cptr_t2yy, cptr_t2yz, cptr_t2zz, &
+                   cptr_qt2xx, cptr_qt2xy, cptr_qt2xz, cptr_qt2yy, &
+                   cptr_qt2yz, cptr_qt2zz, cptr_dxh2, cptr_dyh2, cptr_dzh2, &
+                   cptr_dxi2, cptr_dyi2, cptr_dzi2, cptr_t2xx_px, &
                    cptr_t2xy_px, cptr_t2xz_px, cptr_t2yy_px, cptr_t2xx_py, cptr_t2xy_py, cptr_t2yy_py, cptr_t2yz_py, &
                    cptr_t2xx_pz, cptr_t2xz_pz, cptr_t2yz_pz, cptr_t2zz_pz, cptr_qt2xx_px, cptr_qt2xy_px, cptr_qt2xz_px, &
                    cptr_qt2yy_px, cptr_qt2xx_py, cptr_qt2xy_py, cptr_qt2yy_py, cptr_qt2yz_py, cptr_qt2xx_pz, cptr_qt2xz_pz, &
@@ -1507,8 +1512,8 @@ end interface
 ! call opencl function
    include 'copy_inputs_to_gpu_opencl.h'
 !  include 'copy_outputs_to_gpu.h'
-   npt_out = 1 
-   intprt = 20 
+   npt_out = 4
+   intprt = 4
    call record_time(looptstart)
    do ntprt=1,npt_out
    do inne=1,intprt

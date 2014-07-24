@@ -374,3 +374,14 @@ MODULE random_initial
   end subroutine assign_rand_ini
 END MODULE random_initial
 
+! 
+! A timer which calls C gettimeofday function
+! and stores current time (from epoch) in 'tim'
+module ctimer
+  interface 
+    subroutine record_time (tim) bind(C, name="record_time")
+      use iso_c_binding
+      real(c_double), intent(out)::tim
+    end subroutine
+  end interface
+end module ctimer

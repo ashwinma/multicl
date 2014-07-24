@@ -61,6 +61,7 @@ class CLProgramSource;
 class LegacyDevice: public CLDevice {
  public:
   LegacyDevice(void* library, struct _cl_icd_dispatch* dispatch,
+						   cl_context context,
                cl_platform_id platform_id, cl_device_id device_id);
   ~LegacyDevice();
 
@@ -77,6 +78,7 @@ class LegacyDevice: public CLDevice {
   virtual void WriteBuffer(CLCommand* command, CLMem* mem_dst, size_t off_dst,
                            size_t size, void* ptr);
   virtual void CopyBuffer(CLCommand* command, CLMem* mem_src, CLMem* mem_dst,
+							   cl_mem mem_src_dev_specific, cl_mem mem_dst_dev_specific, 
                           size_t off_src, size_t off_dst, size_t size);
   virtual void ReadImage(CLCommand* command, CLMem* mem_src,
                          size_t src_origin[3], size_t region[3],
@@ -136,6 +138,7 @@ class LegacyDevice: public CLDevice {
   virtual void* AllocKernel(CLKernel* kernel);
   virtual void FreeKernel(CLKernel* kernel, void* dev_specific);
 
+  virtual cl_context context() const { return context_; }
  private:
   cl_program CreateProgram(CLProgramSource* source);
   cl_program CreateProgram(CLProgramBinary* binary);

@@ -301,6 +301,10 @@ public:
 #define __CREATE_PROGRAM_WITH_SOURCE_ERR    __ERR_STR(clCreateProgramWithSource)
 #define __CREATE_PROGRAM_WITH_BINARY_ERR    __ERR_STR(clCreateProgramWithBinary)
 #define __BUILD_PROGRAM_ERR                 __ERR_STR(clBuildProgram)
+#if defined(CL_VERSION_1_2)
+#define __COMPILE_PROGRAM_ERR                  __ERR_STR(clCompileProgram)
+#define __SET_PRINTF_CALLBACK_ERR           __ERR_STR(clSetPrintfCallback)
+#endif // #if defined(CL_VERSION_1_2)
 #define __CREATE_KERNELS_IN_PROGRAM_ERR     __ERR_STR(clCreateKernelsInProgram)
 
 #define __CREATE_COMMAND_QUEUE_ERR          __ERR_STR(clCreateCommandQueue)
@@ -1790,6 +1794,25 @@ public:
         formats->assign(&value[0], &value[numEntries]);
         return CL_SUCCESS;
     }
+
+#if defined(CL_VERSION_1_2)
+    cl_int setPrintfCallback(
+        void (CL_CALLBACK * pfn_notify)(
+            cl_context /* program */, 
+            cl_uint /*printf_data_len */, 
+            char * /* printf_data_ptr */, 
+            void * /* user_data */),
+        void * user_data )
+    {
+        return detail::errHandler(
+            ::clSetPrintfCallback(
+                object_,
+                pfn_notify,
+                user_data), 
+            __SET_PRINTF_CALLBACK_ERR);
+    }
+#endif // #if defined(CL_VERSION_1_2)
+
 };
 
 inline Device Device::getDefault(cl_int * err)

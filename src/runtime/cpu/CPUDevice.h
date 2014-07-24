@@ -75,6 +75,7 @@ class CPUDevice: public CLDevice {
   virtual void WriteBuffer(CLCommand* command, CLMem* mem_dst, size_t off_dst,
                            size_t size, void* ptr);
   virtual void CopyBuffer(CLCommand* command, CLMem* mem_src, CLMem* mem_dst,
+							   cl_mem mem_src_dev_specific, cl_mem mem_dst_dev_specific, 
                           size_t off_src, size_t off_dst, size_t size);
   virtual void ReadImage(CLCommand* command, CLMem* mem_src,
                          size_t src_origin[3], size_t region[3],
@@ -128,6 +129,7 @@ class CPUDevice: public CLDevice {
   virtual void FreeMem(CLMem* mem, void* dev_specific);
   virtual void FreeHostMem(CLMem* mem, void* dev_specific);
 
+  virtual cl_context context() const { return NULL; }
   virtual void FreeExecutable(CLProgram* program, void* executable);
 
  private:

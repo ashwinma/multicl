@@ -66,6 +66,7 @@ class CLCommandQueue: public CLObject<struct _cl_command_queue,
 
   CLContext* context() const { return context_; }
   CLDevice* device() const { return device_; }
+  cl_int set_device(CLDevice *d);
 
   cl_int GetCommandQueueInfo(cl_command_queue_info param_name,
                              size_t param_value_size, void* param_value,
@@ -73,6 +74,10 @@ class CLCommandQueue: public CLObject<struct _cl_command_queue,
 
   bool IsProfiled() const {
     return (properties_ & CL_QUEUE_PROFILING_ENABLE);
+  }
+
+  bool IsAutoDeviceSelection() const {
+  	return (type_ == CL_QUEUE_AUTO_DEVICE_SELECTION);
   }
 
   virtual CLCommand* Peek() = 0;
@@ -91,6 +96,7 @@ class CLCommandQueue: public CLObject<struct _cl_command_queue,
   CLContext* context_;
   CLDevice* device_;
   cl_command_queue_properties properties_;
+  cl_command_queue_type type_;
 
  public:
   static CLCommandQueue* CreateCommandQueue(

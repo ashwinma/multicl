@@ -227,8 +227,10 @@ void ClusterDevice::WriteBuffer(CLCommand* command, CLMem* mem_dst,
   WaitingPlainResponse(command, event_id);
 }
 
-void ClusterDevice::CopyBuffer(CLCommand* command, CLMem* mem_src,
-                               CLMem* mem_dst, size_t off_src, size_t off_dst,
+void ClusterDevice::CopyBuffer(CLCommand* command, 
+							   CLMem* mem_src, CLMem* mem_dst, 
+							   cl_mem mem_src_dev_specific, cl_mem mem_dst_dev_specific, 
+							   size_t off_src, size_t off_dst,
                                size_t size) {
   CHECK_VERSION(CLUSTER_VERSION_1_0);
 

@@ -290,6 +290,7 @@ void CPUDevice::WriteBuffer(CLCommand* command, CLMem* mem_dst, size_t off_dst,
 }
 
 void CPUDevice::CopyBuffer(CLCommand* command, CLMem* mem_src, CLMem* mem_dst,
+							   cl_mem mem_src_dev_specific, cl_mem mem_dst_dev_specific, 
                            size_t off_src, size_t off_dst, size_t size) {
   void* mem_src_dev = mem_src->GetDevSpecific(this);
   void* mem_dst_dev = mem_dst->GetDevSpecific(this);

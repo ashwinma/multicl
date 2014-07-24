@@ -107,7 +107,8 @@ typedef CL_API_ENTRY cl_int (CL_API_CALL *pfn_clIcdGetPlatformIDs)(
     SNUCL_ERROR("legacy vendor error %d\n", err); \
   }
 
-LegacyDevice::LegacyDevice(void* library, struct _cl_icd_dispatch* dispatch,
+LegacyDevice::LegacyDevice(void* library, struct _cl_icd_dispatch* dispatch, 
+						   cl_context context,
                            cl_platform_id platform_id, cl_device_id device_id)
     : CLDevice(0) {
   gLegacyTimer.Init();
@@ -116,7 +117,8 @@ LegacyDevice::LegacyDevice(void* library, struct _cl_icd_dispatch* dispatch,
   platform_id_ = platform_id;
   device_id_ = device_id;
 
-  context_ = NULL;
+  context_ = context;
+  //context_ = NULL;
   kernel_queue_ = NULL;
   mem_queue_ = NULL;
   misc_queue_ = NULL;
@@ -370,16 +372,19 @@ LegacyDevice::LegacyDevice(void* library, struct _cl_icd_dispatch* dispatch,
 #undef GET_LEGACY_DEVICE_INFO_A
 #undef GET_LEGACY_DEVICE_INFO_S
 
+#if 1
   cl_context_properties properties[3] = {CL_CONTEXT_PLATFORM,
                                          (cl_context_properties)platform_id_,
                                          0};
   context_ = dispatch_->clCreateContext(properties, 1, &device_id_, NULL, NULL,
                                         &err);
-  std::cout << "Done creating legacy device" << std::endl;
   if (err != CL_SUCCESS) {
     available_ = false;
   } else {
-    kernel_queue_ = dispatch_->clCreateCommandQueue(context_, device_id_, 0,
+#else
+  if(context_ != NULL) {  
+#endif
+	kernel_queue_ = dispatch_->clCreateCommandQueue(context_, device_id_, 0,
                                                     &err);
     if (err != CL_SUCCESS)
       available_ = false;
@@ -392,6 +397,7 @@ LegacyDevice::LegacyDevice(void* library, struct _cl_icd_dispatch* dispatch,
     if (err != CL_SUCCESS)
       available_ = false;
   }
+  std::cout << "Done creating legacy device" << std::endl;
 }
 
 LegacyDevice::~LegacyDevice() {
@@ -425,7 +431,7 @@ void LegacyDevice::LaunchKernel(CLCommand* command, CLKernel* kernel,
                                 cl_uint work_dim, size_t gwo[3], size_t gws[3],
                                 size_t lws[3], size_t nwg[3],
                                 map<cl_uint, CLKernelArg*>* kernel_args) {
-  printf("Device Type: %d Ptr: %p\n", type_, device_id_);
+  //printf("Device Type: %d Ptr: %p\n", type_, device_id_);
   CHECK_ERROR(available_ == CL_FALSE, CL_DEVICE_NOT_AVAILABLE);
   cl_kernel legacy_kernel = (cl_kernel)kernel->GetDevSpecific(this);
   CHECK_ERROR(legacy_kernel == NULL, CL_INVALID_PROGRAM_EXECUTABLE);
@@ -506,6 +512,8 @@ void LegacyDevice::ReadBuffer(CLCommand* command, CLMem* mem_src,
   cl_mem mem_src_dev = (cl_mem)mem_src->GetDevSpecific(this);
   CHECK_ERROR(mem_src_dev == NULL, CL_INVALID_MEM_OBJECT);
   cl_int err;
+  //SNUCL_INFO("[D2H Queue: %p] ReadBuffer CLMem: %p->CLMem: %p, offset: %lu, size: %lu host ptr: %p\n",
+	//				mem_queue_, mem_src, mem_src_dev, off_src, size, ptr);
   err = dispatch_->clEnqueueReadBuffer(mem_queue_, mem_src_dev, CL_TRUE,
                                        off_src, size, ptr, 0, NULL, NULL);
   UPDATE_ERROR(err);
@@ -513,27 +521,31 @@ void LegacyDevice::ReadBuffer(CLCommand* command, CLMem* mem_src,
 
 void LegacyDevice::WriteBuffer(CLCommand* command, CLMem* mem_dst,
                                size_t off_dst, size_t size, void* ptr) {
-  gLegacyTimer.Start();
+  //gLegacyTimer.Start();
   CHECK_ERROR(available_ == CL_FALSE, CL_DEVICE_NOT_AVAILABLE);
   cl_mem mem_dst_dev = (cl_mem)mem_dst->GetDevSpecific(this);
-  //SNUCL_INFO("[Queue: %p] Before WriteBuffer CLMem: %p, dev specific ptr: %p host ptr: %p\n",
-	//				mem_queue_, mem_dst, mem_dst_dev, ptr);
+  //SNUCL_INFO("[H2D Queue: %p] WriteBuffer CLMem: %p->CLMem: %p, offset: %lu, size: %lu host ptr: %p\n",
+//					mem_queue_, mem_dst, mem_dst_dev, off_dst, size, ptr);
   CHECK_ERROR(mem_dst_dev == NULL, CL_INVALID_MEM_OBJECT);
   cl_int err;
   err = dispatch_->clEnqueueWriteBuffer(mem_queue_, mem_dst_dev, CL_TRUE,
                                         off_dst, size, ptr, 0, NULL, NULL);
   //err = dispatch_->clFinish(mem_queue_);
-  //SNUCL_INFO("Writing Buffer Ptr %p with dispatch ptr: %p\n", ptr, dispatch_);
+ // SNUCL_INFO("Writing Buffer Ptr %p with dispatch ptr: %p\n", ptr, dispatch_);
+  //gLegacyTimer.Stop();
   UPDATE_ERROR(err);
-  gLegacyTimer.Stop();
 }
 
 void LegacyDevice::CopyBuffer(CLCommand* command, CLMem* mem_src,
-                              CLMem* mem_dst, size_t off_src, size_t off_dst,
+                              CLMem* mem_dst, 
+							   cl_mem mem_src_dev_specific, cl_mem mem_dst_dev_specific, 
+							  size_t off_src, size_t off_dst,
                               size_t size) {
   CHECK_ERROR(available_ == CL_FALSE, CL_DEVICE_NOT_AVAILABLE);
-  cl_mem mem_src_dev = (cl_mem)mem_src->GetDevSpecific(this);
-  cl_mem mem_dst_dev = (cl_mem)mem_dst->GetDevSpecific(this);
+  //cl_mem mem_src_dev = (cl_mem)mem_src->GetDevSpecific(this);
+  //cl_mem mem_dst_dev = (cl_mem)mem_dst->GetDevSpecific(this);
+  cl_mem mem_src_dev = mem_src_dev_specific;
+  cl_mem mem_dst_dev = mem_dst_dev_specific;
   CHECK_ERROR(mem_src_dev == NULL, CL_INVALID_MEM_OBJECT);
   CHECK_ERROR(mem_dst_dev == NULL, CL_INVALID_MEM_OBJECT);
   cl_int err;
@@ -734,6 +746,7 @@ void LegacyDevice::BuildProgram(CLCommand* command, CLProgram* program,
   if (legacy_program != NULL) {
     err = dispatch_->clBuildProgram(legacy_program, 1, &device_id_, options,
                                     NULL, NULL);
+	VERIFY_ERROR(err);
   }
   if (legacy_program != NULL && err == CL_SUCCESS) {
     CLProgramBinary* result = ReadBinary(legacy_program);
@@ -876,7 +889,7 @@ void* LegacyDevice::AllocMem(CLMem* mem) {
 void *LegacyDevice::AllocHostMem(CLMem *mem)
 {
 	void *ptr = NULL;
-	if(mem->flags() & CL_MEM_ALLOC_HOST_PTR)
+	//if(mem->flags() & CL_MEM_ALLOC_HOST_PTR)
 	{
 		cl_int err;
 		void *m = mem->GetDevSpecific(this);
@@ -1235,11 +1248,25 @@ void LegacyDevice::IcdPlatformAdd(const char* library_name,
   fprintf(stderr, "[Device] 2\n");
   cl_device_id* devices = IcdGetDevices(platform, &num_devices);
   if (devices != NULL) {
+  cl_int err;
+  cl_context context = NULL;
+  cl_context_properties properties[3] = {CL_CONTEXT_PLATFORM,
+                                         (cl_context_properties)platform,
+                                         0};
+  //context = platform->dispatch->clCreateContext(properties, num_devices, devices, NULL, NULL,
+    //                                    &err);
+	if(err != CL_SUCCESS) 
+	{
+		context = NULL;
+		SNUCL_ERROR("Context creation error for lib: %s\n", library_name);
+	}
     for (cl_uint i = 0; i < num_devices; i++) {
   	  //fprintf(stderr, "[Device] DLOpening %s\n", library_name);
       void* library = dlopen(library_name, RTLD_NOW);
   	  //fprintf(stderr, "[Device] Platform Dispatch %p\n", platform->dispatch);
+	  // Create a common context and pass it to the devices from same platform?
       LegacyDevice* device = new LegacyDevice(library, platform->dispatch,
+											  context,
                                               platform, devices[i]);
   	  fprintf(stderr, "[Device] 3\n");
     }

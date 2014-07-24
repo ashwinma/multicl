@@ -466,7 +466,28 @@ SNUCL_API_FUNCTION(clGetContextInfo)(
   return c->GetContextInfo(param_name, param_value_size, param_value,
                            param_value_size_ret);
 }
+/*
+CL_API_ENTRY cl_command_queue CL_API_CALL
+SNUCL_API_FUNCTION(clCreateCommandQueueWithProperties)(
+	cl_context context,
+ 	cl_device_id device,
+ 	const cl_queue_properties *property_list,
+ 	cl_int *errcode_ret)
+	CL_API_SUFFIX__VERSION_1_1 {
+  if (IS_INVALID_CONTEXT(context))
+    SET_ERROR_AND_RETURN(CL_INVALID_CONTEXT, NULL);
+  if (IS_INVALID_DEVICE(device) ||
+      IS_DEVICE_NOT_ASSOCIATED_WITH_CONTEXT(device, context))
+    SET_ERROR_AND_RETURN(CL_INVALID_DEVICE, NULL);
 
+  cl_int err = CL_SUCCESS;
+  CLCommandQueue* command_queue = CLCommandQueue::CreateCommandQueueWithProperties(
+      context->c_obj, device->c_obj, property_list, &err);
+  if (err != CL_SUCCESS)
+    SET_ERROR_AND_RETURN(err, NULL);
+  SET_ERROR_AND_RETURN(CL_SUCCESS, command_queue->st_obj());
+}
+*/
 CL_API_ENTRY cl_command_queue CL_API_CALL
 SNUCL_API_FUNCTION(clCreateCommandQueue)(
     cl_context context, cl_device_id device,
@@ -1265,7 +1286,7 @@ SNUCL_API_FUNCTION(clEnqueueReadBuffer)(
       return CL_INVALID_CONTEXT;
   }
 
-  if (size == 0 || !b->IsWithinRange(offset, size))
+  if (/*size == 0 || */!b->IsWithinRange(offset, size))
     return CL_INVALID_VALUE;
   if (!b->IsHostReadable())
     return CL_INVALID_OPERATION;
@@ -1546,7 +1567,7 @@ SNUCL_API_FUNCTION(clEnqueueCopyBuffer)(
     return CL_MEM_COPY_OVERLAP;
 
   CLCommand* command = CLCommand::CreateCopyBuffer(
-      NULL, NULL, q, sb, db, src_offset, dst_offset, size);
+      NULL, NULL, q, sb, db, NULL, NULL, src_offset, dst_offset, size);
   if (command == NULL) return CL_OUT_OF_HOST_MEMORY;
 
   command->SetWaitList(num_events_in_wait_list, event_wait_list);

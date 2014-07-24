@@ -71,6 +71,11 @@ class CLDevice: public CLObject<struct _cl_device_id, CLDevice,
   cl_device_type type() const { return type_; }
   int node_id() const { return node_id_; }
 
+  int CommandCount() const {return commandCount_; }
+
+  void AddCommand();
+  void RemoveCommand();
+
   cl_int GetDeviceInfo(cl_device_info param_name, size_t param_value_size,
                        void* param_value, size_t* param_value_size_ret);
   cl_int CreateSubDevices(const cl_device_partition_property* properties,
@@ -128,6 +133,7 @@ class CLDevice: public CLObject<struct _cl_device_id, CLDevice,
   virtual void WriteBuffer(CLCommand* command, CLMem* mem_dst, size_t off_dst,
                            size_t size, void* ptr) = 0;
   virtual void CopyBuffer(CLCommand* command, CLMem* mem_src, CLMem* mem_dst,
+							   cl_mem mem_src_dev_specific, cl_mem mem_dst_dev_specific, 
                           size_t off_src, size_t off_dst, size_t size) = 0;
   virtual void ReadImage(CLCommand* command, CLMem* mem_src,
                          size_t src_origin[3], size_t region[3],
@@ -199,6 +205,7 @@ class CLDevice: public CLObject<struct _cl_device_id, CLDevice,
 
   virtual bool IsComplete(CLCommand* command);
 
+  virtual cl_context context() const = 0;
   virtual void* AllocHostMem(CLMem *mem) = 0;
   virtual void* AllocMem(CLMem* mem) = 0;
   virtual void FreeMem(CLMem* mem, void* dev_specific) = 0;
@@ -326,6 +333,8 @@ class CLDevice: public CLObject<struct _cl_device_id, CLDevice,
   cl_ulong mem_bw_;
   cl_ulong lmem_bw_;
   cl_ulong compute_throughput_;
+
+  int commandCount_;
 };
 
 #endif // __SNUCL__CL_DEVICE_H

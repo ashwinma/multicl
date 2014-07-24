@@ -67,6 +67,7 @@ CLCommand::CLCommand(CLContext* context, CLDevice* device,
                      CLCommandQueue* queue, cl_command_type type) {
   //gCommandTimer.Init();
   sched_type_ = SNUCL_SCHED_MANUAL;
+  alreadyCompleted_ = false;
   type_ = type;
   queue_ = queue;
   if (queue_ != NULL) {
@@ -111,7 +112,7 @@ CLCommand::CLCommand(CLContext* context, CLDevice* device,
 }
 
 CLCommand::~CLCommand() {
-//  std::cout << "Command Timer: " << gCommandTimer << std::endl;
+  //std::cout << "Command Timer: " << gCommandTimer << std::endl;
   if (queue_) queue_->Release();
   context_->Release();
   for (vector<CLEvent*>::iterator it = wait_events_.begin();
@@ -142,7 +143,13 @@ CLCommand::~CLCommand() {
     free(mem_list_);
   }
   if (mem_offsets_) free(mem_offsets_);
-  if (temp_buf_) free(temp_buf_);
+  if (temp_buf_) 
+  {
+  	//if(alloc_host_) 
+//		device_->FreeHostMem(mem_dst_, temp_buf_);
+	//else 
+	//	free(temp_buf_);
+  }
   if (program_) program_->Release();
   if (headers_) {
     for (size_t i = 0; i < size_; i++)
@@ -214,6 +221,7 @@ void CLCommand::SetAsComplete() {
   if (error_ != CL_SUCCESS && error_ < 0) {
     event_->SetStatus(error_);
   } else {
+	device_->RemoveCommand();
     event_->SetStatus(CL_COMPLETE);
   }
 }
@@ -265,7 +273,8 @@ void CLCommand::Execute() {
       device_->WriteBuffer(this, mem_dst_, off_dst_, size_, ptr_);
       break;
     case CL_COMMAND_COPY_BUFFER:
-      device_->CopyBuffer(this, mem_src_, mem_dst_, off_src_, off_dst_, size_);
+      device_->CopyBuffer(this, mem_src_, mem_dst_, mem_src_dev_specific_, mem_dst_dev_specific_, off_src_, off_dst_, size_);
+      //device_->CopyBuffer(this, mem_src_, mem_dst_, off_src_, off_dst_, size_);
       break;
     case CL_COMMAND_READ_IMAGE:
       device_->ReadImage(this, mem_src_, src_origin_, region_, dst_row_pitch_,
@@ -357,6 +366,11 @@ void CLCommand::Execute() {
       SNUCL_ERROR("Unsupported command [%x]", type_);
       break;
   }
+  device_->AddCommand();
+}
+
+bool CLCommand::IsAlreadyCompleted() {
+	return alreadyCompleted_;
 }
 
 bool CLCommand::ResolveConsistency() {
@@ -520,6 +534,9 @@ void CLCommand::ResolveDeviceCharacteristics()
 			break;
 		case CL_QUEUE_DEVICE_SELECT_NEAREST:
 			sched_type_ = SNUCL_SCHED_CLOSEST;
+			break;
+		case CL_QUEUE_DEVICE_SELECT_LEAST_LOADED:
+			sched_type_ = SNUCL_SCHED_LEAST_LOADED;
 			break;
 		case CL_QUEUE_DEVICE_SELECT_MANUAL:
 		default:
@@ -735,7 +752,29 @@ bool CLCommand::ResolveConsistencyOfLaunchNativeKernel() {
 }
 
 bool CLCommand::ResolveConsistencyOfReadMem() {
+  //SNUCL_INFO("(Before) Device in Resolve Read consistency: %p\n", device_);
+  //gCommandTimer.Start();
+  CLDevice *before = device_;
+  //bool already_resolved = LocateMemOnDevice(mem_src_);
   bool already_resolved = ChangeDeviceToReadMem(mem_src_, device_);
+  //gCommandTimer.Stop();
+  if(before != device_)
+  {
+  	SNUCL_INFO("Device changed for D2H operation\n", 0);
+  }
+  
+  if(queue_ && queue_->IsAutoDeviceSelection()) 
+  {
+  	// FIXME: Change only if the queue properties say so
+  	cl_int err = queue_->set_device(device_);
+	if(err != CL_SUCCESS) SNUCL_ERROR("Invalid Device Set!\n", 0);
+  //	SNUCL_INFO("(After) Device in Resolve Read consistency: %p\n", queue_->device());
+  	if(size_ == 0)
+	{
+		alreadyCompleted_ = true;
+	}
+  }
+  
   consistency_resolved_ = true;
   return already_resolved;
 }
@@ -819,6 +858,13 @@ bool CLCommand::ResolveConsistencyOfCopyMem() {
   GetCopyPattern(source, device_, use_read, use_write, use_copy, use_send,
                  use_recv, use_rcopy, alloc_ptr, use_host_ptr /* unused */);
 
+  if(use_copy)
+  {
+  	cl_mem mem_src_dev_specific_ptr = (cl_mem)mem_src_->GetDevSpecific(source);
+  	cl_mem mem_dst_dev_specific_ptr = (cl_mem)mem_dst_->GetDevSpecific(device_);
+	mem_src_dev_specific_ = mem_src_dev_specific_ptr;//->c_obj;
+	mem_dst_dev_specific_ = mem_dst_dev_specific_ptr;//->c_obj;
+  }
   void* ptr = NULL;
   if (alloc_ptr) {
     size_t size;
@@ -838,7 +884,10 @@ bool CLCommand::ResolveConsistencyOfCopyMem() {
         SNUCL_ERROR("Unsupported command [%x]", type_);
         break;
     }
-    ptr = memalign(4096, size);
+    //ptr = memalign(4096, size);
+	//ptr = device_->AllocHostMem(mem_dst_);
+	ptr = mem_dst_->GetDevSpecificHostPtr(device_);
+	SNUCL_INFO("CopyMem Mapped Host Ptr: %p\n", ptr);
   }
 
   CLCommand* read = NULL;
@@ -1041,6 +1090,14 @@ void CLCommand::GetCopyPattern(CLDevice* dev_src, CLDevice* dev_dst,
   alloc_ptr = false;
   use_host_ptr = false;
 
+  /*if(dev_src->context() != NULL) {
+	  if(dev_src->context() == dev_dst->context())
+	  {
+		  use_copy = true;
+	  }
+  }
+  else*/
+  {
   if (dev_src == dev_dst) { // (1)
     use_copy = true;
   } else if (dev_src == LATEST_HOST) { // (2)
@@ -1058,6 +1115,7 @@ void CLCommand::GetCopyPattern(CLDevice* dev_src, CLDevice* dev_dst,
     use_send = true;
     use_recv = true;
   }
+  }
 }
 
 static void CL_CALLBACK IssueCommandCallback(cl_event event, cl_int status,
@@ -1074,9 +1132,25 @@ CLEvent* CLCommand::CloneMem(CLDevice* dev_src, CLDevice* dev_dst,
                  use_recv, use_rcopy, alloc_ptr, use_host_ptr);
 
   void* ptr = NULL;
-  //SNUCL_INFO("Cloning Mem\n", 0);
+  if(use_copy)
+  {
+  	cl_mem mem_src_dev_specific_ptr = (cl_mem)mem->GetDevSpecific(dev_src);
+  	cl_mem mem_dst_dev_specific_ptr = (cl_mem)mem->GetDevSpecific(dev_dst);
+	mem_src_dev_specific_ = mem_src_dev_specific_ptr;//->c_obj;
+	mem_dst_dev_specific_ = mem_dst_dev_specific_ptr;//->c_obj;
+	//cl_mem foo = mem_src_dev_specific_->st_obj();
+  }
+  //SNUCL_INFO("Cloning Mem: %p\n", mem);
   if (alloc_ptr)
-    ptr = memalign(4096, mem->size());
+  {
+    //gCommandTimer.Start();
+    //ptr = memalign(4096, mem->size());
+	ptr = mem->GetDevSpecificHostPtr(dev_dst);
+	//ptr = dev_dst->AllocHostMem(mem);
+	//SNUCL_INFO("Mapped Host Ptr: %p\n", ptr);
+    //gCommandTimer.Stop();
+	//SNUCL_INFO("Mapped Host Ptr Time: %g sec\n", gCommandTimer.CurrentElapsed());
+  }
   if (use_host_ptr)
     ptr = mem->GetHostPtr();
 
@@ -1103,7 +1177,7 @@ CLEvent* CLCommand::CloneMem(CLDevice* dev_src, CLDevice* dev_dst,
       write = CreateWriteBuffer(context_, dev_dst, NULL, mem, 0, mem->size(),
                                 ptr);
     if (use_copy || use_rcopy)
-      copy = CreateCopyBuffer(context_, dev_dst, NULL, mem, mem, 0, 0,
+      copy = CreateCopyBuffer(context_, dev_dst, NULL, mem, mem, mem_src_dev_specific_, mem_dst_dev_specific_, 0, 0,
                               mem->size());
   }
   if (use_send) {
@@ -1275,7 +1349,10 @@ CLCommand::CreateFillBuffer(CLContext* context, CLDevice* device,
 CLCommand*
 CLCommand::CreateCopyBuffer(CLContext* context, CLDevice* device,
                             CLCommandQueue* queue, CLMem* src_buffer,
-                            CLMem* dst_buffer, size_t src_offset,
+                            CLMem* dst_buffer, 
+							cl_mem src_buffer_dev_specific,
+							cl_mem dst_buffer_dev_specific,
+							size_t src_offset,
                             size_t dst_offset, size_t size) {
   CLCommand* command = new CLCommand(context, device, queue,
                                      CL_COMMAND_COPY_BUFFER);
@@ -1284,6 +1361,8 @@ CLCommand::CreateCopyBuffer(CLContext* context, CLDevice* device,
   command->mem_src_->Retain();
   command->mem_dst_ = dst_buffer;
   command->mem_dst_->Retain();
+  command->mem_src_dev_specific_ = src_buffer_dev_specific;
+  command->mem_dst_dev_specific_ = dst_buffer_dev_specific;
   command->off_src_ = src_offset;
   command->off_dst_ = dst_offset;
   command->size_ = size;

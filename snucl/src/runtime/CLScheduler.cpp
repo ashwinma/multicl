@@ -157,8 +157,16 @@ void CLScheduler::Run() {
       //if (command != NULL && resolved) {
       if (command != NULL && command->ResolveConsistency()) {
 	  	// command should have the appropriate device already chosen at this point
-        command->Submit();
-        queue->Dequeue(command);
+        if(command->IsAlreadyCompleted())
+		{
+			command->SetAsComplete();
+			delete command;
+		}
+		else
+		{
+		command->Submit();
+		}
+		queue->Dequeue(command);
       }
     }
   }

@@ -47,14 +47,14 @@ struct _benchmark_type {
    int   maxGroupSize;           // maximum local work group size (0 to use the card's maximum)
    unsigned int opFlags;         // indicates if kernel applies to READ and/or WRITE operations
 } bTestsGPU[] = {
-//  {"GlobalMemoryCoalesced", "__global", "__global", "s", "gid", false, -1, 0, false, 0, 0, 1024, 16, 64, 256, OP_MEM_READ|OP_MEM_WRITE},
+  {"GlobalMemoryCoalesced", "__global", "__global", "s", "gid", false, -1, 0, false, 0, 0, 1024, 16, 64, 256, OP_MEM_READ|OP_MEM_WRITE},
 //  {"GlobalMemoryUnit", "__global", "__global", "s", "gid*1024", false, 16384, 0, false, 0, 0, 512, 16, 64, 256, OP_MEM_READ|OP_MEM_WRITE},
 //  {"GlobalMemoryUnCoalescedHalf", "__global", "__global", "s", "gid/2", false, -1, 0, false, 0, 0, 512, 16, 64, 256, OP_MEM_READ|OP_MEM_WRITE},
 //  {"GlobalMemoryUnCoalesced2", "__global", "__global", "s", "gid*2", false, -1, 0, false, 0, 0, 512, 16, 64, 256, OP_MEM_READ|OP_MEM_WRITE},
 //  {"GlobalMemoryUnCoalesced4", "__global", "__global", "s", "gid*4", false, -1, 0, false, 0, 0, 512, 16, 64, 256, OP_MEM_READ|OP_MEM_WRITE},
 //  {"GlobalMemoryUnCoalesced8", "__global", "__global", "s", "gid*8", false, -1, 0, false, 0, 0, 512, 16, 64, 256, OP_MEM_READ|OP_MEM_WRITE},
   //{"ConstantMemoryCoalesced", "__global const", "__global", "s", "gid", false, -1, 0, false, 0, 0, 1024, 64, 32, 0, OP_MEM_READ},
-  {"LocalMemory", "__global const", "__global", "s", "tid", false, 1, 0, true, 2048, 0, 3000, 16, 32, 0, OP_MEM_READ|OP_MEM_WRITE},
+//  {"LocalMemory", "__global const", "__global", "s", "tid", false, 1, 0, true, 2048, 0, 3000, 16, 32, 0, OP_MEM_READ|OP_MEM_WRITE},
   {0, 0, 0, 0, 0, 0, 0, false, 0, 0, 0, 0}
 };
 
@@ -332,6 +332,7 @@ void RunBenchmark(cl::Device& devcpp,
     
 // Only change following information for a particular AMD GPU
 #if 1
+#if 0
 #define WAVEFRONT_SIZE 64
 #define NBLOCKS 12
     size_t numCU = 32;
@@ -350,6 +351,13 @@ void RunBenchmark(cl::Device& devcpp,
     size_t numBlocksArr[NBLOCKS] = {1,2,4,8,16,30,60,120,240};
 #endif
 #endif
+#else
+#define WAVEFRONT_SIZE 1
+#define NBLOCKS 9
+    size_t numCU = 12;
+    size_t maxWavefronts = (1024 * 12);
+    size_t numBlocksArr[NBLOCKS] = {1,2,4,8,12,24,48,96,192};//,32,64,128,256,512,1024};
+#endif
     //size_t numBlocksArr[1] = {100};
 
     // 1k through 8M bytes
@@ -361,7 +369,7 @@ void RunBenchmark(cl::Device& devcpp,
     clGetDeviceInfo(dev, CL_DEVICE_TYPE, sizeof(type), &type, NULL);
     if (type == CL_DEVICE_TYPE_CPU)
     {
-       minGroupSize = 256;
+      // minGroupSize = 256;
     }
 
     int memSize = 64*1024*1024;  // 64MB buffer
@@ -375,8 +383,8 @@ void RunBenchmark(cl::Device& devcpp,
     const int numWordsInt = memSize / sizeof(int);
     const int numWordsFloat = memSize / sizeof(float);
 
-    for(int i=0; i<NBLOCKS; i++) 
-    {
+    //for(int i=0; i<NBLOCKS; i++) {
+    int i = 4; {
         //size_t numBlocks = numSMs ;  // use 8 times as many warps as the number of compute units
         size_t numBlocks = numBlocksArr[i] ;
         size_t globalWorkSize = numBlocks*WAVEFRONT_SIZE;  //redundant
@@ -456,16 +464,49 @@ void RunBenchmark(cl::Device& devcpp,
                     cl_program prog = clCreateProgramWithSource(ctx, 1, 
                                       progSource, NULL, &err);
                     CL_CHECK_ERROR(err);
-                 
-                    // Compile the program
+   
+  					// Compile the program
                     err = clBuildProgram(prog, 0, NULL, NULL, NULL, NULL);
                     CL_CHECK_ERROR(err);
-                 
+#if 0 
+				 	cl_uint num_devices;
+					err = clGetProgramInfo(prog, CL_PROGRAM_NUM_DEVICES, sizeof(cl_uint), &num_devices, NULL);
+					printf("Number of devices associated with program: %d\n", num_devices);
+					CL_CHECK_ERROR(err);
+					
+					cl_uint num_kernels;
+					err = clCreateKernelsInProgram(prog, 0, NULL, &num_kernels);
+					CL_CHECK_ERROR(err);
+					cl_kernel *kernels = (cl_kernel *)malloc(sizeof(cl_kernel) * num_kernels);
+					printf("Number of kernels in program: %d\n", num_kernels);
+					err = clCreateKernelsInProgram(prog, num_kernels, kernels, NULL);
+					CL_CHECK_ERROR(err);
+					for(int idx = 0; idx < num_kernels; idx++) {
+						size_t kNameSize;
+						err = clGetKernelInfo(kernels[idx], CL_KERNEL_FUNCTION_NAME, 0, NULL, &kNameSize);
+						CL_CHECK_ERROR(err);
+						char *kernel_name = (char *)malloc(sizeof(char) * kNameSize);
+						err = clGetKernelInfo(kernels[idx], CL_KERNEL_FUNCTION_NAME, kNameSize, kernel_name, NULL);
+						CL_CHECK_ERROR(err);
+						printf("Kernel[%d] name: %s\n", idx, kernel_name);
+						free(kernel_name);
+					}
+
+					free(kernels);
+					printf("Program: %s\n", kernelCode.c_str());
+					printf("Creating Kernel: %s\n", kName.c_str());
+#endif             
                     // Extract out memory kernels 
                     cl_kernel kernel_mem = clCreateKernel(prog, 
                                   kName.c_str(), &err);
                     CL_CHECK_ERROR(err);
-                 
+#if 0
+					size_t wavefront_size;
+					err = clGetKernelWorkGroupInfo(kernel_mem, dev, CL_KERNEL_PREFERRED_WORK_GROUP_SIZE_MULTIPLE,
+							sizeof(size_t), &wavefront_size, NULL);
+                    CL_CHECK_ERROR(err);
+					printf("Wavefront Size (Guess): %lu\n", wavefront_size);
+#endif                 
                     if (!maxGroupSize) 
                     {
                         maxGroupSize = min(getMaxWorkGroupSize(dev), 512);
@@ -882,7 +923,7 @@ void RunBenchmark(cl::Device& devcpp,
         delete[] outMemFloat;
     }
 
-    TestImageMemory(ctx, queue, resultDB, op);
+    //TestImageMemory(ctx, queue, resultDB, op);
 }
 
 

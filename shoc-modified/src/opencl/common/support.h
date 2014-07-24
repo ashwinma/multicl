@@ -10,7 +10,7 @@
 #if defined(__cplusplus)
 #define __CL_ENABLE_EXCEPTIONS
 #include "shoc_compat_cas.h"
-#include "cl.hpp"
+#include "CL/cl.hpp"
 #endif /* __cplusplus */
 
 // ****************************************************************************

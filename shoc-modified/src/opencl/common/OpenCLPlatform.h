@@ -6,7 +6,7 @@
 #include <list>
 #include "shoc_compat_cas.h"
 #define __CL_ENABLE_EXCEPTIONS
-#include "cl.hpp"
+#include "CL/cl.hpp"
 #include "support.h"
 #include "OpenCLDeviceInfo.h"
 #include "Platform.h"

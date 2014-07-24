@@ -1,6 +1,6 @@
 #include "shoc_compat_cas.h"
 #define __CL_ENABLE_EXCEPTIONS
-#include "cl.hpp"
+#include "CL/cl.hpp"
 #include "OpenCLNodePlatformContainer.h"
 #include "support.h"
 #include <stdlib.h>

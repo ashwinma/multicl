@@ -12,7 +12,7 @@
 
 #include "shoc_compat_cas.h"
 #define __CL_ENABLE_EXCEPTIONS
-#include "cl.hpp"
+#include "CL/cl.hpp"
 
 #include "OpenCLDeviceInfo.h"
 #include "OpenCLNodePlatformContainer.h"
@@ -203,6 +203,7 @@ int main(int argc, char *argv[])
         ctxDevices.push_back( id );
         cl::Context ctx( ctxDevices );
         cl::CommandQueue queue( ctx, id, CL_QUEUE_PROFILING_ENABLE );
+        if (verbose) cout << ">> Using Device# " << device << "\n";
         ResultDatabase resultDB;
 
         // Run the benchmark

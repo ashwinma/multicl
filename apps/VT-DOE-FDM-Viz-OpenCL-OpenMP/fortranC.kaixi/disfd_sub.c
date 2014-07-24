@@ -1,13 +1,14 @@
 #include <stdio.h>
 #include "mpi.h"
-
+#include "RealTimer.h"
+//#define DISFD_DEBUG
 /***********************************************/
 /* for debug: check the output                 */
 /***********************************************/
 void write_output(float *arr, int size, const char *filename)
 {
     FILE *fp;
-    if((fp = fopen(filename, "w+")) == NULL)
+    if((fp = fopen(filename, "a")) == NULL)
     {
         fprintf(stderr, "File write error!\n");
     }
@@ -22,6 +23,9 @@ void write_output(float *arr, int size, const char *filename)
     fclose(fp);
 }
 
+#define INNER_DOMAINS 2
+RealTimer kernelTimerStress[INNER_DOMAINS];
+RealTimer kernelTimerVelocity[INNER_DOMAINS];
 //!XSC--------------------------------------------------------------------
 #define drvh1(i, j) drvh1M[(i) - 1 + (j) * mw1_pml1]
 #define drti1(i, j) drti1M[(i) - 1 + (j) * mw1_pml1]
@@ -190,6 +194,22 @@ void MPI_Init_C (MPI_Fint *ierr)
     return;
 }
 
+void init_all()
+{
+	int i;
+    for(i = 0; i < INNER_DOMAINS; i++) {
+    Init(&kernelTimerStress[i]);
+    Init(&kernelTimerVelocity[i]);
+	}
+}
+
+void finalize_all()
+{
+	Print(&kernelTimerStress[0], "Stress Kernel 0 Time");
+	Print(&kernelTimerVelocity[0], "Velocity Kernel 0 Time");
+	Print(&kernelTimerStress[1], "Stress Kernel 1 Time");
+	Print(&kernelTimerVelocity[1], "Velocity Kernel 1 Time");
+}
 
 void velocity_inner_IC(int	nztop,
 					  int 	nztm1,
@@ -1085,6 +1105,7 @@ void compute_velocityCm( int *nztop,  int *nztm1,  float *ca, int *lbx,
   v2yM=(float *) *v2yMp;
   v2zM=(float *) *v2zMp;
 
+	Start(&kernelTimerVelocity[0]);
 	velocity_inner_IC(*nztop,
 					 *nztm1,
 					 *ca,
@@ -1173,6 +1194,8 @@ void compute_velocityCm( int *nztop,  int *nztm1,  float *ca, int *lbx,
 			   v1y_pyM,
 			   v1z_pyM);
 
+	Stop(&kernelTimerVelocity[0]);
+	Start(&kernelTimerVelocity[1]);
 	velocity_inner_IIC(*ca,
 					  nd2_vel,
 					  rhoM,
@@ -1294,16 +1317,18 @@ void compute_velocityCm( int *nztop,  int *nztm1,  float *ca, int *lbx,
 				v2y_pzM,
 				v2z_pzM);
 				
+	Stop(&kernelTimerVelocity[1]);
 	// for debug
-	// int size = (*nztop + 2) * (*nxtop + 3) * (*nytop + 3); 
-	// write_output(v1xM, size, "OUTPUT_ARRAYS/v1xM.txt");
-	// write_output(v1yM, size, "OUTPUT_ARRAYS/v1yM.txt");
-	// write_output(v1zM, size, "OUTPUT_ARRAYS/v1zM.txt");
-	// size = (*nzbtm + 1) * (*nxbtm + 3) * (*nybtm + 3);
-	// write_output(v2xM, size, "OUTPUT_ARRAYS/v2xM.txt");
-	// write_output(v2yM, size, "OUTPUT_ARRAYS/v2yM.txt");
-	// write_output(v2zM, size, "OUTPUT_ARRAYS/v2zM.txt");			
-	
+#ifdef DISFD_DEBUG
+	int size = (*nztop + 2) * (*nxtop + 3) * (*nytop + 3); 
+	write_output(v1xM, size, "OUTPUT_ARRAYS/v1xM.txt");
+	write_output(v1yM, size, "OUTPUT_ARRAYS/v1yM.txt");
+	write_output(v1zM, size, "OUTPUT_ARRAYS/v1zM.txt");
+	size = (*nzbtm + 1) * (*nxbtm + 3) * (*nybtm + 3);
+	write_output(v2xM, size, "OUTPUT_ARRAYS/v2xM.txt");
+	write_output(v2yM, size, "OUTPUT_ARRAYS/v2yM.txt");
+	write_output(v2zM, size, "OUTPUT_ARRAYS/v2zM.txt");			
+#endif
 	
 	return;
 }
@@ -2228,10 +2253,13 @@ void compute_stressCm(int *nxb1, int *nyb1, int *nx1p1, int *ny1p1, int *nxtop, 
 	v2zM = (float *) *v2zMp;
 
 	procID = *myid;
+	Start(&kernelTimerStress[0]);
 	
-	//int size = (*nztop) * (*nxtop + 3) * (*nytop);
-    //write_output(t1xxM, size, "OUTPUT_ARRAYS/t1xxM0.txt");
-	//write_output(t1xx_pxM, (*nztop) * ((lbx[1] - lbx[0] + 1) * (*mw1_pml) + lbx[1]) * (*nytop), "OUTPUT_ARRAYS/t1xx_px_c.txt");
+#ifdef DISFD_INTERMEDIATE_DEBUG
+	int size = (*nztop) * (*nxtop + 3) * (*nytop);
+    write_output(t1xxM, size, "OUTPUT_ARRAYS/t1xxM0.txt");
+	write_output(t1xx_pxM, (*nztop) * ((lbx[1] - lbx[0] + 1) * (*mw1_pml) + lbx[1]) * (*nytop), "OUTPUT_ARRAYS/t1xx_px_c.txt");
+#endif
 
 	stress_norm_xy_IC(*nxb1,
 					  *nyb1,
@@ -2264,7 +2292,9 @@ void compute_stressCm(int *nxb1, int *nyb1, int *nx1p1, int *ny1p1, int *nxtop, 
 					  v1yM,
 					  v1zM);
 	// for debug
-    //write_output(t1xxM, size, "OUTPUT_ARRAYS/t1xxM1.txt");
+#ifdef DISFD_INTERMEDIATE_DEBUG
+    write_output(t1xxM, size, "OUTPUT_ARRAYS/t1xxM1.txt");
+#endif
 
 	  stress_xz_yz_IC(*nxb1,
 					  *nyb1,
@@ -2292,10 +2322,12 @@ void compute_stressCm(int *nxb1, int *nyb1, int *nx1p1, int *ny1p1, int *nxtop, 
 					  qt1xzM,
 					  qt1yzM);
 	// for debug
-    //write_output(t1xxM, size, "OUTPUT_ARRAYS/t1xxM2.txt");
+#ifdef DISFD_INTERMEDIATE_DEBUG
+    write_output(t1xxM, size, "OUTPUT_ARRAYS/t1xxM2.txt");
 
 	
-	/*write_output(t1xx_pxM, (*nztop) * ((lbx[1] - lbx[0] + 1) * (*mw1_pml) + lbx[1]) * (*nytop), "OUTPUT_ARRAYS/t1xx_px_c.txt");*/
+	write_output(t1xx_pxM, (*nztop) * ((lbx[1] - lbx[0] + 1) * (*mw1_pml) + lbx[1]) * (*nytop), "OUTPUT_ARRAYS/t1xx_px_c.txt");
+#endif
 	 stress_norm_PmlX_IC(*nxb1,
 						 *nyb1,
 						 *nxtop,
@@ -2333,7 +2365,9 @@ void compute_stressCm(int *nxb1, int *nyb1, int *nx1p1, int *ny1p1, int *nxtop, 
 						 qt1xx_pxM,
 						 qt1yy_pxM);
 	// for debug
-    //write_output(t1xxM, size, "OUTPUT_ARRAYS/t1xxM3.txt");
+#ifdef DISFD_INTERMEDIATE_DEBUG
+    write_output(t1xxM, size, "OUTPUT_ARRAYS/t1xxM3.txt");
+#endif
 
 	 stress_norm_PmlY_IC(*nxb1,
 						 *nyb1,
@@ -2370,7 +2404,9 @@ void compute_stressCm(int *nxb1, int *nyb1, int *nx1p1, int *ny1p1, int *nxtop, 
 						 v1yM,
 						 v1zM);
 	// for debug
-    //write_output(t1xxM, size, "OUTPUT_ARRAYS/t1xxM4.txt");
+#ifdef DISFD_INTERMEDIATE_DEBUG
+    write_output(t1xxM, size, "OUTPUT_ARRAYS/t1xxM4.txt");
+#endif
 
 	 stress_xy_PmlX_IC(*nxb1,
 					   *nyb1,
@@ -2399,7 +2435,9 @@ void compute_stressCm(int *nxb1, int *nyb1, int *nx1p1, int *ny1p1, int *nxtop, 
 					   v1xM,
 					   v1yM);
 	// for debug
-    //write_output(t1xxM, size, "OUTPUT_ARRAYS/t1xxM5.txt");
+#ifdef DISFD_INTERMEDIATE_DEBUG
+    write_output(t1xxM, size, "OUTPUT_ARRAYS/t1xxM5.txt");
+#endif
 
 	 stress_xy_PmlY_IC(*nxb1,
 					   *nyb1,
@@ -2426,7 +2464,9 @@ void compute_stressCm(int *nxb1, int *nyb1, int *nx1p1, int *ny1p1, int *nxtop, 
 					   v1xM,
 					   v1yM);
 	// for debug
-    //write_output(t1xxM, size, "OUTPUT_ARRAYS/t1xxM6.txt");
+#ifdef DISFD_INTERMEDIATE_DEBUG
+    write_output(t1xxM, size, "OUTPUT_ARRAYS/t1xxM6.txt");
+#endif
 
 	 stress_xz_PmlX_IC(*nxb1,
 					   *nyb1,
@@ -2455,7 +2495,9 @@ void compute_stressCm(int *nxb1, int *nyb1, int *nx1p1, int *ny1p1, int *nxtop, 
 					   v1xM,
 					   v1zM);
 	// for debug
-    //write_output(t1xxM, size, "OUTPUT_ARRAYS/t1xxM7.txt");
+#ifdef DISFD_INTERMEDIATE_DEBUG
+    write_output(t1xxM, size, "OUTPUT_ARRAYS/t1xxM7.txt");
+#endif
 
 	 stress_xz_PmlY_IC(*nxb1,
 					   *nyb1,
@@ -2477,7 +2519,9 @@ void compute_stressCm(int *nxb1, int *nyb1, int *nx1p1, int *ny1p1, int *nxtop, 
 					   v1xM,
 					   v1zM);
 	// for debug
-    //write_output(t1xxM, size, "OUTPUT_ARRAYS/t1xxM8.txt");
+#ifdef DISFD_INTERMEDIATE_DEBUG
+    write_output(t1xxM, size, "OUTPUT_ARRAYS/t1xxM8.txt");
+#endif
 
 	 stress_yz_PmlX_IC(*nxb1,
 					   *nyb1,
@@ -2499,7 +2543,9 @@ void compute_stressCm(int *nxb1, int *nyb1, int *nx1p1, int *ny1p1, int *nxtop, 
 					   v1yM,
 					   v1zM);
 	// for debug
-    //write_output(t1xxM, size, "OUTPUT_ARRAYS/t1xxM9.txt");
+#ifdef DISFD_INTERMEDIATE_DEBUG
+    write_output(t1xxM, size, "OUTPUT_ARRAYS/t1xxM9.txt");
+#endif
 
 	 stress_yz_PmlY_IC(*nxb1,
 					   *nyb1,
@@ -2526,8 +2572,12 @@ void compute_stressCm(int *nxb1, int *nyb1, int *nx1p1, int *ny1p1, int *nxtop, 
 					   v1yM,
 					   v1zM);
 	// for debug
-    //write_output(t1xxM, size, "OUTPUT_ARRAYS/t1xxM10.txt");
+#ifdef DISFD_INTERMEDIATE_DEBUG
+    write_output(t1xxM, size, "OUTPUT_ARRAYS/t1xxM10.txt");
+#endif
 
+	Stop(&kernelTimerStress[0]);
+	Start(&kernelTimerStress[1]);
 
 	 stress_norm_xy_II(*nxb2,
 					   *nyb2,
@@ -2560,7 +2610,9 @@ void compute_stressCm(int *nxb1, int *nyb1, int *nx1p1, int *ny1p1, int *nxtop, 
 					   v2yM,
 					   v2zM);
 	// for debug
-    //write_output(t1xxM, size, "OUTPUT_ARRAYS/t1xxM11.txt");
+#ifdef DISFD_INTERMEDIATE_DEBUG
+    write_output(t1xxM, size, "OUTPUT_ARRAYS/t1xxM11.txt");
+#endif
 
 	 stress_xz_yz_IIC(*nxb2,
 					  *nyb2,
@@ -2585,7 +2637,9 @@ void compute_stressCm(int *nxb1, int *nyb1, int *nx1p1, int *ny1p1, int *nxtop, 
 					  v2yM,
 					  v2zM);
 	// for debug
-    //write_output(t1xxM, size, "OUTPUT_ARRAYS/t1xxM12.txt");
+#ifdef DISFD_INTERMEDIATE_DEBUG
+    write_output(t1xxM, size, "OUTPUT_ARRAYS/t1xxM12.txt");
+#endif
 
 	 stress_norm_PmlX_IIC(*nxb2,
 						  *nyb2,
@@ -2625,7 +2679,9 @@ void compute_stressCm(int *nxb1, int *nyb1, int *nx1p1, int *ny1p1, int *nxtop, 
 						  v2yM,
 						  v2zM);
 	// for debug
-    //write_output(t1xxM, size, "OUTPUT_ARRAYS/t1xxM13.txt");
+#ifdef DISFD_INTERMEDIATE_DEBUG
+    write_output(t1xxM, size, "OUTPUT_ARRAYS/t1xxM13.txt");
+#endif
 
 	 stress_norm_PmlY_II(*nxb2,
 						 *nyb2,
@@ -2663,7 +2719,9 @@ void compute_stressCm(int *nxb1, int *nyb1, int *nx1p1, int *ny1p1, int *nxtop, 
 						 v2yM,
 						 v2zM);
 	// for debug
-    //write_output(t1xxM, size, "OUTPUT_ARRAYS/t1xxM14.txt");
+#ifdef DISFD_INTERMEDIATE_DEBUG
+    write_output(t1xxM, size, "OUTPUT_ARRAYS/t1xxM14.txt");
+#endif
 
 	 stress_norm_PmlZ_IIC(*nxb2,
 						  *nyb2,
@@ -2701,7 +2759,9 @@ void compute_stressCm(int *nxb1, int *nyb1, int *nx1p1, int *ny1p1, int *nxtop, 
 						  v2yM,
 						  v2zM);
 	// for debug
-    //write_output(t1xxM, size, "OUTPUT_ARRAYS/t1xxM15.txt");
+#ifdef DISFD_INTERMEDIATE_DEBUG
+    write_output(t1xxM, size, "OUTPUT_ARRAYS/t1xxM15.txt");
+#endif
 
 	 stress_xy_PmlX_IIC(*nxb2,
 						*nyb2,
@@ -2919,34 +2979,37 @@ void compute_stressCm(int *nxb1, int *nyb1, int *nx1p1, int *ny1p1, int *nxtop, 
 						qt2yz_pzM,
 						v2yM,
 						v2zM);
+	Stop(&kernelTimerStress[1]);
 	// for debug					
-	// int size = (*nztop) * (*nxtop + 3) * (*nytop);
-    // write_output(t1xxM, size, "OUTPUT_ARRAYS/t1xxM.txt");
+#ifdef DISFD_DEBUG
+	 int size = (*nztop) * (*nxtop + 3) * (*nytop);
+     write_output(t1xxM, size, "OUTPUT_ARRAYS/t1xxM.txt");
     
-	// size = (*nztop) * (*nxtop + 3) * (*nytop + 3);
-    // write_output(t1xyM, size, "OUTPUT_ARRAYS/t1xyM.txt");
-    // size = (*nztop + 1) * (*nxtop + 3) * (*nytop);
-    // write_output(t1xzM, size, "OUTPUT_ARRAYS/t1xzM.txt");
-    // size = (*nztop) * (*nxtop) * (*nytop + 3);
-    // write_output(t1yyM, size, "OUTPUT_ARRAYS/t1yyM.txt");
-    // size = (*nztop + 1) * (*nxtop) * (*nytop + 3);
-    // write_output(t1yzM, size, "OUTPUT_ARRAYS/t1yzM.txt");
-    // size = (*nztop) * (*nxtop) * (*nytop);
-    // write_output(t1zzM, size, "OUTPUT_ARRAYS/t1zzM.txt");
+	 size = (*nztop) * (*nxtop + 3) * (*nytop + 3);
+     write_output(t1xyM, size, "OUTPUT_ARRAYS/t1xyM.txt");
+     size = (*nztop + 1) * (*nxtop + 3) * (*nytop);
+     write_output(t1xzM, size, "OUTPUT_ARRAYS/t1xzM.txt");
+     size = (*nztop) * (*nxtop) * (*nytop + 3);
+     write_output(t1yyM, size, "OUTPUT_ARRAYS/t1yyM.txt");
+     size = (*nztop + 1) * (*nxtop) * (*nytop + 3);
+     write_output(t1yzM, size, "OUTPUT_ARRAYS/t1yzM.txt");
+     size = (*nztop) * (*nxtop) * (*nytop);
+     write_output(t1zzM, size, "OUTPUT_ARRAYS/t1zzM.txt");
     
 	
-	// size = (*nzbtm) * (*nxbtm + 3) * (*nybtm);
-    // write_output(t2xxM, size, "OUTPUT_ARRAYS/t2xxM.txt");
-    // size = (*nzbtm) * (*nxbtm + 3) * (*nybtm + 3);
-    // write_output(t2xyM, size, "OUTPUT_ARRAYS/t2xyM.txt");
-    // size = (*nzbtm + 1) * (*nxbtm + 3) * (*nybtm);
-    // write_output(t2xzM, size, "OUTPUT_ARRAYS/t2xzM.txt");
-    // size = (*nzbtm) * (*nxbtm) * (*nybtm + 3);
-    // write_output(t2yyM, size, "OUTPUT_ARRAYS/t2yyM.txt");
-    // size = (*nzbtm + 1) * (*nxbtm) * (*nybtm + 3);
-    // write_output(t2yzM, size, "OUTPUT_ARRAYS/t2yzM.txt");
-    // size = (*nzbtm + 1) * (*nxbtm) * (*nybtm);
-    // write_output(t2zzM, size, "OUTPUT_ARRAYS/t2zzM.txt");
+	 size = (*nzbtm) * (*nxbtm + 3) * (*nybtm);
+     write_output(t2xxM, size, "OUTPUT_ARRAYS/t2xxM.txt");
+     size = (*nzbtm) * (*nxbtm + 3) * (*nybtm + 3);
+     write_output(t2xyM, size, "OUTPUT_ARRAYS/t2xyM.txt");
+     size = (*nzbtm + 1) * (*nxbtm + 3) * (*nybtm);
+     write_output(t2xzM, size, "OUTPUT_ARRAYS/t2xzM.txt");
+     size = (*nzbtm) * (*nxbtm) * (*nybtm + 3);
+     write_output(t2yyM, size, "OUTPUT_ARRAYS/t2yyM.txt");
+     size = (*nzbtm + 1) * (*nxbtm) * (*nybtm + 3);
+     write_output(t2yzM, size, "OUTPUT_ARRAYS/t2yzM.txt");
+     size = (*nzbtm + 1) * (*nxbtm) * (*nybtm);
+     write_output(t2zzM, size, "OUTPUT_ARRAYS/t2zzM.txt");
+#endif
     
 }
 

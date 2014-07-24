@@ -2472,8 +2472,10 @@ end subroutine compute_velocity
 subroutine comm_velocity(comm_worker, myid)
  use grid_node_comm
  use wave_field_comm
+ use iso_c_binding
  implicit NONE
  integer, intent(IN):: comm_worker, myid
+ real(c_double):: tstart, tend
 
 ! Interpolating velocity on the interface betwee Region I and II
  call ISEND_IRECV_Velocity(comm_worker)

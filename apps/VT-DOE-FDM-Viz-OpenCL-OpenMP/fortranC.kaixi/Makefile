@@ -1,11 +1,14 @@
 LINKF     = disfd_comm.o disfd_sub.o disfd_subc.o timer.o 
 MPIF90    = mpif90 -O3
 MPICC     = mpicc -O3
-FF90      = pgf90 -O3
+#FF90      = pgf90 -O3
+FF90       = gfortran  -O3
 #CC        = opencc -O3
-CC        = pgcc -O3
-MPI_DIR   = /home/kaixihou/mpich2-1.4.1-pgi-install
-CUDA_HOME = /usr/local/cuda-5.0
+CC         = gcc -O3
+#CC        = pgcc -O3
+MPI_DIR    = ${MPICH_DIR}
+CUDA_HOME  = ${CUDA_INSTALL_PATH}
+OPENCL_HOME  = ${SNUCLROOT}
 
 all: disfd vm4dfd_v3 read_dfd
 

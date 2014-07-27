@@ -2,8 +2,19 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <papi.h>
-#define MAX_PAPI_EVENTS	8
+#define MAX_PAPI_EVENTS	5
 static int papi_events[MAX_PAPI_EVENTS] = {
+			/*PAPI_FML_INS,
+			PAPI_FAD_INS,
+			PAPI_FDV_INS,
+			PAPI_FSQ_INS,
+			PAPI_FNV_INS,*/
+			PAPI_FP_OPS, 
+			PAPI_SP_OPS, 
+			PAPI_DP_OPS, 
+			PAPI_VEC_SP, 
+			PAPI_VEC_DP
+			/*
 			PAPI_L1_DCM, 
 			PAPI_L2_DCM, 
 			PAPI_LD_INS,
@@ -11,7 +22,7 @@ static int papi_events[MAX_PAPI_EVENTS] = {
 			PAPI_L1_LDM,
 			PAPI_L1_STM,
 			PAPI_L1_TCM,
-			PAPI_L1_ICM
+			PAPI_L1_ICM*/
 			};
 
 static long long papi_values[MAX_PAPI_EVENTS] = {0};
@@ -106,8 +117,8 @@ void papi_print_all_events()
 		papi_handle_error(PAPI_event_code_to_name(papi_events[i], str));
 		printf("[PAPI] %s : %lld\n", str, papi_values[i]);
 	}
-	double l1_hit_rate = 1 - ((double)papi_get_counter_val(PAPI_L1_DCM) / (papi_get_counter_val(PAPI_LD_INS) + papi_get_counter_val(PAPI_SR_INS)));
-	double l2_hit_rate = 1 - ((double)papi_get_counter_val(PAPI_L2_DCM) / (papi_get_counter_val(PAPI_LD_INS) + papi_get_counter_val(PAPI_SR_INS)));
-	printf("L1 Hit Rate: %g\n",  l1_hit_rate); 
-	printf("L2 Hit Rate: %g\n",  l2_hit_rate); 
+//	double l1_hit_rate = 1 - ((double)papi_get_counter_val(PAPI_L1_DCM) / (papi_get_counter_val(PAPI_LD_INS) + papi_get_counter_val(PAPI_SR_INS)));
+//	double l2_hit_rate = 1 - ((double)papi_get_counter_val(PAPI_L2_DCM) / (papi_get_counter_val(PAPI_LD_INS) + papi_get_counter_val(PAPI_SR_INS)));
+//	printf("L1 Hit Rate: %g\n",  l1_hit_rate); 
+//	printf("L2 Hit Rate: %g\n",  l2_hit_rate); 
 }

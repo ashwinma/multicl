@@ -32,7 +32,8 @@
 		fprintf(stderr, "Error creating memory objects in \"%s\"\n", str); \
 	}
 //#define DISFD_DEBUG
-#define DISFD_PAPI
+//#define DISFD_PAPI
+#define DISFD_USE_OPTIMIZED
 /***********************************************/
 /* for debug: check the output                 */
 /***********************************************/
@@ -347,13 +348,13 @@ void init_cl(int *deviceID)
     }
 
     //_cl_commandQueue = clCreateCommandQueue(_cl_context, _cl_firstDevice, CL_QUEUE_PROFILING_ENABLE, NULL);
-#if 0
+#if 1
     for(i = 0; i < NUM_COMMAND_QUEUES; i++)
 	{
 		int chosen_dev_id; 
 		//= (i + 2) % num_devices;
 		if(i == 0) chosen_dev_id = 2;
-		else if (i == 1) chosen_dev_id = 0;
+		else if (i == 1) chosen_dev_id = 2;
 		printf("[OpenCL] %dth command queue uses Dev ID %d\n", i, chosen_dev_id);
 		_cl_commandQueues[i] = clCreateCommandQueue(_cl_context, _cl_devices[chosen_dev_id], CL_QUEUE_PROFILING_ENABLE, NULL);
 		if(_cl_commandQueues[i] == NULL)
@@ -362,7 +363,7 @@ void init_cl(int *deviceID)
 		}
 	}
 #else
-	int chosen_dev_id = 2;
+	int chosen_dev_id = 0;
 	_cl_commandQueues[0] = clCreateCommandQueue(_cl_context, _cl_devices[chosen_dev_id], CL_QUEUE_PROFILING_ENABLE, NULL);
 	if(_cl_commandQueues[0] == NULL)
 	{
@@ -375,7 +376,11 @@ void init_cl(int *deviceID)
     }
 	_cl_commandQueues[1] = _cl_commandQueues[0];
 #endif
+#ifdef DISFD_USE_OPTIMIZED
+    progLen = LoadProgramSource("disfd_sub_opt.cl", &progSrc);
+#else
     progLen = LoadProgramSource("disfd_sub.cl", &progSrc);
+#endif
     _cl_program = clCreateProgramWithSource(_cl_context, 1, &progSrc, &progLen, NULL);
     if(_cl_program == NULL)
     {
@@ -393,13 +398,10 @@ void init_cl(int *deviceID)
 		{
 			char buildLog[16384];
 			cl_int err = clGetProgramBuildInfo(_cl_program, _cl_devices[i], CL_PROGRAM_BUILD_LOG, sizeof(buildLog), buildLog, NULL);
-			if(err != CL_SUCCESS)
-			{
-				fprintf(stderr, "Error in kernel: \n");
-				buildLog[16383] = '\0';
-				fprintf(stderr, "%s\n", buildLog);
-				// clReleaseProgram(_cl_program);
-			}
+			fprintf(stderr, "Build Log for device %d:\n", i);
+			buildLog[16383] = '\0';
+			fprintf(stderr, "%s\n", buildLog);
+			// clReleaseProgram(_cl_program);
 		}
 	}
 
@@ -1881,8 +1883,8 @@ void compute_velocityC_opencl(int *nztop, int *nztm1, float *ca, int *lbx,
     //printf("[OpenCL] velocity computation:\n"); 
     cl_int errNum;
 	//define the dimensions of different kernels
-	int blockSizeX = 8;
-	int blockSizeY = 8;
+	int blockSizeX = 16;
+	int blockSizeY = 16;
 
     float *v1xM, *v1yM, *v1zM, *v2xM, *v2yM, *v2zM;
 
@@ -1914,8 +1916,13 @@ void compute_velocityC_opencl(int *nztop, int *nztm1, float *ca, int *lbx,
 	papi_start_all_events();
 #endif
 	size_t dimBlock[3] = {blockSizeX, blockSizeY, 1};
+#ifdef DISFD_USE_OPTIMIZED
+	int gridSizeX1 = (*nztm1 + 1)/blockSizeX + 1;
+	int gridSizeY1 = (nd1_vel[9] - nd1_vel[8])/blockSizeY + 1;
+#else
 	int gridSizeX1 = (nd1_vel[3] - nd1_vel[2])/blockSizeX + 1;
 	int gridSizeY1 = (nd1_vel[9] - nd1_vel[8])/blockSizeY + 1;
+#endif 
 	size_t dimGrid1[3] = {gridSizeX1, gridSizeY1, 1};
 	//OpenCL code
 	errNum = clSetKernelArg(_cl_Kernel_velocity_inner_IC, 0, sizeof(int), nztop);
@@ -1957,8 +1964,13 @@ void compute_velocityC_opencl(int *nztop, int *nztm1, float *ca, int *lbx,
         fprintf(stderr, "Error: queuing kernel _cl_Kernel_velocity_inner_IC for execution!\n");
     }
 
+#ifdef DISFD_USE_OPTIMIZED
+	int gridSizeX2 = (*nztop - 1)/blockSizeX + 1;
+	int gridSizeY2 = (nd1_vel[5] - nd1_vel[0])/blockSizeX + 1;
+#else
 	int gridSizeX2 = (nd1_vel[5] - nd1_vel[0])/blockSizeX + 1;
 	int gridSizeY2 = (lbx[1] - lbx[0])/blockSizeY + 1;
+#endif
 	size_t dimGrid2[3] = {gridSizeX2, gridSizeY2, 1};
     //	printf("myid = %d, grid2 = (%d, %d)\n", *myid, gridSizeX2, gridSizeY2);
 
@@ -2013,8 +2025,14 @@ void compute_velocityC_opencl(int *nztop, int *nztm1, float *ca, int *lbx,
         }
     }
 
+#ifdef DISFD_USE_OPTIMIZED
+	int gridSizeX3 = (*nztop-1)/blockSizeX + 1;
+	int gridSizeY3 = (nd1_vel[11] - nd1_vel[6])/blockSizeY + 1;
+
+#else
 	int gridSizeX3 = (lby[1] - lby[0])/blockSizeX + 1;
 	int gridSizeY3 = (nd1_vel[11] - nd1_vel[6])/blockSizeY + 1;
+#endif
 	size_t dimGrid3[3] = {gridSizeX3, gridSizeY3, 1};
 	
     //	printf("myid = %d, grid3 = (%d, %d)\n", *myid, gridSizeX3, gridSizeY3);
@@ -2061,8 +2079,13 @@ void compute_velocityC_opencl(int *nztop, int *nztm1, float *ca, int *lbx,
         clEnqueueNDRangeKernel(_cl_commandQueues[0], _cl_Kernel_vel_PmlY_IC, 3, NULL, globalWorkSize, localWorkSize, 0, NULL, NULL);
     }
 
+#ifdef DISFD_USE_OPTIMIZED
+        int gridSizeX4 = (nd2_vel[15] - 2)/blockSizeX + 1;
+	int gridSizeY4 = (nd2_vel[9] - nd2_vel[8])/blockSizeY + 1;	
+#else
 	int gridSizeX4 = (nd2_vel[3] - nd2_vel[2])/blockSizeX + 1;
 	int gridSizeY4 = (nd2_vel[9] - nd2_vel[8])/blockSizeY + 1;
+#endif
 	size_t dimGrid4[3] = {gridSizeX4, gridSizeY4, 1};
     //	printf("myid = %d, grid4 = (%d, %d)\n", *myid, gridSizeX4, gridSizeY4);
 	
@@ -2104,8 +2127,13 @@ void compute_velocityC_opencl(int *nztop, int *nztm1, float *ca, int *lbx,
         fprintf(stderr, "Error: queuing kernel _cl_Kernel_velocity_inner_IIC for execution!\n");
     }
 
+#ifdef DISFD_USE_OPTIMIZED
+	int gridSizeX5 = (*nzbm1 - 1)/blockSizeX + 1;
+        int gridSizeY5 = (nd2_vel[5] - nd2_vel[0])/blockSizeY + 1;
+#else 
 	int gridSizeX5 = (nd2_vel[5] - nd2_vel[0])/blockSizeX + 1;
 	int gridSizeY5 = (lbx[1] - lbx[0])/blockSizeY + 1;
+#endif
 	size_t dimGrid5[3] = {gridSizeX5, gridSizeY5, 1};
     //	printf("myid = %d, grid5 = (%d, %d)\n", *myid, gridSizeX5, gridSizeY5);
 	
@@ -2161,8 +2189,13 @@ void compute_velocityC_opencl(int *nztop, int *nztm1, float *ca, int *lbx,
         }
     }
 
+#ifdef DISFD_USE_OPTIMIZED
+	int gridSizeX6 = (*nzbm1 -1)/blockSizeX + 1;
+	int gridSizeY6 = (nd2_vel[11] - nd2_vel[6])/blockSizeY + 1;
+#else
 	int gridSizeX6 = (lby[1] - lby[0])/blockSizeX + 1;
 	int gridSizeY6 = (nd2_vel[11] - nd2_vel[6])/blockSizeY + 1;
+#endif
 	size_t dimGrid6[3] = {gridSizeX6, gridSizeY6, 1};
     //	printf("myid = %d, grid = (%d, %d)\n", *myid, gridSizeX6, gridSizeY6);
 
@@ -2218,8 +2251,13 @@ void compute_velocityC_opencl(int *nztop, int *nztm1, float *ca, int *lbx,
         }
     }
 
+#ifdef DISFD_USE_OPTIMIZED
+	int gridSizeX7 = (*nzbm1 - 1)/blockSizeX + 1;
+	int gridSizeY7 = (nd2_vel[11] - nd2_vel[6])/blockSizeY + 1;
+#else
 	int gridSizeX7 = (nd2_vel[5] - nd2_vel[0])/blockSizeX + 1;
 	int gridSizeY7 = (nd2_vel[11] - nd2_vel[6])/blockSizeY + 1;
+#endif
 	size_t dimGrid7[3] = {gridSizeX7, gridSizeY7, 1};
     //	printf("myid = %d, grid7 = (%d, %d)\n", *myid, gridSizeX7, gridSizeY7);
 	
@@ -2487,8 +2525,8 @@ void compute_stressC_opencl(int *nxb1, int *nyb1, int *nx1p1, int *ny1p1, int *n
     cl_int errNum;
 
 	float *v1xM, *v1yM, *v1zM, *v2xM, *v2yM, *v2zM;
-	int blockSizeX = 8;
-	int blockSizeY = 8;
+	int blockSizeX = 16;
+	int blockSizeY = 16;
 	size_t dimBlock[3] = {blockSizeX, blockSizeY, 1};
 
 	v1xM = (float *) *v1xMp;
@@ -2511,8 +2549,13 @@ void compute_stressC_opencl(int *nxb1, int *nyb1, int *nx1p1, int *ny1p1, int *n
     for(i = 0; i < NUM_COMMAND_QUEUES; i++) {
 	Start(&kernelTimerStress[i]);
     }
+#ifdef DISFD_USE_OPTIMIZED
+    int gridSizeX1 = (nd1_tyy[17] - nd1_tyy[12])/blockSizeX + 1;
+    int gridSizeY1 = (nd1_tyy[9] - nd1_tyy[8])/blockSizeY + 1;
+#else
 	int gridSizeX1 = (nd1_tyy[3] - nd1_tyy[2])/blockSizeX + 1;
     int gridSizeY1 = (nd1_tyy[9] - nd1_tyy[8])/blockSizeY + 1;
+#endif
 	size_t dimGrid1[3] = {gridSizeX1, gridSizeY1, 1};
 
 	errNum = clSetKernelArg(_cl_Kernel_stress_norm_xy_IC, 0, sizeof(int), nxb1);
@@ -2561,8 +2604,13 @@ void compute_stressC_opencl(int *nxb1, int *nyb1, int *nx1p1, int *ny1p1, int *n
         fprintf(stderr, "Error: queuing kernel _cl_Kernel_stress_norm_xy_IC for execution!\n");
     }
 
+#ifdef DISFD_USE_OPTIMIZED
+    int gridSizeX2 = (nd1_tyz[17] - nd1_tyz[12])/blockSizeX + 1;
+    int gridSizeY2 = (nd1_tyz[9] - nd1_tyz[8])/blockSizeY + 1;
+#else
     int gridSizeX2 = (nd1_tyz[3] - nd1_tyz[2])/blockSizeX + 1;
     int gridSizeY2 = (nd1_tyz[9] - nd1_tyz[8])/blockSizeY + 1;
+#endif
 	size_t dimGrid2[3] = {gridSizeX2, gridSizeY2, 1};
 
 	errNum = clSetKernelArg(_cl_Kernel_stress_xz_yz_IC, 0, sizeof(int), nxb1);
@@ -2637,8 +2685,13 @@ void compute_stressC_opencl(int *nxb1, int *nyb1, int *nx1p1, int *ny1p1, int *n
 
 	if (lbx[1] >= lbx[0])
 	{
+#ifdef DISFD_USE_OPTIMIZED
+        int gridSizeX4 = (nd1_tyy[17] - nd1_tyy[12])/blockSizeX + 1;
+        int gridSizeY4 = (nd1_tyy[5] - nd1_tyy[0])/blockSizeY + 1;
+#else
 		int gridSizeX4 = (nd1_tyy[5] - nd1_tyy[0])/blockSizeX + 1;
 		int gridSizeY4 = (lbx[1] - lbx[0])/blockSizeY + 1;
+#endif
 		size_t dimGrid4[3] = {gridSizeX4, gridSizeY4, 1};
 
 		errNum = clSetKernelArg(_cl_Kernel_stress_norm_PmlX_IC, 0, sizeof(int), nxb1);
@@ -2696,8 +2749,13 @@ void compute_stressC_opencl(int *nxb1, int *nyb1, int *nx1p1, int *ny1p1, int *n
     }
 	if (lby[1] >= lby[0])
 	{
+#ifdef DISFD_USE_OPTIMIZED
+        int gridSizeX5 = (nd1_tyy[17] - nd1_tyy[12])/blockSizeX + 1;
+        int gridSizeY5 = (nd1_tyy[11] - nd1_tyy[6])/blockSizeY + 1;
+#else
 		int gridSizeX5 = (nd1_tyy[11] - nd1_tyy[6])/blockSizeX + 1;
 		int gridSizeY5 = (lby[1] - lby[0])/blockSizeY + 1;
+#endif
 		size_t dimGrid5[3] = {gridSizeX5, gridSizeY5, 1};
 
 		errNum = clSetKernelArg(_cl_Kernel_stress_norm_PmlY_IC, 0, sizeof(int), nxb1);
@@ -2754,8 +2812,13 @@ void compute_stressC_opencl(int *nxb1, int *nyb1, int *nx1p1, int *ny1p1, int *n
 
 	if (lbx[1] >= lbx[0]) 
 	{
+#ifdef DISFD_USE_OPTIMIZED
+		int gridSizeX6 = (nd1_txy[17] - nd1_txy[12])/blockSizeX + 1;
+		int gridSizeY6 = (nd1_txy[5] - nd1_txy[0])/blockSizeY + 1;
+#else
 		int gridSizeX6 = (nd1_txy[5] - nd1_txy[0])/blockSizeX + 1;
 		int gridSizeY6 = (lbx[1] - lbx[0])/blockSizeY + 1;
+#endif
 		size_t dimGrid6[3] = {gridSizeX6, gridSizeY6, 1};
 
 		errNum = clSetKernelArg(_cl_Kernel_stress_xy_PmlX_IC, 0, sizeof(int), nxb1);
@@ -2804,8 +2867,13 @@ void compute_stressC_opencl(int *nxb1, int *nyb1, int *nx1p1, int *ny1p1, int *n
 
 	if (lby[1] >= lby[0])
 	{
+#ifdef DISFD_USE_OPTIMIZED
+		int gridSizeX7 = (nd1_txy[17] - nd1_txy[12])/blockSizeX + 1;
+		int gridSizeY7 = (nd1_txy[11] - nd1_txy[6])/blockSizeY + 1;
+#else
 		int gridSizeX7 = (nd1_txy[11] - nd1_txy[6])/blockSizeX + 1;
 		int gridSizeY7 = (lby[1] - lby[0])/blockSizeY + 1;
+#endif
 		size_t dimGrid7[3] = {gridSizeX7, gridSizeY7, 1};
 
 		errNum = clSetKernelArg(_cl_Kernel_stress_xy_PmlY_IC, 0, sizeof(int), nxb1);
@@ -2852,8 +2920,13 @@ void compute_stressC_opencl(int *nxb1, int *nyb1, int *nx1p1, int *ny1p1, int *n
 
 	if (lbx[1] >= lbx[0])
 	{
+#ifdef DISFD_USE_OPTIMIZED
+		int gridSizeX8 = (nd1_txz[17] - nd1_txz[12])/blockSizeX + 1;
+		int gridSizeY8 = (nd1_txz[5] - nd1_txz[0])/blockSizeX + 1;
+#else
 		int gridSizeX8 = (nd1_txz[5] - nd1_txz[0])/blockSizeX + 1;
 		int gridSizeY8 = (lbx[1] - lbx[0])/blockSizeY + 1;
+#endif
 		size_t dimGrid8[3] = {gridSizeX8, gridSizeY8, 1};
 
 		errNum = clSetKernelArg(_cl_Kernel_stress_xz_PmlX_IC, 0, sizeof(int), nxb1);
@@ -2902,8 +2975,13 @@ void compute_stressC_opencl(int *nxb1, int *nyb1, int *nx1p1, int *ny1p1, int *n
 
 	if (lby[1] >= lby[0])
 	{
+#ifdef DISFD_USE_OPTIMIZED
+		int gridSizeX9 = (nd1_txz[17] - nd1_txz[12])/blockSizeX + 1;
+		int gridSizeY9 = (nd1_txz[9] - nd1_txz[8])/blockSizeY + 1;
+#else
 		int gridSizeX9 = (nd1_txz[9] - nd1_txz[8])/blockSizeX + 1;
 		int gridSizeY9 = (lby[1] - lby[0])/blockSizeY + 1;
+#endif
 		size_t dimGrid9[3] = {gridSizeX9, gridSizeY9, 1};
 
 		errNum = clSetKernelArg(_cl_Kernel_stress_xz_PmlY_IC, 0, sizeof(int), nxb1);
@@ -2945,8 +3023,13 @@ void compute_stressC_opencl(int *nxb1, int *nyb1, int *nx1p1, int *ny1p1, int *n
 
 	if (lbx[1] >= lbx[0])
 	{
+#ifdef DISFD_USE_OPTIMIZED
+		int gridSizeX10 = (nd1_tyz[17] - nd1_tyz[12])/blockSizeX + 1;
+		int gridSizeY10 = (nd1_tyz[3] - nd1_tyz[2])/blockSizeY + 1;
+#else
 		int gridSizeX10 = (nd1_tyz[3] - nd1_tyz[2])/blockSizeX + 1;
 		int gridSizeY10 = (lbx[1] - lbx[0])/blockSizeY + 1;
+#endif
 		size_t dimGrid10[3] = {gridSizeX10, gridSizeY10, 1};
 
 		errNum = clSetKernelArg(_cl_Kernel_stress_yz_PmlX_IC, 0, sizeof(int), nxb1);
@@ -2988,8 +3071,13 @@ void compute_stressC_opencl(int *nxb1, int *nyb1, int *nx1p1, int *ny1p1, int *n
 
 	if (lby[1] >= lby[0])
 	{
+#ifdef DISFD_USE_OPTIMIZED
+		int gridSizeX11 = (nd1_tyz[17] - nd1_tyz[12])/blockSizeX + 1;
+		int gridSizeY11 = (nd1_tyz[11] - nd1_tyz[6])/blockSizeY + 1;
+#else
 		int gridSizeX11 = (nd1_tyz[11] - nd1_tyz[6])/blockSizeX + 1;
 		int gridSizeY11 = (lby[1] - lby[0])/blockSizeY + 1;
+#endif
 		size_t dimGrid11[3] = {gridSizeX11, gridSizeY11, 1};
 
 		errNum = clSetKernelArg(_cl_Kernel_stress_yz_PmlY_IC, 0, sizeof(int), nxb1);
@@ -3034,8 +3122,13 @@ void compute_stressC_opencl(int *nxb1, int *nyb1, int *nx1p1, int *ny1p1, int *n
         }
 	}
     
+#ifdef DISFD_USE_OPTIMIZED
+	int gridSizeX12 = (nd2_tyy[15] - nd2_tyy[12])/blockSizeX + 1;
+	int gridSizeY12 = (nd2_tyy[9] - nd2_tyy[8])/blockSizeY + 1;
+#else
 	int gridSizeX12 = (nd2_tyy[3] - nd2_tyy[2])/blockSizeX + 1;
 	int gridSizeY12 = (nd2_tyy[9] - nd2_tyy[8])/blockSizeY + 1;
+#endif
 	size_t dimGrid12[3] = {gridSizeX12, gridSizeY12, 1};
 
 	errNum = clSetKernelArg(_cl_Kernel_stress_norm_xy_II, 0, sizeof(int), nxb2);
@@ -3084,8 +3177,13 @@ void compute_stressC_opencl(int *nxb1, int *nyb1, int *nx1p1, int *ny1p1, int *n
         fprintf(stderr, "Error: queuing kernel _cl_Kernel_stress_norm_xy_II for execution!\n");
     }
 
+#ifdef DISFD_USE_OPTIMIZED
+	int gridSizeX13 = (nd2_tyz[15] - nd2_tyz[12])/blockSizeX + 1;
+	int gridSizeY13 = (nd2_tyz[9] - nd2_tyz[8])/blockSizeY + 1;
+#else
     int gridSizeX13 = (nd2_tyz[3] - nd2_tyz[2])/blockSizeX + 1;
     int gridSizeY13 = (nd2_tyz[9] - nd2_tyz[8])/blockSizeY + 1;
+#endif
     size_t dimGrid13[3] = {gridSizeX13, gridSizeY13, 1};
 
 	errNum = clSetKernelArg(_cl_Kernel_stress_xz_yz_IIC, 0, sizeof(int), nxb2);
@@ -3128,8 +3226,13 @@ void compute_stressC_opencl(int *nxb1, int *nyb1, int *nx1p1, int *ny1p1, int *n
 
 	if (lbx[1] >= lbx[0])
 	{
+#ifdef DISFD_USE_OPTIMIZED
+        int gridSizeX14 = (nd2_tyy[17] - nd2_tyy[12])/blockSizeX + 1;
+        int gridSizeY14 = (nd2_tyy[5] - nd2_tyy[0])/blockSizeY + 1;
+#else
 		int gridSizeX14 = (nd2_tyy[5] - nd2_tyy[0])/blockSizeX + 1;
 		int gridSizeY14 = (lbx[1] - lbx[0])/blockSizeY + 1;
+#endif
 		size_t dimGrid14[3] = {gridSizeX14, gridSizeY14, 1};
 
 		errNum = clSetKernelArg(_cl_Kernel_stress_norm_PmlX_IIC, 0, sizeof(int), nxb2);
@@ -3189,8 +3292,13 @@ void compute_stressC_opencl(int *nxb1, int *nyb1, int *nx1p1, int *ny1p1, int *n
 
 	if (lby[1] >= lby[0])
 	{
+#ifdef DISFD_USE_OPTIMIZED
+		int gridSizeX15 = (nd2_tyy[17] - nd2_tyy[12])/blockSizeX + 1;
+		int gridSizeY15 = (nd2_tyy[11] - nd2_tyy[6])/blockSizeY + 1;
+#else
 		int gridSizeX15 = (nd2_tyy[11] - nd2_tyy[6])/blockSizeX + 1;
 		int gridSizeY15 = (lby[1] - lby[0])/blockSizeY + 1;
+#endif
 		size_t dimGrid15[3] = {gridSizeX15, gridSizeY15, 1};
 		errNum = clSetKernelArg(_cl_Kernel_stress_norm_PmlY_II, 0, sizeof(int), nxb2);
 		errNum |= clSetKernelArg(_cl_Kernel_stress_norm_PmlY_II, 1, sizeof(int), nyb2);
@@ -3245,8 +3353,13 @@ void compute_stressC_opencl(int *nxb1, int *nyb1, int *nx1p1, int *ny1p1, int *n
         }
 	}
 
+#ifdef DISFD_USE_OPTIMIZED
+	int gridSizeX16 = (nd2_tyy[17] - nd2_tyy[16])/blockSizeX + 1;
+	int gridSizeY16 = (nd2_tyy[11] - nd2_tyy[6])/blockSizeY + 1;
+#else
 	int gridSizeX16 = (nd2_tyy[5] - nd2_tyy[0])/blockSizeX + 1;
 	int gridSizeY16 = (nd2_tyy[11] - nd2_tyy[6])/blockSizeY + 1;
+#endif
 	size_t dimGrid16[3] = {gridSizeX16, gridSizeY16, 1};
 
 	errNum = clSetKernelArg(_cl_Kernel_stress_norm_PmlZ_IIC, 0, sizeof(int), nxb2);
@@ -3302,8 +3415,13 @@ void compute_stressC_opencl(int *nxb1, int *nyb1, int *nx1p1, int *ny1p1, int *n
 
 	if (lbx[1] >= lbx[0])
 	{
+#ifdef DISFD_USE_OPTIMIZED
+		int gridSizeX17 = (nd2_txy[17] - nd2_txy[12])/blockSizeX + 1;
+		int gridSizeY17 = (nd2_txy[5] - nd2_txy[0])/blockSizeY + 1;
+#else
 		int gridSizeX17 = (nd2_txy[5] - nd2_txy[0])/blockSizeX + 1;
 		int gridSizeY17 = (lbx[1] - lbx[0])/blockSizeY + 1;
+#endif
 		size_t dimGrid17[3] = {gridSizeX17, gridSizeY17, 1};
 		errNum = clSetKernelArg(_cl_Kernel_stress_xy_PmlX_IIC, 0, sizeof(int), nxb2);
 		errNum |= clSetKernelArg(_cl_Kernel_stress_xy_PmlX_IIC, 1, sizeof(int), nyb2);
@@ -3352,8 +3470,13 @@ void compute_stressC_opencl(int *nxb1, int *nyb1, int *nx1p1, int *ny1p1, int *n
 
 	if (lby[1] >= lby[0])
 	{
+#ifdef DISFD_USE_OPTIMIZED
+		int gridSizeX18 = (nd2_txy[17] - nd2_txy[12])/blockSizeX + 1;
+		int gridSizeY18 = (nd2_txy[11] - nd2_txy[6])/blockSizeY + 1;
+#else
 		int gridSizeX18 = (nd2_txy[11] - nd2_txy[6])/blockSizeX + 1;
 		int gridSizeY18 = (lby[1] - lby[0])/blockSizeY + 1;
+#endif
 		size_t dimGrid18[3] = {gridSizeX18, gridSizeY18, 1};
 
 		errNum = clSetKernelArg(_cl_Kernel_stress_xy_PmlY_IIC, 0, sizeof(int), nxb2);
@@ -3399,8 +3522,13 @@ void compute_stressC_opencl(int *nxb1, int *nyb1, int *nx1p1, int *ny1p1, int *n
         }
 	}
 
+#ifdef DISFD_USE_OPTIMIZED
+	int gridSizeX19 = (nd2_txy[17] - nd2_txy[16])/blockSizeX + 1;
+	int gridSizeY19 = (nd2_txy[9] - nd2_txy[8])/blockSizeY + 1;
+#else
 	int gridSizeX19 = (nd2_txy[3] - nd2_txy[2])/blockSizeX + 1;
 	int gridSizeY19 = (nd2_txy[9] - nd2_txy[8])/blockSizeY + 1;
+#endif
 	size_t dimGrid19[3] = {gridSizeX19, gridSizeY19, 1};
 
 	errNum = clSetKernelArg(_cl_Kernel_stress_xy_PmlZ_II, 0, sizeof(int), nxb2);
@@ -3439,8 +3567,13 @@ void compute_stressC_opencl(int *nxb1, int *nyb1, int *nx1p1, int *ny1p1, int *n
 
     if (lbx[1] >= lbx[0])
 	{
+#ifdef DISFD_USE_OPTIMIZED
+		int gridSizeX20 = (nd2_txz[17] - nd2_txz[12])/blockSizeX + 1;
+		int gridSizeY20 = (nd2_txz[5] - nd2_txz[0])/blockSizeY + 1;
+#else
 		int gridSizeX20 = (nd2_txz[5] - nd2_txz[0])/blockSizeX + 1;
 		int gridSizeY20 = (lbx[1] - lbx[0])/blockSizeY + 1;
+#endif
 		size_t dimGrid20[3] = {gridSizeX20, gridSizeY20, 1};
 
 		errNum = clSetKernelArg(_cl_Kernel_stress_xz_PmlX_IIC, 0, sizeof(int), nxb2);
@@ -3490,8 +3623,13 @@ void compute_stressC_opencl(int *nxb1, int *nyb1, int *nx1p1, int *ny1p1, int *n
 
 	if (lby[1] >= lby[0])
 	{
+#ifdef DISFD_USE_OPTIMIZED
+		int gridSizeX21 = (nd2_txz[15] - nd2_txz[12])/blockSizeX + 1;
+		int gridSizeY21 = (nd2_txz[9] - nd2_txz[8])/blockSizeY + 1;
+#else
 		int gridSizeX21 = (nd2_txz[9] - nd2_txz[8])/blockSizeX + 1;
 		int gridSizeY21 = (lby[1] - lby[0])/blockSizeY + 1;
+#endif
 		size_t dimGrid21[3] = {gridSizeX21, gridSizeY21, 1};
 
 		errNum = clSetKernelArg(_cl_Kernel_stress_xz_PmlY_IIC, 0, sizeof(int), nxb2);
@@ -3531,8 +3669,13 @@ void compute_stressC_opencl(int *nxb1, int *nyb1, int *nx1p1, int *ny1p1, int *n
         }
     }
 
+#ifdef DISFD_USE_OPTIMIZED
+	int gridSizeX22 = (nd2_txz[17] - nd2_txz[16])/blockSizeX + 1;
+	int gridSizeY22 = (nd2_txz[11] - nd2_txz[6])/blockSizeY + 1;
+#else
     int gridSizeX22 = (nd2_txz[5] - nd2_txz[0])/blockSizeX + 1;
 	int gridSizeY22 = (nd2_txz[11] - nd2_txz[6])/blockSizeY + 1;
+#endif
 	size_t dimGrid22[3] = {gridSizeX22, gridSizeY22, 1};
 
 	errNum = clSetKernelArg(_cl_Kernel_stress_xz_PmlZ_IIC, 0, sizeof(int), nxb2);
@@ -3577,8 +3720,13 @@ void compute_stressC_opencl(int *nxb1, int *nyb1, int *nx1p1, int *ny1p1, int *n
 
 	if (lbx[1] >= lbx[0])
 	{
+#ifdef DISFD_USE_OPTIMIZED
+		int gridSizeX23 = (nd2_tyz[15] - nd2_tyz[12])/blockSizeX + 1;
+		int gridSizeY23 = (nd2_tyz[3] - nd2_tyz[2])/blockSizeY + 1;
+#else
 		int gridSizeX23 = (nd2_tyz[3] - nd2_tyz[2])/blockSizeX + 1;
 		int gridSizeY23 = (lbx[1] - lbx[0])/blockSizeY + 1;
+#endif
 		size_t dimGrid23[3] = {gridSizeX23, gridSizeY23, 1};
 		errNum = clSetKernelArg(_cl_Kernel_stress_yz_PmlX_IIC, 0, sizeof(int), nxb2);
 		errNum |= clSetKernelArg(_cl_Kernel_stress_yz_PmlX_IIC, 1, sizeof(int), nyb2);
@@ -3619,8 +3767,13 @@ void compute_stressC_opencl(int *nxb1, int *nyb1, int *nx1p1, int *ny1p1, int *n
 
     if (lby[1] >= lby[0])
     {
+#ifdef DISFD_USE_OPTIMIZED
+		int gridSizeX24 = (nd2_tyz[17] - nd2_tyz[12])/blockSizeX + 1;
+		int gridSizeY24 = (nd2_tyz[11] - nd2_tyz[6])/blockSizeY + 1;
+#else
         int gridSizeX24 = (nd2_tyz[11] - nd2_tyz[6])/blockSizeX + 1;
         int gridSizeY24 = (lby[1] - lby[0])/blockSizeY + 1;
+#endif
         size_t dimGrid24[3] = {gridSizeX24, gridSizeY24, 1};
 
 		errNum = clSetKernelArg(_cl_Kernel_stress_yz_PmlY_IIC, 0, sizeof(int), nxb2);
@@ -3666,8 +3819,13 @@ void compute_stressC_opencl(int *nxb1, int *nyb1, int *nx1p1, int *ny1p1, int *n
         }
 	}
 
+#ifdef DISFD_USE_OPTIMIZED
+	int gridSizeX25 = (nd2_tyz[17] - nd2_tyz[16])/blockSizeX + 1;
+	int gridSizeY25 = (nd2_tyz[11] - nd2_tyz[6])/blockSizeY + 1;
+#else
 	int gridSizeX25 = (nd2_tyz[5] - nd2_tyz[0])/blockSizeX + 1;
 	int gridSizeY25 = (nd2_tyz[11] - nd2_tyz[6])/blockSizeY + 1;
+#endif
 	size_t dimGrid25[3] = {gridSizeX25, gridSizeY25, 1};
 
 	errNum = clSetKernelArg(_cl_Kernel_stress_yz_PmlZ_IIC, 0, sizeof(int), nxb2);

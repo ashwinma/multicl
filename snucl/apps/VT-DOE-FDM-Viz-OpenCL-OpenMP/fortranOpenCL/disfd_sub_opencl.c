@@ -33,7 +33,7 @@
 	}
 //#define DISFD_DEBUG
 //#define DISFD_PAPI
-#define DISFD_USE_OPTIMIZED
+//#define DISFD_USE_OPTIMIZED
 /***********************************************/
 /* for debug: check the output                 */
 /***********************************************/
@@ -351,10 +351,20 @@ void init_cl(int *deviceID)
 #if 1
     for(i = 0; i < NUM_COMMAND_QUEUES; i++)
 	{
-		int chosen_dev_id; 
+		int chosen_dev_id = 0; 
 		//= (i + 2) % num_devices;
-		if(i == 0) chosen_dev_id = 2;
-		else if (i == 1) chosen_dev_id = 2;
+		if(i == 0) 
+		{
+			char *foo = getenv("SNUCL_DEV_0");
+			if(foo != NULL)
+				chosen_dev_id = atoi(foo);
+		}
+		else if (i == 1) 
+		{
+			char *foo = getenv("SNUCL_DEV_1");
+			if(foo != NULL)
+				chosen_dev_id = atoi(foo);
+		}
 		printf("[OpenCL] %dth command queue uses Dev ID %d\n", i, chosen_dev_id);
 		_cl_commandQueues[i] = clCreateCommandQueue(_cl_context, _cl_devices[chosen_dev_id], CL_QUEUE_PROFILING_ENABLE, NULL);
 		if(_cl_commandQueues[i] == NULL)
@@ -1753,35 +1763,42 @@ void cpy_h2d_velocityInputsC_opencl(float *t1xx,
     //printf("[OpenCL] h2d cpy for input ........");
 
 	cl_int errNum;
+	int i;
 
 	//for inner_I
-	errNum = clEnqueueWriteBuffer(_cl_commandQueues[0], t1xxD, CL_TRUE, 0, sizeof(float) * (*nztop) * (*nxtop + 3) * (*nytop), t1xx, 0, NULL, NULL);
+	errNum = clEnqueueWriteBuffer(_cl_commandQueues[0], t1xxD, CL_FALSE, 0, sizeof(float) * (*nztop) * (*nxtop + 3) * (*nytop), t1xx, 0, NULL, NULL);
 	CHECK_ERROR(errNum, "InputDataCopyHostToDevice1, t1xx");
-	errNum = clEnqueueWriteBuffer(_cl_commandQueues[0], t1xyD, CL_TRUE, 0, sizeof(float) * (*nztop) * (*nxtop + 3) * (*nytop + 3), t1xy, 0, NULL, NULL);
+	errNum = clEnqueueWriteBuffer(_cl_commandQueues[0], t1xyD, CL_FALSE, 0, sizeof(float) * (*nztop) * (*nxtop + 3) * (*nytop + 3), t1xy, 0, NULL, NULL);
 	CHECK_ERROR(errNum, "InputDataCopyHostToDevice1, t1xy");
-	errNum = clEnqueueWriteBuffer(_cl_commandQueues[0], t1xzD, CL_TRUE, 0, sizeof(float) * (*nztop + 1) * (*nxtop + 3) * (*nytop), t1xz, 0, NULL, NULL);
+	errNum = clEnqueueWriteBuffer(_cl_commandQueues[0], t1xzD, CL_FALSE, 0, sizeof(float) * (*nztop + 1) * (*nxtop + 3) * (*nytop), t1xz, 0, NULL, NULL);
 	CHECK_ERROR(errNum, "InputDataCopyHostToDevice1, t1xz");
-	errNum = clEnqueueWriteBuffer(_cl_commandQueues[0], t1yyD, CL_TRUE, 0, sizeof(float) * (*nztop) * (*nxtop) * (*nytop + 3), t1yy, 0, NULL, NULL);
+	errNum = clEnqueueWriteBuffer(_cl_commandQueues[0], t1yyD, CL_FALSE, 0, sizeof(float) * (*nztop) * (*nxtop) * (*nytop + 3), t1yy, 0, NULL, NULL);
 	CHECK_ERROR(errNum, "InputDataCopyHostToDevice1, t1yy");
-	errNum = clEnqueueWriteBuffer(_cl_commandQueues[0], t1yzD, CL_TRUE, 0, sizeof(float) * (*nztop + 1) * (*nxtop) * (*nytop + 3), t1yz, 0, NULL, NULL);
+	errNum = clEnqueueWriteBuffer(_cl_commandQueues[0], t1yzD, CL_FALSE, 0, sizeof(float) * (*nztop + 1) * (*nxtop) * (*nytop + 3), t1yz, 0, NULL, NULL);
 	CHECK_ERROR(errNum, "InputDataCopyHostToDevice1, t1yz");
-	errNum = clEnqueueWriteBuffer(_cl_commandQueues[0], t1zzD, CL_TRUE, 0, sizeof(float) * (*nztop) * (*nxtop) * (*nytop), t1zz, 0, NULL, NULL);
+	errNum = clEnqueueWriteBuffer(_cl_commandQueues[0], t1zzD, CL_FALSE, 0, sizeof(float) * (*nztop) * (*nxtop) * (*nytop), t1zz, 0, NULL, NULL);
 	CHECK_ERROR(errNum, "InputDataCopyHostToDevice1, t1zz");
 
 	//for inner_II
-	errNum = clEnqueueWriteBuffer(_cl_commandQueues[1], t2xxD, CL_TRUE, 0, sizeof(float) * (*nzbtm) * (*nxbtm + 3) * (*nybtm), t2xx, 0, NULL, NULL);
+	errNum = clEnqueueWriteBuffer(_cl_commandQueues[1], t2xxD, CL_FALSE, 0, sizeof(float) * (*nzbtm) * (*nxbtm + 3) * (*nybtm), t2xx, 0, NULL, NULL);
 	CHECK_ERROR(errNum, "InputDataCopyHostToDevice1, t2xx");
-	errNum = clEnqueueWriteBuffer(_cl_commandQueues[1], t2xyD, CL_TRUE, 0, sizeof(float) * (*nzbtm) * (*nxbtm + 3) * (*nybtm + 3), t2xy, 0, NULL, NULL);
+	errNum = clEnqueueWriteBuffer(_cl_commandQueues[1], t2xyD, CL_FALSE, 0, sizeof(float) * (*nzbtm) * (*nxbtm + 3) * (*nybtm + 3), t2xy, 0, NULL, NULL);
 	CHECK_ERROR(errNum, "InputDataCopyHostToDevice1, t2xy");
-	errNum = clEnqueueWriteBuffer(_cl_commandQueues[1], t2xzD, CL_TRUE, 0, sizeof(float) * (*nzbtm + 1) * (*nxbtm + 3) * (*nybtm), t2xz, 0, NULL, NULL);
+	errNum = clEnqueueWriteBuffer(_cl_commandQueues[1], t2xzD, CL_FALSE, 0, sizeof(float) * (*nzbtm + 1) * (*nxbtm + 3) * (*nybtm), t2xz, 0, NULL, NULL);
 	CHECK_ERROR(errNum, "InputDataCopyHostToDevice1, t2xz");
-	errNum = clEnqueueWriteBuffer(_cl_commandQueues[1], t2yyD, CL_TRUE, 0, sizeof(float) * (*nzbtm) * (*nxbtm) * (*nybtm + 3), t2yy, 0, NULL, NULL);
+	errNum = clEnqueueWriteBuffer(_cl_commandQueues[1], t2yyD, CL_FALSE, 0, sizeof(float) * (*nzbtm) * (*nxbtm) * (*nybtm + 3), t2yy, 0, NULL, NULL);
 	CHECK_ERROR(errNum, "InputDataCopyHostToDevice1, t2yy");
-	errNum = clEnqueueWriteBuffer(_cl_commandQueues[1], t2yzD, CL_TRUE, 0, sizeof(float) * (*nzbtm + 1) * (*nxbtm) * (*nybtm + 3), t2yz, 0, NULL, NULL);
+	errNum = clEnqueueWriteBuffer(_cl_commandQueues[1], t2yzD, CL_FALSE, 0, sizeof(float) * (*nzbtm + 1) * (*nxbtm) * (*nybtm + 3), t2yz, 0, NULL, NULL);
 	CHECK_ERROR(errNum, "InputDataCopyHostToDevice1, t2yz");
-	errNum = clEnqueueWriteBuffer(_cl_commandQueues[1], t2zzD, CL_TRUE, 0, sizeof(float) * (*nzbtm + 1) * (*nxbtm) * (*nybtm), t2zz, 0, NULL, NULL);
+	errNum = clEnqueueWriteBuffer(_cl_commandQueues[1], t2zzD, CL_FALSE, 0, sizeof(float) * (*nzbtm + 1) * (*nxbtm) * (*nybtm), t2zz, 0, NULL, NULL);
 	CHECK_ERROR(errNum, "InputDataCopyHostToDevice1, t2zz");
     
+/*	for(i = 0; i < NUM_COMMAND_QUEUES; i++) {
+		errNum = clFinish(_cl_commandQueues[i]);
+		if(errNum != CL_SUCCESS) {
+			fprintf(stderr, "Vel H2D Error!\n");
+		}
+	}*/
     //printf("done!\n");
 
 	return;
@@ -1803,23 +1820,30 @@ void cpy_h2d_velocityOutputsC_opencl(float *v1x,
     //printf("[OpenCL] h2d cpy for output ........");
 
 	cl_int errNum;
+	int i;
 
 	//for inner_I
-	errNum = clEnqueueWriteBuffer(_cl_commandQueues[0], v1xD, CL_TRUE, 0, sizeof(float) * (*nztop + 2) * (*nxtop + 3) * (*nytop + 3), v1x, 0, NULL, NULL);
+	errNum = clEnqueueWriteBuffer(_cl_commandQueues[0], v1xD, CL_FALSE, 0, sizeof(float) * (*nztop + 2) * (*nxtop + 3) * (*nytop + 3), v1x, 0, NULL, NULL);
 	CHECK_ERROR(errNum, "outputDataCopyHostToDevice1, v1x");
-	errNum = clEnqueueWriteBuffer(_cl_commandQueues[0], v1yD, CL_TRUE, 0, sizeof(float) * (*nztop + 2) * (*nxtop + 3) * (*nytop + 3), v1y, 0, NULL, NULL);
+	errNum = clEnqueueWriteBuffer(_cl_commandQueues[0], v1yD, CL_FALSE, 0, sizeof(float) * (*nztop + 2) * (*nxtop + 3) * (*nytop + 3), v1y, 0, NULL, NULL);
 	CHECK_ERROR(errNum, "outputDataCopyHostToDevice1, v1y");
-	errNum = clEnqueueWriteBuffer(_cl_commandQueues[0], v1zD, CL_TRUE, 0, sizeof(float) * (*nztop + 2) * (*nxtop + 3) * (*nytop + 3), v1z, 0, NULL, NULL);
+	errNum = clEnqueueWriteBuffer(_cl_commandQueues[0], v1zD, CL_FALSE, 0, sizeof(float) * (*nztop + 2) * (*nxtop + 3) * (*nytop + 3), v1z, 0, NULL, NULL);
 	CHECK_ERROR(errNum, "outputDataCopyHostToDevice1, v1z");
 
 	//for inner_II
-	errNum = clEnqueueWriteBuffer(_cl_commandQueues[1], v2xD, CL_TRUE, 0, sizeof(float) * (*nzbtm + 1) * (*nxbtm + 3) * (*nybtm + 3), v2x, 0, NULL, NULL);
+	errNum = clEnqueueWriteBuffer(_cl_commandQueues[1], v2xD, CL_FALSE, 0, sizeof(float) * (*nzbtm + 1) * (*nxbtm + 3) * (*nybtm + 3), v2x, 0, NULL, NULL);
 	CHECK_ERROR(errNum, "outputDataCopyHostToDevice1, v2x");
-	errNum = clEnqueueWriteBuffer(_cl_commandQueues[1], v2yD, CL_TRUE, 0, sizeof(float) * (*nzbtm + 1) * (*nxbtm + 3) * (*nybtm + 3), v2y, 0, NULL, NULL);
+	errNum = clEnqueueWriteBuffer(_cl_commandQueues[1], v2yD, CL_FALSE, 0, sizeof(float) * (*nzbtm + 1) * (*nxbtm + 3) * (*nybtm + 3), v2y, 0, NULL, NULL);
 	CHECK_ERROR(errNum, "outputDataCopyHostToDevice1, v2y");
-	errNum = clEnqueueWriteBuffer(_cl_commandQueues[1], v2zD, CL_TRUE, 0, sizeof(float) * (*nzbtm + 1) * (*nxbtm + 3) * (*nybtm + 3), v2z, 0, NULL, NULL);
+	errNum = clEnqueueWriteBuffer(_cl_commandQueues[1], v2zD, CL_FALSE, 0, sizeof(float) * (*nzbtm + 1) * (*nxbtm + 3) * (*nybtm + 3), v2z, 0, NULL, NULL);
 	CHECK_ERROR(errNum, "outputDataCopyHostToDevice1, v2z");
 
+/*	for(i = 0; i < NUM_COMMAND_QUEUES; i++) {
+		errNum = clFinish(_cl_commandQueues[i]);
+		if(errNum != CL_SUCCESS) {
+			fprintf(stderr, "Vel H2D Error!\n");
+		}
+	}*/
     //printf("done!\n");
 	return;
 }
@@ -1840,23 +1864,29 @@ void cpy_d2h_velocityOutputsC_opencl(float *v1x,
     //printf("[OpenCL] d2h cpy for output ........");
 
 	cl_int errNum;
-
+	int i;
 	//for inner_I
-	errNum = clEnqueueReadBuffer(_cl_commandQueues[0], v1xD, CL_TRUE, 0, sizeof(float) * (*nztop + 2) * (*nxtop + 3) * (*nytop + 3), v1x, 0, NULL, NULL);
+	errNum = clEnqueueReadBuffer(_cl_commandQueues[0], v1xD, CL_FALSE, 0, sizeof(float) * (*nztop + 2) * (*nxtop + 3) * (*nytop + 3), v1x, 0, NULL, NULL);
 	CHECK_ERROR(errNum, "outputDataCopyDeviceToHost1, v1x");
-	errNum = clEnqueueReadBuffer(_cl_commandQueues[0], v1yD, CL_TRUE, 0, sizeof(float) * (*nztop + 2) * (*nxtop + 3) * (*nytop + 3), v1y, 0, NULL, NULL);
+	errNum = clEnqueueReadBuffer(_cl_commandQueues[0], v1yD, CL_FALSE, 0, sizeof(float) * (*nztop + 2) * (*nxtop + 3) * (*nytop + 3), v1y, 0, NULL, NULL);
 	CHECK_ERROR(errNum, "outputDataCopyDeviceToHost1, v1y");
-	errNum = clEnqueueReadBuffer(_cl_commandQueues[0], v1zD, CL_TRUE, 0, sizeof(float) * (*nztop + 2) * (*nxtop + 3) * (*nytop + 3), v1z, 0, NULL, NULL);
+	errNum = clEnqueueReadBuffer(_cl_commandQueues[0], v1zD, CL_FALSE, 0, sizeof(float) * (*nztop + 2) * (*nxtop + 3) * (*nytop + 3), v1z, 0, NULL, NULL);
 	CHECK_ERROR(errNum, "outputDataCopyDeviceToHost1, v1z");
 
 	//for inner_II
-	errNum = clEnqueueReadBuffer(_cl_commandQueues[1], v2xD, CL_TRUE, 0, sizeof(float) * (*nzbtm + 1) * (*nxbtm + 3) * (*nybtm + 3), v2x, 0, NULL, NULL);
+	errNum = clEnqueueReadBuffer(_cl_commandQueues[1], v2xD, CL_FALSE, 0, sizeof(float) * (*nzbtm + 1) * (*nxbtm + 3) * (*nybtm + 3), v2x, 0, NULL, NULL);
 	CHECK_ERROR(errNum, "outputDataCopyDeviceToHost1, v2x");
-	errNum = clEnqueueReadBuffer(_cl_commandQueues[1], v2yD, CL_TRUE, 0, sizeof(float) * (*nzbtm + 1) * (*nxbtm + 3) * (*nybtm + 3), v2y, 0, NULL, NULL);
+	errNum = clEnqueueReadBuffer(_cl_commandQueues[1], v2yD, CL_FALSE, 0, sizeof(float) * (*nzbtm + 1) * (*nxbtm + 3) * (*nybtm + 3), v2y, 0, NULL, NULL);
 	CHECK_ERROR(errNum, "outputDataCopyDeviceToHost1, v2y");
-	errNum = clEnqueueReadBuffer(_cl_commandQueues[1], v2zD, CL_TRUE, 0, sizeof(float) * (*nzbtm + 1) * (*nxbtm + 3) * (*nybtm + 3), v2z, 0, NULL, NULL);
+	errNum = clEnqueueReadBuffer(_cl_commandQueues[1], v2zD, CL_FALSE, 0, sizeof(float) * (*nzbtm + 1) * (*nxbtm + 3) * (*nybtm + 3), v2z, 0, NULL, NULL);
 	CHECK_ERROR(errNum, "outputDataCopyDeviceToHost1, vzz");
-
+/*
+	for(i = 0; i < NUM_COMMAND_QUEUES; i++) {
+		errNum = clFinish(_cl_commandQueues[i]);
+		if(errNum != CL_SUCCESS) {
+			fprintf(stderr, "Vel H2D Error!\n");
+		}
+	}*/
     //printf("done!\n");
 	return;
 }
@@ -1963,6 +1993,10 @@ void compute_velocityC_opencl(int *nztop, int *nztm1, float *ca, int *lbx,
     {
         fprintf(stderr, "Error: queuing kernel _cl_Kernel_velocity_inner_IC for execution!\n");
     }
+    //errNum = clFinish(_cl_commandQueues[0]);
+    //if(errNum != CL_SUCCESS) {
+    //    fprintf(stderr, "Error: finishing velocity for execution!\n");
+	//}
 
 #ifdef DISFD_USE_OPTIMIZED
 	int gridSizeX2 = (*nztop - 1)/blockSizeX + 1;
@@ -2361,25 +2395,32 @@ void cpy_h2d_stressInputsC_opencl(float *v1x,
 						   int	*nzbtm)
 {
     //printf("[OpenCL] h2d cpy for input ........");
+	int i;
 
 	cl_int errNum;
 
 	//for inner_I
-	errNum = clEnqueueWriteBuffer(_cl_commandQueues[0], v1xD, CL_TRUE, 0, sizeof(float) * (*nztop + 2) * (*nxtop + 3) * (*nytop + 3), v1x, 0, NULL, NULL);
+	errNum = clEnqueueWriteBuffer(_cl_commandQueues[0], v1xD, CL_FALSE, 0, sizeof(float) * (*nztop + 2) * (*nxtop + 3) * (*nytop + 3), v1x, 0, NULL, NULL);
 	CHECK_ERROR(errNum, "outputDataCopyHostToDevice, v1x");
-	errNum = clEnqueueWriteBuffer(_cl_commandQueues[0], v1yD, CL_TRUE, 0, sizeof(float) * (*nztop + 2) * (*nxtop + 3) * (*nytop + 3), v1y, 0, NULL, NULL);
+	errNum = clEnqueueWriteBuffer(_cl_commandQueues[0], v1yD, CL_FALSE, 0, sizeof(float) * (*nztop + 2) * (*nxtop + 3) * (*nytop + 3), v1y, 0, NULL, NULL);
 	CHECK_ERROR(errNum, "outputDataCopyHostToDevice, v1y");
-	errNum = clEnqueueWriteBuffer(_cl_commandQueues[0], v1zD, CL_TRUE, 0, sizeof(float) * (*nztop + 2) * (*nxtop + 3) * (*nytop + 3), v1z, 0, NULL, NULL);
+	errNum = clEnqueueWriteBuffer(_cl_commandQueues[0], v1zD, CL_FALSE, 0, sizeof(float) * (*nztop + 2) * (*nxtop + 3) * (*nytop + 3), v1z, 0, NULL, NULL);
 	CHECK_ERROR(errNum, "outputDataCopyHostToDevice, v1z");
 
 	//for inner_II
-	errNum = clEnqueueWriteBuffer(_cl_commandQueues[1], v2xD, CL_TRUE, 0, sizeof(float) * (*nzbtm + 1) * (*nxbtm + 3) * (*nybtm + 3), v2x, 0, NULL, NULL);
+	errNum = clEnqueueWriteBuffer(_cl_commandQueues[1], v2xD, CL_FALSE, 0, sizeof(float) * (*nzbtm + 1) * (*nxbtm + 3) * (*nybtm + 3), v2x, 0, NULL, NULL);
 	CHECK_ERROR(errNum, "outputDataCopyHostToDevice, v2x");
-	errNum = clEnqueueWriteBuffer(_cl_commandQueues[1], v2yD, CL_TRUE, 0, sizeof(float) * (*nzbtm + 1) * (*nxbtm + 3) * (*nybtm + 3), v2y, 0, NULL, NULL);
+	errNum = clEnqueueWriteBuffer(_cl_commandQueues[1], v2yD, CL_FALSE, 0, sizeof(float) * (*nzbtm + 1) * (*nxbtm + 3) * (*nybtm + 3), v2y, 0, NULL, NULL);
 	CHECK_ERROR(errNum, "outputDataCopyHostToDevice, v2y");
-	errNum = clEnqueueWriteBuffer(_cl_commandQueues[1], v2zD, CL_TRUE, 0, sizeof(float) * (*nzbtm + 1) * (*nxbtm + 3) * (*nybtm + 3), v2z, 0, NULL, NULL);
+	errNum = clEnqueueWriteBuffer(_cl_commandQueues[1], v2zD, CL_FALSE, 0, sizeof(float) * (*nzbtm + 1) * (*nxbtm + 3) * (*nybtm + 3), v2z, 0, NULL, NULL);
 	CHECK_ERROR(errNum, "outputDataCopyHostToDevice, v2z");
 
+	for(i = 0; i < NUM_COMMAND_QUEUES; i++) {
+		errNum = clFinish(_cl_commandQueues[i]);
+		if(errNum != CL_SUCCESS) {
+			fprintf(stderr, "Vel H2D Error!\n");
+		}
+	}
     //printf("done!\n");
 	return;
 }
@@ -2405,35 +2446,42 @@ void cpy_h2d_stressOutputsC_opencl(float *t1xx,
 {
     //printf("[OpenCL] h2d cpy for output ........");
 	cl_int errNum;
+	int i;
 	int nth, nti;
 
-	errNum = clEnqueueWriteBuffer(_cl_commandQueues[0], t1xxD, CL_TRUE, 0, sizeof(float) * (*nztop) * (*nxtop + 3) * (*nytop), t1xx, 0, NULL, NULL);
+	errNum = clEnqueueWriteBuffer(_cl_commandQueues[0], t1xxD, CL_FALSE, 0, sizeof(float) * (*nztop) * (*nxtop + 3) * (*nytop), t1xx, 0, NULL, NULL);
 	CHECK_ERROR(errNum, "outputDataCopyHostToDevice, t1xx");
-	errNum = clEnqueueWriteBuffer(_cl_commandQueues[0], t1xyD, CL_TRUE, 0, sizeof(float) * (*nztop) * (*nxtop + 3) * (*nytop + 3), t1xy, 0, NULL, NULL);
+	errNum = clEnqueueWriteBuffer(_cl_commandQueues[0], t1xyD, CL_FALSE, 0, sizeof(float) * (*nztop) * (*nxtop + 3) * (*nytop + 3), t1xy, 0, NULL, NULL);
 	CHECK_ERROR(errNum, "outputDataCopyHostToDevice, t1xy");
-	errNum = clEnqueueWriteBuffer(_cl_commandQueues[0], t1xzD, CL_TRUE, 0, sizeof(float) * (*nztop + 1) * (*nxtop + 3) * (*nytop), t1xz, 0, NULL, NULL);
+	errNum = clEnqueueWriteBuffer(_cl_commandQueues[0], t1xzD, CL_FALSE, 0, sizeof(float) * (*nztop + 1) * (*nxtop + 3) * (*nytop), t1xz, 0, NULL, NULL);
 	CHECK_ERROR(errNum, "outputDataCopyHostToDevice, t1xz");
-	errNum = clEnqueueWriteBuffer(_cl_commandQueues[0], t1yyD, CL_TRUE, 0, sizeof(float) * (*nztop) * (*nxtop) * (*nytop + 3), t1yy, 0, NULL, NULL);
+	errNum = clEnqueueWriteBuffer(_cl_commandQueues[0], t1yyD, CL_FALSE, 0, sizeof(float) * (*nztop) * (*nxtop) * (*nytop + 3), t1yy, 0, NULL, NULL);
 	CHECK_ERROR(errNum, "outputDataCopyHostToDevice, t1yy");
-	errNum = clEnqueueWriteBuffer(_cl_commandQueues[0], t1yzD, CL_TRUE, 0, sizeof(float) * (*nztop + 1) * (*nxtop) * (*nytop + 3), t1yz, 0, NULL, NULL);
+	errNum = clEnqueueWriteBuffer(_cl_commandQueues[0], t1yzD, CL_FALSE, 0, sizeof(float) * (*nztop + 1) * (*nxtop) * (*nytop + 3), t1yz, 0, NULL, NULL);
 	CHECK_ERROR(errNum, "outputDataCopyHostToDevice, t1yz");
-	errNum = clEnqueueWriteBuffer(_cl_commandQueues[0], t1zzD, CL_TRUE, 0, sizeof(float) * (*nztop) * (*nxtop) * (*nytop), t1zz, 0, NULL, NULL);
+	errNum = clEnqueueWriteBuffer(_cl_commandQueues[0], t1zzD, CL_FALSE, 0, sizeof(float) * (*nztop) * (*nxtop) * (*nytop), t1zz, 0, NULL, NULL);
 	CHECK_ERROR(errNum, "outputDataCopyHostToDevice, t1zz");
 
 	//for inner_II
-	errNum = clEnqueueWriteBuffer(_cl_commandQueues[1], t2xxD, CL_TRUE, 0, sizeof(float) * (*nzbtm) * (*nxbtm + 3) * (*nybtm), t2xx, 0, NULL, NULL);
+	errNum = clEnqueueWriteBuffer(_cl_commandQueues[1], t2xxD, CL_FALSE, 0, sizeof(float) * (*nzbtm) * (*nxbtm + 3) * (*nybtm), t2xx, 0, NULL, NULL);
 	CHECK_ERROR(errNum, "outputDataCopyHostToDevice, t2xx");
-	errNum = clEnqueueWriteBuffer(_cl_commandQueues[1], t2xyD, CL_TRUE, 0, sizeof(float) * (*nzbtm) * (*nxbtm + 3) * (*nybtm + 3), t2xy, 0, NULL, NULL);
+	errNum = clEnqueueWriteBuffer(_cl_commandQueues[1], t2xyD, CL_FALSE, 0, sizeof(float) * (*nzbtm) * (*nxbtm + 3) * (*nybtm + 3), t2xy, 0, NULL, NULL);
 	CHECK_ERROR(errNum, "outputDataCopyHostToDevice, t2xy");
-	errNum = clEnqueueWriteBuffer(_cl_commandQueues[1], t2xzD, CL_TRUE, 0, sizeof(float) * (*nzbtm + 1) * (*nxbtm + 3) * (*nybtm), t2xz, 0, NULL, NULL);
+	errNum = clEnqueueWriteBuffer(_cl_commandQueues[1], t2xzD, CL_FALSE, 0, sizeof(float) * (*nzbtm + 1) * (*nxbtm + 3) * (*nybtm), t2xz, 0, NULL, NULL);
 	CHECK_ERROR(errNum, "outputDataCopyHostToDevice, t2xz");
-	errNum = clEnqueueWriteBuffer(_cl_commandQueues[1], t2yyD, CL_TRUE, 0, sizeof(float) * (*nzbtm) * (*nxbtm) * (*nybtm + 3), t2yy, 0, NULL, NULL);
+	errNum = clEnqueueWriteBuffer(_cl_commandQueues[1], t2yyD, CL_FALSE, 0, sizeof(float) * (*nzbtm) * (*nxbtm) * (*nybtm + 3), t2yy, 0, NULL, NULL);
 	CHECK_ERROR(errNum, "outputDataCopyHostToDevice, t2yy");
-	errNum = clEnqueueWriteBuffer(_cl_commandQueues[1], t2yzD, CL_TRUE, 0, sizeof(float) * (*nzbtm + 1) * (*nxbtm) * (*nybtm + 3), t2yz, 0, NULL, NULL);
+	errNum = clEnqueueWriteBuffer(_cl_commandQueues[1], t2yzD, CL_FALSE, 0, sizeof(float) * (*nzbtm + 1) * (*nxbtm) * (*nybtm + 3), t2yz, 0, NULL, NULL);
 	CHECK_ERROR(errNum, "outputDataCopyHostToDevice, t2yz");
-	errNum = clEnqueueWriteBuffer(_cl_commandQueues[1], t2zzD, CL_TRUE, 0, sizeof(float) * (*nzbtm + 1) * (*nxbtm) * (*nybtm), t2zz, 0, NULL, NULL);
+	errNum = clEnqueueWriteBuffer(_cl_commandQueues[1], t2zzD, CL_FALSE, 0, sizeof(float) * (*nzbtm + 1) * (*nxbtm) * (*nybtm), t2zz, 0, NULL, NULL);
 	CHECK_ERROR(errNum, "outputDataCopyHostToDevice, t2zz");
 
+	for(i = 0; i < NUM_COMMAND_QUEUES; i++) {
+		errNum = clFinish(_cl_commandQueues[i]);
+		if(errNum != CL_SUCCESS) {
+			fprintf(stderr, "Vel H2D Error!\n");
+		}
+	}
     //printf("done!\n");
 
 	return;
@@ -2460,6 +2508,7 @@ void cpy_d2h_stressOutputsC_opencl(float *t1xx,
 {
     //printf("[OpenCL] d2h cpy for output ........");
 	cl_int errNum;
+	int i;
     // printf("\nnxtop=%d, nytop=%d, nztop=%d\n", *nxtop, *nytop, *nztop);
     // printf("nxbtm=%d, nybtm=%d, nzbtm=%d\n", *nxbtm, *nybtm, *nzbtm);
 
@@ -2491,8 +2540,12 @@ void cpy_d2h_stressOutputsC_opencl(float *t1xx,
 	errNum = clEnqueueReadBuffer(_cl_commandQueues[1], t2zzD, CL_FALSE, 0, sizeof(float) * (*nzbtm + 1) * (*nxbtm) * (*nybtm), t2zz, 0, NULL, NULL);
 	CHECK_ERROR(errNum, "outputDataCopyDeviceToHost, t2zz");
 
-    clFinish(_cl_commandQueues[0]);
-    clFinish(_cl_commandQueues[1]);
+	for(i = 0; i < NUM_COMMAND_QUEUES; i++) {
+		errNum = clFinish(_cl_commandQueues[i]);
+		if(errNum != CL_SUCCESS) {
+			fprintf(stderr, "Vel H2D Error!\n");
+		}
+	}
 
     //printf("done!\n");
     

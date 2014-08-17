@@ -76,6 +76,7 @@ class CLMem: public CLObject<struct _cl_mem, CLMem, struct _emu_cl_mem> {
   size_t size() const { return size_; }
   CLMem* parent() const { return parent_; }
   size_t offset() const { return offset_; }
+  void *host_ptr() const {return host_ptr_;}
 
   cl_image_format image_format() const { return image_format_; }
   cl_image_desc image_desc() const { return image_desc_; }

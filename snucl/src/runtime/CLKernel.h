@@ -91,6 +91,7 @@ public:
 
   bool IsArgsDirty() { return args_dirty_; }
 
+  std::map<cl_uint, CLKernelArg*>* DuplicateArgs();
   std::map<cl_uint, CLKernelArg*>* ExportArgs();
 
   bool HasDevSpecific(CLDevice* device);

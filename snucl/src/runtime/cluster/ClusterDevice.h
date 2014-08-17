@@ -66,6 +66,10 @@ class ClusterDevice: public CLDevice {
   virtual void LaunchKernel(CLCommand* command, CLKernel* kernel,
                             cl_uint work_dim, size_t gwo[3], size_t gws[3],
                             size_t lws[3], size_t nwg[3],
+                            std::map<cl_uint, CLKernelArg*>* kernel_args) {}
+  virtual void LaunchKernel(CLCommand* command, CLKernel* kernel,
+                            cl_uint work_dim, size_t gwo[3], size_t gws[3],
+                            size_t lws[3], size_t nwg[3],
                             std::map<cl_uint, CLKernelArg*>* kernel_args);
   virtual void LaunchNativeKernel(CLCommand* command, void (*user_func)(void*),
                                   void* native_args, size_t size,

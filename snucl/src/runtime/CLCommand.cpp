@@ -65,7 +65,7 @@ class CLPlatform;
 
 CLCommand::CLCommand(CLContext* context, CLDevice* device,
                      CLCommandQueue* queue, cl_command_type type) {
-  //gCommandTimer.Init();
+  gCommandTimer.Init();
   sched_type_ = SNUCL_SCHED_MANUAL;
   alreadyCompleted_ = false;
   type_ = type;
@@ -120,7 +120,7 @@ CLCommand::~CLCommand() {
        ++it) {
     (*it)->Release();
   }
-//  SNUCL_INFO("[TID: %p] Destructor of Command: %p\n", pthread_self(), this); 
+  //SNUCL_INFO("[TID: %p] Destructor of Command: %p\n", pthread_self(), this); 
   if (mem_src_) mem_src_->Release();
   if (mem_dst_) mem_dst_->Release();
   if (pattern_) free(pattern_);
@@ -162,6 +162,51 @@ CLCommand::~CLCommand() {
     free(link_binaries_);
   }
   event_->Release();
+}
+
+double CLCommand::EstimatedCost(CLDevice *target_device) {
+	Global::RealTimer cmd_timer;
+	cmd_timer.Init();
+	cmd_timer.Start();
+	switch(type_)
+	{
+		case CL_COMMAND_NDRANGE_KERNEL:
+			/*for(std::map<cl_uint, CLKernelArg*>::iterator it=kernel_args_->begin(); 
+						it!=kernel_args_->end(); ++it) {
+    			//SNUCL_INFO("Kernel Idx: %u, param: %p\n", it->first, it->second);
+				CLMem *mem = it->second->mem;
+				if(mem != NULL) {
+					
+				}
+			}*/
+			/*for(all kernel params)
+			{
+				create buffer on device if param is a dev buf
+				should we init it//?
+			}*/
+      		target_device->LaunchTestKernel(this, kernel_, work_dim_, gwo_, gws_, lws_, nwg_,
+                            kernel_args_);
+			/*for(all kernel params)
+			{
+				destroy buffer params one by one
+			}*/
+			break;
+		//case CL_COMMAND_READ_BUFFER:
+      	//	target_device->ReadBuffer(this, mem_src_, off_src_, size_, ptr_);
+		//	break;
+		//case CL_COMMAND_WRITE_BUFFER:
+      	//	target_device->WriteBuffer(this, mem_dst_, off_dst_, size_, ptr_);
+		//	break;
+			//case CL_COMMAND_COPY_BUFFER:
+			//case CL_COMMAND_MAP_IMAGE:
+			//case CL_COMMAND_UNMAP_MEM_OBJECT:
+		default:
+			// ignore this command for cost
+			// estimation
+			break;
+	}
+	cmd_timer.Stop();
+	return cmd_timer.CurrentElapsed();
 }
 
 void CLCommand::SetWaitList(cl_uint num_events_in_wait_list,
@@ -374,6 +419,10 @@ bool CLCommand::IsAlreadyCompleted() {
 }
 
 bool CLCommand::ResolveConsistency() {
+  if(queue_ != NULL)
+  {
+  	device_ = queue_->device();
+  }
 #if 0
   switch(type_)
   {
@@ -602,7 +651,7 @@ int CLCommand::ResolveDeviceOfLaunchKernel() {
 					mem_args_count++;
 				}
 			}
-			SNUCL_INFO("Total distance from device %d: %d\n", i, total_distance);
+			//SNUCL_INFO("Total distance from device %d: %d\n", i, total_distance);
 			if(mem_args_count > 0)
 				avg_distance = total_distance / mem_args_count;
 			else
@@ -630,7 +679,7 @@ int CLCommand::ResolveDeviceOfLaunchKernel() {
 		}
 	}
 
-	SNUCL_INFO("(After) Submitted %u command type to %u type device with ID %u (%u/%u)\n", type_, device_type, vendor_id, device_id, devices.size());
+	//SNUCL_INFO("(After) Submitted %u command type to %u type device with ID %u (%u/%u)\n", type_, device_type, vendor_id, device_id, devices.size());
 	return 0;
 }
 
@@ -732,12 +781,15 @@ int CLCommand::ResolveDeviceOfWriteMem() {
 
 bool CLCommand::ResolveConsistencyOfLaunchKernel() {
   bool already_resolved = true;
+  //SNUCL_INFO("Resolving consistency of kernel\n", 0);
   for (map<cl_uint, CLKernelArg*>::iterator it = kernel_args_->begin();
        it != kernel_args_->end();
        ++it) {
     CLKernelArg* arg = it->second;
     if (arg->mem != NULL)
+	{
       already_resolved &= LocateMemOnDevice(arg->mem);
+	}
   }
   consistency_resolved_ = true;
   return already_resolved;
@@ -1218,10 +1270,13 @@ CLEvent* CLCommand::CloneMem(CLDevice* dev_src, CLDevice* dev_dst,
 bool CLCommand::LocateMemOnDevice(CLMem* mem) {
   if (mem->HasLatest(device_) || mem->EmptyLatest())
     return true;
+	gCommandTimer.Start();
   CLDevice* source = mem->GetNearestLatest(device_);
   CLEvent* last_event = CloneMem(source, device_, mem);
   AddWaitEvent(last_event);
   last_event->Release();
+	gCommandTimer.Stop();
+	gCommandTimer.PrintCurrent("Resolve Mem Location Overhead");
   return false;
 }
 
@@ -1244,6 +1299,30 @@ bool CLCommand::ChangeDeviceToReadMem(CLMem* mem, CLDevice*& device) {
   }
   device = source;
   return true;
+}
+
+CLCommand*
+CLCommand::Clone() {
+	CLCommand* command = new CLCommand(context(), device(),
+			queue_, type());
+	if (command == NULL) return NULL;
+	command->kernel_ = kernel_;
+	command->kernel_->Retain();
+	command->work_dim_ = work_dim_;
+	for (cl_uint i = 0; i < work_dim_; i++) {
+		command->gwo_[i] = (gwo_ != NULL) ? gwo_[i] : 0;
+		command->gws_[i] = gws_[i];
+		command->lws_[i] = (lws_ != NULL) ? lws_[i] : ((gws_[i] % 4 == 0) ? 4 : 1);
+		command->nwg_[i] = command->gws_[i] / command->lws_[i];
+	}
+	for (cl_uint i = work_dim_; i < 3; i++) {
+		command->gwo_[i] = 0;
+		command->gws_[i] = 1;
+		command->lws_[i] = 1;
+		command->nwg_[i] = 1;
+	}
+	command->kernel_args_ = kernel_->DuplicateArgs();
+	return command;
 }
 
 CLCommand*

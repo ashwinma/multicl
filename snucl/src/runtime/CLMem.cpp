@@ -88,7 +88,7 @@ CLMem::~CLMem() {
     free(*it);
   }
 
-  //SNUCL_INFO("Destructor of CLMem: %p, host ptr: %p\n", this, host_ptr_);
+  //SNUCL_INFO("Destructor of CLMem: %p\n", this);
   /*if (alloc_host_ && host_ptr_ != NULL) 
   {
   	if(latest_queue_ == NULL) aligned_free(host_ptr_, size_);
@@ -374,6 +374,7 @@ void CLMem::SetLatest(CLDevice* device) {
   pthread_mutex_lock(&mutex_dev_latest_);
   if (!dev_latest_.empty())
   	dev_latest_.clear();
+//  SNUCL_INFO("Associating CLMem %p with Dev %p\n", this, device);
   dev_latest_.insert(device);
   pthread_mutex_unlock(&mutex_dev_latest_);
 }
@@ -582,13 +583,12 @@ CLMem* CLMem::CreateBuffer(CLContext* context, cl_mem_flags flags, size_t size,
   mem->size_ = size;
   mem->offset_ = 0;
   mem->SetHostPtr(host_ptr);
-
-  std::vector<CLDevice *> devs = context->devices();
+  /*std::vector<CLDevice *> devs = context->devices();
   for (vector<CLDevice*>::iterator it = devs.begin();
        it != devs.end(); ++it) {
 	   void *foo1 = mem->GetDevSpecific(*it);
 	   void *foo2 = mem->GetDevSpecificHostPtr(*it);
-  }
+  }*/
   return mem;
 }
 

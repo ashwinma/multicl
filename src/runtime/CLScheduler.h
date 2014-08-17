@@ -43,6 +43,7 @@
 #define __SNUCL__CL_SCHEDULER_H
 
 #include <vector>
+#include <map>
 #include <pthread.h>
 #include <semaphore.h>
 #include "RealTimer.h"
@@ -59,11 +60,14 @@ class CLScheduler {
   void Start();
   void Stop();
   void Invoke();
-
+  void Progress();
   void AddCommandQueue(CLCommandQueue* queue);
   void RemoveCommandQueue(CLCommandQueue* queue);
 
  private:
+  //typedef std::vector<std::vector<double> > queuePerfVector;
+  //std::map<std::string, queuePerfVector> epochPerformances_; 
+
   Global::RealTimer gSchedTimer;
   void Run();
 

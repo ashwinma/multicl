@@ -77,24 +77,37 @@ class CLCommandQueue: public CLObject<struct _cl_command_queue,
   }
 
   bool IsAutoDeviceSelection() const {
-  	return (type_ == CL_QUEUE_AUTO_DEVICE_SELECTION);
+  	//return (type_ == CL_QUEUE_AUTO_DEVICE_SELECTION);
+  	return (properties_ & CL_QUEUE_AUTO_DEVICE_SELECTION);
   }
 
   virtual CLCommand* Peek() = 0;
   virtual void Enqueue(CLCommand* command) = 0;
   virtual void Dequeue(CLCommand* command) = 0;
-  void Flush() {}
+  virtual void Flush() = 0;
   void PrintInfo();
+  std::list<CLCommand *> commands() const {
+  	return commands_;
+  }
+
+  bool isEpochRecorded(std::string epoch);
+  void recordEpoch(std::string epoch, std::vector<double> performances);
+  void set_perf_model_done(bool val) {perfModDone_ = val;}
+  bool get_perf_model_done() {return perfModDone_;}
 
  protected:
   CLDevice* SelectBestDevice(CLContext *context, CLDevice* device, 
                                cl_command_queue_properties properties);
   void InvokeScheduler();
   Global::RealTimer gQueueTimer;
+  CLDevice* device_;
+  std::list<CLCommand*> commands_;
 
  private:
+  typedef std::vector<double> devicePerfVector;
+  std::map<std::string, devicePerfVector> epochPerformances_; 
+  bool perfModDone_;
   CLContext* context_;
-  CLDevice* device_;
   cl_command_queue_properties properties_;
   cl_command_queue_type type_;
 
@@ -113,8 +126,13 @@ class CLInOrderCommandQueue: public CLCommandQueue {
   CLCommand* Peek();
   void Enqueue(CLCommand* command);
   void Dequeue(CLCommand* command);
+  void Flush();
+  //std::list<CLCommand *> commands() const {
+  //	return commands_;
+  //}
 
  private:
+  //std::list<CLCommand*> commands_;
   LockFreeQueueMS queue_;
   CLEvent* last_event_;
 };
@@ -126,11 +144,15 @@ class CLOutOfOrderCommandQueue: public CLCommandQueue {
   ~CLOutOfOrderCommandQueue();
 
   CLCommand* Peek();
+  void Flush() {}
   void Enqueue(CLCommand* command);
   void Dequeue(CLCommand* command);
+  //std::list<CLCommand *> commands() const {
+  //	return commands_;
+  //}
 
  private:
-  std::list<CLCommand*> commands_;
+  //std::list<CLCommand*> commands_;
   pthread_mutex_t mutex_commands_;
 };
 

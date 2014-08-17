@@ -65,6 +65,10 @@ class LegacyDevice: public CLDevice {
                cl_platform_id platform_id, cl_device_id device_id);
   ~LegacyDevice();
 
+  virtual void LaunchTestKernel(CLCommand* command, CLKernel* kernel,
+                            cl_uint work_dim, size_t gwo[3], size_t gws[3],
+                            size_t lws[3], size_t nwg[3],
+                            std::map<cl_uint, CLKernelArg*>* kernel_args);
   virtual void LaunchKernel(CLCommand* command, CLKernel* kernel,
                             cl_uint work_dim, size_t gwo[3], size_t gws[3],
                             size_t lws[3], size_t nwg[3],

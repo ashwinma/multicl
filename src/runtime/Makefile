@@ -1,7 +1,7 @@
 include Makefile.common
 
 TARGET := $(SNUCLROOT)/lib/libsnucl_single.so
-CXX    := g++
+CXX    := g++ -g
 
 MORE_INCLUDES += -I$(SNUCLROOT)/gpgpu-sim/v3.x/libopencl -I$(CUDA_INSTALL_PATH)/include -I$(HOME)/opt/include
 LIBRARY  += -lEmulatedOpenCL -lhwloc

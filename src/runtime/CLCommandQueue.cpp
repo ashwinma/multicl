@@ -76,11 +76,12 @@ CLCommandQueue::CLCommandQueue(CLContext *context, CLDevice* device,
 */
 CLCommandQueue::CLCommandQueue(CLContext *context, CLDevice* device,
                                cl_command_queue_properties properties) {
+  perfModDone_ = false;
   context_ = context;
   context_->Retain();
   device_ = device;
   properties_ = properties;
-  type_ = (properties_ & 0xF0) ? CL_QUEUE_AUTO_DEVICE_SELECTION : CL_QUEUE_FIXED_DEVICE_SELECTION;
+  //type_ = (properties_ & 0xF0) ? CL_QUEUE_AUTO_DEVICE_SELECTION : CL_QUEUE_FIXED_DEVICE_SELECTION;
   // Q: Automatic device selection before adding this to the device? 
   // A: Only if we have all the information (nearest). If we don't have 
   // all the info (kernel) then wait for the device selection
@@ -187,6 +188,16 @@ CLDevice *CLCommandQueue::SelectBestDevice(CLContext *context, CLDevice* device,
 	return new_device;
 }
 
+bool CLCommandQueue::isEpochRecorded(std::string epoch) {
+	if(epochPerformances_.find(epoch) != epochPerformances_.end())
+		return true;
+	return false;
+}
+
+void CLCommandQueue::recordEpoch(std::string epoch, std::vector<double> performances) {
+	epochPerformances_[epoch] = performances;
+}
+
 cl_int CLCommandQueue::GetCommandQueueInfo(cl_command_queue_info param_name,
                                            size_t param_value_size,
                                            void* param_value,
@@ -274,8 +285,19 @@ cl_int CLCommandQueue::set_device(CLDevice *d) {
 		// ERROR
 		return CL_INVALID_DEVICE;
 	}
-  	device_ = d; 
+	if(d != device_)
+	{
+		SNUCL_INFO("CmdQ: %p Dev Changed (%p->%p)\n",
+				this, device_, d);
+		device_ = d; 
+	}
 	return CL_SUCCESS;
+}
+
+void CLInOrderCommandQueue::Flush() {
+    device_->ProgressScheduler();	
+	commands_.clear();
+	InvokeScheduler();
 }
 
 CLInOrderCommandQueue::CLInOrderCommandQueue(
@@ -311,18 +333,25 @@ void CLInOrderCommandQueue::Enqueue(CLCommand* command) {
     last_event_->Release();
   }
   last_event_ = command->ExportEvent();
+
+  commands_.push_back(command);
   while (!queue_.Enqueue(command)) {}
+  //SNUCL_INFO("Enqueued into queue: %p, q_size: %lu, cmds_size: %lu\n", 
+  	//			this, queue_.Size(), commands_.size());
+#if 0
   /*if(command->type() == CL_COMMAND_WRITE_BUFFER)
   {
 	 gQueueTimer.Stop();
 	 std::cout << "After dequeue" << std::endl;
   }*/
   InvokeScheduler();
+#endif
 }
 
 void CLInOrderCommandQueue::Dequeue(CLCommand* command) {
   CLCommand* dequeued_command;
   queue_.Dequeue(&dequeued_command);
+  //queue_vec_.delete(command);??
 #ifdef SNUCL_DEBUG
   if (command != dequeued_command)
     SNUCL_ERROR("Invalid dequeue request", 0);

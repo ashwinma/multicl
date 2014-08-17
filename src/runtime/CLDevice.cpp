@@ -736,6 +736,10 @@ void CLDevice::InvokeScheduler() {
   scheduler_->Invoke();
 }
 
+void CLDevice::ProgressScheduler() {
+	scheduler_->Progress();
+}
+
 void CLDevice::EnqueueReadyQueue(CLCommand* command) {
   while (!ready_queue_.Enqueue(command)) {}
   sem_post(&sem_ready_queue_);

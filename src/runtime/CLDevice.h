@@ -105,6 +105,7 @@ class CLDevice: public CLObject<struct _cl_device_id, CLDevice,
   void AddCommandQueue(CLCommandQueue* queue);
   void RemoveCommandQueue(CLCommandQueue* queue);
   void InvokeScheduler();
+  void ProgressScheduler();
 
   void EnqueueReadyQueue(CLCommand* command);
   CLCommand* DequeueReadyQueue();
@@ -120,6 +121,10 @@ class CLDevice: public CLObject<struct _cl_device_id, CLDevice,
                               std::vector<CLProgramBinary*>& binaries,
                               const char* options);
 
+  virtual void LaunchTestKernel(CLCommand* command, CLKernel* kernel,
+                            cl_uint work_dim, size_t gwo[3], size_t gws[3],
+                            size_t lws[3], size_t nwg[3],
+                            std::map<cl_uint, CLKernelArg*>* kernel_args) = 0;
   virtual void LaunchKernel(CLCommand* command, CLKernel* kernel,
                             cl_uint work_dim, size_t gwo[3], size_t gws[3],
                             size_t lws[3], size_t nwg[3],

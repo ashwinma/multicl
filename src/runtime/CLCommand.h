@@ -90,9 +90,11 @@ class CLCommand {
             cl_command_type type);
   ~CLCommand();
 
+  double EstimatedCost(CLDevice *target_device);
   cl_command_type type() const { return type_; }
   CLContext* context() const { return context_; }
   CLDevice* device() const { return device_; }
+  CLKernel* kernel() const { return kernel_; }
 
   CLDevice* source_device() const { return dev_src_; }
   CLDevice* destination_device() const { return dev_dst_; }
@@ -111,7 +113,7 @@ class CLCommand {
   void SetAsComplete();
 
   CLEvent* ExportEvent();
-
+  CLCommand* Clone();
   /* Extra annotations for commands
    * 
    * SourceDevice/DestinationDevice

@@ -209,6 +209,7 @@ cl_int CLEvent::Wait() {
   pthread_mutex_lock(&mutex_complete_);
   if (status_ != CL_COMPLETE && status_ > 0)
   {
+  	if(queue_) queue_->Flush();
   //	gEventWaitTimer.Start();
     pthread_cond_wait(&cond_complete_, &mutex_complete_);
  // 	gEventWaitTimer.Stop();

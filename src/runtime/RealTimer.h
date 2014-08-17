@@ -53,7 +53,7 @@ public:
 
   /// Print the current state of the counter to the stream.
   void Print(std::ostream& o) const;
-  void PrintCurrent() const;
+  void PrintCurrent(const char *str = "") const;
   double CurrentElapsed() const;
 
   /// Return the system time.
@@ -177,9 +177,9 @@ inline double RealTimer::CurrentElapsed() const {
   return CurrentTime() - start_time;
 }
 
-inline void RealTimer::PrintCurrent() const
+inline void RealTimer::PrintCurrent(const char *str) const
 {
-  std::cout << CurrentTime() - start_time << " secs" << std::endl;
+  std::cout << str << ": " << CurrentTime() - start_time << " secs" << std::endl;
 }
 
 inline void RealTimer::Print(std::ostream& o) const

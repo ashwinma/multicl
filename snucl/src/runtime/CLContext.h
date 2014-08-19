@@ -68,6 +68,8 @@ class CLContext: public CLObject<struct _cl_context, CLContext,
 					 std::vector<size_t> &filter_indices);
   ~CLContext();
 
+  cl_context_properties *properties() const { return properties_; }
+  size_t num_properties() const { return num_properties_; }
   const std::vector<CLDevice*>& devices() const { return devices_; }
   const std::vector<hwloc_obj_t>& hosts() const { return hosts_; }
 

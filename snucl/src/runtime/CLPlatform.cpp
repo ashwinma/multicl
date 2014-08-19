@@ -591,12 +591,15 @@ size_t CLPlatform::CheckContextProperties(
         return 0;
       }
       idx += 2;
-    } else if (properties[idx] == CL_CONTEXT_INTEROP_USER_SYNC) {
+    } else if(properties[idx] == CL_CONTEXT_SCHEDULER) {
+	  idx += 2;
+	}else if (properties[idx] == CL_CONTEXT_INTEROP_USER_SYNC) {
       if (set_sync) {
         *err = CL_INVALID_PROPERTY;
         return 0;
       }
       set_sync = true;
+	  idx++;
     } else {
       *err = CL_INVALID_PROPERTY;
       return 0;

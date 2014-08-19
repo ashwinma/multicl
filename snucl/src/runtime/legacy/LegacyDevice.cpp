@@ -97,7 +97,7 @@ typedef CL_API_ENTRY cl_int (CL_API_CALL *pfn_clIcdGetPlatformIDs)(
 
 #define UPDATE_ERROR(err)                         \
   if (err != CL_SUCCESS) {                        \
-    command->SetError(err);                       \
+    if(command)command->SetError(err);            \
     SNUCL_ERROR("legacy vendor error %d\n", err); \
     return;                                       \
   }
@@ -431,7 +431,7 @@ void LegacyDevice::LaunchTestKernel(CLCommand* command, CLKernel* kernel,
                                 cl_uint work_dim, size_t gwo[3], size_t gws[3],
                                 size_t lws[3], size_t nwg[3],
                                 map<cl_uint, CLKernelArg*>* kernel_args) {
-  SNUCL_INFO("Test run kernel: %s\n", kernel->name());
+  SNUCL_INFO("Test run kernel: %s on Device ID %p (type %d)\n", kernel->name(), device_id_, type_);
   //printf("Device Type: %d Ptr: %p\n", type_, device_id_);
   CHECK_ERROR(available_ == CL_FALSE, CL_DEVICE_NOT_AVAILABLE);
   cl_kernel legacy_kernel = (cl_kernel)kernel->GetDevSpecific(this);
@@ -446,7 +446,7 @@ void LegacyDevice::LaunchTestKernel(CLCommand* command, CLKernel* kernel,
     CLSampler* sampler = it->second->sampler;
     if (mem != NULL) {
       cl_mem mem_dev = (cl_mem)mem->GetDevSpecific(this);
-	  //SNUCL_INFO("Test kernel Device: %p, Mem: %p, dev specific: %p, size: %llu\n", this, mem, mem_dev, mem->size());
+	  //SNUCL_INFO("Test kernel Device: %p, Mem: %p, dev specific: %p, size: %llu\n", device_id_, mem, mem_dev, mem->size());
       CHECK_ERROR(mem_dev == NULL, CL_INVALID_MEM_OBJECT);
       err = dispatch_->clSetKernelArg(legacy_kernel, index, sizeof(cl_mem),
                                       &mem_dev);

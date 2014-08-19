@@ -189,6 +189,7 @@ map<cl_uint, CLKernelArg*>* CLKernel::DuplicateArgs() {
 	  char *tmp = (char *)malloc(sizeof(char) * m->size());
 	  // approach 1) clone memory to all devices
 	  // 2) create memory with random values
+#if 1
 	  // ---- approach 1 -----
 	  if(m->EmptyLatest()) {
 		  // no device has a copy of the mem obj, so create
@@ -217,6 +218,15 @@ map<cl_uint, CLKernelArg*>* CLKernel::DuplicateArgs() {
 			  (*it)->WriteBuffer(NULL, new_arg->mem, 0, m->size(), tmp); 
 		  }
 	  }
+#else
+	  // create array with arbitrary data
+	  // ---- approach 2 -----
+	  memset((void *)tmp, 1, sizeof(char) * m->size());
+	  for (vector<CLDevice*>::iterator it = devices.begin();
+			  it != devices.end(); ++it) {
+		  (*it)->WriteBuffer(NULL, new_arg->mem, 0, m->size(), tmp); 
+	  }
+#endif
 	  free(tmp);
       //new_arg->mem->Retain();
 	}

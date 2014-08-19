@@ -92,6 +92,7 @@ class CLCommandQueue: public CLObject<struct _cl_command_queue,
 
   bool isEpochRecorded(std::string epoch);
   void recordEpoch(std::string epoch, std::vector<double> performances);
+  std::vector<double> getEpochCosts(std::string epoch);
   void set_perf_model_done(bool val) {perfModDone_ = val;}
   bool get_perf_model_done() {return perfModDone_;}
 

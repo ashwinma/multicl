@@ -315,7 +315,16 @@ void CLCommand::Execute() {
       device_->ReadBuffer(this, mem_src_, off_src_, size_, ptr_);
       break;
     case CL_COMMAND_WRITE_BUFFER:
-      device_->WriteBuffer(this, mem_dst_, off_dst_, size_, ptr_);
+	  // if read only buffer, copy buffer to all devices in the context
+	  if(mem_dst_->flags() & CL_MEM_READ_ONLY) {
+		  vector<CLDevice *> devices = context_->devices();
+		  for (vector<CLDevice*>::iterator it = devices.begin();
+				  it != devices.end(); ++it) {
+			  (*it)->WriteBuffer(this, mem_dst_, off_dst_, size_, ptr_);
+		  }
+	  } else {
+		  device_->WriteBuffer(this, mem_dst_, off_dst_, size_, ptr_);
+	  }
       break;
     case CL_COMMAND_COPY_BUFFER:
       device_->CopyBuffer(this, mem_src_, mem_dst_, mem_src_dev_specific_, mem_dst_dev_specific_, off_src_, off_dst_, size_);
@@ -567,7 +576,7 @@ void CLCommand::ResolveDeviceCharacteristics()
 	queue_->GetCommandQueueInfo(CL_QUEUE_PROPERTIES, sizeof(cl_command_queue_properties),
 								&queue_props, NULL);
 	//SNUCL_INFO("Command Queue Properties for this command: %x\n", queue_props);
-	switch(queue_props & 0xF0)
+	switch(queue_props & 0xFFF0)
 	{
 		case CL_QUEUE_DEVICE_SELECT_BEST_COMPUTE:
 			sched_type_ = SNUCL_SCHED_MAX_COMPUTE;
@@ -818,8 +827,8 @@ bool CLCommand::ResolveConsistencyOfReadMem() {
   if(queue_ && queue_->IsAutoDeviceSelection()) 
   {
   	// FIXME: Change only if the queue properties say so
-  	cl_int err = queue_->set_device(device_);
-	if(err != CL_SUCCESS) SNUCL_ERROR("Invalid Device Set!\n", 0);
+  //	cl_int err = queue_->set_latest_device(device_);
+//	if(err != CL_SUCCESS) SNUCL_ERROR("Invalid Device Set!\n", 0);
   //	SNUCL_INFO("(After) Device in Resolve Read consistency: %p\n", queue_->device());
   	if(size_ == 0)
 	{

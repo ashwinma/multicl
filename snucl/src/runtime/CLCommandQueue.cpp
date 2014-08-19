@@ -63,7 +63,7 @@ CLCommandQueue::CLCommandQueue(CLContext *context, CLDevice* device,
   context_->Retain();
   device_ = device;
   properties_ = properties;
-  type_ = (properties_ & 0xF0) ? CL_QUEUE_AUTO_DEVICE_SELECTION : CL_QUEUE_FIXED_DEVICE_SELECTION;
+  //type_ = (properties_ & 0xFFF0) ? CL_QUEUE_AUTO_DEVICE_SELECTION : CL_QUEUE_FIXED_DEVICE_SELECTION;
   // Q: Automatic device selection before adding this to the device? 
   // A: Only if we have all the information (nearest). If we don't have 
   // all the info (kernel) then wait for the device selection
@@ -81,7 +81,7 @@ CLCommandQueue::CLCommandQueue(CLContext *context, CLDevice* device,
   context_->Retain();
   device_ = device;
   properties_ = properties;
-  //type_ = (properties_ & 0xF0) ? CL_QUEUE_AUTO_DEVICE_SELECTION : CL_QUEUE_FIXED_DEVICE_SELECTION;
+  //type_ = (properties_ & 0xFFF0) ? CL_QUEUE_AUTO_DEVICE_SELECTION : CL_QUEUE_FIXED_DEVICE_SELECTION;
   // Q: Automatic device selection before adding this to the device? 
   // A: Only if we have all the information (nearest). If we don't have 
   // all the info (kernel) then wait for the device selection
@@ -99,7 +99,7 @@ CLCommandQueue::~CLCommandQueue() {
 
 CLDevice *CLCommandQueue::SelectBestDevice(CLContext *context, CLDevice* device, 
                                cl_command_queue_properties properties) {
-	cl_command_queue_properties prop_mask = properties & 0xF0;
+	cl_command_queue_properties prop_mask = properties & 0xFFF0;
 	CLDevice* new_device = NULL;
 	static bool has_printed = false;
 	cl_device_type device_type;
@@ -192,6 +192,12 @@ bool CLCommandQueue::isEpochRecorded(std::string epoch) {
 	if(epochPerformances_.find(epoch) != epochPerformances_.end())
 		return true;
 	return false;
+}
+
+std::vector<double> CLCommandQueue::getEpochCosts(std::string epoch) {
+	if(isEpochRecorded(epoch))
+		return epochPerformances_[epoch];
+	return std::vector<double>(0);
 }
 
 void CLCommandQueue::recordEpoch(std::string epoch, std::vector<double> performances) {

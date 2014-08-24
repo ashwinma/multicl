@@ -59,6 +59,7 @@ typedef cl_bitfield         cl_command_queue_properties;
 typedef cl_bitfield         cl_command_queue_type;
 typedef intptr_t            cl_device_partition_property;
 typedef cl_bitfield         cl_device_affinity_domain;
+typedef cl_bitfield         cl_context_scheduler_type;
 
 typedef intptr_t            cl_queue_properties;
 typedef intptr_t            cl_context_properties;
@@ -309,13 +310,27 @@ typedef struct _cl_buffer_region {
 /* cl_command_queue_properties - bitfield */
 #define CL_QUEUE_OUT_OF_ORDER_EXEC_MODE_ENABLE      (1 << 0)
 #define CL_QUEUE_PROFILING_ENABLE                   (1 << 1)
-#define CL_QUEUE_DEVICE_SELECT_MANUAL				0x10
-#define CL_QUEUE_DEVICE_SELECT_BEST_COMPUTE			0x20
-#define CL_QUEUE_DEVICE_SELECT_BEST_MEM				0x30
-#define CL_QUEUE_DEVICE_SELECT_BEST_LMEM			0x40
-#define CL_QUEUE_DEVICE_SELECT_PERF_MODEL			0x50
-#define CL_QUEUE_DEVICE_SELECT_NEAREST				0x60
-#define CL_QUEUE_DEVICE_SELECT_LEAST_LOADED			0x70
+#define CL_QUEUE_DEVICE_SELECT_MANUAL				0x01F0
+#define CL_QUEUE_DEVICE_SELECT_BEST_COMPUTE			0x02F0
+#define CL_QUEUE_DEVICE_SELECT_BEST_MEM				0x03F0
+#define CL_QUEUE_DEVICE_SELECT_BEST_LMEM			0x04F0
+#define CL_QUEUE_DEVICE_SELECT_PERF_MODEL			0x05F0
+#define CL_QUEUE_DEVICE_SELECT_NEAREST				0x06F0
+#define CL_QUEUE_DEVICE_SELECT_LEAST_LOADED			0x07F0
+
+#define CL_QUEUE_COMPUTE_INTENSIVE					0x02F0
+#define CL_QUEUE_MEM_INTENSIVE						0x03F0
+#define CL_QUEUE_LMEM_INTENSIVE						0x04F0
+#define CL_QUEUE_IO_INTENSIVE						0x05F0
+
+#define CL_QUEUE_AUTO_DEVICE_SELECTION				0x0010
+#define CL_QUEUE_ITERATIVE							0x0020
+#define CL_QUEUE_VOLATILE_EPOCHS					0x0040
+// CL_QUEUE_COMMANDS_MEM_INTENSIVE
+// CL_QUEUE_COMMANDS_COMPUTE_INTENSIVE
+// CL_QUEUE_COMMANDS_IO_INTENSIVE
+// CL_QUEUE_COMMANDS_ITERATIVE
+// CL_QUEUE_EXCLUSIVE_MODE
 //#define CL_QUEUE_DEVICE_SELECTION_MODE_ENABLE		(1 << 2)
 // Having a separate command queue bitfield property is better 
 // than adding a new bit to the above bitfield..but how to query it?
@@ -329,7 +344,16 @@ typedef struct _cl_buffer_region {
 /* cl_context_properties */
 #define CL_CONTEXT_PLATFORM                         0x1084
 #define CL_CONTEXT_INTEROP_USER_SYNC                0x1085
+#define CL_CONTEXT_SCHEDULER						0x1086
 
+/* cl_context_scheduler_type */
+#define CL_CONTEXT_SCHEDULER_RR							0x1
+#define CL_CONTEXT_SCHEDULER_PRIORITY_RR				0x2
+#define CL_CONTEXT_SCHEDULER_PERF_MODEL					0x3
+// CL_CONTEXT_SCHEDULER_PERF_MODEL_KERNEL
+// CL_CONTEXT_SCHEDULER_PERF_MODEL_KERNEL_IO
+// CL_CONTEXT_SCHEDULER_PERF_MODEL_MINIKERNEL
+// CL_CONTEXT_SCHEDULER_PERF_MODEL_MINIKERNEL_IO
 /* cl_device_partition_property */
 #define CL_DEVICE_PARTITION_EQUALLY                 0x1086
 #define CL_DEVICE_PARTITION_BY_COUNTS               0x1087
@@ -357,9 +381,10 @@ typedef struct _cl_buffer_region {
 #define CL_QUEUE_NUM_SCHEDULING_POLICIES            0x1098
     
 /* cl_command_queue_device_selection_mode */
-#define CL_QUEUE_FIXED_DEVICE_SELECTION				(1 << 0)
-#define CL_QUEUE_AUTO_DEVICE_SELECTION				(1 << 1)
-
+//#define CL_QUEUE_FIXED_DEVICE_SELECTION				(1 << 0)
+//#define CL_QUEUE_AUTO_DEVICE_SELECTION				(1 << 1)
+// CL_QUEUE_AUTO_COMMAND_SCHEDULING
+// CL_QUEUE_AUTO_QUEUE_SCHEDULING
 /* cl_mem_flags - bitfield */
 #define CL_MEM_READ_WRITE                           (1 << 0)
 #define CL_MEM_WRITE_ONLY                           (1 << 1)

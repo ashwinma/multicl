@@ -180,55 +180,72 @@ map<cl_uint, CLKernelArg*>* CLKernel::DuplicateArgs() {
     new_arg->mem = arg->mem;
     if (new_arg->mem != NULL)
 	{
+	  // dont duplicate read only data
 	  CLMem *m = (CLMem *)new_arg->mem;
-	  CLContext *ctx = m->context();
-	  vector<CLDevice *> devices = ctx->devices();
-	  cl_int err;
-  	  new_arg->mem = CLMem::CreateBuffer(ctx, m->flags(), m->size(), 
-	  						m->host_ptr(), &err);
-	  char *tmp = (char *)malloc(sizeof(char) * m->size());
-	  // approach 1) clone memory to all devices
-	  // 2) create memory with random values
-#if 1
-	  // ---- approach 1 -----
-	  if(m->EmptyLatest()) {
-		  // no device has a copy of the mem obj, so create
-		  // array with arbitrary data
-		  memset(tmp, 0, sizeof(char) * m->size());
-		  for (vector<CLDevice*>::iterator it = devices.begin();
-				  it != devices.end(); ++it) {
-			  (*it)->WriteBuffer(NULL, new_arg->mem, 0, m->size(), tmp); 
-		  }
+	  if(m->flags() & CL_MEM_READ_ONLY)
+	  {
+	  	m->Retain();
 	  }
-	  else {
-		  CLDevice *src_dev = NULL;
-		  for (vector<CLDevice*>::iterator it = devices.begin();
-				  it != devices.end(); ++it) {
-			  if(m->HasLatest(*it))
-			  {
-				  // clone mem from src_dev to all other
-				  // devices
-				  src_dev = *it;
-				  src_dev->ReadBuffer(NULL, m, 0, m->size(), tmp); 
-				  break;
+	  else
+	  {
+		  CLContext *ctx = m->context();
+		  vector<CLDevice *> devices = ctx->devices();
+		  cl_int err;
+		  new_arg->mem = CLMem::CreateBuffer(ctx, m->flags(), m->size(), 
+				  m->host_ptr(), &err);
+		  char *tmp = (char *)malloc(sizeof(char) * m->size());
+		  // approach 1) clone memory to all devices
+		  // 2) create memory with random values
+#if 1
+		  // ---- approach 1 -----
+		  if(m->EmptyLatest()) {
+			  // no device has a copy of the mem obj, so create
+			  // array with arbitrary data
+			  memset(tmp, 0, sizeof(char) * m->size());
+			  for (vector<CLDevice*>::iterator it = devices.begin();
+					  it != devices.end(); ++it) {
+				  (*it)->WriteBuffer(NULL, new_arg->mem, 0, m->size(), tmp); 
 			  }
 		  }
+		  else {
+			  CLDevice *src_dev = NULL;
+			  for (vector<CLDevice*>::iterator it = devices.begin();
+					  it != devices.end(); ++it) {
+				  if(m->HasLatest(*it))
+				  {
+					  // clone mem from src_dev to all other
+					  // devices
+					  src_dev = *it;
+					  src_dev->ReadBuffer(NULL, m, 0, m->size(), tmp); 
+					  break;
+				  }
+			  }
+			  for (vector<CLDevice*>::iterator it = devices.begin();
+					  it != devices.end(); ++it) {
+//				  if((*it) != src_dev && ((*it)->context() != src_dev->context()))
+				  	(*it)->WriteBuffer(NULL, new_arg->mem, 0, m->size(), tmp); 
+/*				  else {
+  					cl_mem src_dev_specific_ptr = (cl_mem)m->GetDevSpecific(src_dev);
+  					cl_mem dest_dev_specific_ptr = (cl_mem)new_arg->mem->GetDevSpecific(*it);
+				  	src_dev->CopyBuffer(NULL, m, new_arg->mem, 
+				  	//(*it)->CopyBuffer(NULL, m, new_arg->mem, 
+						src_dev_specific_ptr, dest_dev_specific_ptr, 
+						0, 0, m->size()); 
+				  } */
+			  }
+		  }
+#else
+		  // create array with arbitrary data
+		  // ---- approach 2 -----
+		  memset((void *)tmp, 1, sizeof(char) * m->size());
 		  for (vector<CLDevice*>::iterator it = devices.begin();
 				  it != devices.end(); ++it) {
 			  (*it)->WriteBuffer(NULL, new_arg->mem, 0, m->size(), tmp); 
 		  }
-	  }
-#else
-	  // create array with arbitrary data
-	  // ---- approach 2 -----
-	  memset((void *)tmp, 1, sizeof(char) * m->size());
-	  for (vector<CLDevice*>::iterator it = devices.begin();
-			  it != devices.end(); ++it) {
-		  (*it)->WriteBuffer(NULL, new_arg->mem, 0, m->size(), tmp); 
-	  }
 #endif
-	  free(tmp);
-      //new_arg->mem->Retain();
+		  free(tmp);
+		  //new_arg->mem->Retain();
+	  }
 	}
     new_arg->sampler = arg->sampler;
     if (new_arg->sampler != NULL)

@@ -372,7 +372,7 @@ LegacyDevice::LegacyDevice(void* library, struct _cl_icd_dispatch* dispatch,
 #undef GET_LEGACY_DEVICE_INFO_A
 #undef GET_LEGACY_DEVICE_INFO_S
 
-#if 1
+#if 0
   cl_context_properties properties[3] = {CL_CONTEXT_PLATFORM,
                                          (cl_context_properties)platform_id_,
                                          0};
@@ -431,7 +431,7 @@ void LegacyDevice::LaunchTestKernel(CLCommand* command, CLKernel* kernel,
                                 cl_uint work_dim, size_t gwo[3], size_t gws[3],
                                 size_t lws[3], size_t nwg[3],
                                 map<cl_uint, CLKernelArg*>* kernel_args) {
-  SNUCL_INFO("Test run kernel: %s on Device ID %p (type %d)\n", kernel->name(), device_id_, type_);
+  //SNUCL_INFO("Test run kernel: %s on Device ID %p (type %d)\n", kernel->name(), device_id_, type_);
   //printf("Device Type: %d Ptr: %p\n", type_, device_id_);
   CHECK_ERROR(available_ == CL_FALSE, CL_DEVICE_NOT_AVAILABLE);
   cl_kernel legacy_kernel = (cl_kernel)kernel->GetDevSpecific(this);
@@ -1308,8 +1308,8 @@ void LegacyDevice::IcdPlatformAdd(const char* library_name,
   cl_context_properties properties[3] = {CL_CONTEXT_PLATFORM,
                                          (cl_context_properties)platform,
                                          0};
-  //context = platform->dispatch->clCreateContext(properties, num_devices, devices, NULL, NULL,
-    //                                    &err);
+  context = platform->dispatch->clCreateContext(properties, num_devices, 
+  				devices, NULL, NULL, &err);
 	if(err != CL_SUCCESS) 
 	{
 		context = NULL;

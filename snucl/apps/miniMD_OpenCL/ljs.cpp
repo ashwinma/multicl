@@ -394,7 +394,7 @@ int main(int argc, char **argv)
 
   atom.d_x->upload();
   atom.d_v->upload();
-  atom.d_vold->upload();
+  //atom.d_vold->upload();
   neighbor.build(atom);
 
   if (me == 0) printf("# Starting dynamics ...\n");
@@ -434,13 +434,15 @@ void compile_kernels(OpenCLWrapper* opencl)
 {
   opencl->ReadKernelSource("integrate_kernel.h");
   opencl->ReadKernelSource("force_kernel.h");
+  //opencl->ReadKernelSource("force_kernel.h.test");
   opencl->ReadKernelSource("atom_kernel.h");
   opencl->ReadKernelSource("neighbor_kernel.h");
+  //opencl->ReadKernelSource("neighbor_kernel.h.test");
   char* options = new char[256];
   if(sizeof(MMD_float)==sizeof(double))
-     strcpy(options,"-DMDPREC=2 -cl-mad-enable -I/usr/lib/gcc/x86_64-redhat-linux/4.4.6/include -DIAMONDEVICE");
+     strcpy(options,"-DMDPREC=2 -cl-mad-enable -I. -I/opt/apps/gcc/4.5.3/include -DIAMONDEVICE");
   if(sizeof(MMD_float)==sizeof(float))
-     strcpy(options,"-DMDPREC=1 -cl-mad-enable -I/usr/lib/gcc/x86_64-redhat-linux/4.4.6/include -DIAMONDEVICE");
+     strcpy(options,"-DMDPREC=1 -cl-mad-enable -I. -I/opt/apps/gcc/4.5.3/include -DIAMONDEVICE");
   printf("Before build program...\n");
   opencl->CompileProgram(options);
   opencl->CreateKernel("integrate_initial");

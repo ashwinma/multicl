@@ -316,13 +316,15 @@ void CLCommand::Execute() {
       break;
     case CL_COMMAND_WRITE_BUFFER:
 	  // if read only buffer, copy buffer to all devices in the context
-	  if(mem_dst_->flags() & CL_MEM_READ_ONLY) {
+	  if(mem_dst_->flags() & CL_MEM_READ_ONLY) 
+	  {
 		  vector<CLDevice *> devices = context_->devices();
 		  for (vector<CLDevice*>::iterator it = devices.begin();
 				  it != devices.end(); ++it) {
 			  (*it)->WriteBuffer(this, mem_dst_, off_dst_, size_, ptr_);
 		  }
-	  } else {
+	  } 
+	  else {
 		  device_->WriteBuffer(this, mem_dst_, off_dst_, size_, ptr_);
 	  }
       break;
@@ -821,7 +823,7 @@ bool CLCommand::ResolveConsistencyOfReadMem() {
   //gCommandTimer.Stop();
   if(before != device_)
   {
-  	SNUCL_INFO("Device changed for D2H operation\n", 0);
+  	SNUCL_INFO("D2H Device changed from %p to %p\n", before, device_);
   }
   
   if(queue_ && queue_->IsAutoDeviceSelection()) 
@@ -948,7 +950,7 @@ bool CLCommand::ResolveConsistencyOfCopyMem() {
     //ptr = memalign(4096, size);
 	//ptr = device_->AllocHostMem(mem_dst_);
 	ptr = mem_dst_->GetDevSpecificHostPtr(device_);
-	SNUCL_INFO("CopyMem Mapped Host Ptr: %p\n", ptr);
+	//SNUCL_INFO("CopyMem Mapped Host Ptr: %p\n", ptr);
   }
 
   CLCommand* read = NULL;
@@ -1285,7 +1287,9 @@ bool CLCommand::LocateMemOnDevice(CLMem* mem) {
   AddWaitEvent(last_event);
   last_event->Release();
 	gCommandTimer.Stop();
-	gCommandTimer.PrintCurrent("Resolve Mem Location Overhead");
+	SNUCL_INFO("Mem moved from %p->%p Time: %g sec\n", 
+		source, device_, gCommandTimer.CurrentElapsed());
+	//gCommandTimer.PrintCurrent("Resolve Mem Location Overhead");
   return false;
 }
 

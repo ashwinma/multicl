@@ -31,6 +31,7 @@
 
 #include "stdio.h"
 #include "integrate.h"
+#include "RealTimer.h"
 
 Integrate::Integrate() {}
 Integrate::~Integrate() {}
@@ -44,11 +45,16 @@ void Integrate::run(Atom &atom, Force &force, Neighbor &neighbor,
 		    Comm &comm, Thermo &thermo, Timer &timer)
 {
   timer.array[TIME_TEST]=0.0;
+  Global::RealTimer totalTimer;
+  totalTimer.Init();
+  Global::RealTimer forceTimer;
+  forceTimer.Init();
 
   atom.d_x->upload();
   atom.d_v->upload();
   comm.d_sendlist->upload();
   for (int n = 0; n < ntimes; n++) {
+  	totalTimer.Start();
 	    //atom.d_x->download();
 	    //atom.d_v->download();
 	    //atom.d_f->download();
@@ -85,9 +91,11 @@ void Integrate::run(Atom &atom, Force &force, Neighbor &neighbor,
    }
     if(atom.use_tex)
     atom.d_x->syncImage();
+	forceTimer.Start();
     force.compute(atom,neighbor,comm.me);
     //neighbor.d_flag->download();
     clFinish ( 	opencl->defaultQueue);
+	forceTimer.Stop();
     timer.stamp(TIME_FORCE);
 
     opencl->LaunchKernel("integrate_final",atom.nlocal,5,
@@ -99,8 +107,11 @@ void Integrate::run(Atom &atom, Force &force, Neighbor &neighbor,
       thermo.compute(n+1,atom,neighbor,force,timer,comm);
     }
 
+  	totalTimer.Stop();
   }
   atom.d_x->download();
   atom.d_v->download();
   atom.d_f->download();
+  std::cout << "Force Computation Time: " << forceTimer << std::endl;
+  std::cout << "Total Computation Time: " << totalTimer << std::endl;
 }

@@ -33,7 +33,7 @@
 #include <cstring>
 #include <cmath>
 #include <cstdlib>
-
+#define MINIMD_SNUCL_OPTIMIZATIONS
 OpenCLWrapper::OpenCLWrapper()
 {
 	num_platforms = 0;
@@ -78,7 +78,8 @@ OpenCLWrapper::~OpenCLWrapper()
 
 int OpenCLWrapper::Init(int argc, char** argv,int me,int ppn,int* devicelist,int platformid,int subdevice)
 {
-
+	int i = 0;
+	cl_int err;
 	ciErrNum = clGetPlatformIDs (0, NULL, &num_platforms);
     if (ciErrNum != CL_SUCCESS)
     {
@@ -93,7 +94,34 @@ int OpenCLWrapper::Init(int argc, char** argv,int me,int ppn,int* devicelist,int
     platformIDs = new cl_platform_id[num_platforms];
     ciErrNum = clGetPlatformIDs (num_platforms, platformIDs, NULL);
 
-    myPlatform = platformIDs[platformid];
+  	size_t            platform_name_size;
+  	char*             platform_name;
+	for (i = 0; i < num_platforms; i++) {
+		err = clGetPlatformInfo(platformIDs[i], CL_PLATFORM_NAME, 0, NULL,
+				&platform_name_size);
+		if(err!=CL_SUCCESS)Error(err, "Platform Info", __FILE__, __LINE__);
+
+		platform_name = (char*)malloc(sizeof(char) * platform_name_size);
+		err = clGetPlatformInfo(platformIDs[i], CL_PLATFORM_NAME, platform_name_size,
+				platform_name, NULL);
+		if(err!=CL_SUCCESS)Error(err, "Platform Info", __FILE__, __LINE__);
+
+		printf("Platform %d: %s\n", i, platform_name);
+		//if (strcmp(platform_name, PLATFORM_NAME) == 0)
+		if (i == platformid)
+		{
+			printf("Choosing Platform %d: %s\n", i, platform_name);
+			myPlatform = platformIDs[i];
+		}
+		free(platform_name);
+	}
+
+	if (myPlatform == NULL) {
+		printf("%s platform is not found.\n");
+		//exit(EXIT_FAILURE);
+	}
+
+    //myPlatform = platformIDs[platformid];
 
     ciErrNum = clGetDeviceIDs (myPlatform, CL_DEVICE_TYPE_ALL, 0, NULL, &num_devices);
     if (ciErrNum != CL_SUCCESS)
@@ -134,8 +162,18 @@ int OpenCLWrapper::Init(int argc, char** argv,int me,int ppn,int* devicelist,int
     	printf("Attaching to subdevice %i of %i\n",subdevice,num_subdevices);
     }
 
-
-    myGPUContext = clCreateContext(0, 1, &myDevice, NULL, NULL, &ciErrNum);
+#ifdef MINIMD_SNUCL_OPTIMIZATIONS
+	cl_context_properties props[5] = {
+		CL_CONTEXT_PLATFORM,
+		(cl_context_properties)myPlatform,
+		CL_CONTEXT_SCHEDULER,
+		CL_CONTEXT_SCHEDULER_PERF_MODEL,
+		0 };
+    myGPUContext = clCreateContext(props, num_devices, deviceIDs, NULL, NULL, &ciErrNum);
+#else
+    myGPUContext = clCreateContext(NULL, num_devices, deviceIDs, NULL, NULL, &ciErrNum);
+#endif
+    //myGPUContext = clCreateContext(0, 1, &myDevice, NULL, NULL, &ciErrNum);
     if (ciErrNum != CL_SUCCESS)
     {
     	Error(ciErrNum,"Get_Context", __FILE__, __LINE__);
@@ -146,7 +184,13 @@ int OpenCLWrapper::Init(int argc, char** argv,int me,int ppn,int* devicelist,int
     num_queues = 1;
     queues = new cl_command_queue[num_queues];
     for(unsigned int i=0;i<num_queues;i++)
-      queues[i] = clCreateCommandQueue(myGPUContext, myDevice, CL_QUEUE_PROFILING_ENABLE, NULL);
+      queues[i] = clCreateCommandQueue(myGPUContext, myDevice, 
+#ifdef MINIMD_SNUCL_OPTIMIZATIONS
+			CL_QUEUE_AUTO_DEVICE_SELECTION | 
+			CL_QUEUE_ITERATIVE | 
+			CL_QUEUE_COMPUTE_INTENSIVE | 
+#endif
+	  		CL_QUEUE_PROFILING_ENABLE, NULL);
     defaultQueue = queues[0];
 
 	return 0;
@@ -374,7 +418,8 @@ int OpenCLWrapper::CompileProgram(char* options)
 	program = clCreateProgramWithSource(myGPUContext,num_kernel_sources,(const char**) kernel_source,NULL,&ciErrNum);
     if (ciErrNum != CL_SUCCESS)
     	Error(ciErrNum,"CreateProgram",__FILE__,__LINE__);
-	ciErrNum = clBuildProgram(program,1,&myDevice,options,NULL,NULL);
+	ciErrNum = clBuildProgram(program,num_devices,deviceIDs,options,NULL,NULL);
+	//ciErrNum = clBuildProgram(program,1,&myDevice,options,NULL,NULL);
     if (ciErrNum != CL_SUCCESS)
     	Error(ciErrNum,"BuildProgram",__FILE__,__LINE__);
     if(ciErrNum==-11)

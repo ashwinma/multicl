@@ -7,7 +7,7 @@ SHELL = /bin/sh
 SRC =	ljs.cpp input.cpp integrate.cpp atom.cpp force.cpp neighbor.cpp \
 	thermo.cpp comm.cpp timer.cpp output.cpp setup.cpp opencl_wrapper.cpp
 INC =	ljs.h atom.h force.h neighbor.h thermo.h timer.h comm.h integrate.h \
-	threadData.h opencl_wrapper.h opencl_data.h precision.h variant.h 
+	threadData.h opencl_wrapper.h opencl_data.h precision.h variant.h RealTimer.h 
 
 # Definitions
 

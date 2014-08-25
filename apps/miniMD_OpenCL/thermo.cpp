@@ -81,7 +81,7 @@ void Thermo::compute(int iflag, Atom &atom, Neighbor &neighbor, Force &force, Ti
   e_act=0;
   p_act=0;
 
-  atom.d_vold->download();
+  //atom.d_vold->download();
   atom.d_v->download();
   atom.d_x->download();
   neighbor.d_numneigh->download();

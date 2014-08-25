@@ -34,6 +34,7 @@
 //#define DISFD_DEBUG
 //#define DISFD_PAPI
 //#define DISFD_USE_OPTIMIZED
+#define DISFD_H2D_SYNC_KERNEL
 /***********************************************/
 /* for debug: check the output                 */
 /***********************************************/
@@ -341,7 +342,13 @@ void init_cl(int *deviceID)
     {
         fprintf(stderr, "Failed to find any available OpenCL device!\n");
     }
-    _cl_context = clCreateContext(NULL, num_devices, _cl_devices, NULL, NULL, &errNum);
+	cl_context_properties props[5] = {
+		CL_CONTEXT_PLATFORM,
+		_cl_firstPlatform,
+		CL_CONTEXT_SCHEDULER,
+		CL_CONTEXT_SCHEDULER_PERF_MODEL,
+		0 };
+    _cl_context = clCreateContext(props, num_devices, _cl_devices, NULL, NULL, &errNum);
     if(errNum != CL_SUCCESS)
     {
         fprintf(stderr, "Failed to create GPU context!\n");
@@ -366,7 +373,12 @@ void init_cl(int *deviceID)
 				chosen_dev_id = atoi(foo);
 		}
 		printf("[OpenCL] %dth command queue uses Dev ID %d\n", i, chosen_dev_id);
-		_cl_commandQueues[i] = clCreateCommandQueue(_cl_context, _cl_devices[chosen_dev_id], CL_QUEUE_PROFILING_ENABLE, NULL);
+		_cl_commandQueues[i] = clCreateCommandQueue(_cl_context, 
+			_cl_devices[chosen_dev_id], 
+			CL_QUEUE_AUTO_DEVICE_SELECTION | 
+			CL_QUEUE_ITERATIVE | 
+			CL_QUEUE_VOLATILE_EPOCHS | 
+			CL_QUEUE_PROFILING_ENABLE, NULL);
 		if(_cl_commandQueues[i] == NULL)
 		{
 			fprintf(stderr, "Failed to create commandQueue for the %dth device!\n", i);
@@ -374,7 +386,11 @@ void init_cl(int *deviceID)
 	}
 #else
 	int chosen_dev_id = 0;
-	_cl_commandQueues[0] = clCreateCommandQueue(_cl_context, _cl_devices[chosen_dev_id], CL_QUEUE_PROFILING_ENABLE, NULL);
+	_cl_commandQueues[0] = clCreateCommandQueue(_cl_context, _cl_devices[chosen_dev_id], 
+			CL_QUEUE_AUTO_DEVICE_SELECTION | 
+			CL_QUEUE_ITERATIVE | 
+			CL_QUEUE_VOLATILE_EPOCHS | 
+			CL_QUEUE_PROFILING_ENABLE, NULL);
 	if(_cl_commandQueues[0] == NULL)
 	{
 		fprintf(stderr, "Failed to create commandQueue for the 0th device!\n");
@@ -389,6 +405,7 @@ void init_cl(int *deviceID)
 #ifdef DISFD_USE_OPTIMIZED
     progLen = LoadProgramSource("disfd_sub_opt.cl", &progSrc);
 #else
+    //progLen = LoadProgramSource("disfd_sub.cl.test", &progSrc);
     progLen = LoadProgramSource("disfd_sub.cl", &progSrc);
 #endif
     _cl_program = clCreateProgramWithSource(_cl_context, 1, &progSrc, &progLen, NULL);
@@ -400,7 +417,8 @@ void init_cl(int *deviceID)
     free((void *)progSrc);
     // -cl-mad-enable
     // -cl-opt-disable
-    errNum = clBuildProgram(_cl_program, num_devices, _cl_devices, "", NULL, NULL);
+    errNum = clBuildProgram(_cl_program, 0, NULL, "", NULL, NULL);
+    //errNum = clBuildProgram(_cl_program, num_devices, _cl_devices, "", NULL, NULL);
     //errNum = clBuildProgram(_cl_program, 1, &_cl_firstDevice, "-cl-opt-disable", NULL, NULL);
     if(errNum != CL_SUCCESS)
 	{
@@ -1792,13 +1810,14 @@ void cpy_h2d_velocityInputsC_opencl(float *t1xx,
 	CHECK_ERROR(errNum, "InputDataCopyHostToDevice1, t2yz");
 	errNum = clEnqueueWriteBuffer(_cl_commandQueues[1], t2zzD, CL_FALSE, 0, sizeof(float) * (*nzbtm + 1) * (*nxbtm) * (*nybtm), t2zz, 0, NULL, NULL);
 	CHECK_ERROR(errNum, "InputDataCopyHostToDevice1, t2zz");
-    
-/*	for(i = 0; i < NUM_COMMAND_QUEUES; i++) {
+#ifdef DISFD_H2D_SYNC_KERNEL 
+	for(i = 0; i < NUM_COMMAND_QUEUES; i++) {
 		errNum = clFinish(_cl_commandQueues[i]);
 		if(errNum != CL_SUCCESS) {
 			fprintf(stderr, "Vel H2D Error!\n");
 		}
-	}*/
+	}
+#endif
     //printf("done!\n");
 
 	return;
@@ -1837,13 +1856,14 @@ void cpy_h2d_velocityOutputsC_opencl(float *v1x,
 	CHECK_ERROR(errNum, "outputDataCopyHostToDevice1, v2y");
 	errNum = clEnqueueWriteBuffer(_cl_commandQueues[1], v2zD, CL_FALSE, 0, sizeof(float) * (*nzbtm + 1) * (*nxbtm + 3) * (*nybtm + 3), v2z, 0, NULL, NULL);
 	CHECK_ERROR(errNum, "outputDataCopyHostToDevice1, v2z");
-
-/*	for(i = 0; i < NUM_COMMAND_QUEUES; i++) {
+#ifdef DISFD_H2D_SYNC_KERNEL 
+	for(i = 0; i < NUM_COMMAND_QUEUES; i++) {
 		errNum = clFinish(_cl_commandQueues[i]);
 		if(errNum != CL_SUCCESS) {
 			fprintf(stderr, "Vel H2D Error!\n");
 		}
-	}*/
+	}
+#endif
     //printf("done!\n");
 	return;
 }
@@ -1880,13 +1900,13 @@ void cpy_d2h_velocityOutputsC_opencl(float *v1x,
 	CHECK_ERROR(errNum, "outputDataCopyDeviceToHost1, v2y");
 	errNum = clEnqueueReadBuffer(_cl_commandQueues[1], v2zD, CL_FALSE, 0, sizeof(float) * (*nzbtm + 1) * (*nxbtm + 3) * (*nybtm + 3), v2z, 0, NULL, NULL);
 	CHECK_ERROR(errNum, "outputDataCopyDeviceToHost1, vzz");
-/*
+
 	for(i = 0; i < NUM_COMMAND_QUEUES; i++) {
 		errNum = clFinish(_cl_commandQueues[i]);
 		if(errNum != CL_SUCCESS) {
 			fprintf(stderr, "Vel H2D Error!\n");
 		}
-	}*/
+	}
     //printf("done!\n");
 	return;
 }
@@ -2415,12 +2435,14 @@ void cpy_h2d_stressInputsC_opencl(float *v1x,
 	errNum = clEnqueueWriteBuffer(_cl_commandQueues[1], v2zD, CL_FALSE, 0, sizeof(float) * (*nzbtm + 1) * (*nxbtm + 3) * (*nybtm + 3), v2z, 0, NULL, NULL);
 	CHECK_ERROR(errNum, "outputDataCopyHostToDevice, v2z");
 
+#ifdef DISFD_H2D_SYNC_KERNEL 
 	for(i = 0; i < NUM_COMMAND_QUEUES; i++) {
 		errNum = clFinish(_cl_commandQueues[i]);
 		if(errNum != CL_SUCCESS) {
 			fprintf(stderr, "Vel H2D Error!\n");
 		}
 	}
+#endif
     //printf("done!\n");
 	return;
 }
@@ -2476,12 +2498,14 @@ void cpy_h2d_stressOutputsC_opencl(float *t1xx,
 	errNum = clEnqueueWriteBuffer(_cl_commandQueues[1], t2zzD, CL_FALSE, 0, sizeof(float) * (*nzbtm + 1) * (*nxbtm) * (*nybtm), t2zz, 0, NULL, NULL);
 	CHECK_ERROR(errNum, "outputDataCopyHostToDevice, t2zz");
 
+#ifdef DISFD_H2D_SYNC_KERNEL 
 	for(i = 0; i < NUM_COMMAND_QUEUES; i++) {
 		errNum = clFinish(_cl_commandQueues[i]);
 		if(errNum != CL_SUCCESS) {
 			fprintf(stderr, "Vel H2D Error!\n");
 		}
 	}
+#endif
     //printf("done!\n");
 
 	return;

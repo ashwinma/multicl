@@ -368,7 +368,7 @@ void H2DMetricsManager::testAndWriteH2DMetrics()
 	pthread_t thread = pthread_self();
 	int n_pus = hwloc_get_nbobjs_by_type(topology, HWLOC_OBJ_PU);
 	int n_cores = hwloc_get_nbobjs_by_type(topology, HWLOC_OBJ_CORE);
-	int n_sockets = hwloc_get_nbobjs_by_type(topology, HWLOC_OBJ_SOCKET); 
+	int n_sockets = hwloc_get_nbobjs_by_type(topology, HWLOC_OBJ_NODE); 
 	int n_cores_per_socket = n_pus / n_sockets;
 	cpu_set_t cpuset;
 	cpu_set_t cur_cpuset;
@@ -544,6 +544,7 @@ void H2DMetricsManager::testAndWriteH2DMetrics()
 				// end time measurement
 				elapsedTimeInSec = gH2DMetricTimer.Elapsed();
 				bandwidthInMBs = ((double)memSize * (double)(MEMCOPY_ITERATIONS - iter_skip))/(elapsedTimeInSec * (double)(1 << 20));
+				_Devices[device_id]->GetDeviceInfo(CL_DEVICE_NAME, name_size, device_name, NULL);
 				printf("[H%d->D%d %s] Sync Size %u Time(us) %g, Time per iter(us) %g, BW(MB/s) %g\n", host_id, device_id, device_name, memSize, elapsedTimeInSec, memSize/bandwidthInMBs, bandwidthInMBs);
 				latencies[device_id] = memSize/bandwidthInMBs;
 				gH2DMetricTimer.Reset();

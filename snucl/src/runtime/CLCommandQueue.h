@@ -90,9 +90,9 @@ class CLCommandQueue: public CLObject<struct _cl_command_queue,
   	return commands_;
   }
 
-  bool isEpochRecorded(std::string epoch);
-  void recordEpoch(std::string epoch, std::vector<double> performances);
-  std::vector<double> getEpochCosts(std::string epoch);
+  //bool isEpochRecorded(std::string epoch);
+  //void recordEpoch(std::string epoch, std::vector<double> performances);
+  //std::vector<double> getEpochCosts(std::string epoch);
   void set_perf_model_done(bool val) {perfModDone_ = val;}
   bool get_perf_model_done() {return perfModDone_;}
 
@@ -105,8 +105,8 @@ class CLCommandQueue: public CLObject<struct _cl_command_queue,
   std::list<CLCommand*> commands_;
 
  private:
-  typedef std::vector<double> devicePerfVector;
-  std::map<std::string, devicePerfVector> epochPerformances_; 
+  //typedef std::vector<double> devicePerfVector;
+  //std::map<std::string, devicePerfVector> epochPerformances_; 
   bool perfModDone_;
   CLContext* context_;
   cl_command_queue_properties properties_;

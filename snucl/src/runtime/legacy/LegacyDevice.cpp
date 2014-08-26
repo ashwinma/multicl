@@ -90,7 +90,7 @@ typedef CL_API_ENTRY cl_int (CL_API_CALL *pfn_clIcdGetPlatformIDs)(
 
 #define CHECK_ERROR(cond, err)                    \
   if (cond) {                                     \
-    command->SetError(err);                       \
+    if(command) command->SetError(err);                       \
     SNUCL_ERROR("legacy vendor error %d\n", err); \
     return;                                       \
   }
@@ -578,8 +578,8 @@ void LegacyDevice::WriteBuffer(CLCommand* command, CLMem* mem_dst,
   //gLegacyTimer.Start();
   CHECK_ERROR(available_ == CL_FALSE, CL_DEVICE_NOT_AVAILABLE);
   cl_mem mem_dst_dev = (cl_mem)mem_dst->GetDevSpecific(this);
-  //SNUCL_INFO("[H2D Device: %p] WriteBuffer CLMem: %p->CLMem: %p, offset: %lu, size: %lu host ptr: %p\n",
-					//this, mem_dst, mem_dst_dev, off_dst, size, ptr);
+  SNUCL_INFO("[H2D Device: %p] WriteBuffer CLMem: %p->CLMem: %p, offset: %lu, size: %lu host ptr: %p\n",
+					this, mem_dst, mem_dst_dev, off_dst, size, ptr);
   CHECK_ERROR(mem_dst_dev == NULL, CL_INVALID_MEM_OBJECT);
   cl_int err;
   err = dispatch_->clEnqueueWriteBuffer(mem_queue_, mem_dst_dev, CL_TRUE,
@@ -596,10 +596,11 @@ void LegacyDevice::CopyBuffer(CLCommand* command, CLMem* mem_src,
 							  size_t off_src, size_t off_dst,
                               size_t size) {
   CHECK_ERROR(available_ == CL_FALSE, CL_DEVICE_NOT_AVAILABLE);
-  //cl_mem mem_src_dev = (cl_mem)mem_src->GetDevSpecific(this);
-  //cl_mem mem_dst_dev = (cl_mem)mem_dst->GetDevSpecific(this);
   cl_mem mem_src_dev = mem_src_dev_specific;
   cl_mem mem_dst_dev = mem_dst_dev_specific;
+  if(!mem_src_dev) mem_src_dev = (cl_mem)mem_src->GetDevSpecific(this);
+  if(!mem_dst_dev) mem_dst_dev = (cl_mem)mem_dst->GetDevSpecific(this);
+
   CHECK_ERROR(mem_src_dev == NULL, CL_INVALID_MEM_OBJECT);
   CHECK_ERROR(mem_dst_dev == NULL, CL_INVALID_MEM_OBJECT);
   cl_int err;

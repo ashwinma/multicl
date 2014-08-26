@@ -267,7 +267,6 @@ void CLPlatform::InitDeviceMetrics()
   devices_lmemory_perf_.resize(devices_.size());
 
   H2DMetricsManager h2dmmgr("h2d_distances.conf", topology_, 0);
-
   for(host_id = 0; host_id < hosts_.size(); host_id++)
   {
   	for(int next_device_id = 0; next_device_id < devices_.size(); next_device_id++)
@@ -281,15 +280,15 @@ void CLPlatform::InitDeviceMetrics()
 	}
   }
 
-  for(device_id = 0; device_id < devices_.size(); device_id++)
+  D2DMetricsManager d2dmmgr("d2d_distances.conf", topology_, 0);
+  unsigned int src_dev_id = 0;
+  unsigned int dest_dev_id = 0;
+  for(src_dev_id = 0; src_dev_id < devices_.size(); src_dev_id++)
   {
-  	devices_devices_distances_[device_id][device_id] = numeric_limits<double>::max();
-  	for(int next_device_id = device_id+1; next_device_id < devices_.size(); next_device_id++)
+  	for(dest_dev_id = 0; dest_dev_id < devices_.size(); dest_dev_id++)
 	{
-		// TODO: Arbitrary values are filled now, but need to be 
-		// replaced with actual bandwidth numbers
-  		devices_devices_distances_[device_id][next_device_id] = 10;
-  		devices_devices_distances_[next_device_id][device_id] = 1;
+		double latency = d2dmmgr.getD2DBandwidth(src_dev_id, dest_dev_id, 512 * 1024, D2DMetricsManager::SNUCL_LATENCY);
+  		devices_devices_distances_[src_dev_id][dest_dev_id] = latency;
 	}
   }
 

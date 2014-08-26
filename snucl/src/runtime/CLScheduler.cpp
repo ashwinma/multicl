@@ -122,11 +122,9 @@ void CLScheduler::RemoveCommandQueue(CLCommandQueue* queue) {
 }
 
 void CLScheduler::Progress() {
-	//return;
 	if(queues_.size() <= 0) return;
 	/* Analyze the pending cmds in all the target queues and 
 	 * then invoke the scheduler */
-	// RR Scheduler 
 	// Check if all cmd queues are of same ctx
 	CLContext *ctx = queues_[0]->context();
 	std::vector<CLDevice *> devices = ctx->devices();
@@ -205,9 +203,9 @@ void CLScheduler::Progress() {
 					continue;
 				epochString += (*cmd_it)->kernel()->name();
 			}
-			if(queue->isEpochRecorded(epochString)) {
+			if(ctx->isEpochRecorded(epochString)) {
 				//SNUCL_INFO("Epoch cost already estimated: %s\n", epochString.c_str());
-				est_epoch_times[q_id] = queue->getEpochCosts(epochString);
+				est_epoch_times[q_id] = ctx->getEpochCosts(epochString);
 				queue_has_kernel[q_id] = true; 
 			} else {
 				est_epoch_times[q_id].resize(num_devices);
@@ -227,11 +225,13 @@ void CLScheduler::Progress() {
 						continue;
 					
 					queue_has_kernel[q_id] = true; 
-					if(queue->isEpochRecorded((*cmd_it)->kernel()->name())) {
-						est_kernel_times = queue->getEpochCosts((*cmd_it)->kernel()->name());
+					if(ctx->isEpochRecorded((*cmd_it)->kernel()->name())) {
+						est_kernel_times = ctx->getEpochCosts((*cmd_it)->kernel()->name());
 					} else {
 						//SNUCL_INFO("Cloning cmd (%p)\n", (*cmd_it));
-						if(!q_perf_estimation_timer.IsRunning())q_perf_estimation_timer.Start();
+						//if(!q_perf_estimation_timer.IsRunning())
+						
+						q_perf_estimation_timer.Start();
 						q_cmd_clone_timer.Start();
 						CLCommand* cmd = (*cmd_it)->Clone();
 						q_cmd_clone_timer.Stop();
@@ -246,21 +246,22 @@ void CLScheduler::Progress() {
 						//	SNUCL_INFO("Estimated Cost of Command Type %x for device %p: %g\n", cmd->type(), dev, est_cost);
 							//est_epoch_times[q_id][device_id] += est_cost;
 						}
-						queue->recordEpoch((*cmd_it)->kernel()->name(), est_kernel_times);
+						ctx->recordEpoch(cmd->kernel()->name(), est_kernel_times);
+						//queue->recordEpoch((*cmd_it)->kernel()->name(), est_kernel_times);
+						q_perf_estimation_timer.Stop();
 						delete cmd;
 					}
 					for(int device_id = 0; device_id < num_devices; device_id++) {
 						est_epoch_times[q_id][device_id] += est_kernel_times[device_id];
 					}
 				}
-				if(q_perf_estimation_timer.IsRunning())
+				//if(q_perf_estimation_timer.IsRunning())
+				if(queue_has_kernel[q_id] == true) 
 				{
-					q_perf_estimation_timer.Stop();
-					SNUCL_INFO("[Q%d] Performance Estimation Overhead: %gs; \
-							Epoch: %s; \
-							Cmd cloning overhead: %gs\n", 
-							q_id, q_perf_estimation_timer.CurrentElapsed(),
-							epochString.c_str(),
+					//q_perf_estimation_timer.Stop();
+					SNUCL_INFO("[Q%d] Epoch: %s Perf_Estimation Overhead: %g sec; Cmd_cloning overhead: %g sec\n", 
+							q_id, epochString.c_str(),
+							q_perf_estimation_timer.Elapsed(),
 							q_cmd_clone_timer.Elapsed());
 					q_cmd_clone_timer.Reset();
 					q_perf_estimation_timer.Reset();
@@ -268,7 +269,7 @@ void CLScheduler::Progress() {
 				if(!epochString.empty())
 				{
 					//SNUCL_INFO("Epoch String for queue %p: %s\n", queue, epochString.c_str());
-					queue->recordEpoch(epochString, est_epoch_times[q_id]);
+					ctx->recordEpoch(epochString, est_epoch_times[q_id]);
 				}
 			}
 		}
@@ -292,13 +293,16 @@ void CLScheduler::Progress() {
 			double q_est_time = est_epoch_times[q_id][cur_dev_id];
 			for(int device_id = 0; device_id < num_devices; device_id++)
 			{
-			//	SNUCL_INFO("Estimated Cost for Queue %p for device %p: %g\n", queues_[q_id], 
-			//			devices[device_id], est_epoch_times[q_id][device_id]);
-				// update if difference is more than 5\% at least
-			//	SNUCL_INFO("Perentage Diff: %g\n", 100.0 * abs(est_epoch_times[q_id][device_id] - q_est_time) / q_est_time);
+				SNUCL_INFO("Estimated Cost for Queue %p for device %p: %g\n", queues_[q_id], 
+						devices[device_id], est_epoch_times[q_id][device_id]);
+				// update if difference is more than XX\% at least
+				//SNUCL_INFO("Perentage Diff: %g\n", 100.0 * abs(est_epoch_times[q_id][device_id] - q_est_time) / q_est_time);
 				if((100.0 * abs(est_epoch_times[q_id][device_id] - q_est_time) / q_est_time > 10.0) 
 					&& (est_epoch_times[q_id][device_id] < q_est_time))
 				{
+					SNUCL_INFO("Perentage Diff: %g\n", 100.0 * abs(est_epoch_times[q_id][device_id] - q_est_time) / q_est_time);
+					//SNUCL_INFO("Estimated Cost for Queue %p for device %p: %g\n", queues_[q_id], 
+					//	devices[device_id], est_epoch_times[q_id][device_id]);
 					chosen_dev_id = device_id;
 					SNUCL_INFO("Device changing from %d to %d\n", cur_dev_id, chosen_dev_id);
 					q_est_time = est_epoch_times[q_id][device_id];
@@ -314,7 +318,7 @@ void CLScheduler::Progress() {
 				if(q_idx != q_id)
 					est_epoch_times[q_idx][chosen_dev_id] += q_est_time;
 			}
-			//queue->set_perf_model_done(true);
+			queue->set_perf_model_done(true);
 		}
 		// "best" device must have been selected by now. 
 		for(int q_id = 0; q_id < queues_.size(); q_id++) {

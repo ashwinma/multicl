@@ -24,6 +24,42 @@ cl_int CLFinish(CLCommandQueue *q)
   return CL_SUCCESS;
 }
 
+cl_int CLCopyBuffer(CLCommandQueue *q, CLMem *cmSrcDevData, CLMem* cmDestDevData,
+					const size_t src_offset, const size_t dest_offset,
+					const size_t memSize,
+					cl_bool blocked_cmd) 
+{
+	cl_int err = CL_SUCCESS;
+	if (memSize == 0 || !cmSrcDevData->IsWithinRange(src_offset, memSize)
+					|| !cmDestDevData->IsWithinRange(dest_offset, memSize))
+	{
+		err = CL_INVALID_VALUE;
+	}
+	else
+	{
+  		CLCommand* command = CLCommand::CreateCopyBuffer(
+      		NULL, NULL, q, cmSrcDevData, cmDestDevData, NULL, NULL, 
+			src_offset, dest_offset, memSize);
+		if (command == NULL) {
+			err = CL_OUT_OF_HOST_MEMORY;
+		}
+		else {
+			CLEvent *blocking = NULL;
+			if(blocked_cmd == CL_TRUE) blocking = command->ExportEvent();
+			q->Enqueue(command);
+			if(blocked_cmd == CL_TRUE)
+			{
+				cl_int ret = blocking->Wait();
+				blocking->Release();
+				if (ret < 0)
+					err = CL_EXEC_STATUS_ERROR_FOR_EVENTS_IN_WAIT_LIST;
+				else err = CL_SUCCESS;
+			}
+		}
+	}
+	return err;
+}
+
 cl_int CLWriteBuffer(CLCommandQueue *q, CLMem *cmDevData, 
 					const size_t offset, const size_t memSize,
 					void *h_data, cl_bool blocked_cmd) 
@@ -52,7 +88,6 @@ cl_int CLWriteBuffer(CLCommandQueue *q, CLMem *cmDevData,
 					err = CL_EXEC_STATUS_ERROR_FOR_EVENTS_IN_WAIT_LIST;
 				else err = CL_SUCCESS;
 			}
-			//SNUCL_INFO("H2D Sync Iter: %d, Partition: %d\n", i, cur_partition);
 		}
 	}
 	return err;
@@ -189,6 +224,26 @@ H2DMetricsManager::H2DMetricsManager(const char *filename, hwloc_topology_t topo
 	if(force_test == 1)
 	{
 		testAndWriteH2DMetrics();
+	}
+	//_filename = new char[1024];
+	//memset(_filename, 1024, 0);
+	//strcpy(_filename, filename);
+	//_ifile_stream.open(filename);
+	//_file_stream.open(filename, ios_base::in | ios_base::out | ios_base::app);
+}
+
+D2DMetricsManager::D2DMetricsManager(const char *filename, hwloc_topology_t topology, 
+						//const std::vector<hwloc_obj_t> &hosts, const std::vector<CLDevice *> &devices, 
+						const int force_test) : _topology(topology)//, _hosts(hosts), _devices(devices)
+{
+	// if force_test == 1, then run tests and
+	// populate the BW file
+	_filename.assign(getenv("HOME"));
+	_filename += "/.mpiacc.d/";
+	_filename += filename;
+	if(force_test == 1)
+	{
+		testAndWriteD2DMetrics();
 	}
 	//_filename = new char[1024];
 	//memset(_filename, 1024, 0);
@@ -633,6 +688,307 @@ double H2DMetricsManager::getH2DBandwidth(const int host_id, const int device_id
 					break;
 				case SNUCL_LATENCY:
 					ret_val = std::get<3>(d2h_metrics_vector[i]);
+					//SNUCL_INFO("Getting Latency from Metrics matrix %g\n", ret_val);
+					break;
+			}
+		}
+	}
+	return ret_val;
+	// Retrieve the hwloc/opencl objects based on the host
+	// and device IDs
+	//
+	// Check if tests need to be run again
+	//
+	// If yes, run the tests and record in the given file
+	//
+	// If no, just read values from the data structutes and retrieve the
+	// bandwidth
+}
+
+void D2DMetricsManager::testAndWriteD2DMetrics()
+{
+	SNUCL_INFO("About to run tests and write the D2D Bandwidths", 0);
+	if(!_ofile_stream.is_open())
+	{
+		_ofile_stream.open(_filename.c_str());
+		//_ofile_stream.open(_filename.c_str());
+		if(!_ofile_stream)
+		{
+			// FIXME: Throw some error
+			SNUCL_ERROR("cannot open metrics file for write\n", 0);
+		}
+	}
+	clInit();
+	Global::RealTimer gD2DMetricTimer;
+  	gD2DMetricTimer.Init();
+	// how many host sockets?
+	hwloc_topology_t topology = CLPlatform::GetPlatform()->HWLOCTopology();
+	std::vector<CLDevice *> devices;
+	CLPlatform::GetPlatform()->GetDevices(devices);
+	int n_devices = devices.size();
+	pthread_t thread = pthread_self();
+	int n_pus = hwloc_get_nbobjs_by_type(topology, HWLOC_OBJ_PU);
+	int n_cores = hwloc_get_nbobjs_by_type(topology, HWLOC_OBJ_CORE);
+	int n_sockets = hwloc_get_nbobjs_by_type(topology, HWLOC_OBJ_SOCKET); 
+	int n_cores_per_socket = n_pus / n_sockets;
+	cpu_set_t cpuset;
+	cpu_set_t cur_cpuset;
+	cl_int err = CL_SUCCESS;
+	// Cache the current host thread mapping and restore at end of
+	// this function
+	pthread_getaffinity_np(thread, sizeof(cpu_set_t), &cur_cpuset);
+	const unsigned int defaultMemSize = (64 * (1 << 20));
+
+	const size_t MIN_MEM_SIZE = (256 * 1024);
+	const size_t MAX_MEM_SIZE = (1024* 1024);
+	const int MULTIPLIER = 2;
+	int num_memSizes = 0;
+	for(size_t memSize = MIN_MEM_SIZE; memSize <= MAX_MEM_SIZE; memSize *= MULTIPLIER)
+	{
+		num_memSizes++;
+	}
+
+	_ofile_stream << n_devices << " " << num_memSizes << std::endl; 
+	for(int src_dev_id = 0; src_dev_id < n_devices; src_dev_id++)
+	{
+		_ofile_stream << src_dev_id << std::endl; 
+		unsigned char *h_data = NULL;
+		//std::vector<unsigned char *> h_data_ptrs(n_devices);
+		const size_t name_size = 1024;
+		char device_name[name_size];
+		std::vector<double> bandwidths(n_devices);
+		std::vector<double> latencies(n_devices);
+		// allocate device memory 
+		//cl_mem cmDevData = clCreateBuffer(_context, CL_MEM_READ_WRITE, defaultMemSize, NULL, &err);
+		CLMem* cmSrcDevData = CLMem::CreateBuffer(_Context, CL_MEM_READ_WRITE, defaultMemSize, NULL, &err);
+		OPENCL_CHECK_ERR(err, "Creating Device Buffer");
+				CLMem* cmDestDevData = CLMem::CreateBuffer(_Context, CL_MEM_READ_WRITE, defaultMemSize, NULL, &err);
+				OPENCL_CHECK_ERR(err, "Creating Device Buffer");
+		// Get a host pointer
+		h_data = (unsigned char *)malloc(sizeof(unsigned char) * defaultMemSize);
+		if (h_data == NULL) {
+			err = CL_OUT_OF_HOST_MEMORY;
+		}
+		OPENCL_CHECK_ERR(err, "Creating Host Data");
+		//	h_data_ptrs[dest_dev_id] = h_data;
+		//initialize 
+		for(unsigned int i = 0; i < defaultMemSize/sizeof(unsigned char); i++)
+		{
+			h_data[i] = (unsigned char)(i & 0xff);
+		}
+		//memset((void *)h_data, defaultMemSize, 0);
+		SNUCL_INFO("After Init Src Mem: %p Host Ptr: %p\n", cmSrcDevData, h_data);
+		devices[src_dev_id]->WriteBuffer(NULL, cmSrcDevData, 0, defaultMemSize * sizeof(unsigned char), h_data); 
+		for(size_t memSize = MIN_MEM_SIZE; memSize <= MAX_MEM_SIZE; memSize *= MULTIPLIER)
+		{
+			bandwidths.clear();
+			bandwidths.resize(n_devices);
+			latencies.clear();
+			latencies.resize(n_devices);
+			// run a bandwidth loop
+			for(int dest_dev_id = 0; dest_dev_id < n_devices; dest_dev_id++)
+			{
+				const int iter_skip = 5;
+				double bandwidthInMBs = 0.0;
+				double elapsedTimeInSec = 0.0;
+				int max_partitions = defaultMemSize / memSize;
+				if(max_partitions < 1) max_partitions = 1;
+				// allocate dest device memory 
+				//cl_mem cmDevData = clCreateBuffer(_context, CL_MEM_READ_WRITE, defaultMemSize, NULL, &err);
+				devices[dest_dev_id]->WriteBuffer(NULL, cmDestDevData, 0, defaultMemSize * sizeof(unsigned char), h_data); 
+				// begin time measurement
+				int cur_partition = 0;
+				for(unsigned int i = 0; i < MEMCOPY_ITERATIONS; i++)
+				{
+					if(i == iter_skip) gD2DMetricTimer.Start();
+					//err = clEnqueueWriteBuffer(_queues[dest_dev_id], cmDevData, CL_FALSE, cur_partition * memSize, memSize, h_data + (cur_partition * memSize), 0, NULL, NULL);
+					err = CLCopyBuffer(_Queues[src_dev_id], 
+						cmSrcDevData, cmDestDevData,
+						cur_partition * memSize, cur_partition * memSize,
+						memSize, CL_FALSE);
+					OPENCL_CHECK_ERR(err, "D2D Transfer");
+					cur_partition = (cur_partition + 1) % max_partitions;
+				}
+				//err = clFinish(_queues[dest_dev_id]);
+				err = CLFinish(_Queues[src_dev_id]);
+				OPENCL_CHECK_ERR(err, "Finish D2D Transfer");
+				// end time measurement
+				gD2DMetricTimer.Stop();
+				elapsedTimeInSec = gD2DMetricTimer.Elapsed();
+				bandwidthInMBs = ((double)memSize * (double)(MEMCOPY_ITERATIONS - iter_skip))/(elapsedTimeInSec * (double)(1 << 20));
+				_Devices[dest_dev_id]->GetDeviceInfo(CL_DEVICE_NAME, name_size, device_name, NULL);
+				printf("[D%d->D%d %s] Async Size %u Time(us) %g, Time per iter(us) %g, BW(MB/s) %g\n", src_dev_id, dest_dev_id, device_name, memSize, elapsedTimeInSec, memSize/bandwidthInMBs, bandwidthInMBs);
+				bandwidths[dest_dev_id] = bandwidthInMBs;
+				//calculate bandwidth in MB/s
+
+				// begin time measurement
+				gD2DMetricTimer.Reset();
+				//clReleaseMemObject(cmDevData);
+			//	cmDestDevData->Release();
+			}
+
+			// run a latency loop
+			for(int dest_dev_id = 0; dest_dev_id < n_devices; dest_dev_id++)
+			{
+				const int iter_skip = 5;
+				double bandwidthInMBs = 0.0;
+				double elapsedTimeInSec = 0.0;
+				int max_partitions = defaultMemSize / memSize;
+				if(max_partitions < 1) max_partitions = 1;
+				// allocate device memory 
+				//cl_mem cmDevData = clCreateBuffer(_context, CL_MEM_READ_WRITE, defaultMemSize, NULL, &err);
+		//		CLMem* cmDestDevData = CLMem::CreateBuffer(_Context, CL_MEM_READ_WRITE, defaultMemSize, NULL, &err);
+		//		OPENCL_CHECK_ERR(err, "Creating Device Buffer");
+				devices[dest_dev_id]->WriteBuffer(NULL, cmDestDevData, 0, defaultMemSize * sizeof(unsigned char), h_data); 
+				// run a bandwidth loop
+				// begin time measurement
+				int cur_partition = 0;
+				for(unsigned int i = 0; i < MEMCOPY_ITERATIONS; i++)
+				{
+					if(i == iter_skip) gD2DMetricTimer.Start();
+					//err = clEnqueueWriteBuffer(_queues[dest_dev_id], cmDevData, CL_TRUE, cur_partition * memSize, memSize, h_data + (cur_partition * memSize), 0, NULL, NULL);
+					err = CLCopyBuffer(_Queues[src_dev_id], 
+						cmSrcDevData, cmDestDevData,
+						cur_partition * memSize, cur_partition * memSize,
+						memSize, CL_TRUE);
+					OPENCL_CHECK_ERR(err, "D2D Transfer");
+					cur_partition = (cur_partition + 1) % max_partitions;
+				}
+				//err = clFinish(_queues[dest_dev_id]);
+				err = CLFinish(_Queues[src_dev_id]);
+				OPENCL_CHECK_ERR(err, "Finish D2D Transfer");
+				gD2DMetricTimer.Stop();
+				// end time measurement
+				elapsedTimeInSec = gD2DMetricTimer.Elapsed();
+				bandwidthInMBs = ((double)memSize * (double)(MEMCOPY_ITERATIONS - iter_skip))/(elapsedTimeInSec * (double)(1 << 20));
+				_Devices[dest_dev_id]->GetDeviceInfo(CL_DEVICE_NAME, name_size, device_name, NULL);
+				printf("[D%d->D%d %s] Sync Size %u Time(us) %g, Time per iter(us) %g, BW(MB/s) %g\n", src_dev_id, dest_dev_id, device_name, memSize, elapsedTimeInSec, memSize/bandwidthInMBs, bandwidthInMBs);
+				latencies[dest_dev_id] = memSize/bandwidthInMBs;
+				gD2DMetricTimer.Reset();
+				//calculate bandwidth in MB/s
+				// store it in a new row in the file
+
+				//cmDestDevData->Release();
+			}
+			//h_data_ptrs.clear();
+			/*// clean up cl_mem and other misc objects
+			//clReleaseMemObject(cmDevData);
+			cmDevData->Release();
+			// clean up host side memory
+			//clReleaseMemObject(cmPinnedData);
+			cmPinnedData->Release();*/
+
+			for(int dest_dev_id = 0; dest_dev_id < n_devices; dest_dev_id++)
+			{
+				_ofile_stream << dest_dev_id << " " 
+					<< memSize << " "
+					<< bandwidths[dest_dev_id] << " " 
+					<< latencies[dest_dev_id] << std::endl;
+			}
+		}
+		cmSrcDevData->Release();
+		cmDestDevData->Release();
+		free(h_data);
+	}
+	pthread_setaffinity_np(thread, sizeof(cpu_set_t), &cur_cpuset);
+
+	clFinalize();
+	_ofile_stream.close();
+}
+
+void D2DMetricsManager::readD2DMetrics()
+{
+	SNUCL_INFO("About to read the D2D Bandwidths from file %s\n", _filename.c_str());
+	
+	if(!_ifile_stream.is_open())
+	{
+		_ifile_stream.open(_filename.c_str());
+		if(!_ifile_stream)
+		{
+			// if file not found force tests and create file
+			testAndWriteD2DMetrics();
+			// Try opening it again now
+			_ifile_stream.open(_filename.c_str());
+			if(!_ifile_stream)
+			{
+				SNUCL_ERROR("Still cannot open metrics file for reading: %s\n", _filename.c_str());
+			}
+		}
+	}
+	std::string metric_line;
+	std::vector<std::string> tokens;
+	int device_count, memsize_count;
+	int device_id;
+	int line_num = 0;
+	metrics_vector d2d_metrics_vector;
+	d2d_metrics_vector.clear();
+	while(std::getline(_ifile_stream, metric_line))
+	{
+		//SNUCL_INFO("Reading Line: %s\n", metric_line.c_str());
+		if(!tokens.empty()) tokens.clear();
+		tokens = mysplit(metric_line, ' ');
+		//SNUCL_INFO("Tokens Size: %d\n", tokens.size());
+		if(line_num == 0)
+		{
+			//host_count = atoi(tokens[0].c_str());
+			device_count = atoi(tokens[0].c_str());
+			memsize_count = atoi(tokens[1].c_str());
+		}
+		else
+		{
+			if(tokens.size() == 1) // device ID only
+			{
+				device_id = atoi(tokens[0].c_str());
+				if(!d2d_metrics_vector.empty())
+				{
+					_d2d_metrics_matrix.push_back(d2d_metrics_vector);
+				}
+				d2d_metrics_vector.clear();
+			}
+			else
+			{
+				//insert tokens as tuple elements
+				metrics_tuple mt = std::make_tuple(
+									atoi(tokens[0].c_str()),
+									atol(tokens[1].c_str()),
+									atof(tokens[2].c_str()),
+									atof(tokens[3].c_str()));
+				d2d_metrics_vector.push_back(mt);
+			}
+		}
+		line_num++;
+	}
+	if(!d2d_metrics_vector.empty())
+		_d2d_metrics_matrix.push_back(d2d_metrics_vector);
+	d2d_metrics_vector.clear();
+
+	// if contents are empty/badly formatted, then error
+	_ifile_stream.close();
+}
+
+double D2DMetricsManager::getD2DBandwidth(const int src_dev_id, const int dest_dev_id, const size_t mem_size, const metric_type mt)
+{
+	SNUCL_INFO("About to get the individual D2D Bandwidths\n", 0);
+	double ret_val = 0.0;
+	if(_d2d_metrics_matrix.empty())
+	{
+		SNUCL_INFO("Metrics matrix is empty. Reconstructing...\n", 0);
+		readD2DMetrics();
+	}
+	metrics_vector d2d_metrics_vector = _d2d_metrics_matrix[src_dev_id];
+	for(size_t i = 0; i < d2d_metrics_vector.size(); i++)
+	{
+		if(std::get<0>(d2d_metrics_vector[i]) == dest_dev_id 
+			&& std::get<1>(d2d_metrics_vector[i]) == mem_size)
+		{
+			switch(mt)
+			{
+				case SNUCL_BANDWIDTH:
+					ret_val = std::get<2>(d2d_metrics_vector[i]);
+	//				SNUCL_INFO("Getting BW from Metrics matrix %g\n", ret_val);
+					break;
+				case SNUCL_LATENCY:
+					ret_val = std::get<3>(d2d_metrics_vector[i]);
 					//SNUCL_INFO("Getting Latency from Metrics matrix %g\n", ret_val);
 					break;
 			}

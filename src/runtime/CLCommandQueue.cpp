@@ -187,7 +187,7 @@ CLDevice *CLCommandQueue::SelectBestDevice(CLContext *context, CLDevice* device,
 	}
 	return new_device;
 }
-
+#if 0
 bool CLCommandQueue::isEpochRecorded(std::string epoch) {
 	if(epochPerformances_.find(epoch) != epochPerformances_.end())
 		return true;
@@ -203,7 +203,7 @@ std::vector<double> CLCommandQueue::getEpochCosts(std::string epoch) {
 void CLCommandQueue::recordEpoch(std::string epoch, std::vector<double> performances) {
 	epochPerformances_[epoch] = performances;
 }
-
+#endif
 cl_int CLCommandQueue::GetCommandQueueInfo(cl_command_queue_info param_name,
                                            size_t param_value_size,
                                            void* param_value,

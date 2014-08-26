@@ -208,7 +208,7 @@ void* CLIssuer::ThreadFunc(void *argp) {
   hwloc_topology_t topology = CLPlatform::GetPlatform()->HWLOCTopology();
   int n_pus = hwloc_get_nbobjs_by_type(topology, HWLOC_OBJ_PU);
   int n_cores = hwloc_get_nbobjs_by_type(topology, HWLOC_OBJ_CORE);
-  int n_sockets = hwloc_get_nbobjs_by_type(topology, HWLOC_OBJ_SOCKET);
+  int n_sockets = hwloc_get_nbobjs_by_type(topology, HWLOC_OBJ_NODE);
   SNUCL_INFO("Available Cores: %d, Available PUs: %d, Available sockets: %d\n", n_cores, n_pus, n_sockets);
   int idx = ((CLIssuer *)argp)->Index();
   cpu_set_t cpuset;

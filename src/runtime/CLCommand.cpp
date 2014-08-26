@@ -1153,13 +1153,13 @@ void CLCommand::GetCopyPattern(CLDevice* dev_src, CLDevice* dev_dst,
   alloc_ptr = false;
   use_host_ptr = false;
 
-  /*if(dev_src->context() != NULL) {
+  if(dev_src->context() != NULL) {
 	  if(dev_src->context() == dev_dst->context())
 	  {
 		  use_copy = true;
 	  }
   }
-  else*/
+  else
   {
   if (dev_src == dev_dst) { // (1)
     use_copy = true;

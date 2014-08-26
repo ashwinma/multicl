@@ -67,6 +67,40 @@ class H2DMetricsManager : MetricsManager
   		std::vector<metrics_vector> _d2h_metrics_matrix;
 };
 
+class D2DMetricsManager : MetricsManager
+{
+	public:
+		enum metric_type {SNUCL_BANDWIDTH = 0, SNUCL_LATENCY};
+		typedef std::tuple<unsigned int, size_t, double, double> metrics_tuple;
+		typedef std::vector<metrics_tuple> metrics_vector;
+		
+		D2DMetricsManager(const char *filename, hwloc_topology_t topology, 
+						//const std::vector<hwloc_obj_t> &hosts, const std::vector<CLDevice *> &devices, 
+						const int force_test = 0);
+
+		~D2DMetricsManager()
+		{
+			//delete []_filename;
+			//_filename = NULL;
+			//_file_stream.close();
+		}
+
+	void readD2DMetrics();
+	void testAndWriteD2DMetrics();
+	double getD2DBandwidth(const int host_id, const int device_id, const size_t mem_size, const metric_type = SNUCL_BANDWIDTH);
+	private:
+		std::string _filename;
+		//char *_filename;
+		std::fstream _file_stream;
+		std::ifstream _ifile_stream;
+		std::ofstream _ofile_stream;
+		hwloc_topology_t _topology; // we could just use hwloc_obj_ts
+		//std::vector<CLDevice *> _devices;
+  /* 2D square matrix storing distances between OpenCL
+   * devices. Each row represents one Device. */
+  		std::vector<metrics_vector> _d2d_metrics_matrix;
+};
+
 
 #endif //__SNUCL__METRICS_H
 

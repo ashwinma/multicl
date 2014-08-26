@@ -226,7 +226,23 @@ void CLContext::print_perf_vector(const perf_order_vector &vec, const char *vec_
 	}
 	std::cout << std::endl;
 }
+#if 1
+bool CLContext::isEpochRecorded(std::string epoch) {
+	if(epochPerformances_.find(epoch) != epochPerformances_.end())
+		return true;
+	return false;
+}
 
+std::vector<double> CLContext::getEpochCosts(std::string epoch) {
+	if(isEpochRecorded(epoch))
+		return epochPerformances_[epoch];
+	return std::vector<double>(0);
+}
+
+void CLContext::recordEpoch(std::string epoch, std::vector<double> performances) {
+	epochPerformances_[epoch] = performances;
+}
+#endif
 cl_int CLContext::GetContextInfo(cl_context_info param_name,
                                  size_t param_value_size, void* param_value,
                                  size_t* param_value_size_ret) {

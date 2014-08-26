@@ -79,6 +79,9 @@ class CLContext: public CLObject<struct _cl_context, CLContext,
   const std::vector<perf_order_vector>& d2d_distances() const { return devices_devices_distances_; }
   const std::vector<perf_order_vector>& d2h_distances() const { return devices_hosts_distances_; }
 
+  bool isEpochRecorded(std::string epoch);
+  void recordEpoch(std::string epoch, std::vector<double> performances);
+  std::vector<double> getEpochCosts(std::string epoch);
   cl_int GetContextInfo(cl_context_info param_name, size_t param_value_size,
                         void* param_value, size_t* param_value_size_ret);
   cl_int GetSupportedImageFormats(cl_mem_flags flags,
@@ -108,6 +111,8 @@ class CLContext: public CLObject<struct _cl_context, CLContext,
   void NotifyError(const char* errinfo, const void* private_info, size_t cb);
 
  private:
+  typedef std::vector<double> devicePerfVector;
+  std::map<std::string, devicePerfVector> epochPerformances_; 
   struct sort_pred {
 	  bool operator()(const std::pair<double, unsigned int> &left, const std::pair<double, unsigned int> &right) {
 		  return left.first < right.first;

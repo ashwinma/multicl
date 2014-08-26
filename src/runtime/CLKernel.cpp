@@ -222,16 +222,16 @@ map<cl_uint, CLKernelArg*>* CLKernel::DuplicateArgs() {
 			  }
 			  for (vector<CLDevice*>::iterator it = devices.begin();
 					  it != devices.end(); ++it) {
-//				  if((*it) != src_dev && ((*it)->context() != src_dev->context()))
+				  if((*it) != src_dev && ((*it)->context() != src_dev->context()))
 				  	(*it)->WriteBuffer(NULL, new_arg->mem, 0, m->size(), tmp); 
-/*				  else {
+				  else {
   					cl_mem src_dev_specific_ptr = (cl_mem)m->GetDevSpecific(src_dev);
   					cl_mem dest_dev_specific_ptr = (cl_mem)new_arg->mem->GetDevSpecific(*it);
 				  	src_dev->CopyBuffer(NULL, m, new_arg->mem, 
 				  	//(*it)->CopyBuffer(NULL, m, new_arg->mem, 
 						src_dev_specific_ptr, dest_dev_specific_ptr, 
 						0, 0, m->size()); 
-				  } */
+				  } 
 			  }
 		  }
 #else

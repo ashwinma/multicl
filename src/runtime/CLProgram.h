@@ -269,6 +269,7 @@ class CLProgram: public CLObject<struct _cl_program, CLProgram, struct _emu_cl_p
   std::map<CLDevice*, void*> executable_;
   std::vector<CLKernelInfo*> kernels_;
 
+  CLProgram *shadowProgram_;
   int build_in_progress_cnt_;
   int build_success_cnt_;
   int kernels_ref_cnt_;

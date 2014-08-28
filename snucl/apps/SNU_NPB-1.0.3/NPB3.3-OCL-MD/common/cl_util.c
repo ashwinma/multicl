@@ -132,13 +132,14 @@ cl_device_type clu_GetDefaultDeviceType() {
       return CL_DEVICE_TYPE_ACCELERATOR;
     }
   }
-  return CL_DEVICE_TYPE_CPU;
+  return CL_DEVICE_TYPE_ALL;
 //  return CL_DEVICE_TYPE_DEFAULT;
 }
 
 
 // Find an available OpenCL device corresponding to device_type
-cl_device_id clu_GetAvailableDevice(cl_device_type device_type) {
+//cl_device_id clu_GetAvailableDevice(cl_device_type device_type) {
+cl_device_id *clu_GetAvailableDevices(cl_device_type device_type, cl_uint *device_count) {
   cl_platform_id *platforms;
   cl_uint         num_platforms = 0;
   cl_device_id   *devices;
@@ -180,15 +181,24 @@ cl_device_id clu_GetAvailableDevice(cl_device_type device_type) {
                                    NULL);
         clu_CheckError(err_code, "clGetDeviceInfo()");
 
+        if (available != CL_TRUE) {
+  			clu_Exit("ERROR: Device %d unavailable for type %s\n", k, clu_GetDeviceTypeName(device_type));
+            free(devices);
+			return 0;
+		}
+		/*
         if (available == CL_TRUE) {
           cl_device_id ret_device = devices[k];
           free(devices);
           free(platforms);
           return ret_device;
         }
+		*/
       }
-
-      free(devices);
+	  free(platforms);
+      //free(devices);
+	  *device_count = num_devices;
+	  return devices;
     }
   }
 
@@ -244,7 +254,7 @@ const char *clu_GetDeviceTypeName(cl_device_type device_type) {
     case CL_DEVICE_TYPE_CPU:         return "CL_DEVICE_TYPE_CPU";
     case CL_DEVICE_TYPE_GPU:         return "CL_DEVICE_TYPE_GPU";
     case CL_DEVICE_TYPE_ACCELERATOR: return "CL_DEVICE_TYPE_ACCELERATOR";
-    case CL_DEVICE_TYPE_ALL:         return "CL_DEVICE_TYPE_DEFAULT";
+    case CL_DEVICE_TYPE_ALL:         return "CL_DEVICE_TYPE_ALL";
     default: return "Unknown Device";
   }
 }
@@ -337,13 +347,15 @@ void clu_PrintBuildLog(cl_program program, cl_device_id device) {
 
 // Create a program and build the program.
 cl_program clu_MakeProgram(cl_context context,
-                           cl_device_id *device,
+						   //cl_device_id device,
+                           const cl_uint num_devices,
+                           cl_device_id *devices,
                            char *source_dir,
                            char *source_file, 
                            char *build_option) {
   cl_program program;
   cl_int err_code;
-
+  int i;
   // Make a full path of source file
   char *source_path = source_file;
   char *build_opts = build_option;
@@ -373,8 +385,11 @@ cl_program clu_MakeProgram(cl_context context,
 
   // Build the program
   err_code = clBuildProgram(program, 0, NULL, build_opts, NULL, NULL);
+  //err_code = clBuildProgram(program, num_devices, devices, build_opts, NULL, NULL);
   if (err_code != CL_SUCCESS) {
-    clu_PrintBuildLog(program, device[0]);
+    for(i = 0; i < num_devices; i++)
+		clu_PrintBuildLog(program, devices[i]);
+	//	clu_PrintBuildLog(program, device[0]);
     clu_CheckError(err_code, "clBuldProgram()");
   }
 

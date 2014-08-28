@@ -29,7 +29,8 @@ void clu_CheckErrorInternal(cl_int err_code,
 cl_device_type clu_GetDefaultDeviceType();
 
 // Return an available cl_device_id corresponding to device_type.
-cl_device_id clu_GetAvailableDevice(cl_device_type device_type);
+//cl_device_id clu_GetAvailableDevice(cl_device_type device_type);
+cl_device_id *clu_GetAvailableDevices(cl_device_type device_type, cl_uint *device_count);
 
 // Return the name of device. E.g., Geforce_GTX_480.
 char *clu_GetDeviceName(cl_device_id device);
@@ -50,7 +51,9 @@ unsigned char *clu_LoadProgBinary(const char *binary_file,
 
 // Create a program and build the program.
 cl_program clu_MakeProgram(cl_context context,
-                           cl_device_id *device,
+						   //cl_device_id device,
+                           const cl_uint num_devices,
+                           cl_device_id *devices,
                            char *source_dir,
                            char *source_file, 
                            char *build_option);

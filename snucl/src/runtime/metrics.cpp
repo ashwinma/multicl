@@ -24,7 +24,9 @@ cl_int CLFinish(CLCommandQueue *q)
   return CL_SUCCESS;
 }
 
-cl_int CLCopyBuffer(CLCommandQueue *q, CLMem *cmSrcDevData, CLMem* cmDestDevData,
+cl_int CLCopyBuffer(CLCommandQueue *q, 
+					CLMem *cmSrcDevData, CLMem* cmDestDevData,
+					CLDevice *src_dev, CLDevice *dest_dev,
 					const size_t src_offset, const size_t dest_offset,
 					const size_t memSize,
 					cl_bool blocked_cmd) 
@@ -38,7 +40,10 @@ cl_int CLCopyBuffer(CLCommandQueue *q, CLMem *cmSrcDevData, CLMem* cmDestDevData
 	else
 	{
   		CLCommand* command = CLCommand::CreateCopyBuffer(
-      		NULL, NULL, q, cmSrcDevData, cmDestDevData, NULL, NULL, 
+      		NULL, NULL, q, cmSrcDevData, cmDestDevData, 
+			// NULL, NULL, 
+			(cl_mem)cmSrcDevData->GetDevSpecific(src_dev),
+			(cl_mem)cmDestDevData->GetDevSpecific(dest_dev),
 			src_offset, dest_offset, memSize);
 		if (command == NULL) {
 			err = CL_OUT_OF_HOST_MEMORY;
@@ -805,6 +810,7 @@ void D2DMetricsManager::testAndWriteD2DMetrics()
 					//err = clEnqueueWriteBuffer(_queues[dest_dev_id], cmDevData, CL_FALSE, cur_partition * memSize, memSize, h_data + (cur_partition * memSize), 0, NULL, NULL);
 					err = CLCopyBuffer(_Queues[src_dev_id], 
 						cmSrcDevData, cmDestDevData,
+						devices[src_dev_id], devices[dest_dev_id],
 						cur_partition * memSize, cur_partition * memSize,
 						memSize, CL_FALSE);
 					OPENCL_CHECK_ERR(err, "D2D Transfer");
@@ -850,6 +856,7 @@ void D2DMetricsManager::testAndWriteD2DMetrics()
 					//err = clEnqueueWriteBuffer(_queues[dest_dev_id], cmDevData, CL_TRUE, cur_partition * memSize, memSize, h_data + (cur_partition * memSize), 0, NULL, NULL);
 					err = CLCopyBuffer(_Queues[src_dev_id], 
 						cmSrcDevData, cmDestDevData,
+						devices[src_dev_id], devices[dest_dev_id],
 						cur_partition * memSize, cur_partition * memSize,
 						memSize, CL_TRUE);
 					OPENCL_CHECK_ERR(err, "D2D Transfer");

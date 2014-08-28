@@ -382,7 +382,7 @@ static void setup_opencl(int argc, char *argv[])
   // 1. Find the default device type and get a device for the device type
   //    Then, create sub-devices from the parent device.
   //-----------------------------------------------------------------------
-  device_type = CL_DEVICE_TYPE_CPU;
+  device_type = CL_DEVICE_TYPE_ALL;
 
   cl_platform_id platform;
   ecode = clGetPlatformIDs(1, &platform, NULL);
@@ -465,7 +465,17 @@ static void setup_opencl(int argc, char *argv[])
   //-----------------------------------------------------------------------
   // 2. Create a context for devices
   //-----------------------------------------------------------------------
+#ifdef MINIMD_SNUCL_OPTIMIZATIONS
+	cl_context_properties props[5] = {
+		CL_CONTEXT_PLATFORM,
+		(cl_context_properties)myPlatform,
+		CL_CONTEXT_SCHEDULER,
+		CL_CONTEXT_SCHEDULER_PERF_MODEL,
+		0 };
+  context = clCreateContext(props, 
+#else
   context = clCreateContext(NULL, 
+#endif
                             num_devices,
                             devices,
                             NULL, NULL, &ecode);
@@ -476,7 +486,15 @@ static void setup_opencl(int argc, char *argv[])
   //-----------------------------------------------------------------------
   cmd_queue = (cl_command_queue*)malloc(sizeof(cl_command_queue)*num_devices);
   for (i = 0; i < num_devices; i++) {
-    cmd_queue[i] = clCreateCommandQueue(context, devices[i], 0, &ecode);
+    cmd_queue[i] = clCreateCommandQueue(context, devices[i], 
+#ifdef MINIMD_SNUCL_OPTIMIZATIONS
+			CL_QUEUE_AUTO_DEVICE_SELECTION | 
+			CL_QUEUE_ITERATIVE | 
+			CL_QUEUE_COMPUTE_INTENSIVE,
+#else
+		0, 
+#endif
+		&ecode);
     clu_CheckError(ecode, "clCreateCommandQueue()");
   }
 

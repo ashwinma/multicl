@@ -333,32 +333,53 @@ unsigned char *clu_LoadProgBinary(const char *binary_file,
 
 // Print the build log to stderr.
 void clu_PrintBuildLog(cl_program program, cl_device_id device) {
-  size_t log_size;
-  clGetProgramBuildInfo(program, device, CL_PROGRAM_BUILD_LOG,
-                        0, NULL, &log_size);
-  char *log = (char *)malloc(log_size + 1);
-  clGetProgramBuildInfo(program, device, CL_PROGRAM_BUILD_LOG,
-                        log_size, log, NULL);
-  fprintf(stderr, "\n======== BUILD LOG ========\n%s\n", log);
-  fprintf(stderr, "=======================================================\n\n");
-  free(log);
+	size_t log_size;
+	if(device != NULL) {
+		clGetProgramBuildInfo(program, device, CL_PROGRAM_BUILD_LOG,
+				0, NULL, &log_size);
+		char *log = (char *)malloc(log_size + 1);
+		clGetProgramBuildInfo(program, device, CL_PROGRAM_BUILD_LOG,
+				log_size, log, NULL);
+		fprintf(stderr, "\n======== BUILD LOG ========\n%s\n", log);
+		fprintf(stderr, "=======================================================\n\n");
+		free(log);
+	}
+	else {
+		cl_uint num_devices;
+		clGetProgramInfo(program, CL_PROGRAM_NUM_DEVICES, sizeof(cl_uint),
+				&num_devices, NULL);
+		cl_device_id *devices = (cl_device_id *)malloc(sizeof(cl_device_id) * num_devices);
+
+		clGetProgramInfo(program, CL_PROGRAM_DEVICES, sizeof(cl_device_id) * num_devices,
+				devices, NULL);
+		int i = 0;
+		for(i = 0; i < num_devices; i++) {
+			clGetProgramBuildInfo(program, devices[i], CL_PROGRAM_BUILD_LOG,
+					0, NULL, &log_size);
+			char *log = (char *)malloc(log_size + 1);
+			clGetProgramBuildInfo(program, devices[i], CL_PROGRAM_BUILD_LOG,
+					log_size, log, NULL);
+			fprintf(stderr, "\n======== BUILD LOG ========\n%s\n", log);
+			fprintf(stderr, "=======================================================\n\n");
+			free(log);
+
+		}
+		free(devices);
+
+	}
 }
 
 
 // Create a program and build the program.
-cl_program clu_MakeProgram(cl_context context,
-						   //cl_device_id device,
-                           const cl_uint num_devices,
-                           cl_device_id *devices,
+cl_program clu_CreateProgram(cl_context context,
                            char *source_dir,
-                           char *source_file, 
-                           char *build_option) {
+                           char *source_file 
+                           ) {
   cl_program program;
   cl_int err_code;
   int i;
   // Make a full path of source file
   char *source_path = source_file;
-  char *build_opts = build_option;
   size_t sdir_len = strlen(source_dir);
   if (sdir_len > 0) {
     if (source_dir[sdir_len-1] == '/') {
@@ -368,8 +389,6 @@ cl_program clu_MakeProgram(cl_context context,
       source_path = (char *)malloc(sdir_len + strlen(source_file) + 2);
       sprintf(source_path, "%s/%s", source_dir, source_file);
     }
-    build_opts = (char *)malloc(sdir_len + strlen(build_option) + 4);
-    sprintf(build_opts, "%s -I%s", build_option, source_dir);
   }
 
   // Create a program with the source code
@@ -383,12 +402,33 @@ cl_program clu_MakeProgram(cl_context context,
   free(source_code);
   clu_CheckError(err_code, "clCreateProgramWithSource()");
 
+  if (sdir_len > 0) {
+    free(source_path);
+  }
+
+  return program;
+}
+
+void clu_MakeProgram(cl_program program,
+                           const cl_uint num_devices,
+                           cl_device_id *devices,
+                           char *source_dir,
+                           char *build_option) {
+  cl_int err_code;
+  int i;
+  // Make a full path of source file
+  char *build_opts = build_option;
+  size_t sdir_len = strlen(source_dir);
+  if (sdir_len > 0) {
+    build_opts = (char *)malloc(sdir_len + strlen(build_option) + 4);
+    sprintf(build_opts, "%s -I%s", build_option, source_dir);
+  }
+
   // Build the program
-  err_code = clBuildProgram(program, 0, NULL, build_opts, NULL, NULL);
-  //err_code = clBuildProgram(program, num_devices, devices, build_opts, NULL, NULL);
+  //err_code = clBuildProgram(program, 0, NULL, build_opts, NULL, NULL);
+  err_code = clBuildProgram(program, num_devices, devices, build_opts, NULL, NULL);
   if (err_code != CL_SUCCESS) {
-    for(i = 0; i < num_devices; i++)
-		clu_PrintBuildLog(program, devices[i]);
+		clu_PrintBuildLog(program, NULL);
 	//	clu_PrintBuildLog(program, device[0]);
     clu_CheckError(err_code, "clBuldProgram()");
   }
@@ -396,10 +436,9 @@ cl_program clu_MakeProgram(cl_context context,
   //clu_PrintBuildLog(program, device);
 
   if (sdir_len > 0) {
-    free(source_path);
     free(build_opts);
   }
 
-  return program;
+  return;
 }
 

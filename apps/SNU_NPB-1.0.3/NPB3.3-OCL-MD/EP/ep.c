@@ -77,7 +77,7 @@
 #endif
 
 //#define USE_CHUNK_SCHEDULE
-
+//#define MINIMD_SNUCL_OPTIMIZATIONS
 
 //--------------------------------------------------------------------
 // OpenCL part
@@ -134,6 +134,7 @@ int main(int argc, char *argv[])
     timers_enabled = true;
     fclose(fp);
   }
+  timers_enabled = true;
 
   //--------------------------------------------------------------------
   //  Because the size of the problem is too large to store in a 32-bit
@@ -382,7 +383,9 @@ void setup_opencl(int argc, char *argv[])
 
   // 1. Find the default device type and get a device for the device type
   //    Then, create sub-devices from the parent device.
-  device_type = CL_DEVICE_TYPE_GPU;
+  //device_type = CL_DEVICE_TYPE_CPU;
+  //device_type = CL_DEVICE_TYPE_GPU;
+  device_type = CL_DEVICE_TYPE_ALL;
    
   cl_platform_id platform;
   err_code = clGetPlatformIDs(1, &platform, NULL);
@@ -398,7 +401,17 @@ void setup_opencl(int argc, char *argv[])
   max_compute_units = 16;
 
   // 2. Create a context for devices
+#ifdef MINIMD_SNUCL_OPTIMIZATIONS
+	cl_context_properties props[5] = {
+		CL_CONTEXT_PLATFORM,
+		(cl_context_properties)platform,
+		CL_CONTEXT_SCHEDULER,
+		CL_CONTEXT_SCHEDULER_PERF_MODEL,
+		0 };
+  context = clCreateContext(props, 
+#else
   context = clCreateContext(NULL, 
+#endif
                             num_devices,
                             devices,
                             NULL, NULL, &err_code);
@@ -407,7 +420,15 @@ void setup_opencl(int argc, char *argv[])
   // 3. Create a command queue
   cmd_queue = (cl_command_queue*)malloc(sizeof(cl_command_queue)*num_devices);
   for (i = 0; i < num_devices; i++) {
-    cmd_queue[i] = clCreateCommandQueue(context, devices[i], 0, &err_code);
+    cmd_queue[i] = clCreateCommandQueue(context, devices[i], 
+#ifdef MINIMD_SNUCL_OPTIMIZATIONS
+			CL_QUEUE_AUTO_DEVICE_SELECTION | 
+			CL_QUEUE_ITERATIVE | 
+			CL_QUEUE_COMPUTE_INTENSIVE,
+#else
+	0,
+#endif
+	&err_code);
     clu_CheckError(err_code, "clCreateCommandQueue()");
   }
 
@@ -415,6 +436,7 @@ void setup_opencl(int argc, char *argv[])
   if (timers_enabled) timer_start(TIMER_BUILD);
   char *source_file = "ep_kernel.cl";
   char build_option[30];
+#if 0
   if (device_type == CL_DEVICE_TYPE_CPU) {
     sprintf(build_option, "-DM=%d -I. -DUSE_CPU", M);
 #ifdef USE_CHUNK_SCHEDULE
@@ -426,8 +448,13 @@ void setup_opencl(int argc, char *argv[])
     sprintf(build_option, "-DM=%d -I.", M);
     GROUP_SIZE = 128;
   }
+#endif
+  sprintf(build_option, "-DM=%d -I.", M);
+  GROUP_SIZE = 128;
 
-  program = clu_MakeProgram(context, devices, source_dir, source_file, build_option);
+  //program = clu_MakeProgram(context, devices, source_dir, source_file, build_option);
+  program = clu_CreateProgram(context, source_dir, source_file);
+  clu_MakeProgram(program, num_devices, devices, source_dir, build_option);
 
   if (timers_enabled) timer_stop(TIMER_BUILD);
 

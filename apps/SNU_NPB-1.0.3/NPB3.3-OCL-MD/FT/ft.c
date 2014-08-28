@@ -67,7 +67,7 @@
 
 #define USE_CHECK_FINISH
 #define TIMER_DETAIL
-//#define USE_COPY_BUFFER
+#define USE_COPY_BUFFER
 
 #ifdef TIMER_DETAIL
 #define DTIMER_START(id)    if (timers_enabled) timer_start(id)
@@ -88,6 +88,7 @@
 
 
 #define DEFAULT_NUM_SUBS    32
+//#define MINIMD_SNUCL_OPTIMIZATIONS
 
 
 // OPENCL Variables
@@ -434,6 +435,7 @@ static void setup()
     timers_enabled = true;
     fclose(fp);
   }
+  timers_enabled = true;
 
   if ((fp = fopen("inputft.data", "r")) != NULL) {
     int result;
@@ -741,31 +743,31 @@ static void setup()
     m_u[i] = clCreateBuffer(context, CL_MEM_READ_ONLY, sizeof(dcomplex) * NX, NULL, &ecode);
     clu_CheckError(ecode, "clCreateBuffer() for m_u");
 
-    m_dims[i] = clCreateBuffer(context, CL_MEM_READ_ONLY, sizeof(int) * 3 * 3, dims, &ecode);
+    m_dims[i] = clCreateBuffer(context, CL_MEM_READ_ONLY, sizeof(int) * 3 * 3, NULL, &ecode);
     clu_CheckError(ecode, "clCreateBuffer() for m_dims");
     clEnqueueWriteBuffer(cmd_queue[i], m_dims[i], CL_FALSE, 0, sizeof(int) * 3 * 3, dims, 0, NULL, NULL);
 
-    m_xstart[i] = clCreateBuffer(context, CL_MEM_READ_ONLY, sizeof(int) * 3, xstart[i], &ecode);
+    m_xstart[i] = clCreateBuffer(context, CL_MEM_READ_ONLY, sizeof(int) * 3, NULL, &ecode);
     clu_CheckError(ecode, "clCreateBuffer() for m_xstart");
     clEnqueueWriteBuffer(cmd_queue[i], m_xstart[i], CL_FALSE, 0, sizeof(int) * 3, xstart[i], 0, NULL, NULL);
 
-    m_xend[i] = clCreateBuffer(context, CL_MEM_READ_ONLY, sizeof(int) * 3, xend[i], &ecode);
+    m_xend[i] = clCreateBuffer(context, CL_MEM_READ_ONLY, sizeof(int) * 3, NULL, &ecode);
     clu_CheckError(ecode, "clCreateBuffer() for m_xend");
     clEnqueueWriteBuffer(cmd_queue[i], m_xend[i], CL_FALSE, 0, sizeof(int) * 3, xend[i], 0, NULL, NULL);
 
-    m_ystart[i] = clCreateBuffer(context, CL_MEM_READ_ONLY, sizeof(int) * 3, ystart[i], &ecode);
+    m_ystart[i] = clCreateBuffer(context, CL_MEM_READ_ONLY, sizeof(int) * 3, NULL, &ecode);
     clu_CheckError(ecode, "clCreateBuffer() for m_ystart");
     clEnqueueWriteBuffer(cmd_queue[i], m_ystart[i], CL_FALSE, 0, sizeof(int) * 3, ystart[i], 0, NULL, NULL);
 
-    m_yend[i] = clCreateBuffer(context, CL_MEM_READ_ONLY, sizeof(int) * 3, yend[i], &ecode);
+    m_yend[i] = clCreateBuffer(context, CL_MEM_READ_ONLY, sizeof(int) * 3, NULL, &ecode);
     clu_CheckError(ecode, "clCreateBuffer() for m_yend");
     clEnqueueWriteBuffer(cmd_queue[i], m_yend[i], CL_FALSE, 0, sizeof(int) * 3, yend[i], 0, NULL, NULL);
 
-    m_zstart[i] = clCreateBuffer(context, CL_MEM_READ_ONLY, sizeof(int) * 3, zstart[i], &ecode);
+    m_zstart[i] = clCreateBuffer(context, CL_MEM_READ_ONLY, sizeof(int) * 3, NULL, &ecode);
     clu_CheckError(ecode, "clCreateBuffer() for m_zstart");
     clEnqueueWriteBuffer(cmd_queue[i], m_zstart[i], CL_FALSE, 0, sizeof(int) * 3, zstart[i], 0, NULL, NULL);
 
-    m_zend[i] = clCreateBuffer(context, CL_MEM_READ_ONLY, sizeof(int) * 3, zend[i], &ecode);
+    m_zend[i] = clCreateBuffer(context, CL_MEM_READ_ONLY, sizeof(int) * 3, NULL, &ecode);
     clu_CheckError(ecode, "clCreateBuffer() for m_zend");
     clEnqueueWriteBuffer(cmd_queue[i], m_zend[i], CL_FALSE, 0, sizeof(int) * 3, zend[i], 0, NULL, NULL);
 
@@ -2298,7 +2300,7 @@ static void setup_opencl(int argc, char *argv[])
 
   // 1. Find the default device type and get a device for the device type
   //    Then, create sub-devices from the parent device.
-  device_type = CL_DEVICE_TYPE_GPU;
+  device_type = CL_DEVICE_TYPE_CPU;
 
   cl_platform_id platform;
   ecode = clGetPlatformIDs(1, &platform, NULL);
@@ -2324,7 +2326,7 @@ static void setup_opencl(int argc, char *argv[])
       }
     }
   }
-  if (device_type == CL_DEVICE_TYPE_CPU) {
+  if (device_type & CL_DEVICE_TYPE_CPU) {
     COMPUTE_IMAP_DIM = COMPUTE_IMAP_DIM_CPU;
     EVOLVE_DIM = EVOLVE_DIM_CPU;
     TRANSPOSE2_LOCAL1_DIM = TRANSPOSE2_LOCAL1_DIM_CPU;
@@ -2357,7 +2359,17 @@ static void setup_opencl(int argc, char *argv[])
   }
 
   // 2. Create a context for devices
+#ifdef MINIMD_SNUCL_OPTIMIZATIONS
+	cl_context_properties props[5] = {
+		CL_CONTEXT_PLATFORM,
+		(cl_context_properties)platform,
+		CL_CONTEXT_SCHEDULER,
+		CL_CONTEXT_SCHEDULER_PERF_MODEL,
+		0 };
+  context = clCreateContext(props, 
+#else
   context = clCreateContext(NULL, 
+#endif
                             num_devices,
                             devices,
                             NULL, NULL, &ecode);
@@ -2366,24 +2378,37 @@ static void setup_opencl(int argc, char *argv[])
   // 3. Create a command queue
   cmd_queue = (cl_command_queue*)malloc(sizeof(cl_command_queue)*num_devices);
   for (i = 0; i < num_devices; i++) {
-    cmd_queue[i] = clCreateCommandQueue(context, devices[i], 0, &ecode);
+    cmd_queue[i] = clCreateCommandQueue(context, devices[i], 
+#ifdef MINIMD_SNUCL_OPTIMIZATIONS
+			CL_QUEUE_AUTO_DEVICE_SELECTION | 
+			CL_QUEUE_ITERATIVE | 
+			CL_QUEUE_COMPUTE_INTENSIVE,
+#else
+	0,
+#endif
+	&ecode);
     clu_CheckError(ecode, "clCreateCommandQueue()");
   }
 
   // 4. Build the program
   if (timers_enabled) timer_start(TIMER_BUILD);
   char *source_file = "ft_kernel.cl";
+  //program = clu_MakeProgram(context, devices, source_dir, source_file, build_option);
+  program = clu_CreateProgram(context, source_dir, source_file);
   char build_option[50];
-  if (device_type == CL_DEVICE_TYPE_CPU || device_type == CL_DEVICE_TYPE_ALL) {
+  if (device_type & CL_DEVICE_TYPE_CPU) {
     sprintf(build_option, "-I. -DCLASS=%d -DUSE_CPU", CLASS);
-  } else if (device_type == CL_DEVICE_TYPE_GPU) {
+  //clu_MakeProgram(program, 1, &devices[0], source_dir, build_option);
+  } 
+  else if (device_type & CL_DEVICE_TYPE_GPU) {
     sprintf(build_option, "-I. -DCLASS=%d", CLASS);
+  //clu_MakeProgram(program, 2, &devices[1], source_dir, build_option);
   } else {
     fprintf(stderr, "Set the environment variable OPENCL_DEVICE_TYPE!\n");
     exit(EXIT_FAILURE);
   }
+  clu_MakeProgram(program, num_devices, devices, source_dir, build_option);
 
-  program = clu_MakeProgram(context, devices, source_dir, source_file, build_option);
 
   if (timers_enabled) timer_stop(TIMER_BUILD);
 

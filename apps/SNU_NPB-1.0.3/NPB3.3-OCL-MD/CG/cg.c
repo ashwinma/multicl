@@ -782,7 +782,9 @@ static void setup_opencl(int argc, char *argv[])
     exit(EXIT_FAILURE);
   }
 
-  p_program = clu_MakeProgram(context, num_devices, devices, source_dir, source_file, build_option);
+ // p_program = clu_MakeProgram(context, num_devices, devices, source_dir, source_file, build_option);
+  p_program = clu_CreateProgram(context, source_dir, source_file);
+  clu_MakeProgram(p_program, num_devices, devices, source_dir, build_option);
 
   // FIXME: Can we share the program among all devices if they are the same?
   program = (cl_program *)malloc(sizeof(cl_program) * num_devices);

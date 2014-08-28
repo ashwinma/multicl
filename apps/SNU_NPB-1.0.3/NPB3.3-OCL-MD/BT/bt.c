@@ -522,7 +522,9 @@ static void setup_opencl(int argc, char *argv[])
   p_adi = (cl_program *)malloc(sizeof(cl_program) * num_devices);
   p_solve = (cl_program *)malloc(sizeof(cl_program) * num_devices);
 
-  program = clu_MakeProgram(context, devices, source_dir, "bt_kernel.cl", build_option);
+  //program = clu_MakeProgram(context, num_devices, devices, source_dir, "bt_kernel.cl", build_option);
+  program = clu_CreateProgram(context, source_dir, "bt_kernel.cl");
+  clu_MakeProgram(program, num_devices, devices, source_dir, build_option);
 
   for (i = 0; i < num_devices; i++) {
     p_initialize[i] = program;

@@ -3768,7 +3768,7 @@ static void setup_opencl(int argc, char *argv[])
 
   // 1. Find the default device type and get a device for the device type
   //    Then, create sub-devices from the parent device.
-  device_type = CL_DEVICE_TYPE_CPU;
+  device_type = CL_DEVICE_TYPE_ALL;
 
   cl_platform_id platform;
   ecode = clGetPlatformIDs(1, &platform, NULL);
@@ -3877,7 +3877,7 @@ static void setup_opencl(int argc, char *argv[])
   if (timers_enabled) timer_start(TIMER_BUILD);
   char *source_file = "mg_kernel.cl";
   char build_option[50];
-  if (device_type == CL_DEVICE_TYPE_CPU) {
+  if (device_type & CL_DEVICE_TYPE_CPU) {
     sprintf(build_option, "-DM=%d -DNM2=%d -I. -DUSE_CPU", M,NM2);
   } else if (device_type == CL_DEVICE_TYPE_GPU) {
     sprintf(build_option, "-DM=%d -DNM2=%d -I.", M,NM2);
@@ -3886,7 +3886,9 @@ static void setup_opencl(int argc, char *argv[])
     exit(EXIT_FAILURE);
   }
 
-  p_program = clu_MakeProgram(context, devices, source_dir, source_file, build_option);
+//  p_program = clu_MakeProgram(context, devices, source_dir, source_file, build_option);
+  p_program = clu_CreateProgram(context, source_dir, source_file);
+  clu_MakeProgram(p_program, num_devices, devices, source_dir, build_option);
 
   program = (cl_program *)malloc(sizeof(cl_program) * num_devices);
 

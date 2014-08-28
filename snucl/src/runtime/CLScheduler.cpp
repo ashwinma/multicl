@@ -293,8 +293,8 @@ void CLScheduler::Progress() {
 			double q_est_time = est_epoch_times[q_id][cur_dev_id];
 			for(int device_id = 0; device_id < num_devices; device_id++)
 			{
-				SNUCL_INFO("Estimated Cost for Queue %p for device %p: %g\n", queues_[q_id], 
-						devices[device_id], est_epoch_times[q_id][device_id]);
+				//SNUCL_INFO("Estimated Cost for Queue %p for device %p: %g\n", queues_[q_id], 
+				//		devices[device_id], est_epoch_times[q_id][device_id]);
 				// update if difference is more than XX\% at least
 				//SNUCL_INFO("Perentage Diff: %g\n", 100.0 * abs(est_epoch_times[q_id][device_id] - q_est_time) / q_est_time);
 				if((100.0 * abs(est_epoch_times[q_id][device_id] - q_est_time) / q_est_time > 10.0) 

@@ -566,7 +566,9 @@ static void setup_opencl(int argc, char **argv)
     sprintf(build_option, "-I. -DCLASS=%d -DUSE_GPU -DMAX_CELL_DIM=%d -DIMAX=%d -DJMAX=%d -DKMAX=%d -DIMAXP=%d -DJMAXP=%d", CLASS, MAX_CELL_DIM, IMAX, JMAX, KMAX, IMAXP, JMAXP);
   }
 
-  p_program = clu_MakeProgram(context, devices, source_dir, source_file, build_option);
+  //p_program = clu_MakeProgram(context, devices, source_dir, source_file, build_option);
+  p_program = clu_CreateProgram(context, source_dir, source_file);
+  clu_MakeProgram(p_program, num_devices, devices, source_dir, build_option);
 
   program = (cl_program *)malloc(sizeof(cl_program) * num_devices);
   for (i = 0; i < num_devices; i++) {

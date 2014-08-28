@@ -88,12 +88,13 @@ CLINK	= $(CC)
 #---------------------------------------------------------------------------
 # These macros are passed to the linker 
 #---------------------------------------------------------------------------
-C_LIB  = -lm -lOpenCL
+C_LIB = -L$(SNUCLROOT)/lib -lm -lOpenCL
+#C_LIB = -L$(SNUCLROOT)/lib -lm -lcuda -lSnuCL
 
 #---------------------------------------------------------------------------
 # These macros are passed to the compiler 
 #---------------------------------------------------------------------------
-C_INC = -I../common -I$(CUDA_INSTALL_PATH)/include
+C_INC = -I../common -I$(SNUCLROOT)/inc -I$(CUDA_INSTALL_PATH)/include
 
 #---------------------------------------------------------------------------
 # Global *compile time* flags for C programs
@@ -110,7 +111,8 @@ C_INC = -I../common -I$(CUDA_INSTALL_PATH)/include
 # _LARGEFILE64_SOURCE - are standard compiler flags which allow to work with 
 # files larger than 2GB.
 #---------------------------------------------------------------------------
-CFLAGS	= -g -Wall -O3 -mcmodel=medium
+CFLAGS	= -Wall -O3 -mcmodel=medium #-DCLUSTER
+
 
 #---------------------------------------------------------------------------
 # Global *link time* flags. Flags for increasing maximum executable 

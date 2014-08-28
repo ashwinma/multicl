@@ -372,7 +372,8 @@ cl_program clu_MakeProgram(cl_context context,
   clu_CheckError(err_code, "clCreateProgramWithSource()");
 
   // Build the program
-  err_code = clBuildProgram(program, 1, &device, build_opts, NULL, NULL);
+  err_code = clBuildProgram(program, 0, NULL, build_opts, NULL, NULL);
+  //err_code = clBuildProgram(program, 1, &device, build_opts, NULL, NULL);
   if (err_code != CL_SUCCESS) {
     clu_PrintBuildLog(program, device);
     clu_CheckError(err_code, "clBuldProgram()");

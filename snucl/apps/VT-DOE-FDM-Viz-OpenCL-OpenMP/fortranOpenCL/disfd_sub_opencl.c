@@ -35,6 +35,7 @@
 //#define DISFD_PAPI
 //#define DISFD_USE_OPTIMIZED
 #define DISFD_H2D_SYNC_KERNEL
+#define SNUCL_PERF_MODEL_OPTIMIZATION
 /***********************************************/
 /* for debug: check the output                 */
 /***********************************************/
@@ -342,13 +343,17 @@ void init_cl(int *deviceID)
     {
         fprintf(stderr, "Failed to find any available OpenCL device!\n");
     }
+#ifdef SNUCL_PERF_MODEL_OPTIMIZATION
 	cl_context_properties props[5] = {
 		CL_CONTEXT_PLATFORM,
-		_cl_firstPlatform,
+		(cl_context_properties *)_cl_firstPlatform,
 		CL_CONTEXT_SCHEDULER,
 		CL_CONTEXT_SCHEDULER_PERF_MODEL,
 		0 };
     _cl_context = clCreateContext(props, num_devices, _cl_devices, NULL, NULL, &errNum);
+#else
+    _cl_context = clCreateContext(NULL, num_devices, _cl_devices, NULL, NULL, &errNum);
+#endif
     if(errNum != CL_SUCCESS)
     {
         fprintf(stderr, "Failed to create GPU context!\n");
@@ -375,9 +380,11 @@ void init_cl(int *deviceID)
 		printf("[OpenCL] %dth command queue uses Dev ID %d\n", i, chosen_dev_id);
 		_cl_commandQueues[i] = clCreateCommandQueue(_cl_context, 
 			_cl_devices[chosen_dev_id], 
+#ifdef SNUCL_PERF_MODEL_OPTIMIZATION
 			CL_QUEUE_AUTO_DEVICE_SELECTION | 
 			CL_QUEUE_ITERATIVE | 
 			CL_QUEUE_VOLATILE_EPOCHS | 
+#endif
 			CL_QUEUE_PROFILING_ENABLE, NULL);
 		if(_cl_commandQueues[i] == NULL)
 		{
@@ -387,9 +394,11 @@ void init_cl(int *deviceID)
 #else
 	int chosen_dev_id = 0;
 	_cl_commandQueues[0] = clCreateCommandQueue(_cl_context, _cl_devices[chosen_dev_id], 
+#ifdef SNUCL_PERF_MODEL_OPTIMIZATION
 			CL_QUEUE_AUTO_DEVICE_SELECTION | 
 			CL_QUEUE_ITERATIVE | 
 			CL_QUEUE_VOLATILE_EPOCHS | 
+#endif
 			CL_QUEUE_PROFILING_ENABLE, NULL);
 	if(_cl_commandQueues[0] == NULL)
 	{

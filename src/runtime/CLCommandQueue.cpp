@@ -86,8 +86,9 @@ CLCommandQueue::CLCommandQueue(CLContext *context, CLDevice* device,
   // A: Only if we have all the information (nearest). If we don't have 
   // all the info (kernel) then wait for the device selection
   //SNUCL_INFO("(Before) Device in Cmdqueue Creation: %p\n", device_);
-  device_ = SelectBestDevice(context, device, properties);
-  //SNUCL_INFO("(After) Device in Cmdqueue Creation: %p\n", device_);
+  CLDevice *new_device = SelectBestDevice(context, device, properties);
+  cl_int err = set_device(new_device);
+  SNUCL_INFO("(After) Device in Cmdqueue Creation: %p\n", device_);
   device_->AddCommandQueue(this);
   gQueueTimer.Init();
 }
@@ -121,12 +122,13 @@ CLDevice *CLCommandQueue::SelectBestDevice(CLContext *context, CLDevice* device,
 		}
 	}
 
+	SNUCL_INFO("Given Properties: %x Prop Mask: %x (out of %x %x)\n", properties, prop_mask, CL_QUEUE_DEVICE_SELECT_NEAREST, CL_QUEUE_DEVICE_SELECT_BEST_COMPUTE);
 	if(prop_mask == CL_QUEUE_DEVICE_SELECT_NEAREST)
 	{
 		if(!has_printed)
 		{
-	//		SNUCL_INFO("(Before) Cmdqueue with %u type device with ID %u (%u/%u)\n", 
-	//					device_type, vendor_id, chosen_device_id, devices.size());
+			SNUCL_INFO("(Before) Cmdqueue with %u type device with ID %u (%u/%u)\n", 
+						device_type, vendor_id, chosen_device_id, devices.size());
 		}
 	  	//gCommandTimer.Start();
 		// Find current host cpuset index/hwloc_obj_t
@@ -159,8 +161,8 @@ CLDevice *CLCommandQueue::SelectBestDevice(CLContext *context, CLDevice* device,
 	  	//gCommandTimer.Stop();
 		if(!has_printed)
 		{
-		//	SNUCL_INFO("(After) Cmdqueue with %u type device with ID %u (%u/%u)\n", 
-		//				device_type, vendor_id, chosen_device_id, devices.size());
+			SNUCL_INFO("(After) Cmdqueue with %u type device with ID %u (%u/%u)\n", 
+						device_type, vendor_id, chosen_device_id, devices.size());
 			has_printed = true;
 		}
 	}
@@ -291,6 +293,8 @@ cl_int CLCommandQueue::set_device(CLDevice *d) {
 		// ERROR
 		return CL_INVALID_DEVICE;
 	}
+	SNUCL_INFO("CmdQ: %p Dev Changed (%p->%p)\n",
+			this, device_, d);
 	if(d != device_)
 	{
 		SNUCL_INFO("CmdQ: %p Dev Changed (%p->%p)\n",

@@ -36,11 +36,12 @@
 #define __MG_H__
 
 #ifdef USE_CPU
-#pragma OPENCL EXTENSION cl_amd_fp64: enable
-#pragma OPENCL EXTENSION cl_amd_printf: enable
+//#pragma OPENCL EXTENSION cl_amd_fp64: enable
+//#pragma OPENCL EXTENSION cl_amd_printf: enable
 #else
-#pragma OPENCL EXTENSION cl_khr_fp64: enable
+//#pragma OPENCL EXTENSION cl_khr_fp64: enable
 #endif
+#pragma OPENCL EXTENSION cl_khr_fp64: enable
 
 
 #include "mg_dim.h"

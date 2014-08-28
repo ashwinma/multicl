@@ -33,10 +33,11 @@
 //-------------------------------------------------------------------------//
 
 #ifdef USE_CPU
-#pragma OPENCL EXTENSION cl_amd_fp64: enable
+//#pragma OPENCL EXTENSION cl_amd_fp64: enable
 #else
-#pragma OPENCL EXTENSION cl_khr_fp64: enable
+//#pragma OPENCL EXTENSION cl_khr_fp64: enable
 #endif
+#pragma OPENCL EXTENSION cl_khr_fp64: enable
 
 #include "ep.h"
 

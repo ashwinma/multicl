@@ -78,6 +78,8 @@
 //#define CHECK_FINISH()
 #endif
 
+#define CG_SNUCL_OPTIMIZATIONS
+
 logical timers_enabled;
 
 
@@ -704,7 +706,7 @@ static void setup_opencl(int argc, char *argv[])
 
   // 1. Find the default device type and get a device for the device type
 
-  device_type = CL_DEVICE_TYPE_CPU;
+  device_type = CL_DEVICE_TYPE_ALL;
 
   cl_platform_id platform;
   ecode = clGetPlatformIDs(1, &platform, NULL);
@@ -730,7 +732,17 @@ static void setup_opencl(int argc, char *argv[])
   }
 
   // 2. Create a context for devices
+#ifdef CG_SNUCL_OPTIMIZATIONS
+	cl_context_properties props[5] = {
+		CL_CONTEXT_PLATFORM,
+		(cl_context_properties)platform,
+		CL_CONTEXT_SCHEDULER,
+		CL_CONTEXT_SCHEDULER_PERF_MODEL,
+		0 };
+  context = clCreateContext(props,
+#else
   context = clCreateContext(NULL,
+#endif
                             num_devices,
                             devices,
                             NULL, NULL, &ecode);
@@ -739,7 +751,13 @@ static void setup_opencl(int argc, char *argv[])
   // 3. Create a command queue
   cmd_queue = (cl_command_queue*)malloc(sizeof(cl_command_queue)*num_devices);
   for (i = 0; i < num_devices; i++) {
-    cmd_queue[i] = clCreateCommandQueue(context, devices[i], 0, &ecode);
+    cmd_queue[i] = clCreateCommandQueue(context, devices[i], 
+#ifdef CG_SNUCL_OPTIMIZATIONS
+			CL_QUEUE_AUTO_DEVICE_SELECTION | 
+			CL_QUEUE_ITERATIVE | 
+			CL_QUEUE_COMPUTE_INTENSIVE | 
+#endif
+		0, &ecode);
     clu_CheckError(ecode, "clCreateCommandQueue()");
   }
 
@@ -747,13 +765,13 @@ static void setup_opencl(int argc, char *argv[])
   if (timers_enabled) timer_start(TIMER_BUILD);
   char *source_file = "cg_kernel.cl";
   char build_option[50];
-  if (device_type == CL_DEVICE_TYPE_CPU) {
+/*  if (device_type == CL_DEVICE_TYPE_CPU) {
 #ifdef USE_CHUNK_SCHEDULE
     sprintf(build_option, "-I. -DCLASS=%d -DUSE_CPU -DUSE_CHUNK_SCHEDULE", Class);
 #else
     sprintf(build_option, "-I. -DCLASS=%d -DUSE_CPU", Class);
 #endif
-  } else if (device_type == CL_DEVICE_TYPE_GPU) {
+  } else */if (device_type & CL_DEVICE_TYPE_GPU || device_type & CL_DEVICE_TYPE_CPU) {
 #ifdef USE_CHUNK_SCHEDULE
     sprintf(build_option, "-I. -DCLASS=%d -DUSE_CHUNK_SCHEDULE", Class);
 #else
@@ -764,7 +782,7 @@ static void setup_opencl(int argc, char *argv[])
     exit(EXIT_FAILURE);
   }
 
-  p_program = clu_MakeProgram(context, devices, source_dir, source_file, build_option);
+  p_program = clu_MakeProgram(context, num_devices, devices, source_dir, source_file, build_option);
 
   // FIXME: Can we share the program among all devices if they are the same?
   program = (cl_program *)malloc(sizeof(cl_program) * num_devices);
@@ -1210,7 +1228,8 @@ int main(int argc, char *argv[])
 #endif
       temp_size[id] = (int)(global[id][0] / local[id][0]);
 
-      if (device_type == CL_DEVICE_TYPE_CPU) {
+//      if (device_type == CL_DEVICE_TYPE_CPU) {
+#ifndef USE_CHUNK_SCHEDULE
         ecode  = clSetKernelArg(k_main_3[id], 0, sizeof(cl_mem), &m_x[id]);
         ecode |= clSetKernelArg(k_main_3[id], 1, sizeof(cl_mem), &m_z[id]);
         ecode |= clSetKernelArg(k_main_3[id], 2, local[id][0]*2*sizeof(double), NULL);
@@ -1218,13 +1237,15 @@ int main(int argc, char *argv[])
         ecode |= clSetKernelArg(k_main_3[id], 4, sizeof(int), &array_length);
         ecode |= clSetKernelArg(k_main_3[id], 5, sizeof(cl_mem), &d_temp1[id]);
         ecode |= clSetKernelArg(k_main_3[id], 6, sizeof(cl_mem), &d_temp2[id]);
-      } else {
+ //     } else {
+#else
         ecode  = clSetKernelArg(k_main_3[id], 0, sizeof(cl_mem), &m_x[id]);
         ecode |= clSetKernelArg(k_main_3[id], 1, sizeof(cl_mem), &m_z[id]);
         ecode |= clSetKernelArg(k_main_3[id], 2, sizeof(int), &array_length);
         ecode |= clSetKernelArg(k_main_3[id], 3, sizeof(cl_mem), &d_temp1[id]);
         ecode |= clSetKernelArg(k_main_3[id], 4, sizeof(cl_mem), &d_temp2[id]);
-      }
+   //   }
+#endif
       clu_CheckError(ecode, "clSetKernelArg() for main_3");
 
       ecode = clEnqueueNDRangeKernel(cmd_queue[id],
@@ -1392,7 +1413,8 @@ int main(int argc, char *argv[])
 #endif
       temp_size[id] = (int)(global[id][0] / local[id][0]);
 
-      if (device_type == CL_DEVICE_TYPE_CPU) {
+//      if (device_type == CL_DEVICE_TYPE_CPU) {
+#ifndef USE_CHUNK_SCHEDULE
         ecode  = clSetKernelArg(k_main_3[id], 0, sizeof(cl_mem), &m_x[id]);
         ecode |= clSetKernelArg(k_main_3[id], 1, sizeof(cl_mem), &m_z[id]);
         ecode |= clSetKernelArg(k_main_3[id], 2, local[id][0]*2*sizeof(double), NULL);
@@ -1400,13 +1422,15 @@ int main(int argc, char *argv[])
         ecode |= clSetKernelArg(k_main_3[id], 4, sizeof(int), &array_length);
         ecode |= clSetKernelArg(k_main_3[id], 5, sizeof(cl_mem), &d_temp1[id]);
         ecode |= clSetKernelArg(k_main_3[id], 6, sizeof(cl_mem), &d_temp2[id]);
-      } else {
+#else
+     // } else {
         ecode  = clSetKernelArg(k_main_3[id], 0, sizeof(cl_mem), &m_x[id]);
         ecode |= clSetKernelArg(k_main_3[id], 1, sizeof(cl_mem), &m_z[id]);
         ecode |= clSetKernelArg(k_main_3[id], 2, sizeof(int), &array_length);
         ecode |= clSetKernelArg(k_main_3[id], 3, sizeof(cl_mem), &d_temp1[id]);
         ecode |= clSetKernelArg(k_main_3[id], 4, sizeof(cl_mem), &d_temp2[id]);
-      }
+#endif
+      //}
       clu_CheckError(ecode, "clSetKernelArg() for main_3");
 
       ecode = clEnqueueNDRangeKernel(cmd_queue[id],

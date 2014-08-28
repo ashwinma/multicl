@@ -604,7 +604,7 @@ __kernel void main_2_1(__global double *q,
 }
 
 
-#ifdef USE_CPU
+#ifndef USE_CHUNK_SCHEDULE
 __kernel void main_3(__global double* buffer1,
                      __global double* buffer2,
                      __local double* scratch1,
@@ -622,7 +622,7 @@ __kernel void main_3(__global double* buffer1,
 {
   __local double scratch1[2];
   __local double scratch2[2];
-#endif // USE_CPU
+#endif // USE_CPU // USE_CHUNK_SCHEDULE
 #ifdef USE_CHUNK_SCHEDULE
   int gsize = get_global_size(0);
   int id = get_global_id(0);

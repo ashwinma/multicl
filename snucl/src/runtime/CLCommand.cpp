@@ -1153,11 +1153,10 @@ void CLCommand::GetCopyPattern(CLDevice* dev_src, CLDevice* dev_dst,
   alloc_ptr = false;
   use_host_ptr = false;
 
-  if(dev_src->context() != NULL) {
-	  if(dev_src->context() == dev_dst->context())
-	  {
-		  use_copy = true;
-	  }
+  if((dev_src->context() == dev_dst->context())
+  				&& (dev_src->context() != NULL))
+  {
+	  use_copy = true;
   }
   else
   {
@@ -1179,6 +1178,10 @@ void CLCommand::GetCopyPattern(CLDevice* dev_src, CLDevice* dev_dst,
     use_recv = true;
   }
   }
+
+  //SNUCL_INFO("Clone Mem: read: %d, write: %d, alloc ptr: %d copy: %d, use host ptr: %d\n", 
+  //	use_read, use_write, alloc_ptr, 
+ // 	use_copy, use_host_ptr);
 }
 
 static void CL_CALLBACK IssueCommandCallback(cl_event event, cl_int status,

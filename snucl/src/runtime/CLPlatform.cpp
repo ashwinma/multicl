@@ -402,7 +402,7 @@ CLContext* CLPlatform::CreateContextFromDevices(
 	}
 	size_t this_device_index = 0; 
 	this_device_index = std::distance(devices_.begin(), this_device_iter);
-	fprintf(stderr, "Adding device to ctx: ID: %d, Type: %d\n", this_device_index, this_device->type());
+	fprintf(stderr, "Adding device to ctx: %p ID: %d, Type: %d\n", this_device, this_device_index, this_device->type());
 	selected_devices_indices.push_back(this_device_index);
   }
 
@@ -472,7 +472,7 @@ CLContext* CLPlatform::CreateContextFromType(
 		}
 		size_t this_device_index = 0; 
 		this_device_index = std::distance(all_devices.begin(), this_device_iter);
-		fprintf(stderr, "Adding device to ctx: ID: %d, Type: %d\n", this_device_index, this_device->type());
+		fprintf(stderr, "Adding device to ctx: %p ID: %d, Type: %d\n", device, this_device_index, this_device->type());
 		selected_devices_indices.push_back(this_device_index);
 	}
   }

@@ -167,6 +167,9 @@ cl_int CLKernel::SetKernelArg(cl_uint arg_index, size_t arg_size,
 }
 
 map<cl_uint, CLKernelArg*>* CLKernel::DuplicateArgs() {
+  
+  Global::RealTimer kernel_clone_timer;
+  kernel_clone_timer.Init();
   map<cl_uint, CLKernelArg*>* new_args = new map<cl_uint, CLKernelArg*>();
   for (map<cl_uint, CLKernelArg*>::iterator it = args_.begin();
        it != args_.end();
@@ -222,9 +225,17 @@ map<cl_uint, CLKernelArg*>* CLKernel::DuplicateArgs() {
 			  }
 			  for (vector<CLDevice*>::iterator it = devices.begin();
 					  it != devices.end(); ++it) {
+			  	//kernel_clone_timer.Start();
+				#if 0
+				  (*it)->WriteBuffer(NULL, new_arg->mem, 0, m->size(), tmp); 
+				#else
 				  if((*it) != src_dev && ((*it)->context() != src_dev->context()))
+				  {
+				  	//SNUCL_INFO("%d->%d Clone mem\n", src_dev->type(), (*it)->type());
 				  	(*it)->WriteBuffer(NULL, new_arg->mem, 0, m->size(), tmp); 
+				  }
 				  else {
+				  	//SNUCL_INFO("%d->%d Clone mem\n", src_dev->type(), (*it)->type());
   					cl_mem src_dev_specific_ptr = (cl_mem)m->GetDevSpecific(src_dev);
   					cl_mem dest_dev_specific_ptr = (cl_mem)new_arg->mem->GetDevSpecific(*it);
 				  	src_dev->CopyBuffer(NULL, m, new_arg->mem, 
@@ -232,6 +243,9 @@ map<cl_uint, CLKernelArg*>* CLKernel::DuplicateArgs() {
 						src_dev_specific_ptr, dest_dev_specific_ptr, 
 						0, 0, m->size()); 
 				  } 
+				#endif
+			  	//kernel_clone_timer.PrintCurrent("Clone Time");
+			  	//kernel_clone_timer.Stop();
 			  }
 		  }
 #else
@@ -253,6 +267,7 @@ map<cl_uint, CLKernelArg*>* CLKernel::DuplicateArgs() {
 
     (*new_args)[it->first] = new_arg;
   }
+//  kernel_clone_timer.Print(std::cout);
   return new_args;
 }
 

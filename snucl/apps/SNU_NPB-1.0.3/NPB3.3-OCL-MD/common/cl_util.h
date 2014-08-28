@@ -49,6 +49,7 @@ char *clu_LoadProgSource(const char *source_file, size_t *source_len_ret);
 unsigned char *clu_LoadProgBinary(const char *binary_file, 
                                   size_t *binary_len_ret);
 
+#if 0
 // Create a program and build the program.
 cl_program clu_MakeProgram(cl_context context,
 						   //cl_device_id device,
@@ -58,7 +59,16 @@ cl_program clu_MakeProgram(cl_context context,
                            char *source_file, 
                            char *build_option);
 
-
+#endif
+cl_program clu_CreateProgram(cl_context context,
+                           char *source_dir,
+                           char *source_file 
+                           );
+void clu_MakeProgram(cl_program program,
+                           const cl_uint num_devices,
+                           cl_device_id *devices,
+                           char *source_dir,
+                           char *build_option);
 /* Misc */
 // Return the size that is rounded up to the multiple of group_size.
 size_t clu_RoundWorkSize(size_t work_size, size_t group_size);

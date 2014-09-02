@@ -113,7 +113,7 @@ class CLCommand {
   void SetAsComplete();
 
   CLEvent* ExportEvent();
-  CLCommand* Clone();
+  CLCommand* Clone(CLDevice* target_device = NULL);
   /* Extra annotations for commands
    * 
    * SourceDevice/DestinationDevice

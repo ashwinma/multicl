@@ -147,6 +147,7 @@ class ClusterDevice: public CLDevice {
 
   virtual void FreeExecutable(CLProgram* program, void* executable);
   virtual void* AllocKernel(CLKernel* kernel);
+  virtual void* AllocTrainingKernel(CLKernel* kernel);
   virtual void FreeKernel(CLKernel* kernel, void* dev_specific);
   virtual cl_context context() const { return NULL; }
 

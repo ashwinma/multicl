@@ -763,10 +763,11 @@ void CLDevice::WaitReadyQueue() {
 
 CLEvent* CLDevice::EnqueueBuildProgram(CLProgram* program,
                                        CLProgramSource* source,
-                                       CLProgramBinary* binary,
+									   CLProgramBinary* binary,
                                        const char* options) {
   CLCommand* command = CLCommand::CreateBuildProgram(this, program, source,
-                                                     binary, options);
+                                                     binary, 
+													 options);
   CLEvent* event = command->ExportEvent();
   EnqueueReadyQueue(command);
   return event;
@@ -845,6 +846,10 @@ void* CLDevice::AllocSampler(CLSampler* sampler) {
 
 void CLDevice::FreeSampler(CLSampler* sampler, void* dev_specific) {
   // Do nothing
+}
+
+void* CLDevice::AllocTrainingKernel(CLKernel* kernel) {
+  return NULL;
 }
 
 void* CLDevice::AllocKernel(CLKernel* kernel) {

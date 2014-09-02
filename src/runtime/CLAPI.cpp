@@ -2260,6 +2260,12 @@ SNUCL_API_FUNCTION(clSetCommandQueueProperty)(
     cl_bool enable, cl_command_queue_properties* old_properties)
     CL_API_SUFFIX__VERSION_1_0 {
   // not yet implemented: is it deprecated?
+  if (command_queue == NULL) return CL_INVALID_COMMAND_QUEUE;
+  if(clFinish(command_queue) != CL_SUCCESS) return CL_INVALID_COMMAND_QUEUE;
+
+  CLCommandQueue* q = command_queue->c_obj;
+  if(old_properties) *old_properties = q->get_properties(); 
+  if(enable) q->set_properties(properties);
   return CL_SUCCESS;
 }
 

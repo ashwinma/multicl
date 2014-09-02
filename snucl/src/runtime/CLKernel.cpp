@@ -68,11 +68,17 @@ CLKernel::CLKernel(CLContext* context, CLProgram* program,
   args_dirty_ = false;
 
   pthread_mutex_init(&mutex_dev_specific_, NULL);
+  pthread_mutex_init(&mutex_dev_specific_training_, NULL);
 }
 
 CLKernel::~CLKernel() {
   for (map<CLDevice*, void*>::iterator it = dev_specific_.begin();
        it != dev_specific_.end();
+       ++it) {
+    (it->first)->FreeKernel(this, it->second);
+  }
+  for (map<CLDevice*, void*>::iterator it = dev_specific_training_.begin();
+       it != dev_specific_training_.end();
        ++it) {
     (it->first)->FreeKernel(this, it->second);
   }
@@ -87,6 +93,7 @@ CLKernel::~CLKernel() {
   context_->Release();
 
   pthread_mutex_destroy(&mutex_dev_specific_);
+  pthread_mutex_destroy(&mutex_dev_specific_training_);
 }
 
 cl_uint CLKernel::num_args() const {
@@ -166,7 +173,7 @@ cl_int CLKernel::SetKernelArg(cl_uint arg_index, size_t arg_size,
   return CL_SUCCESS;
 }
 
-map<cl_uint, CLKernelArg*>* CLKernel::DuplicateArgs() {
+map<cl_uint, CLKernelArg*>* CLKernel::DuplicateArgs(CLDevice* target_device) {
   
   Global::RealTimer kernel_clone_timer;
   kernel_clone_timer.Init();
@@ -205,9 +212,14 @@ map<cl_uint, CLKernelArg*>* CLKernel::DuplicateArgs() {
 			  // no device has a copy of the mem obj, so create
 			  // array with arbitrary data
 			  memset(tmp, 0, sizeof(char) * m->size());
-			  for (vector<CLDevice*>::iterator it = devices.begin();
-					  it != devices.end(); ++it) {
-				  (*it)->WriteBuffer(NULL, new_arg->mem, 0, m->size(), tmp); 
+			  if(target_device) {
+				  target_device->WriteBuffer(NULL, new_arg->mem, 0, m->size(), tmp); 
+			  }
+			  else {
+				  for (vector<CLDevice*>::iterator it = devices.begin();
+						  it != devices.end(); ++it) {
+					  (*it)->WriteBuffer(NULL, new_arg->mem, 0, m->size(), tmp); 
+				  }
 			  }
 		  }
 		  else {
@@ -223,13 +235,21 @@ map<cl_uint, CLKernelArg*>* CLKernel::DuplicateArgs() {
 					  break;
 				  }
 			  }
+			  if(target_device) {
+				  target_device->WriteBuffer(NULL, new_arg->mem, 0, m->size(), tmp); 
+			  }
+			  else {
 			  for (vector<CLDevice*>::iterator it = devices.begin();
 					  it != devices.end(); ++it) {
-			  	//kernel_clone_timer.Start();
+			  	kernel_clone_timer.Start();
 				#if 0
 				  (*it)->WriteBuffer(NULL, new_arg->mem, 0, m->size(), tmp); 
 				#else
-				  if((*it) != src_dev && ((*it)->context() != src_dev->context()))
+				  if((*it) != src_dev) 
+				  // && ((*it)->context() != src_dev->context()))
+				  // We have to do D2H once anyway for *some* device...so why not use the same 
+				  // host buffer to transfer to all devices other than the source, although there 
+				  // may be other devices within the same context as the source...
 				  {
 				  	//SNUCL_INFO("%d->%d Clone mem\n", src_dev->type(), (*it)->type());
 				  	(*it)->WriteBuffer(NULL, new_arg->mem, 0, m->size(), tmp); 
@@ -238,14 +258,16 @@ map<cl_uint, CLKernelArg*>* CLKernel::DuplicateArgs() {
 				  	//SNUCL_INFO("%d->%d Clone mem\n", src_dev->type(), (*it)->type());
   					cl_mem src_dev_specific_ptr = (cl_mem)m->GetDevSpecific(src_dev);
   					cl_mem dest_dev_specific_ptr = (cl_mem)new_arg->mem->GetDevSpecific(*it);
-				  	src_dev->CopyBuffer(NULL, m, new_arg->mem, 
-				  	//(*it)->CopyBuffer(NULL, m, new_arg->mem, 
+				  	//src_dev->CopyBuffer(NULL, m, new_arg->mem, 
+				  	(*it)->CopyBuffer(NULL, m, new_arg->mem, 
 						src_dev_specific_ptr, dest_dev_specific_ptr, 
 						0, 0, m->size()); 
 				  } 
+	  			//  SNUCL_INFO("Cloning to Dest Device: %p, Mem: %p, dev specific: %p, size: %llu\n", (*it), new_arg->mem, new_arg->mem->GetDevSpecific(*it), new_arg->mem->size());
 				#endif
-			  	//kernel_clone_timer.PrintCurrent("Clone Time");
-			  	//kernel_clone_timer.Stop();
+			  	kernel_clone_timer.Stop();
+  				//SNUCL_INFO("Test Kernel Clone Time (%p->%p): %g sec\n", src_dev, *it, kernel_clone_timer.CurrentElapsed());
+			  }
 			  }
 		  }
 #else
@@ -314,4 +336,26 @@ void* CLKernel::GetDevSpecific(CLDevice* device) {
   }
   pthread_mutex_unlock(&mutex_dev_specific_);
   return dev_specific;
+}
+
+bool CLKernel::HasDevSpecificTraining(CLDevice* device) {
+  pthread_mutex_lock(&mutex_dev_specific_training_);
+  bool alloc = (dev_specific_training_.count(device) > 0);
+  pthread_mutex_unlock(&mutex_dev_specific_training_);
+  return alloc;
+}
+
+void* CLKernel::GetDevSpecificTraining(CLDevice* device) {
+  pthread_mutex_lock(&mutex_dev_specific_training_);
+  void* dev_specific_training;
+  if (dev_specific_training_.count(device) > 0) {
+    dev_specific_training = dev_specific_training_[device];
+  } else {
+    pthread_mutex_unlock(&mutex_dev_specific_training_);
+    dev_specific_training = device->AllocTrainingKernel(this);
+    pthread_mutex_lock(&mutex_dev_specific_training_);
+    dev_specific_training_[device] = dev_specific_training;
+  }
+  pthread_mutex_unlock(&mutex_dev_specific_training_);
+  return dev_specific_training;
 }

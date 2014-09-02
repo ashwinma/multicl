@@ -434,7 +434,8 @@ void LegacyDevice::LaunchTestKernel(CLCommand* command, CLKernel* kernel,
   //SNUCL_INFO("Test run kernel: %s on Device ID %p (type %d)\n", kernel->name(), device_id_, type_);
   //printf("Device Type: %d Ptr: %p\n", type_, device_id_);
   CHECK_ERROR(available_ == CL_FALSE, CL_DEVICE_NOT_AVAILABLE);
-  cl_kernel legacy_kernel = (cl_kernel)kernel->GetDevSpecific(this);
+  //cl_kernel legacy_kernel = (cl_kernel)kernel->GetDevSpecific(this);
+  cl_kernel legacy_kernel = (cl_kernel)kernel->GetDevSpecificTraining(this);
   CHECK_ERROR(legacy_kernel == NULL, CL_INVALID_PROGRAM_EXECUTABLE);
   cl_int err;
   for (map<cl_uint, CLKernelArg*>::iterator it = kernel_args->begin();
@@ -472,11 +473,14 @@ void LegacyDevice::LaunchTestKernel(CLCommand* command, CLKernel* kernel,
   	SNUCL_INFO("LWS[%d]: %lu\n", i, lws[i]);
   	SNUCL_INFO("NWG[%d]: %lu\n", i, nwg[i]);
   }*/
+  //gLegacyTimer.Start();
   err = dispatch_->clEnqueueNDRangeKernel(kernel_queue_, legacy_kernel,
                                           work_dim, gwo, gws, lws, 0, NULL,
                                           &event);
   UPDATE_ERROR(err);
   err = dispatch_->clWaitForEvents(1, &event);
+  //gLegacyTimer.Stop();
+  //SNUCL_INFO("Test Kernel Time: %g sec\n", gLegacyTimer.CurrentElapsed());
   UPDATE_ERROR(err);
 }
 
@@ -578,8 +582,8 @@ void LegacyDevice::WriteBuffer(CLCommand* command, CLMem* mem_dst,
   //gLegacyTimer.Start();
   CHECK_ERROR(available_ == CL_FALSE, CL_DEVICE_NOT_AVAILABLE);
   cl_mem mem_dst_dev = (cl_mem)mem_dst->GetDevSpecific(this);
-  SNUCL_INFO("[H2D Device: %p] WriteBuffer CLMem: %p->CLMem: %p, offset: %lu, size: %lu host ptr: %p\n",
-					this, mem_dst, mem_dst_dev, off_dst, size, ptr);
+  //SNUCL_INFO("[H2D Device: %p] WriteBuffer CLMem: %p->CLMem: %p, offset: %lu, size: %lu host ptr: %p\n",
+	//				this, mem_dst, mem_dst_dev, off_dst, size, ptr);
   CHECK_ERROR(mem_dst_dev == NULL, CL_INVALID_MEM_OBJECT);
   cl_int err;
   err = dispatch_->clEnqueueWriteBuffer(mem_queue_, mem_dst_dev, CL_TRUE,
@@ -598,19 +602,41 @@ void LegacyDevice::CopyBuffer(CLCommand* command, CLMem* mem_src,
   CHECK_ERROR(available_ == CL_FALSE, CL_DEVICE_NOT_AVAILABLE);
   cl_mem mem_src_dev = mem_src_dev_specific;
   cl_mem mem_dst_dev = mem_dst_dev_specific;
-  if(!mem_src_dev) mem_src_dev = (cl_mem)mem_src->GetDevSpecific(this);
-  if(!mem_dst_dev) mem_dst_dev = (cl_mem)mem_dst->GetDevSpecific(this);
+  #if 0
+  CLDevice *nearSrc = mem_src->FrontLatest();
+  CLDevice *nearDest = mem_dst->FrontLatest();
+  cl_mem src_tmp = (cl_mem)mem_src->GetDevSpecific(this);
+  cl_mem dst_tmp = (cl_mem)mem_dst->GetDevSpecific(this);
+  if(nearSrc == nearDest) 
+  {
+  	SNUCL_INFO("[D2D Device: %p] CopyBuffer Src Device: %p Dest Device: %p, src ptr: %p src tmp: %p dst ptr: %p dst tmp: %p\n",
+  			this, nearSrc, nearDest, 
+			mem_src_dev_specific, mem_dst_dev_specific,
+			src_tmp, dst_tmp);
+//  	SNUCL_INFO("[D2D Device: %p] CopyBuffer Src Device: %p Dest Device: %p\n",
+  //			this, nearSrc, nearDest);
+  }
+  #endif
+//  if(!mem_src_dev) mem_src_dev = (cl_mem)mem_src->GetDevSpecific(this);
+//  if(!mem_dst_dev) mem_dst_dev = (cl_mem)mem_dst->GetDevSpecific(this);
+  //SNUCL_INFO("[D2D Device: %p] CopyBuffer CLMem: %p->CLMem: %p CLMem: %p->CLMem: %p src offset: %lu dst offset: %lu size: %lu\n",
+	//				this, mem_src, mem_src_dev, 
+	//				mem_dst, mem_dst_dev, 
+	//				off_src, off_dst, size);
 
   CHECK_ERROR(mem_src_dev == NULL, CL_INVALID_MEM_OBJECT);
   CHECK_ERROR(mem_dst_dev == NULL, CL_INVALID_MEM_OBJECT);
   cl_int err;
   cl_event event;
+  //gLegacyTimer.Start();
   err = dispatch_->clEnqueueCopyBuffer(mem_queue_, mem_src_dev, mem_dst_dev,
                                        off_src, off_dst, size, 0, NULL,
                                        &event);
   UPDATE_ERROR(err);
   err = dispatch_->clWaitForEvents(1, &event);
   UPDATE_ERROR(err);
+  //gLegacyTimer.Stop();
+  //SNUCL_INFO("Copy Buffer Time: %g sec\n", gLegacyTimer.CurrentElapsed());
 }
 
 void LegacyDevice::ReadImage(CLCommand* command, CLMem* mem_src,
@@ -791,29 +817,51 @@ void LegacyDevice::FillImage(CLCommand* command, CLMem* mem_dst,
 
 void LegacyDevice::BuildProgram(CLCommand* command, CLProgram* program,
                                 CLProgramSource* source,
-                                CLProgramBinary* binary, const char* options) {
+                                CLProgramBinary* binary, 
+								const char* options) {
   cl_int err;
   cl_program legacy_program;
+  cl_program legacy_training_program = NULL;
   if (binary != NULL)
     legacy_program = CreateProgram(binary);
-  else
+  else {
     legacy_program = CreateProgram(source);
+    legacy_training_program = CreateTrainingProgram(source);
+  }
   if (legacy_program != NULL) {
     err = dispatch_->clBuildProgram(legacy_program, 1, &device_id_, options,
                                     NULL, NULL);
 	VERIFY_ERROR(err);
+	if(legacy_training_program != NULL ) {
+		err = dispatch_->clBuildProgram(legacy_training_program, 1, &device_id_, options,
+				NULL, NULL);
+		VERIFY_ERROR(err);
+	}
   }
   if (legacy_program != NULL && err == CL_SUCCESS) {
     CLProgramBinary* result = ReadBinary(legacy_program);
     char* build_log = ReadBuildLog(legacy_program);
+    CLProgramBinary* training_result = NULL;
+	char* training_build_log = NULL;
+	if(legacy_training_program) {
+		training_result = ReadBinary(legacy_training_program);
+    	//training_build_log = ReadBuildLog(legacy_training_program);
+	}
     program->CompleteBuild(this, CL_BUILD_SUCCESS, build_log, result,
-                           (void*)legacy_program);
+                           (void*)legacy_program, 
+						   training_result,
+						   (void*)legacy_training_program
+						   );
     ReadKernelInfo(legacy_program, program);
   } else {
     char* build_log = ReadBuildLog(legacy_program);
 	SNUCL_ERROR("Build Log: %s\n", build_log);
-    program->CompleteBuild(this, CL_BUILD_ERROR, build_log, NULL, NULL);
+    program->CompleteBuild(this, CL_BUILD_ERROR, build_log, NULL, 
+						NULL,
+						NULL,
+						NULL);
     dispatch_->clReleaseProgram(legacy_program);
+    dispatch_->clReleaseProgram(legacy_training_program);
   }
 }
 
@@ -892,11 +940,12 @@ void LegacyDevice::LinkProgram(CLCommand* command, CLProgram* program,
     CLProgramBinary* result = ReadBinary(legacy_program);
     char* build_log = ReadBuildLog(legacy_program);
     program->CompleteBuild(this, CL_BUILD_SUCCESS, build_log, result,
-                           (void*)legacy_program);
+                           (void*)legacy_program, NULL, NULL);
     ReadKernelInfo(legacy_program, program);
   } else {
     char* build_log = ReadBuildLog(legacy_program);
-    program->CompleteBuild(this, CL_BUILD_ERROR, build_log, NULL, NULL);
+    program->CompleteBuild(this, CL_BUILD_ERROR, build_log, NULL, NULL,
+						NULL, NULL);
     dispatch_->clReleaseProgram(legacy_program);
   }
 }
@@ -1003,6 +1052,22 @@ void LegacyDevice::FreeExecutable(CLProgram* program, void* executable) {
   }
 }
 
+void* LegacyDevice::AllocTrainingKernel(CLKernel* kernel) {
+  cl_int err;
+  cl_program program = (cl_program)kernel->program()->GetTrainingExecutable(this);
+  cl_kernel k = dispatch_->clCreateKernel(program, kernel->name(), &err);
+  if (err != CL_SUCCESS)
+    k = NULL;
+  return (void*)k;
+}
+/*
+void LegacyDevice::FreeTrainingKernel(CLKernel* kernel, void* dev_specific_training) {
+  if (dev_specific_training != NULL) {
+    dispatch_->clReleaseKernel((cl_kernel)dev_specific_training);
+  }
+}
+*/
+
 void* LegacyDevice::AllocKernel(CLKernel* kernel) {
   cl_int err;
   cl_program program = (cl_program)kernel->program()->GetExecutable(this);
@@ -1016,6 +1081,18 @@ void LegacyDevice::FreeKernel(CLKernel* kernel, void* dev_specific) {
   if (dev_specific != NULL) {
     dispatch_->clReleaseKernel((cl_kernel)dev_specific);
   }
+}
+
+cl_program LegacyDevice::CreateTrainingProgram(CLProgramSource* source) {
+  cl_int err;
+  cl_program program;
+  const char* concat_source = source->concat_training_source();
+  size_t concat_source_length = source->concat_training_source_length();
+  program = dispatch_->clCreateProgramWithSource(context_, 1, &concat_source,
+                                                 &concat_source_length, &err);
+  if (err != CL_SUCCESS)
+    return NULL;
+  return program;
 }
 
 cl_program LegacyDevice::CreateProgram(CLProgramSource* source) {

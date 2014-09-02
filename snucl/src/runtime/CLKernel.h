@@ -91,11 +91,14 @@ public:
 
   bool IsArgsDirty() { return args_dirty_; }
 
-  std::map<cl_uint, CLKernelArg*>* DuplicateArgs();
+  std::map<cl_uint, CLKernelArg*>* DuplicateArgs(CLDevice* target_device = NULL);
   std::map<cl_uint, CLKernelArg*>* ExportArgs();
 
   bool HasDevSpecific(CLDevice* device);
   void* GetDevSpecific(CLDevice* device);
+  
+  bool HasDevSpecificTraining(CLDevice* device);
+  void* GetDevSpecificTraining(CLDevice* device);
 
  private:
   CLContext* context_;
@@ -107,8 +110,10 @@ public:
   bool args_dirty_;
 
   std::map<CLDevice*, void*> dev_specific_;
+  std::map<CLDevice*, void*> dev_specific_training_;
 
   pthread_mutex_t mutex_dev_specific_;
+  pthread_mutex_t mutex_dev_specific_training_;
 };
 
 #endif // __SNUCL__CL_KERNEL_H

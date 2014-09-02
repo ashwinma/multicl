@@ -76,6 +76,22 @@ void CLProgramSource::AddSource(const char* source, size_t length) {
   concat_source_.append(source, length);
 }
 
+void CLProgramSource::MakeTrainingSource() {
+  concat_training_source_ = concat_source_;
+  SNUCL_INFO("Training Program Source: %s\n", concat_training_source_.c_str());
+  size_t pos = 0;
+  while((pos = concat_training_source_.find("__kernel", pos)) != std::string::npos) {
+    size_t bracket_pos = concat_training_source_.find("{", pos+1);
+	if(bracket_pos != std::string::npos) {
+		concat_training_source_.replace(bracket_pos, 1, "{if(get_group_id(0)+get_group_id(1)+get_group_id(2)!=0)return;");
+	}
+    SNUCL_INFO("Kernel found at position: %lu\n", pos);
+  	pos++;
+  }
+  SNUCL_INFO("After Training Program Source: %s\n", concat_training_source_.c_str());
+  // Do the string find replace here...
+}
+
 void CLProgramSource::SetHeaderName(const char* header_name) {
   header_name_ = std::string(header_name);
 }
@@ -837,7 +853,8 @@ CLKernel* CLProgram::CreateKernel(const char* kernel_name, cl_int* err) {
         *err = CL_INVALID_KERNEL_DEFINITION;
         return NULL;
       }
-      CLKernel* kernel = new CLKernel(context_, this, kernel_info);
+      CLKernel* kernel = new CLKernel(context_, this, 
+	  		kernel_info);
       if (kernel == NULL) {
         pthread_mutex_unlock(&mutex_build_);
         *err = CL_OUT_OF_HOST_MEMORY;
@@ -979,13 +996,19 @@ bool CLProgram::EnterBuild(const vector<CLDevice*>& target_devices) {
 
 void CLProgram::CompleteBuild(CLDevice* device, cl_build_status status,
                               char* log, CLProgramBinary* binary,
-                              void* executable) {
+                              void* executable, 
+							  CLProgramBinary* training_binary,
+							  void* training_executable) {
   if (status == CL_BUILD_SUCCESS) {
     ChangeBinary(device, binary);
+    ChangeTrainingBinary(device, training_binary);
     ChangeExecutable(device, executable);
+    ChangeTrainingExecutable(device, training_executable);
   } else {
     ChangeBinary(device, NULL);
+    ChangeTrainingBinary(device, NULL);
     ChangeExecutable(device, NULL);
+    ChangeTrainingExecutable(device, NULL);
   }
   ChangeBuildLog(device, log);
 
@@ -1047,8 +1070,9 @@ void CLProgram::RegisterKernelInfo(
                                     compile_work_group_size, local_mem_size,
                                     preferred_work_group_size_multiple,
                                     private_mem_size);
-      if (snucl_index >= 0)
+      if (snucl_index >= 0) {
         kernel_info->SetSnuCLIndex(snucl_index);
+	  }
       return;
     }
   }
@@ -1057,8 +1081,9 @@ void CLProgram::RegisterKernelInfo(
                                 compile_work_group_size, local_mem_size,
                                 preferred_work_group_size_multiple,
                                 private_mem_size);
-  if (snucl_index >= 0)
+  if (snucl_index >= 0) {
     kernel_info->SetSnuCLIndex(snucl_index);
+  }	
   kernels_.push_back(kernel_info);
 }
 
@@ -1095,6 +1120,10 @@ void CLProgram::ReleaseKernel() {
 
 CLProgramBinary* CLProgram::GetBinary(CLDevice* device) {
   return binary_[device];
+}
+
+void* CLProgram::GetTrainingExecutable(CLDevice* device) {
+  return training_executable_[device];
 }
 
 void* CLProgram::GetExecutable(CLDevice* device) {
@@ -1223,11 +1252,25 @@ void CLProgram::ChangeBinary(CLDevice* device, CLProgramBinary* binary) {
     delete old_binary;
 }
 
+void CLProgram::ChangeTrainingBinary(CLDevice* device, CLProgramBinary* training_binary) {
+  CLProgramBinary* old_binary = training_binary_[device];
+  training_binary_[device] = training_binary;
+  if (old_binary != NULL)
+    delete old_binary;
+}
+
 void CLProgram::ChangeExecutable(CLDevice* device, void* executable) {
   void* old_executable = executable_[device];
   executable_[device] = executable;
   if (old_executable != NULL)
     device->FreeExecutable(this, executable_[device]);
+}
+
+void CLProgram::ChangeTrainingExecutable(CLDevice* device, void* training_executable) {
+  void* old_executable = training_executable_[device];
+  training_executable_[device] = training_executable;
+  if (old_executable != NULL)
+    device->FreeExecutable(this, training_executable_[device]);
 }
 
 void CLProgram::ChangeBuildOptions(CLDevice* device, char* options) {
@@ -1267,6 +1310,7 @@ CLProgram::CreateProgramWithSource(CLContext* context, cl_uint count,
     else
       program->source_->AddSource(strings[i], lengths[i]);
   }
+  program->source_->MakeTrainingSource();
   return program;
 }
 

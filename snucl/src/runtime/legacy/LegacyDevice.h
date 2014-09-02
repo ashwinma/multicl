@@ -140,11 +140,13 @@ class LegacyDevice: public CLDevice {
 
   virtual void FreeExecutable(CLProgram* program, void* executable);
   virtual void* AllocKernel(CLKernel* kernel);
+  virtual void* AllocTrainingKernel(CLKernel* kernel);
   virtual void FreeKernel(CLKernel* kernel, void* dev_specific);
 
   virtual cl_context context() const { return context_; }
  private:
   cl_program CreateProgram(CLProgramSource* source);
+  cl_program CreateTrainingProgram(CLProgramSource* source);
   cl_program CreateProgram(CLProgramBinary* binary);
   CLProgramBinary* ReadBinary(cl_program program);
   char* ReadBuildLog(cl_program program);

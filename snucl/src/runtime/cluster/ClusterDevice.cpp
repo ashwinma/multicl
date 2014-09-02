@@ -817,6 +817,10 @@ void* ClusterDevice::AllocKernel(CLKernel* kernel) {
   return (void*)1;
 }
 
+void* ClusterDevice::AllocTrainingKernel(CLKernel* kernel) {
+  return (void*)1;
+}
+
 void ClusterDevice::FreeKernel(CLKernel* kernel, void* dev_specific) {
   ClusterSendMessage request;
   request.WriteInt(CLUSTER_REQUEST_FREE_KERNEL);

@@ -64,15 +64,18 @@ class CLProgramSource {
 
   const char* concat_source() const { return concat_source_.c_str(); }
   size_t concat_source_length() const { return concat_source_.length(); }
+  const char* concat_training_source() const { return concat_training_source_.c_str(); }
+  size_t concat_training_source_length() const { return concat_training_source_.length(); }
   const char* header_name() const { return header_name_.c_str(); }
 
   void AddSource(const char* source); // null-terminated
   void AddSource(const char* source, size_t length); // fixed-length
   void SetHeaderName(const char* header_name);
-
+  void MakeTrainingSource();
  private:
   std::vector<std::string> sources_;
   std::string concat_source_;
+  std::string concat_training_source_;
   std::string header_name_;
 };
 
@@ -223,7 +226,9 @@ class CLProgram: public CLObject<struct _cl_program, CLProgram, struct _emu_cl_p
   bool EnterBuild(const std::vector<CLDevice*>& target_devices);
   // clBuildProgram, clLinkProgram
   void CompleteBuild(CLDevice* device, cl_build_status status, char* log,
-                     CLProgramBinary* binary, void* executable);
+                     CLProgramBinary* binary, void* executable,
+        CLProgramBinary* training_binary, void* training_executable
+					 );
   // clCompileProgram
   void CompleteBuild(CLDevice* device, cl_build_status status, char* log,
                      CLProgramBinary* binary);
@@ -248,6 +253,7 @@ class CLProgram: public CLObject<struct _cl_program, CLProgram, struct _emu_cl_p
 
   CLProgramBinary* GetBinary(CLDevice* device);
   void* GetExecutable(CLDevice* device);
+  void* GetTrainingExecutable(CLDevice* device);
   cl_build_status GetBuildStatus(CLDevice* device);
   const char* GetBuildLog(CLDevice* device);
 
@@ -257,6 +263,8 @@ class CLProgram: public CLObject<struct _cl_program, CLProgram, struct _emu_cl_p
  private:
   void ChangeBinary(CLDevice* device, CLProgramBinary* binary);
   void ChangeExecutable(CLDevice* device, void* executable);
+  void ChangeTrainingBinary(CLDevice* device, CLProgramBinary* binary);
+  void ChangeTrainingExecutable(CLDevice* device, void* executable);
   void ChangeBuildOptions(CLDevice* device, char* options);
   void ChangeBuildLog(CLDevice* device, char* log);
   void CountdownBuildCallback(CLDevice* device);
@@ -268,6 +276,8 @@ class CLProgram: public CLObject<struct _cl_program, CLProgram, struct _emu_cl_p
   std::map<CLDevice*, CLProgramBinary*> binary_;
   std::map<CLDevice*, void*> executable_;
   std::vector<CLKernelInfo*> kernels_;
+  std::map<CLDevice*, CLProgramBinary*> training_binary_;
+  std::map<CLDevice*, void*> training_executable_;
 
   CLProgram *shadowProgram_;
   int build_in_progress_cnt_;

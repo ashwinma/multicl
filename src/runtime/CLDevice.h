@@ -220,6 +220,7 @@ class CLDevice: public CLObject<struct _cl_device_id, CLDevice,
 
   virtual void FreeExecutable(CLProgram* program, void* executable) = 0;
   virtual void* AllocKernel(CLKernel* kernel);
+  virtual void* AllocTrainingKernel(CLKernel* kernel);
   virtual void FreeKernel(CLKernel* kernel, void* dev_specific);
 
   virtual cl_int CreateSubDevicesEqually(unsigned int n, cl_uint num_devices,

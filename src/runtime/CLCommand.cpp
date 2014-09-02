@@ -925,6 +925,9 @@ bool CLCommand::ResolveConsistencyOfCopyMem() {
   {
   	cl_mem mem_src_dev_specific_ptr = (cl_mem)mem_src_->GetDevSpecific(source);
   	cl_mem mem_dst_dev_specific_ptr = (cl_mem)mem_dst_->GetDevSpecific(device_);
+  	//SNUCL_INFO("[%p->%p) Changing Copy Dev-specific Mems: %p-->%p to %p-->%p\n",
+//			source, device_,
+//			mem_src_dev_specific_, mem_dst_dev_specific_, mem_src_dev_specific_ptr, mem_dst_dev_specific_ptr);
 	mem_src_dev_specific_ = mem_src_dev_specific_ptr;//->c_obj;
 	mem_dst_dev_specific_ = mem_dst_dev_specific_ptr;//->c_obj;
   }
@@ -1202,6 +1205,8 @@ CLEvent* CLCommand::CloneMem(CLDevice* dev_src, CLDevice* dev_dst,
   {
   	cl_mem mem_src_dev_specific_ptr = (cl_mem)mem->GetDevSpecific(dev_src);
   	cl_mem mem_dst_dev_specific_ptr = (cl_mem)mem->GetDevSpecific(dev_dst);
+//  	SNUCL_INFO("Changing Copy Dev-specific Mems: %p-->%p to %p-->%p\n",
+//			mem_src_dev_specific_, mem_dst_dev_specific_, mem_src_dev_specific_ptr, mem_dst_dev_specific_ptr);
 	mem_src_dev_specific_ = mem_src_dev_specific_ptr;//->c_obj;
 	mem_dst_dev_specific_ = mem_dst_dev_specific_ptr;//->c_obj;
 	//cl_mem foo = mem_src_dev_specific_->st_obj();
@@ -1316,9 +1321,9 @@ bool CLCommand::ChangeDeviceToReadMem(CLMem* mem, CLDevice*& device) {
   device = source;
   return true;
 }
-
+#if 0
 CLCommand*
-CLCommand::Clone() {
+CLCommand::Clone(CLDevice* target_device) {
 	CLCommand* command = new CLCommand(context(), device(),
 			queue_, type());
 	if (command == NULL) return NULL;
@@ -1338,6 +1343,30 @@ CLCommand::Clone() {
 		command->nwg_[i] = 1;
 	}
 	command->kernel_args_ = kernel_->DuplicateArgs();
+	return command;
+}
+#endif
+CLCommand*
+CLCommand::Clone(CLDevice* target_device) {
+	CLCommand* command = new CLCommand(context(), device(),
+			queue_, type());
+	if (command == NULL) return NULL;
+	command->kernel_ = kernel_;
+	command->kernel_->Retain();
+	command->work_dim_ = work_dim_;
+	for (cl_uint i = 0; i < work_dim_; i++) {
+		command->gwo_[i] = (gwo_ != NULL) ? gwo_[i] : 0;
+		command->gws_[i] = gws_[i];
+		command->lws_[i] = (lws_ != NULL) ? lws_[i] : ((gws_[i] % 4 == 0) ? 4 : 1);
+		command->nwg_[i] = command->gws_[i] / command->lws_[i];
+	}
+	for (cl_uint i = work_dim_; i < 3; i++) {
+		command->gwo_[i] = 0;
+		command->gws_[i] = 1;
+		command->lws_[i] = 1;
+		command->nwg_[i] = 1;
+	}
+	command->kernel_args_ = kernel_->DuplicateArgs(target_device);
 	return command;
 }
 
@@ -1458,6 +1487,8 @@ CLCommand::CreateCopyBuffer(CLContext* context, CLDevice* device,
   command->mem_dst_->Retain();
   command->mem_src_dev_specific_ = src_buffer_dev_specific;
   command->mem_dst_dev_specific_ = dst_buffer_dev_specific;
+  //SNUCL_INFO("Setting Copy Dev-specific Mems: %p-->%p\n",
+//			command->mem_src_dev_specific_, command->mem_dst_dev_specific_);
   command->off_src_ = src_offset;
   command->off_dst_ = dst_offset;
   command->size_ = size;

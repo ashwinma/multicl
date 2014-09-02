@@ -241,15 +241,18 @@ void CLScheduler::Progress() {
 						for(int device_id = 0; device_id < num_devices; device_id++) 
 						{
 							CLDevice *dev = devices[device_id];
+							//cmd = (*cmd_it)->Clone(dev);
 							est_cost = cmd->EstimatedCost(dev);
 							est_kernel_times[device_id] = est_cost;
-						//	SNUCL_INFO("Estimated Cost of Command Type %x for device %p: %g\n", cmd->type(), dev, est_cost);
+							//SNUCL_INFO("Estimated Cost of Command Type %x for device %p: %g\n", cmd->type(), dev, est_cost);
 							//est_epoch_times[q_id][device_id] += est_cost;
 						}
 						ctx->recordEpoch(cmd->kernel()->name(), est_kernel_times);
+						// why does the below throw segfaults sometimes?
+						//ctx->recordEpoch((*cmd_it)->kernel()->name(), est_kernel_times);
 						//queue->recordEpoch((*cmd_it)->kernel()->name(), est_kernel_times);
 						q_perf_estimation_timer.Stop();
-						delete cmd;
+						if(cmd) delete cmd;
 					}
 					for(int device_id = 0; device_id < num_devices; device_id++) {
 						est_epoch_times[q_id][device_id] += est_kernel_times[device_id];
@@ -293,11 +296,11 @@ void CLScheduler::Progress() {
 			double q_est_time = est_epoch_times[q_id][cur_dev_id];
 			for(int device_id = 0; device_id < num_devices; device_id++)
 			{
-				//SNUCL_INFO("Estimated Cost for Queue %p for device %p: %g\n", queues_[q_id], 
-				//		devices[device_id], est_epoch_times[q_id][device_id]);
+				SNUCL_INFO("Estimated Cost for Queue %p for device %p: %g\n", queues_[q_id], 
+						devices[device_id], est_epoch_times[q_id][device_id]);
 				// update if difference is more than XX\% at least
 				//SNUCL_INFO("Perentage Diff: %g\n", 100.0 * abs(est_epoch_times[q_id][device_id] - q_est_time) / q_est_time);
-				if((100.0 * abs(est_epoch_times[q_id][device_id] - q_est_time) / q_est_time > 10.0) 
+				if((100.0 * abs(est_epoch_times[q_id][device_id] - q_est_time) / q_est_time > 35.0) 
 					&& (est_epoch_times[q_id][device_id] < q_est_time))
 				{
 					SNUCL_INFO("Perentage Diff: %g\n", 100.0 * abs(est_epoch_times[q_id][device_id] - q_est_time) / q_est_time);

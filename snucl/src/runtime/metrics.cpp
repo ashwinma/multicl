@@ -39,6 +39,8 @@ cl_int CLCopyBuffer(CLCommandQueue *q,
 	}
 	else
 	{
+  		SNUCL_INFO("[Before Copy] CopyBuffer Src Device: %p Dest Device: %p\n",
+  			cmSrcDevData->FrontLatest(), cmDestDevData->FrontLatest());
   		CLCommand* command = CLCommand::CreateCopyBuffer(
       		NULL, NULL, q, cmSrcDevData, cmDestDevData, 
 			// NULL, NULL, 
@@ -746,7 +748,7 @@ void D2DMetricsManager::testAndWriteD2DMetrics()
 	const unsigned int defaultMemSize = (64 * (1 << 20));
 
 	const size_t MIN_MEM_SIZE = (256 * 1024);
-	const size_t MAX_MEM_SIZE = (1024* 1024);
+	const size_t MAX_MEM_SIZE = (32 * 1024 * 1024);
 	const int MULTIPLIER = 2;
 	int num_memSizes = 0;
 	for(size_t memSize = MIN_MEM_SIZE; memSize <= MAX_MEM_SIZE; memSize *= MULTIPLIER)
@@ -768,8 +770,6 @@ void D2DMetricsManager::testAndWriteD2DMetrics()
 		//cl_mem cmDevData = clCreateBuffer(_context, CL_MEM_READ_WRITE, defaultMemSize, NULL, &err);
 		CLMem* cmSrcDevData = CLMem::CreateBuffer(_Context, CL_MEM_READ_WRITE, defaultMemSize, NULL, &err);
 		OPENCL_CHECK_ERR(err, "Creating Device Buffer");
-				CLMem* cmDestDevData = CLMem::CreateBuffer(_Context, CL_MEM_READ_WRITE, defaultMemSize, NULL, &err);
-				OPENCL_CHECK_ERR(err, "Creating Device Buffer");
 		// Get a host pointer
 		h_data = (unsigned char *)malloc(sizeof(unsigned char) * defaultMemSize);
 		if (h_data == NULL) {
@@ -783,10 +783,15 @@ void D2DMetricsManager::testAndWriteD2DMetrics()
 			h_data[i] = (unsigned char)(i & 0xff);
 		}
 		//memset((void *)h_data, defaultMemSize, 0);
-		SNUCL_INFO("After Init Src Mem: %p Host Ptr: %p\n", cmSrcDevData, h_data);
+		//SNUCL_INFO("After Init Src Mem: %p Host Ptr: %p\n", cmSrcDevData, h_data);
 		devices[src_dev_id]->WriteBuffer(NULL, cmSrcDevData, 0, defaultMemSize * sizeof(unsigned char), h_data); 
+		cmSrcDevData->SetLatest(devices[src_dev_id]);
 		for(size_t memSize = MIN_MEM_SIZE; memSize <= MAX_MEM_SIZE; memSize *= MULTIPLIER)
 		{
+		//CLMem* cmSrcDevData = CLMem::CreateBuffer(_Context, CL_MEM_READ_WRITE, memSize, NULL, &err);
+		//OPENCL_CHECK_ERR(err, "Creating Device Buffer");
+		//devices[src_dev_id]->WriteBuffer(NULL, cmSrcDevData, 0, memSize * sizeof(unsigned char), h_data); 
+		//cmSrcDevData->SetLatest(devices[src_dev_id]);
 			bandwidths.clear();
 			bandwidths.resize(n_devices);
 			latencies.clear();
@@ -801,23 +806,32 @@ void D2DMetricsManager::testAndWriteD2DMetrics()
 				if(max_partitions < 1) max_partitions = 1;
 				// allocate dest device memory 
 				//cl_mem cmDevData = clCreateBuffer(_context, CL_MEM_READ_WRITE, defaultMemSize, NULL, &err);
-				devices[dest_dev_id]->WriteBuffer(NULL, cmDestDevData, 0, defaultMemSize * sizeof(unsigned char), h_data); 
+				//CLMem* cmDestDevData = CLMem::CreateBuffer(_Context, CL_MEM_READ_WRITE, defaultMemSize, NULL, &err);
+				CLMem* cmDestDevData = CLMem::CreateBuffer(_Context, CL_MEM_READ_WRITE, memSize, NULL, &err);
+				OPENCL_CHECK_ERR(err, "Creating Device Buffer");
+				//devices[dest_dev_id]->WriteBuffer(NULL, cmDestDevData, 0, defaultMemSize * sizeof(unsigned char), h_data); 
+				devices[dest_dev_id]->WriteBuffer(NULL, cmDestDevData, 0, memSize * sizeof(unsigned char), h_data); 
+		        cmDestDevData->SetLatest(devices[dest_dev_id]);
+				//cmSrcDevData->SetLatest(devices[src_dev_id]);
 				// begin time measurement
 				int cur_partition = 0;
 				for(unsigned int i = 0; i < MEMCOPY_ITERATIONS; i++)
 				{
 					if(i == iter_skip) gD2DMetricTimer.Start();
 					//err = clEnqueueWriteBuffer(_queues[dest_dev_id], cmDevData, CL_FALSE, cur_partition * memSize, memSize, h_data + (cur_partition * memSize), 0, NULL, NULL);
-					err = CLCopyBuffer(_Queues[src_dev_id], 
+					//err = CLCopyBuffer(_Queues[src_dev_id], 
+					err = CLCopyBuffer(_Queues[dest_dev_id], 
 						cmSrcDevData, cmDestDevData,
 						devices[src_dev_id], devices[dest_dev_id],
-						cur_partition * memSize, cur_partition * memSize,
+						//cur_partition * memSize, cur_partition * memSize,
+						0, 0,
 						memSize, CL_FALSE);
 					OPENCL_CHECK_ERR(err, "D2D Transfer");
 					cur_partition = (cur_partition + 1) % max_partitions;
 				}
 				//err = clFinish(_queues[dest_dev_id]);
-				err = CLFinish(_Queues[src_dev_id]);
+				//err = CLFinish(_Queues[src_dev_id]);
+				err = CLFinish(_Queues[dest_dev_id]);
 				OPENCL_CHECK_ERR(err, "Finish D2D Transfer");
 				// end time measurement
 				gD2DMetricTimer.Stop();
@@ -831,9 +845,10 @@ void D2DMetricsManager::testAndWriteD2DMetrics()
 				// begin time measurement
 				gD2DMetricTimer.Reset();
 				//clReleaseMemObject(cmDevData);
-			//	cmDestDevData->Release();
+				cmDestDevData->Release();
 			}
 
+			//cmSrcDevData->SetLatest(devices[src_dev_id]);
 			// run a latency loop
 			for(int dest_dev_id = 0; dest_dev_id < n_devices; dest_dev_id++)
 			{
@@ -844,9 +859,13 @@ void D2DMetricsManager::testAndWriteD2DMetrics()
 				if(max_partitions < 1) max_partitions = 1;
 				// allocate device memory 
 				//cl_mem cmDevData = clCreateBuffer(_context, CL_MEM_READ_WRITE, defaultMemSize, NULL, &err);
-		//		CLMem* cmDestDevData = CLMem::CreateBuffer(_Context, CL_MEM_READ_WRITE, defaultMemSize, NULL, &err);
-		//		OPENCL_CHECK_ERR(err, "Creating Device Buffer");
-				devices[dest_dev_id]->WriteBuffer(NULL, cmDestDevData, 0, defaultMemSize * sizeof(unsigned char), h_data); 
+				//CLMem* cmDestDevData = CLMem::CreateBuffer(_Context, CL_MEM_READ_WRITE, defaultMemSize, NULL, &err);
+				CLMem* cmDestDevData = CLMem::CreateBuffer(_Context, CL_MEM_READ_WRITE, memSize, NULL, &err);
+				OPENCL_CHECK_ERR(err, "Creating Device Buffer");
+				//devices[dest_dev_id]->WriteBuffer(NULL, cmDestDevData, 0, defaultMemSize * sizeof(unsigned char), h_data); 
+				devices[dest_dev_id]->WriteBuffer(NULL, cmDestDevData, 0, memSize * sizeof(unsigned char), h_data); 
+		        cmDestDevData->SetLatest(devices[dest_dev_id]);
+			//	cmSrcDevData->SetLatest(devices[src_dev_id]);
 				// run a bandwidth loop
 				// begin time measurement
 				int cur_partition = 0;
@@ -854,20 +873,23 @@ void D2DMetricsManager::testAndWriteD2DMetrics()
 				{
 					if(i == iter_skip) gD2DMetricTimer.Start();
 					//err = clEnqueueWriteBuffer(_queues[dest_dev_id], cmDevData, CL_TRUE, cur_partition * memSize, memSize, h_data + (cur_partition * memSize), 0, NULL, NULL);
-					err = CLCopyBuffer(_Queues[src_dev_id], 
+					//err = CLCopyBuffer(_Queues[src_dev_id], 
+					err = CLCopyBuffer(_Queues[dest_dev_id], 
 						cmSrcDevData, cmDestDevData,
 						devices[src_dev_id], devices[dest_dev_id],
-						cur_partition * memSize, cur_partition * memSize,
+						//cur_partition * memSize, cur_partition * memSize,
+						0, 0,
 						memSize, CL_TRUE);
 					OPENCL_CHECK_ERR(err, "D2D Transfer");
 					cur_partition = (cur_partition + 1) % max_partitions;
 				}
-				//err = clFinish(_queues[dest_dev_id]);
-				err = CLFinish(_Queues[src_dev_id]);
-				OPENCL_CHECK_ERR(err, "Finish D2D Transfer");
 				gD2DMetricTimer.Stop();
 				// end time measurement
 				elapsedTimeInSec = gD2DMetricTimer.Elapsed();
+				//err = clFinish(_queues[dest_dev_id]);
+				//err = CLFinish(_Queues[src_dev_id]);
+				err = CLFinish(_Queues[dest_dev_id]);
+				OPENCL_CHECK_ERR(err, "Finish D2D Transfer");
 				bandwidthInMBs = ((double)memSize * (double)(MEMCOPY_ITERATIONS - iter_skip))/(elapsedTimeInSec * (double)(1 << 20));
 				_Devices[dest_dev_id]->GetDeviceInfo(CL_DEVICE_NAME, name_size, device_name, NULL);
 				printf("[D%d->D%d %s] Sync Size %u Time(us) %g, Time per iter(us) %g, BW(MB/s) %g\n", src_dev_id, dest_dev_id, device_name, memSize, elapsedTimeInSec, memSize/bandwidthInMBs, bandwidthInMBs);
@@ -876,7 +898,7 @@ void D2DMetricsManager::testAndWriteD2DMetrics()
 				//calculate bandwidth in MB/s
 				// store it in a new row in the file
 
-				//cmDestDevData->Release();
+				cmDestDevData->Release();
 			}
 			//h_data_ptrs.clear();
 			/*// clean up cl_mem and other misc objects
@@ -893,9 +915,10 @@ void D2DMetricsManager::testAndWriteD2DMetrics()
 					<< bandwidths[dest_dev_id] << " " 
 					<< latencies[dest_dev_id] << std::endl;
 			}
+		//cmSrcDevData->Release();
 		}
 		cmSrcDevData->Release();
-		cmDestDevData->Release();
+		//cmDestDevData->Release();
 		free(h_data);
 	}
 	pthread_setaffinity_np(thread, sizeof(cpu_set_t), &cur_cpuset);

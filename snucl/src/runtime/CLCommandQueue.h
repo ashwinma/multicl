@@ -95,6 +95,8 @@ class CLCommandQueue: public CLObject<struct _cl_command_queue,
   //std::vector<double> getEpochCosts(std::string epoch);
   void set_perf_model_done(bool val) {perfModDone_ = val;}
   bool get_perf_model_done() {return perfModDone_;}
+  void set_properties(cl_command_queue_properties properties) {properties_ = properties; }
+  cl_command_queue_properties get_properties() {return properties_; }
 
  protected:
   CLDevice* SelectBestDevice(CLContext *context, CLDevice* device, 

@@ -78,17 +78,17 @@ void CLProgramSource::AddSource(const char* source, size_t length) {
 
 void CLProgramSource::MakeTrainingSource() {
   concat_training_source_ = concat_source_;
-  SNUCL_INFO("Training Program Source: %s\n", concat_training_source_.c_str());
+//  SNUCL_INFO("Training Program Source: %s\n", concat_training_source_.c_str());
   size_t pos = 0;
   while((pos = concat_training_source_.find("__kernel", pos)) != std::string::npos) {
     size_t bracket_pos = concat_training_source_.find("{", pos+1);
 	if(bracket_pos != std::string::npos) {
 		concat_training_source_.replace(bracket_pos, 1, "{if(get_group_id(0)+get_group_id(1)+get_group_id(2)!=0)return;");
 	}
-    SNUCL_INFO("Kernel found at position: %lu\n", pos);
+    //SNUCL_INFO("Kernel found at position: %lu\n", pos);
   	pos++;
   }
-  SNUCL_INFO("After Training Program Source: %s\n", concat_training_source_.c_str());
+  //SNUCL_INFO("After Training Program Source: %s\n", concat_training_source_.c_str());
   // Do the string find replace here...
 }
 

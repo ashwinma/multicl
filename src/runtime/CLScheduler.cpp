@@ -244,7 +244,7 @@ void CLScheduler::Progress() {
 							//cmd = (*cmd_it)->Clone(dev);
 							est_cost = cmd->EstimatedCost(dev);
 							est_kernel_times[device_id] = est_cost;
-							//SNUCL_INFO("Estimated Cost of Command Type %x for device %p: %g\n", cmd->type(), dev, est_cost);
+							SNUCL_INFO("Estimated Cost of Command Type %x for device %p: %g\n", cmd->type(), dev, est_cost);
 							//est_epoch_times[q_id][device_id] += est_cost;
 						}
 						ctx->recordEpoch(cmd->kernel()->name(), est_kernel_times);

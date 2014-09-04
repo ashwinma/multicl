@@ -270,6 +270,32 @@ map<cl_uint, CLKernelArg*>* CLKernel::DuplicateArgs(CLDevice* target_device) {
 			  }
 			  }
 		  }
+		  // copy D2D between new_args and old_args in the
+		  // devices other than src_dev. This will avoid
+		  // later D-H-D copies if device changes later on.
+		  // Con: device memory redundancy in unused
+		  // devices
+		  #if 1
+		  CLDevice *src_dev = NULL;
+		  for (vector<CLDevice*>::iterator it = devices.begin();
+				  it != devices.end(); ++it) {
+			  if(m->HasLatest(*it))
+			  {
+				  src_dev = *it;
+			  } else {
+			  	kernel_clone_timer.Start();
+				  cl_mem dest_dev_specific_ptr = (cl_mem)m->GetDevSpecific(*it);
+				  cl_mem src_dev_specific_ptr = (cl_mem)new_arg->mem->GetDevSpecific(*it);
+				  //src_dev->CopyBuffer(NULL, m, new_arg->mem, 
+				  (*it)->CopyBuffer(NULL, new_arg->mem, m,
+						  src_dev_specific_ptr, dest_dev_specific_ptr, 
+						  0, 0, m->size()); 
+				   m->AddLatest(*it);
+			  	kernel_clone_timer.Stop();
+  				SNUCL_INFO("Test D2D Time (%p->%p): %g sec\n", *it, *it, kernel_clone_timer.CurrentElapsed());
+			  }
+		  }
+		  #endif
 #else
 		  // create array with arbitrary data
 		  // ---- approach 2 -----

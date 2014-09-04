@@ -322,6 +322,7 @@ void CLCommand::Execute() {
 		  for (vector<CLDevice*>::iterator it = devices.begin();
 				  it != devices.end(); ++it) {
 			  (*it)->WriteBuffer(this, mem_dst_, off_dst_, size_, ptr_);
+		 	  mem_dst_->AddLatest(*it);
 		  }
 	  } 
 	  else {

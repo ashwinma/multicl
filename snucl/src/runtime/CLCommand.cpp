@@ -164,7 +164,7 @@ CLCommand::~CLCommand() {
   event_->Release();
 }
 
-double CLCommand::EstimatedCost(CLDevice *target_device) {
+double CLCommand::EstimatedCost(CLDevice *target_device, bool useTrainingKernel) {
 	Global::RealTimer cmd_timer;
 	cmd_timer.Init();
 	cmd_timer.Start();
@@ -185,7 +185,7 @@ double CLCommand::EstimatedCost(CLDevice *target_device) {
 				should we init it//?
 			}*/
       		target_device->LaunchTestKernel(this, kernel_, work_dim_, gwo_, gws_, lws_, nwg_,
-                            kernel_args_);
+                            kernel_args_, useTrainingKernel);
 			/*for(all kernel params)
 			{
 				destroy buffer params one by one
@@ -953,7 +953,10 @@ bool CLCommand::ResolveConsistencyOfCopyMem() {
     }
     //ptr = memalign(4096, size);
 	//ptr = device_->AllocHostMem(mem_dst_);
-	ptr = mem_dst_->GetDevSpecificHostPtr(device_);
+	//ptr = mem_src_->GetDevSpecificHostPtr(source);
+	ptr = mem_src_->GetDevSpecificHostPtr(device_);
+	//ptr = mem_dst_->GetDevSpecificHostPtr(source);
+	//ptr = mem_dst_->GetDevSpecificHostPtr(device_);
 	//SNUCL_INFO("CopyMem Mapped Host Ptr: %p\n", ptr);
   }
 
@@ -1217,7 +1220,8 @@ CLEvent* CLCommand::CloneMem(CLDevice* dev_src, CLDevice* dev_dst,
   {
     //gCommandTimer.Start();
     //ptr = memalign(4096, mem->size());
-	ptr = mem->GetDevSpecificHostPtr(dev_dst);
+	ptr = mem->GetDevSpecificHostPtr(dev_src);
+	//ptr = mem->GetDevSpecificHostPtr(dev_dst);
 	//ptr = dev_dst->AllocHostMem(mem);
 	//SNUCL_INFO("Mapped Host Ptr: %p\n", ptr);
     //gCommandTimer.Stop();

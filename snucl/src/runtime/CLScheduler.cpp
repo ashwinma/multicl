@@ -190,10 +190,12 @@ void CLScheduler::Progress() {
 			queue_has_kernel[q_id] = false;
 			CLCommandQueue *queue = queues_[q_id];
 			if(queue->IsAutoDeviceSelection() != true) continue;
+			// MEGA HACK....CHANGE LOGIC for queues that need periodic
+			// performance modeling
+			if(queue->get_perf_model_done()) continue; 
 
 			std::list<CLCommand *> cmds = queue->commands();
 			//SNUCL_INFO("Command count for q_id: %d: %lu\n", q_id, cmds.size());
-			//if(queue->get_perf_model_done()) continue; // MEGA HACK....CHANGE LOGIC ASAP
 			std::string epochString;
 			for (list<CLCommand*>::iterator cmd_it = cmds.begin();
 					cmd_it != cmds.end();
@@ -242,7 +244,8 @@ void CLScheduler::Progress() {
 						{
 							CLDevice *dev = devices[device_id];
 							//cmd = (*cmd_it)->Clone(dev);
-							est_cost = cmd->EstimatedCost(dev);
+							est_cost = cmd->EstimatedCost(dev, 
+								(queue->get_properties() & CL_QUEUE_COMPUTE_INTENSIVE) ? true : false);
 							est_kernel_times[device_id] = est_cost;
 							SNUCL_INFO("Estimated Cost of Command Type %x for device %p: %g\n", cmd->type(), dev, est_cost);
 							//est_epoch_times[q_id][device_id] += est_cost;
@@ -316,7 +319,7 @@ void CLScheduler::Progress() {
 				queues_[q_id]->set_device(devices[chosen_dev_id]);
 			}
 			// update estimated times to include already chosen time
-			for(int q_idx = 0; q_idx < queues_.size(); q_idx++)
+			for(int q_idx = q_id; q_idx < queues_.size(); q_idx++)
 			{
 				if(q_idx != q_id)
 					est_epoch_times[q_idx][chosen_dev_id] += q_est_time;

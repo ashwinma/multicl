@@ -98,7 +98,7 @@ typedef CL_API_ENTRY cl_int (CL_API_CALL *pfn_clIcdGetPlatformIDs)(
 #define UPDATE_ERROR(err)                         \
   if (err != CL_SUCCESS) {                        \
     if(command)command->SetError(err);            \
-    SNUCL_ERROR("legacy vendor error %d\n", err); \
+    SNUCL_ERROR("legacy vendor error with device %p : %d\n", device_id_, err); \
     return;                                       \
   }
 
@@ -430,12 +430,16 @@ LegacyDevice::~LegacyDevice() {
 void LegacyDevice::LaunchTestKernel(CLCommand* command, CLKernel* kernel,
                                 cl_uint work_dim, size_t gwo[3], size_t gws[3],
                                 size_t lws[3], size_t nwg[3],
-                                map<cl_uint, CLKernelArg*>* kernel_args) {
+                                map<cl_uint, CLKernelArg*>* kernel_args, 
+								bool useTrainingKernel) {
   //SNUCL_INFO("Test run kernel: %s on Device ID %p (type %d)\n", kernel->name(), device_id_, type_);
   //printf("Device Type: %d Ptr: %p\n", type_, device_id_);
   CHECK_ERROR(available_ == CL_FALSE, CL_DEVICE_NOT_AVAILABLE);
-  cl_kernel legacy_kernel = (cl_kernel)kernel->GetDevSpecific(this);
-  //cl_kernel legacy_kernel = (cl_kernel)kernel->GetDevSpecificTraining(this);
+  cl_kernel legacy_kernel = NULL;
+  if(useTrainingKernel)
+	  legacy_kernel = (cl_kernel)kernel->GetDevSpecificTraining(this);
+  else
+  	  legacy_kernel = (cl_kernel)kernel->GetDevSpecific(this);
   CHECK_ERROR(legacy_kernel == NULL, CL_INVALID_PROGRAM_EXECUTABLE);
   cl_int err;
   for (map<cl_uint, CLKernelArg*>::iterator it = kernel_args->begin();
@@ -495,8 +499,9 @@ void LegacyDevice::LaunchKernel(CLCommand* command, CLKernel* kernel,
                                 cl_uint work_dim, size_t gwo[3], size_t gws[3],
                                 size_t lws[3], size_t nwg[3],
                                 map<cl_uint, CLKernelArg*>* kernel_args) {
-  //SNUCL_INFO("run kernel: %s\n", kernel->name());
-  //printf("Device Type: %d Ptr: %p\n", type_, device_id_);
+  SNUCL_INFO("run kernel: %s Device Type: %d Ptr: %p\n", 
+  		kernel->name(), type_, device_id_);
+  gLegacyTimer.Start();
   CHECK_ERROR(available_ == CL_FALSE, CL_DEVICE_NOT_AVAILABLE);
   cl_kernel legacy_kernel = (cl_kernel)kernel->GetDevSpecific(this);
   CHECK_ERROR(legacy_kernel == NULL, CL_INVALID_PROGRAM_EXECUTABLE);
@@ -526,6 +531,12 @@ void LegacyDevice::LaunchKernel(CLCommand* command, CLKernel* kernel,
     }
     UPDATE_ERROR(err);
   }
+  /*for(int i = 0; i < 3; i++) {
+  	SNUCL_INFO("GWO[%d]: %lu\n", i, gwo[i]);
+  	SNUCL_INFO("GWS[%d]: %lu\n", i, gws[i]);
+  	SNUCL_INFO("LWS[%d]: %lu\n", i, lws[i]);
+  	SNUCL_INFO("NWG[%d]: %lu\n", i, nwg[i]);
+  }*/
   cl_event event;
   err = dispatch_->clEnqueueNDRangeKernel(kernel_queue_, legacy_kernel,
                                           work_dim, gwo, gws, lws, 0, NULL,
@@ -533,6 +544,11 @@ void LegacyDevice::LaunchKernel(CLCommand* command, CLKernel* kernel,
   UPDATE_ERROR(err);
   err = dispatch_->clWaitForEvents(1, &event);
   UPDATE_ERROR(err);
+  gLegacyTimer.Stop();
+  //if(strcmp(kernel->name(), "cffts1") == 0)
+  SNUCL_INFO("[Device %p Type %d] Kernel %s Time: %g sec\n", 
+  		device_id_, type_,
+		kernel->name(), gLegacyTimer.CurrentElapsed());
 }
 
 void LegacyDevice::LaunchNativeKernel(CLCommand* command,
@@ -577,8 +593,8 @@ void LegacyDevice::ReadBuffer(CLCommand* command, CLMem* mem_src,
   cl_mem mem_src_dev = (cl_mem)mem_src->GetDevSpecific(this);
   CHECK_ERROR(mem_src_dev == NULL, CL_INVALID_MEM_OBJECT);
   cl_int err;
-  //SNUCL_INFO("[D2H Device: %p] ReadBuffer CLMem: %p->CLMem: %p, offset: %lu, size: %lu host ptr: %p\n",
-	//				this, mem_src, mem_src_dev, off_src, size, ptr);
+  SNUCL_INFO("[D2H Device: %p] ReadBuffer CLMem: %p->CLMem: %p, offset: %lu, size: %lu host ptr: %p\n",
+					this, mem_src, mem_src_dev, off_src, size, ptr);
   err = dispatch_->clEnqueueReadBuffer(mem_queue_, mem_src_dev, CL_TRUE,
                                        off_src, size, ptr, 0, NULL, NULL);
   UPDATE_ERROR(err);
@@ -589,8 +605,8 @@ void LegacyDevice::WriteBuffer(CLCommand* command, CLMem* mem_dst,
   //gLegacyTimer.Start();
   CHECK_ERROR(available_ == CL_FALSE, CL_DEVICE_NOT_AVAILABLE);
   cl_mem mem_dst_dev = (cl_mem)mem_dst->GetDevSpecific(this);
-  //SNUCL_INFO("[H2D Device: %p] WriteBuffer CLMem: %p->CLMem: %p, offset: %lu, size: %lu host ptr: %p\n",
-	//				this, mem_dst, mem_dst_dev, off_dst, size, ptr);
+  SNUCL_INFO("[H2D Device: %p] WriteBuffer CLMem: %p->CLMem: %p, offset: %lu, size: %lu host ptr: %p\n",
+					this, mem_dst, mem_dst_dev, off_dst, size, ptr);
   CHECK_ERROR(mem_dst_dev == NULL, CL_INVALID_MEM_OBJECT);
   cl_int err;
   err = dispatch_->clEnqueueWriteBuffer(mem_queue_, mem_dst_dev, CL_TRUE,
@@ -631,6 +647,10 @@ void LegacyDevice::CopyBuffer(CLCommand* command, CLMem* mem_src,
 	//				mem_dst, mem_dst_dev, 
 	//				off_src, off_dst, size);
 
+  SNUCL_INFO("[D2D Device: %p] CopyBuffer SrcCLMem: %p->CLMem: %p, src_offset: %lu, \
+  			  							  DstCLMem: %p->CLMem: %p, dst_offset: %lu, size: %lu\n", 
+					this, mem_src, mem_src_dev, off_src, 
+						  mem_dst, mem_dst_dev, off_dst, size);
   CHECK_ERROR(mem_src_dev == NULL, CL_INVALID_MEM_OBJECT);
   CHECK_ERROR(mem_dst_dev == NULL, CL_INVALID_MEM_OBJECT);
   cl_int err;
@@ -1388,13 +1408,14 @@ void LegacyDevice::IcdPlatformAdd(const char* library_name,
   fprintf(stderr, "[Device] 2\n");
   cl_device_id* devices = IcdGetDevices(platform, &num_devices);
   if (devices != NULL) {
-  cl_int err;
+  cl_int err = CL_SUCCESS;
   cl_context context = NULL;
   cl_context_properties properties[3] = {CL_CONTEXT_PLATFORM,
                                          (cl_context_properties)platform,
                                          0};
   context = platform->dispatch->clCreateContext(properties, num_devices, 
   				devices, NULL, NULL, &err);
+	//context = NULL;
 	if(err != CL_SUCCESS) 
 	{
 		context = NULL;

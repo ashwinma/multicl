@@ -187,6 +187,7 @@ CLDispatch::CLDispatch() {
   SET_DISPATCH(clEnqueueReleaseDX9MediaSurfacesKHR);
 #endif
 
+  SET_DISPATCH(clSetKernelLaunchConfiguration);
 #undef SET_DISPATCH
 }
 

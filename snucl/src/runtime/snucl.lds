@@ -92,6 +92,7 @@
   clIcdGetPlatformIDsKHR;
   clGetExtensionFunctionAddress;
   clGetExtensionFunctionAddressForPlatform;
+  clSetKernelLaunchConfiguration;
  local:
   *;
 };

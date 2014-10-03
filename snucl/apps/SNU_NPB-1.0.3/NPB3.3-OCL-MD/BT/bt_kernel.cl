@@ -63,7 +63,7 @@ __kernel void copy_faces_out1(__global double *g_u,
                               __global int *p1_offset,
                               int ncells)
 {
-  __global double (*u)[KMAX+4][JMAX+4][IMAX+4][5];
+  __global double (*u)[KMAX +4][JMAX+4][IMAX+4][5];
   __global int (*cell_coord)[3];
   __global int (*cell_size)[3];
 
@@ -2979,7 +2979,8 @@ __kernel void x_solve_cell(__global double *g_qs,
   start = (__global int (*)[3])g_start;
   end   = (__global int (*)[3])g_end;
 
-#if X_SOLVE_DIM == 2
+#ifndef USE_CPU
+//#if X_SOLVE_DIM == 2
   k = get_global_id(1) + start[c][2]+2;
   ksize = cell_size[c][2]-end[c][2]+1;
   if (k > ksize) return;
@@ -3907,7 +3908,8 @@ __kernel void y_solve_cell(__global double *g_qs,
   start = (__global int (*)[3])g_start;
   end   = (__global int (*)[3])g_end;
 
-#if Y_SOLVE_DIM == 2
+#ifndef USE_CPU
+//#if Y_SOLVE_DIM == 2
   k = get_global_id(1) + start[c][2]+2;
   ksize = cell_size[c][2]-end[c][2]+1;
   if (k > ksize) return;
@@ -4862,7 +4864,8 @@ __kernel void z_solve_cell(__global double *g_qs,
   start = (__global int (*)[3])g_start;
   end   = (__global int (*)[3])g_end;
 
-#if Z_SOLVE_DIM == 2
+#ifndef USE_CPU
+//#if Z_SOLVE_DIM == 2
   j = get_global_id(1) + start[c][1]+2;
   jsize = cell_size[c][1]-end[c][1]+1;
   if (j > jsize) return;

@@ -64,6 +64,14 @@ typedef struct _CLKernelArg {
   cl_mem_flags flags;
 } CLKernelArg;
 
+typedef struct _CLKernelLaunchParams {
+	cl_uint work_dim_;
+	size_t gwo_[3];
+	size_t gws_[3];
+	size_t lws_[3]; 
+	size_t nwg_[3];
+} CLKernelLaunchParams;
+
 class CLKernel: public CLObject<struct _cl_kernel, CLKernel,
 											struct _emu_cl_kernel> {
 public:
@@ -100,6 +108,11 @@ public:
   bool HasDevSpecificTraining(CLDevice* device);
   void* GetDevSpecificTraining(CLDevice* device);
 
+  bool HasDevSpecificLaunchConfiguration(CLDevice* device);
+  void SetDeviceSpecificLaunchConfiguration(CLDevice *device, cl_uint work_dim, 
+    const size_t* global_work_offset, const size_t* global_work_size,
+    const size_t* local_work_size);
+  CLKernelLaunchParams GetDevSpecificLaunchConfiguration(CLDevice* device);
  private:
   CLContext* context_;
   CLProgram* program_;
@@ -109,9 +122,11 @@ public:
   std::map<cl_uint, CLKernelArg*> args_;
   bool args_dirty_;
 
+  std::map<CLDevice*, CLKernelLaunchParams> dev_specific_launch_params_;
   std::map<CLDevice*, void*> dev_specific_;
   std::map<CLDevice*, void*> dev_specific_training_;
 
+  pthread_mutex_t mutex_dev_specific_launch_params_;
   pthread_mutex_t mutex_dev_specific_;
   pthread_mutex_t mutex_dev_specific_training_;
 };

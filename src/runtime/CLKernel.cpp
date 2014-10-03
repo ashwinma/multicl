@@ -69,6 +69,7 @@ CLKernel::CLKernel(CLContext* context, CLProgram* program,
 
   pthread_mutex_init(&mutex_dev_specific_, NULL);
   pthread_mutex_init(&mutex_dev_specific_training_, NULL);
+  pthread_mutex_init(&mutex_dev_specific_launch_params_, NULL);
 }
 
 CLKernel::~CLKernel() {
@@ -94,6 +95,7 @@ CLKernel::~CLKernel() {
 
   pthread_mutex_destroy(&mutex_dev_specific_);
   pthread_mutex_destroy(&mutex_dev_specific_training_);
+  pthread_mutex_destroy(&mutex_dev_specific_launch_params_);
 }
 
 cl_uint CLKernel::num_args() const {
@@ -362,6 +364,47 @@ void* CLKernel::GetDevSpecific(CLDevice* device) {
   }
   pthread_mutex_unlock(&mutex_dev_specific_);
   return dev_specific;
+}
+
+bool CLKernel::HasDevSpecificLaunchConfiguration(CLDevice* device) {
+  pthread_mutex_lock(&mutex_dev_specific_launch_params_);
+  bool alloc = (dev_specific_launch_params_.count(device) > 0);
+  pthread_mutex_unlock(&mutex_dev_specific_launch_params_);
+  return alloc;
+}
+
+CLKernelLaunchParams CLKernel::GetDevSpecificLaunchConfiguration(CLDevice* device) {
+  pthread_mutex_lock(&mutex_dev_specific_launch_params_);
+  CLKernelLaunchParams dev_specific;
+  if (dev_specific_launch_params_.count(device) > 0) {
+    dev_specific = dev_specific_launch_params_[device];
+  } 
+  pthread_mutex_unlock(&mutex_dev_specific_launch_params_);
+  return dev_specific;
+}
+
+void CLKernel::SetDeviceSpecificLaunchConfiguration(CLDevice *device, cl_uint work_dim, 
+    const size_t* global_work_offset, const size_t* global_work_size,
+    const size_t* local_work_size) {
+  pthread_mutex_lock(&mutex_dev_specific_launch_params_);
+  CLKernelLaunchParams dev_specific;
+  dev_specific.work_dim_ = work_dim;
+  for (cl_uint i = 0; i < work_dim; i++) {
+    dev_specific.gwo_[i] = (global_work_offset != NULL) ? global_work_offset[i] :
+                                                      0;
+    dev_specific.gws_[i] = global_work_size[i];
+    dev_specific.lws_[i] = (local_work_size != NULL) ? local_work_size[i] :
+                           ((global_work_size[i] % 4 == 0) ? 4 : 1);
+    dev_specific.nwg_[i] = dev_specific.gws_[i] / dev_specific.lws_[i];
+  }
+  for (cl_uint i = work_dim; i < 3; i++) {
+    dev_specific.gwo_[i] = 0;
+    dev_specific.gws_[i] = 1;
+    dev_specific.lws_[i] = 1;
+    dev_specific.nwg_[i] = 1;
+  }
+  dev_specific_launch_params_[device] = dev_specific;
+  pthread_mutex_unlock(&mutex_dev_specific_launch_params_);
 }
 
 bool CLKernel::HasDevSpecificTraining(CLDevice* device) {

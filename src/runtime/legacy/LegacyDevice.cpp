@@ -441,6 +441,7 @@ void LegacyDevice::LaunchTestKernel(CLCommand* command, CLKernel* kernel,
   else
   	  legacy_kernel = (cl_kernel)kernel->GetDevSpecific(this);
   CHECK_ERROR(legacy_kernel == NULL, CL_INVALID_PROGRAM_EXECUTABLE);
+  CLKernelLaunchParams legacy_kernel_launch_params = kernel->GetDevSpecificLaunchConfiguration(this);
   cl_int err;
   for (map<cl_uint, CLKernelArg*>::iterator it = kernel_args->begin();
        it != kernel_args->end();
@@ -470,12 +471,19 @@ void LegacyDevice::LaunchTestKernel(CLCommand* command, CLKernel* kernel,
     UPDATE_ERROR(err);
   }
   cl_event event;
-  SNUCL_INFO("Just before launching test kernel with work_dim:%u\n", work_dim);
-  for(int i = 0; i < 3; i++) {
-  	SNUCL_INFO("GWO[%d]: %lu\n", i, gwo[i]);
-  	SNUCL_INFO("GWS[%d]: %lu\n", i, gws[i]);
-  	SNUCL_INFO("LWS[%d]: %lu\n", i, lws[i]);
-  	SNUCL_INFO("NWG[%d]: %lu\n", i, nwg[i]);
+  if(kernel->HasDevSpecificLaunchConfiguration(this)) {
+	  work_dim = legacy_kernel_launch_params.work_dim_;
+//	  SNUCL_INFO("Just before launching test kernel with work_dim:%u\n", work_dim);
+	  for(int i = 0; i < 3; i++) {
+		  gwo[i] = legacy_kernel_launch_params.gwo_[i];
+		  gws[i] = legacy_kernel_launch_params.gws_[i];
+		  lws[i] = legacy_kernel_launch_params.lws_[i];
+		  nwg[i] = legacy_kernel_launch_params.nwg_[i];
+//		  SNUCL_INFO("GWO[%d]: %lu\n", i, gwo[i]);
+//		  SNUCL_INFO("GWS[%d]: %lu\n", i, gws[i]);
+//		  SNUCL_INFO("LWS[%d]: %lu\n", i, lws[i]);
+//		  SNUCL_INFO("NWG[%d]: %lu\n", i, nwg[i]);
+	  }
   }
   gLegacyTimer.Start();
   err = dispatch_->clEnqueueNDRangeKernel(kernel_queue_, legacy_kernel,
@@ -499,13 +507,14 @@ void LegacyDevice::LaunchKernel(CLCommand* command, CLKernel* kernel,
                                 cl_uint work_dim, size_t gwo[3], size_t gws[3],
                                 size_t lws[3], size_t nwg[3],
                                 map<cl_uint, CLKernelArg*>* kernel_args) {
-  SNUCL_INFO("run kernel: %s Device Type: %d Ptr: %p\n", 
-  		kernel->name(), type_, device_id_);
+//  SNUCL_INFO("run kernel: %s Device Type: %d Ptr: %p\n", 
+  //		kernel->name(), type_, device_id_);
   gLegacyTimer.Start();
   CHECK_ERROR(available_ == CL_FALSE, CL_DEVICE_NOT_AVAILABLE);
   cl_kernel legacy_kernel = (cl_kernel)kernel->GetDevSpecific(this);
   CHECK_ERROR(legacy_kernel == NULL, CL_INVALID_PROGRAM_EXECUTABLE);
   cl_int err;
+  CLKernelLaunchParams legacy_kernel_launch_params = kernel->GetDevSpecificLaunchConfiguration(this);
   for (map<cl_uint, CLKernelArg*>::iterator it = kernel_args->begin();
        it != kernel_args->end();
        ++it) {
@@ -531,12 +540,27 @@ void LegacyDevice::LaunchKernel(CLCommand* command, CLKernel* kernel,
     }
     UPDATE_ERROR(err);
   }
-  /*for(int i = 0; i < 3; i++) {
-  	SNUCL_INFO("GWO[%d]: %lu\n", i, gwo[i]);
-  	SNUCL_INFO("GWS[%d]: %lu\n", i, gws[i]);
-  	SNUCL_INFO("LWS[%d]: %lu\n", i, lws[i]);
-  	SNUCL_INFO("NWG[%d]: %lu\n", i, nwg[i]);
-  }*/
+  if(kernel->HasDevSpecificLaunchConfiguration(this)) {
+	//  SNUCL_INFO("Just before copying kernel %s config with work_dim:%u\n", kernel->name(), work_dim);
+	  work_dim = legacy_kernel_launch_params.work_dim_;
+	//  SNUCL_INFO("Just before launching test kernel with work_dim:%u\n", work_dim);
+	  for(int i = 0; i < 3; i++) {
+	/*	  SNUCL_INFO("Before GWO[%d]: %lu\n", i, gwo[i]);
+		  SNUCL_INFO("Before GWS[%d]: %lu\n", i, gws[i]);
+		  SNUCL_INFO("Before LWS[%d]: %lu\n", i, lws[i]);
+		  SNUCL_INFO("Before NWG[%d]: %lu\n", i, nwg[i]);
+*/
+		  gwo[i] = legacy_kernel_launch_params.gwo_[i];
+		  gws[i] = legacy_kernel_launch_params.gws_[i];
+		  lws[i] = legacy_kernel_launch_params.lws_[i];
+		  nwg[i] = legacy_kernel_launch_params.nwg_[i];
+/*		  SNUCL_INFO("GWO[%d]: %lu\n", i, gwo[i]);
+		  SNUCL_INFO("GWS[%d]: %lu\n", i, gws[i]);
+		  SNUCL_INFO("LWS[%d]: %lu\n", i, lws[i]);
+		  SNUCL_INFO("NWG[%d]: %lu\n", i, nwg[i]);
+*/
+	  }
+  }
   cl_event event;
   err = dispatch_->clEnqueueNDRangeKernel(kernel_queue_, legacy_kernel,
                                           work_dim, gwo, gws, lws, 0, NULL,
@@ -546,9 +570,9 @@ void LegacyDevice::LaunchKernel(CLCommand* command, CLKernel* kernel,
   UPDATE_ERROR(err);
   gLegacyTimer.Stop();
   //if(strcmp(kernel->name(), "cffts1") == 0)
-  SNUCL_INFO("[Device %p Type %d] Kernel %s Time: %g sec\n", 
-  		device_id_, type_,
-		kernel->name(), gLegacyTimer.CurrentElapsed());
+  //SNUCL_INFO("[Device %p Type %d] Kernel %s Time: %g sec\n", 
+  	//	device_id_, type_,
+	//	kernel->name(), gLegacyTimer.CurrentElapsed());
 }
 
 void LegacyDevice::LaunchNativeKernel(CLCommand* command,
@@ -593,8 +617,8 @@ void LegacyDevice::ReadBuffer(CLCommand* command, CLMem* mem_src,
   cl_mem mem_src_dev = (cl_mem)mem_src->GetDevSpecific(this);
   CHECK_ERROR(mem_src_dev == NULL, CL_INVALID_MEM_OBJECT);
   cl_int err;
-  SNUCL_INFO("[D2H Device: %p] ReadBuffer CLMem: %p->CLMem: %p, offset: %lu, size: %lu host ptr: %p\n",
-					this, mem_src, mem_src_dev, off_src, size, ptr);
+//  SNUCL_INFO("[D2H Device: %p] ReadBuffer CLMem: %p->CLMem: %p, offset: %lu, size: %lu host ptr: %p\n",
+//					this, mem_src, mem_src_dev, off_src, size, ptr);
   err = dispatch_->clEnqueueReadBuffer(mem_queue_, mem_src_dev, CL_TRUE,
                                        off_src, size, ptr, 0, NULL, NULL);
   UPDATE_ERROR(err);
@@ -605,8 +629,8 @@ void LegacyDevice::WriteBuffer(CLCommand* command, CLMem* mem_dst,
   //gLegacyTimer.Start();
   CHECK_ERROR(available_ == CL_FALSE, CL_DEVICE_NOT_AVAILABLE);
   cl_mem mem_dst_dev = (cl_mem)mem_dst->GetDevSpecific(this);
-  SNUCL_INFO("[H2D Device: %p] WriteBuffer CLMem: %p->CLMem: %p, offset: %lu, size: %lu host ptr: %p\n",
-					this, mem_dst, mem_dst_dev, off_dst, size, ptr);
+//  SNUCL_INFO("[H2D Device: %p] WriteBuffer CLMem: %p->CLMem: %p, offset: %lu, size: %lu host ptr: %p\n",
+//					this, mem_dst, mem_dst_dev, off_dst, size, ptr);
   CHECK_ERROR(mem_dst_dev == NULL, CL_INVALID_MEM_OBJECT);
   cl_int err;
   err = dispatch_->clEnqueueWriteBuffer(mem_queue_, mem_dst_dev, CL_TRUE,
@@ -647,10 +671,10 @@ void LegacyDevice::CopyBuffer(CLCommand* command, CLMem* mem_src,
 	//				mem_dst, mem_dst_dev, 
 	//				off_src, off_dst, size);
 
-  SNUCL_INFO("[D2D Device: %p] CopyBuffer SrcCLMem: %p->CLMem: %p, src_offset: %lu, \
-  			  							  DstCLMem: %p->CLMem: %p, dst_offset: %lu, size: %lu\n", 
-					this, mem_src, mem_src_dev, off_src, 
-						  mem_dst, mem_dst_dev, off_dst, size);
+//  SNUCL_INFO("[D2D Device: %p] CopyBuffer SrcCLMem: %p->CLMem: %p, src_offset: %lu, \
+  //			  							  DstCLMem: %p->CLMem: %p, dst_offset: %lu, size: %lu\n", 
+	//				this, mem_src, mem_src_dev, off_src, 
+	//					  mem_dst, mem_dst_dev, off_dst, size);
   CHECK_ERROR(mem_src_dev == NULL, CL_INVALID_MEM_OBJECT);
   CHECK_ERROR(mem_dst_dev == NULL, CL_INVALID_MEM_OBJECT);
   cl_int err;

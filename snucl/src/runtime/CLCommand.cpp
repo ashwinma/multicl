@@ -954,8 +954,8 @@ bool CLCommand::ResolveConsistencyOfCopyMem() {
     //ptr = memalign(4096, size);
 	//ptr = device_->AllocHostMem(mem_dst_);
 	//ptr = mem_src_->GetDevSpecificHostPtr(source);
-	ptr = mem_src_->GetDevSpecificHostPtr(device_);
-	//ptr = mem_dst_->GetDevSpecificHostPtr(source);
+	//ptr = mem_src_->GetDevSpecificHostPtr(device_);
+	ptr = mem_dst_->GetDevSpecificHostPtr(source);
 	//ptr = mem_dst_->GetDevSpecificHostPtr(device_);
 	//SNUCL_INFO("CopyMem Mapped Host Ptr: %p\n", ptr);
   }

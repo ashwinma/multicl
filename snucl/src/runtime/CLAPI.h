@@ -524,6 +524,14 @@ SNUCL_API_FUNCTION(clEnqueueMigrateMemObjects)(
     cl_event* event) CL_API_SUFFIX__VERSION_1_2;
 
 extern CL_API_ENTRY cl_int CL_API_CALL
+SNUCL_API_FUNCTION(clSetKernelLaunchConfiguration)(
+//extern cl_int clSetKernelLaunchConfiguration(
+    cl_device_id device, cl_kernel kernel, cl_uint work_dim,
+    const size_t* global_work_offset, const size_t* global_work_size,
+    const size_t* local_work_size)
+	CL_API_SUFFIX__VERSION_1_0;
+
+extern CL_API_ENTRY cl_int CL_API_CALL
 SNUCL_API_FUNCTION(clEnqueueNDRangeKernel)(
     cl_command_queue command_queue, cl_kernel kernel, cl_uint work_dim,
     const size_t* global_work_offset, const size_t* global_work_size,

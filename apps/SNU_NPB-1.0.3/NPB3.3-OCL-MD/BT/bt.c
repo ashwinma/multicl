@@ -45,6 +45,7 @@
 
 #include "bt_dim.h"
 
+//#define MINIMD_SNUCL_OPTIMIZATIONS
 //---------------------------------------------------------------------
 // OPENCL Variables
 //---------------------------------------------------------------------
@@ -53,6 +54,8 @@ cl_device_id      p_device;
 char             *device_name;
 cl_device_id     *devices;
 cl_uint           num_devices;
+cl_uint           num_command_queues;
+cl_uint           actual_num_devices;
 cl_context        context;
 cl_command_queue *cmd_queue;
 cl_program       program;
@@ -139,7 +142,7 @@ cl_mem *m_utmp;
 int COPY_FACES_OUT1_DIM, COPY_FACES_OUT2_DIM, COPY_FACES_OUT3_DIM;
 int COPY_FACES_IN1_DIM, COPY_FACES_IN2_DIM, COPY_FACES_IN3_DIM;
 int COMPUTE_RHS1_DIM, COMPUTE_RHS2_DIM, COMPUTE_RHS6_DIM;
-int X_SOLVE_DIM, Y_SOLVE_DIM, Z_SOLVE_DIM;
+int X_SOLVE_DIM[MAX_DEVICE_COUNT], Y_SOLVE_DIM[MAX_DEVICE_COUNT], Z_SOLVE_DIM[MAX_DEVICE_COUNT];
 int ADD_DIM;
 
 static void setup_opencl(int argc, char *argv[]);
@@ -289,7 +292,26 @@ int main(int argc, char *argv[])
   //---------------------------------------------------------------------
   // do one time step to touch all code, and reinitialize
   //---------------------------------------------------------------------
+#ifdef MINIMD_SNUCL_OPTIMIZATIONS
+  // set cmd queue property
+  for(i = 0; i < num_command_queues; i++) {
+  	clSetCommandQueueProperty(cmd_queue[i], 
+			CL_QUEUE_AUTO_DEVICE_SELECTION | 
+			//CL_QUEUE_ITERATIVE | 
+			CL_QUEUE_COMPUTE_INTENSIVE,
+			true,
+			NULL);
+  }
+#endif
   adi();
+#ifdef MINIMD_SNUCL_OPTIMIZATIONS
+  for(i = 0; i < num_command_queues; i++) {
+  	clSetCommandQueueProperty(cmd_queue[i], 
+			0,
+			true,
+			NULL);
+  }
+#endif
   initialize();
 
   //---------------------------------------------------------------------
@@ -383,6 +405,7 @@ static void setup_opencl(int argc, char *argv[])
   //    Then, create sub-devices from the parent device.
   //-----------------------------------------------------------------------
   device_type = CL_DEVICE_TYPE_ALL;
+  //device_type = CL_DEVICE_TYPE_CPU;
 
   cl_platform_id platform;
   ecode = clGetPlatformIDs(1, &platform, NULL);
@@ -390,6 +413,9 @@ static void setup_opencl(int argc, char *argv[])
 
   ecode = clGetDeviceIDs(platform, device_type, 0, NULL, &num_devices);
   clu_CheckError(ecode, "clGetDeviceIDs()");
+  //num_devices = 1;
+  num_command_queues = 4;
+  actual_num_devices = num_devices;
 
   devices = (cl_device_id *)malloc(sizeof(cl_device_id) * num_devices);
   ecode = clGetDeviceIDs(platform, device_type, num_devices, devices, NULL);
@@ -400,7 +426,7 @@ static void setup_opencl(int argc, char *argv[])
   max_compute_units = 22;
 
   //-------------------------------------------------------------------------
-  MAXCELLS = isqrt(num_devices);
+  MAXCELLS = isqrt(num_command_queues);
   MAX_CELL_DIM = (PROBLEM_SIZE/MAXCELLS)+1;
   IMAX = MAX_CELL_DIM;
   JMAX = MAX_CELL_DIM;
@@ -431,7 +457,6 @@ static void setup_opencl(int argc, char *argv[])
       }
     }
   }
-  if (device_type == CL_DEVICE_TYPE_CPU) {
     COPY_FACES_OUT1_DIM = COPY_FACES_OUT1_DIM_CPU;
     COPY_FACES_OUT2_DIM = COPY_FACES_OUT2_DIM_CPU;
     COPY_FACES_OUT3_DIM = COPY_FACES_OUT3_DIM_CPU;
@@ -441,24 +466,25 @@ static void setup_opencl(int argc, char *argv[])
     COMPUTE_RHS1_DIM = COMPUTE_RHS1_DIM_CPU;
     COMPUTE_RHS2_DIM = COMPUTE_RHS2_DIM_CPU;
     COMPUTE_RHS6_DIM = COMPUTE_RHS6_DIM_CPU;
-    X_SOLVE_DIM = X_SOLVE_DIM_CPU;
-    Y_SOLVE_DIM = Y_SOLVE_DIM_CPU;
-    Z_SOLVE_DIM = Z_SOLVE_DIM_CPU;
     ADD_DIM = ADD_DIM_CPU;
+ for (i = 0; i < actual_num_devices; i++) {
+    cl_device_type cur_device_type;
+  	cl_int err = clGetDeviceInfo(devices[i],
+	 			CL_DEVICE_TYPE,
+		 		sizeof(cl_device_type),
+			 	&cur_device_type,
+				NULL);
+    clu_CheckError(err, "clGetDeviceInfo()");
+
+ if (cur_device_type == CL_DEVICE_TYPE_CPU) {
+    X_SOLVE_DIM[i] = X_SOLVE_DIM_CPU;
+    Y_SOLVE_DIM[i] = Y_SOLVE_DIM_CPU;
+    Z_SOLVE_DIM[i] = Z_SOLVE_DIM_CPU;
   } else {
-    COPY_FACES_OUT1_DIM = COPY_FACES_OUT1_DIM_GPU;
-    COPY_FACES_OUT2_DIM = COPY_FACES_OUT2_DIM_GPU;
-    COPY_FACES_OUT3_DIM = COPY_FACES_OUT3_DIM_GPU;
-    COPY_FACES_IN1_DIM = COPY_FACES_IN1_DIM_GPU;
-    COPY_FACES_IN2_DIM = COPY_FACES_IN2_DIM_GPU;
-    COPY_FACES_IN3_DIM = COPY_FACES_IN3_DIM_GPU;
-    COMPUTE_RHS1_DIM = COMPUTE_RHS1_DIM_GPU;
-    COMPUTE_RHS2_DIM = COMPUTE_RHS2_DIM_GPU;
-    COMPUTE_RHS6_DIM = COMPUTE_RHS6_DIM_GPU;
-    X_SOLVE_DIM = X_SOLVE_DIM_GPU;
-    Y_SOLVE_DIM = Y_SOLVE_DIM_GPU;
-    Z_SOLVE_DIM = Z_SOLVE_DIM_GPU;
-    ADD_DIM = ADD_DIM_GPU;
+    X_SOLVE_DIM[i] = X_SOLVE_DIM_GPU;
+    Y_SOLVE_DIM[i] = Y_SOLVE_DIM_GPU;
+    Z_SOLVE_DIM[i] = Z_SOLVE_DIM_GPU;
+  }
   }
   ////////////////////////////////////////////////////////////////////////
 
@@ -468,7 +494,7 @@ static void setup_opencl(int argc, char *argv[])
 #ifdef MINIMD_SNUCL_OPTIMIZATIONS
 	cl_context_properties props[5] = {
 		CL_CONTEXT_PLATFORM,
-		(cl_context_properties)myPlatform,
+		(cl_context_properties)platform,
 		CL_CONTEXT_SCHEDULER,
 		CL_CONTEXT_SCHEDULER_PERF_MODEL,
 		0 };
@@ -484,13 +510,15 @@ static void setup_opencl(int argc, char *argv[])
   //-----------------------------------------------------------------------
   // 3. Create a command queue
   //-----------------------------------------------------------------------
-  cmd_queue = (cl_command_queue*)malloc(sizeof(cl_command_queue)*num_devices);
-  for (i = 0; i < num_devices; i++) {
-    cmd_queue[i] = clCreateCommandQueue(context, devices[i], 
+  cmd_queue = (cl_command_queue*)malloc(sizeof(cl_command_queue)*num_command_queues);
+  for (i = 0; i < num_command_queues; i++) {
+    cmd_queue[i] = clCreateCommandQueue(context, devices[(i < 3) ? 0 : 1], 
+    //cmd_queue[i] = clCreateCommandQueue(context, devices[i%actual_num_devices], 
 #ifdef MINIMD_SNUCL_OPTIMIZATIONS
-			CL_QUEUE_AUTO_DEVICE_SELECTION | 
-			CL_QUEUE_ITERATIVE | 
-			CL_QUEUE_COMPUTE_INTENSIVE,
+	0,
+			//CL_QUEUE_AUTO_DEVICE_SELECTION | 
+			//CL_QUEUE_ITERATIVE | 
+			//CL_QUEUE_COMPUTE_INTENSIVE,
 #else
 		0, 
 #endif
@@ -502,9 +530,19 @@ static void setup_opencl(int argc, char *argv[])
   // 4. Build programs
   //-----------------------------------------------------------------------
   if (timeron) timer_start(TIMER_BUILD);
-  char build_option[100];
+  program = clu_CreateProgram(context, source_dir, "bt_kernel.cl");
 
-  if (device_type == CL_DEVICE_TYPE_CPU) {
+  for (i = 0; i < actual_num_devices; i++) {
+      char build_option[100] = {0};
+	  cl_device_type cur_device_type;
+	  cl_int err = clGetDeviceInfo(devices[i],
+			  CL_DEVICE_TYPE,
+			  sizeof(cl_device_type),
+			  &cur_device_type,
+			  NULL);
+	  clu_CheckError(err, "clGetDeviceInfo()");
+
+  if (cur_device_type == CL_DEVICE_TYPE_CPU) {
     sprintf(build_option,
         "-I. -DCLASS=%d -DMAXCELLS=%d -DMAX_CELL_DIM=%d -DIMAX=%d -DJMAX=%d "
         "-DKMAX=%d -DBUF_SIZE=%d -DUSE_CPU",
@@ -516,15 +554,15 @@ static void setup_opencl(int argc, char *argv[])
         CLASS, MAXCELLS, MAX_CELL_DIM, IMAX, JMAX, KMAX, BUF_SIZE);
   }
 
+  //program = clu_MakeProgram(context, num_devices, devices, source_dir, "bt_kernel.cl", build_option);
+  clu_MakeProgram(program, 1, &devices[i], source_dir, build_option);
+  }
+  num_devices = num_command_queues;
   p_initialize = (cl_program *)malloc(sizeof(cl_program) * num_devices);
   p_exact_rhs = (cl_program *)malloc(sizeof(cl_program) * num_devices);
   p_error = (cl_program *)malloc(sizeof(cl_program) * num_devices);
   p_adi = (cl_program *)malloc(sizeof(cl_program) * num_devices);
   p_solve = (cl_program *)malloc(sizeof(cl_program) * num_devices);
-
-  //program = clu_MakeProgram(context, num_devices, devices, source_dir, "bt_kernel.cl", build_option);
-  program = clu_CreateProgram(context, source_dir, "bt_kernel.cl");
-  clu_MakeProgram(program, num_devices, devices, source_dir, build_option);
 
   for (i = 0; i < num_devices; i++) {
     p_initialize[i] = program;

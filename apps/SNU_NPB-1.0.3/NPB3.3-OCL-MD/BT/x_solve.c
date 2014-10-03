@@ -437,33 +437,45 @@ static void x_backsubstitute(int first, int last, int stage)
 //---------------------------------------------------------------------
 static void x_solve_cell(int first, int last, int stage)
 {
-  int i, c;
+  int j, i, c;
   size_t d0_size, d1_size;
   cl_int ecode;
 
   int (*slice)[MAXCELLS][3] = (int (*)[MAXCELLS][3])g_slice;
 
+  for (j = 0; j < num_devices; j++) {
+	  for (i = 0; i < actual_num_devices; i++) {
+
+		  size_t x_sc_lws[3], x_sc_gws[3], temp;
+
+		  if (X_SOLVE_DIM[i] == 2) { // GPU
+			  d0_size = max_cell_size[j][1];
+			  d1_size = max_cell_size[j][2];
+
+			  x_sc_lws[0] = d0_size < work_item_sizes[0] ?
+				  d0_size : work_item_sizes[0];
+			  temp = max_work_group_size / x_sc_lws[0];
+			  x_sc_lws[1] = d1_size < temp ? d1_size : temp;
+			  x_sc_gws[0] = clu_RoundWorkSize(d0_size, x_sc_lws[0]);
+			  x_sc_gws[1] = clu_RoundWorkSize(d1_size, x_sc_lws[1]);
+		  } else { // CPU
+			  d0_size = max_cell_size[j][2];
+			  x_sc_lws[0] = 1; //d0_size / max_compute_units;
+			  x_sc_gws[0] = clu_RoundWorkSize(d0_size, x_sc_lws[0]);
+		  }
+    	ecode = clSetKernelLaunchConfiguration(devices[i],
+                                   k_x_sc[j],
+                                   X_SOLVE_DIM[i], NULL,
+                                   x_sc_gws,
+                                   x_sc_lws
+                                   );
+   		clu_CheckError(ecode, "clEnqueueNDRangeKernel()");
+	  }
+  }
+
   for (i = 0; i < num_devices; i++) {
+	size_t x_sc_lws[3] = {1,1,1}, x_sc_gws[3]={1,1,1};
     c = slice[i][stage][0];
-
-    size_t x_sc_lws[3], x_sc_gws[3], temp;
-
-    if (X_SOLVE_DIM == 2) {
-      d0_size = max_cell_size[i][1];
-      d1_size = max_cell_size[i][2];
-
-      x_sc_lws[0] = d0_size < work_item_sizes[0] ?
-                    d0_size : work_item_sizes[0];
-      temp = max_work_group_size / x_sc_lws[0];
-      x_sc_lws[1] = d1_size < temp ? d1_size : temp;
-      x_sc_gws[0] = clu_RoundWorkSize(d0_size, x_sc_lws[0]);
-      x_sc_gws[1] = clu_RoundWorkSize(d1_size, x_sc_lws[1]);
-    } else {
-      d0_size = max_cell_size[i][2];
-      x_sc_lws[0] = 1; //d0_size / max_compute_units;
-      x_sc_gws[0] = clu_RoundWorkSize(d0_size, x_sc_lws[0]);
-    }
-
     ecode  = clSetKernelArg(k_x_sc[i], 0, sizeof(cl_mem), &m_qs[i]);
     ecode |= clSetKernelArg(k_x_sc[i], 1, sizeof(cl_mem), &m_rho_i[i]);
     ecode |= clSetKernelArg(k_x_sc[i], 2, sizeof(cl_mem), &m_u[i]);
@@ -483,7 +495,7 @@ static void x_solve_cell(int first, int last, int stage)
 
     ecode = clEnqueueNDRangeKernel(cmd_queue[i],
                                    k_x_sc[i],
-                                   X_SOLVE_DIM, NULL,
+                                   3, NULL,
                                    x_sc_gws,
                                    x_sc_lws,
                                    0, NULL, NULL);

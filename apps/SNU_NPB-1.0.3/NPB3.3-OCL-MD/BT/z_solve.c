@@ -435,32 +435,44 @@ static void z_backsubstitute(int first, int last, int stage)
 //---------------------------------------------------------------------
 static void z_solve_cell(int first, int last, int stage)
 {
-  int i, c;
+  int j, i, c;
   size_t d0_size, d1_size;
   cl_int ecode;
 
   int (*slice)[MAXCELLS][3] = (int (*)[MAXCELLS][3])g_slice;
 
+  for (j = 0; j < num_devices; j++) {
+	  for (i = 0; i < actual_num_devices; i++) {
+		  size_t z_sc_lws[3], z_sc_gws[3], temp;
+		  if (Z_SOLVE_DIM[i] == 2) {
+			  d0_size = max_cell_size[j][0];
+			  d1_size = max_cell_size[j][1];
+
+			  z_sc_lws[0] = d0_size < work_item_sizes[0] ?
+				  d0_size : work_item_sizes[0];
+			  temp = max_work_group_size / z_sc_lws[0];
+			  z_sc_lws[1] = d1_size < temp ? d1_size : temp;
+			  z_sc_gws[0] = clu_RoundWorkSize(d0_size, z_sc_lws[0]);
+			  z_sc_gws[1] = clu_RoundWorkSize(d1_size, z_sc_lws[1]);
+		  } else {
+			  d0_size = max_cell_size[j][1];
+			  z_sc_lws[0] = 1; //d0_size / max_compute_units;
+			  z_sc_gws[0] = clu_RoundWorkSize(d0_size, z_sc_lws[0]);
+		  }
+		  ecode = clSetKernelLaunchConfiguration(devices[i],
+				  k_z_sc[j],
+				  Z_SOLVE_DIM[i], NULL,
+				  z_sc_gws,
+				  z_sc_lws
+				  );
+		  clu_CheckError(ecode, "clEnqueueNDRangeKernel()");
+
+	  }
+  }
   for (i = 0; i < num_devices; i++) {
     c = slice[i][stage][2];
 
-    size_t z_sc_lws[3], z_sc_gws[3], temp;
-
-    if (Z_SOLVE_DIM == 2) {
-      d0_size = max_cell_size[i][0];
-      d1_size = max_cell_size[i][1];
-
-      z_sc_lws[0] = d0_size < work_item_sizes[0] ?
-                    d0_size : work_item_sizes[0];
-      temp = max_work_group_size / z_sc_lws[0];
-      z_sc_lws[1] = d1_size < temp ? d1_size : temp;
-      z_sc_gws[0] = clu_RoundWorkSize(d0_size, z_sc_lws[0]);
-      z_sc_gws[1] = clu_RoundWorkSize(d1_size, z_sc_lws[1]);
-    } else {
-      d0_size = max_cell_size[i][1];
-      z_sc_lws[0] = 1; //d0_size / max_compute_units;
-      z_sc_gws[0] = clu_RoundWorkSize(d0_size, z_sc_lws[0]);
-    }
+    size_t z_sc_lws[3] = {1,1,1}, z_sc_gws[3] = {1,1,1};
 
     ecode  = clSetKernelArg(k_z_sc[i], 0, sizeof(cl_mem), &m_qs[i]);
     ecode |= clSetKernelArg(k_z_sc[i], 1, sizeof(cl_mem), &m_u[i]);
@@ -481,7 +493,7 @@ static void z_solve_cell(int first, int last, int stage)
 
     ecode = clEnqueueNDRangeKernel(cmd_queue[i],
                                    k_z_sc[i],
-                                   Z_SOLVE_DIM, NULL,
+                                   3, NULL,
                                    z_sc_gws,
                                    z_sc_lws,
                                    0, NULL, NULL);

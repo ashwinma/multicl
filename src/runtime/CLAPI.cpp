@@ -2105,6 +2105,43 @@ SNUCL_API_FUNCTION(clEnqueueMigrateMemObjects)(
 }
 
 CL_API_ENTRY cl_int CL_API_CALL
+SNUCL_API_FUNCTION(clSetKernelLaunchConfiguration)(
+//cl_int clSetKernelLaunchConfiguration(
+    cl_device_id device, cl_kernel kernel, cl_uint work_dim,
+    const size_t* global_work_offset, const size_t* global_work_size,
+    const size_t* local_work_size)
+    CL_API_SUFFIX__VERSION_1_0 {
+  if (IS_INVALID_DEVICE(device))
+    return CL_INVALID_DEVICE;
+  if (kernel == NULL)
+    return CL_INVALID_KERNEL;
+
+  CLDevice* d = device->c_obj;
+  CLKernel* k = kernel->c_obj;
+
+//  if (!k->IsArgsDirty())
+  //  return CL_INVALID_KERNEL_ARGS;
+  //  kernel args and launch config are independent
+  if (!k->program()->IsValidDevice(d))
+    return CL_INVALID_PROGRAM_EXECUTABLE;
+  if (work_dim < 1 || work_dim > 3)
+    return CL_INVALID_WORK_DIMENSION;
+  if (global_work_size == NULL)
+    return CL_INVALID_GLOBAL_WORK_SIZE;
+
+  if (local_work_size != NULL) {
+    for (cl_uint i = 0; i < work_dim; i++)
+      if (global_work_size[i] % local_work_size[i] > 0)
+        return CL_INVALID_WORK_GROUP_SIZE;
+  }
+
+  k->SetDeviceSpecificLaunchConfiguration(d, work_dim, 
+  	  global_work_offset, global_work_size, local_work_size);
+
+  return CL_SUCCESS;
+}
+
+CL_API_ENTRY cl_int CL_API_CALL
 SNUCL_API_FUNCTION(clEnqueueNDRangeKernel)(
     cl_command_queue command_queue, cl_kernel kernel, cl_uint work_dim,
     const size_t* global_work_offset, const size_t* global_work_size,

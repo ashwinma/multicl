@@ -198,6 +198,8 @@ extern cl_device_id      p_device;
 extern char             *device_name;
 extern cl_device_id     *devices;
 extern cl_uint           num_devices;
+extern cl_uint           actual_num_devices;
+extern cl_uint           num_command_queues;
 extern cl_context        context;
 extern cl_command_queue *cmd_queue;
 extern cl_program       *p_initialize;
@@ -274,9 +276,10 @@ extern cl_mem *m_backsub_info;
 extern cl_mem *m_in_buffer;
 extern cl_mem *m_out_buffer;
 
+#define MAX_DEVICE_COUNT	16
 extern int COPY_FACES_OUT1_DIM, COPY_FACES_OUT2_DIM, COPY_FACES_OUT3_DIM;
 extern int COPY_FACES_IN1_DIM, COPY_FACES_IN2_DIM, COPY_FACES_IN3_DIM;
 extern int COMPUTE_RHS1_DIM, COMPUTE_RHS2_DIM, COMPUTE_RHS6_DIM;
-extern int X_SOLVE_DIM, Y_SOLVE_DIM, Z_SOLVE_DIM;
+extern int X_SOLVE_DIM[MAX_DEVICE_COUNT], Y_SOLVE_DIM[MAX_DEVICE_COUNT], Z_SOLVE_DIM[MAX_DEVICE_COUNT];
 extern int ADD_DIM;
 

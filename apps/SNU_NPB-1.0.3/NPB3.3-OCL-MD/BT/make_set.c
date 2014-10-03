@@ -414,11 +414,11 @@ void make_set()
     if (max0 < max_cell_size[i][1]) max0 = max_cell_size[i][1];
     if (max0 < max_cell_size[i][2]) max0 = max_cell_size[i][2];
 
-    if (X_SOLVE_DIM == 1 && Y_SOLVE_DIM == 1 && Z_SOLVE_DIM == 1) {
-      max_work_items = max0;
-    } else {
+  //  if (X_SOLVE_DIM[i] == 1 && Y_SOLVE_DIM[i] == 1 && Z_SOLVE_DIM[i] == 1) {
+    //  max_work_items = max0;
+    //} else {
       max_work_items = max0 * max0;
-    }
+    //}
     buf_size1 = sizeof(double)*(MAX_CELL_DIM+2)*5*5 * max_work_items;
     buf_size2 = sizeof(double)*(MAX_CELL_DIM+4)*5*5 * max_work_items;
     buf_size3 = sizeof(double)*(JMAX+4)*6 * max_work_items;

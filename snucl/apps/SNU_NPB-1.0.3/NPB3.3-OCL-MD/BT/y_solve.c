@@ -434,33 +434,44 @@ static void y_backsubstitute(int first, int last, int stage)
 //---------------------------------------------------------------------
 static void y_solve_cell(int first, int last, int stage)
 {
-  int i, c;
+  int j, i, c;
   size_t d0_size, d1_size;
   cl_int ecode;
 
   int (*slice)[MAXCELLS][3] = (int (*)[MAXCELLS][3])g_slice;
 
+  for (j = 0; j < num_devices; j++) {
+	  for (i = 0; i < actual_num_devices; i++) {
+		  size_t y_sc_lws[3], y_sc_gws[3], temp;
+
+		  if (Y_SOLVE_DIM[i] == 2) {
+			  d0_size = max_cell_size[j][0];
+			  d1_size = max_cell_size[j][2];
+
+			  y_sc_lws[0] = d0_size < work_item_sizes[0] ?
+				  d0_size : work_item_sizes[0];
+			  temp = max_work_group_size / y_sc_lws[0];
+			  y_sc_lws[1] = d1_size < temp ? d1_size : temp;
+			  y_sc_gws[0] = clu_RoundWorkSize(d0_size, y_sc_lws[0]);
+			  y_sc_gws[1] = clu_RoundWorkSize(d1_size, y_sc_lws[1]);
+		  } else {
+			  d0_size = max_cell_size[j][2];
+			  y_sc_lws[0] = 1; //d0_size / max_compute_units;
+			  y_sc_gws[0] = clu_RoundWorkSize(d0_size, y_sc_lws[0]);
+		  }
+		  ecode = clSetKernelLaunchConfiguration(devices[i],
+				  k_y_sc[j],
+				  Y_SOLVE_DIM[i], NULL,
+				  y_sc_gws,
+				  y_sc_lws
+				  );
+		  clu_CheckError(ecode, "clEnqueueNDRangeKernel()");
+	  }
+  }
   for (i = 0; i < num_devices; i++) {
     c = slice[i][stage][1];
 
-    size_t y_sc_lws[3], y_sc_gws[3], temp;
-
-    if (Y_SOLVE_DIM == 2) {
-      d0_size = max_cell_size[i][0];
-      d1_size = max_cell_size[i][2];
-
-      y_sc_lws[0] = d0_size < work_item_sizes[0] ?
-                    d0_size : work_item_sizes[0];
-      temp = max_work_group_size / y_sc_lws[0];
-      y_sc_lws[1] = d1_size < temp ? d1_size : temp;
-      y_sc_gws[0] = clu_RoundWorkSize(d0_size, y_sc_lws[0]);
-      y_sc_gws[1] = clu_RoundWorkSize(d1_size, y_sc_lws[1]);
-    } else {
-      d0_size = max_cell_size[i][2];
-      y_sc_lws[0] = 1; //d0_size / max_compute_units;
-      y_sc_gws[0] = clu_RoundWorkSize(d0_size, y_sc_lws[0]);
-    }
-
+	size_t y_sc_lws[3] = {1,1,1}, y_sc_gws[3]={1,1,1};
     ecode  = clSetKernelArg(k_y_sc[i], 0, sizeof(cl_mem), &m_qs[i]);
     ecode |= clSetKernelArg(k_y_sc[i], 1, sizeof(cl_mem), &m_u[i]);
     ecode |= clSetKernelArg(k_y_sc[i], 2, sizeof(cl_mem), &m_rhs[i]);
@@ -480,7 +491,7 @@ static void y_solve_cell(int first, int last, int stage)
 
     ecode = clEnqueueNDRangeKernel(cmd_queue[i],
                                    k_y_sc[i],
-                                   Y_SOLVE_DIM, NULL,
+                                   3, NULL,
                                    y_sc_gws,
                                    y_sc_lws,
                                    0, NULL, NULL);

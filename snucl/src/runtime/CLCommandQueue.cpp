@@ -76,7 +76,8 @@ CLCommandQueue::CLCommandQueue(CLContext *context, CLDevice* device,
 */
 CLCommandQueue::CLCommandQueue(CLContext *context, CLDevice* device,
                                cl_command_queue_properties properties) {
-  perfModDone_ = false;
+  perfModDone_ = false; 
+  accumulatedPerformances_.clear();
   context_ = context;
   context_->Retain();
   device_ = device;
@@ -205,6 +206,45 @@ void CLCommandQueue::recordEpoch(std::string epoch, std::vector<double> performa
 	epochPerformances_[epoch] = performances;
 }
 #endif
+void CLCommandQueue::accumulateEpoch(std::vector<double> performances) {
+	SNUCL_INFO("[Q %p] To be accumulated vector size: %d\n", this, performances.size());
+	if(accumulatedPerformances_.size() == 0) {
+		accumulatedPerformances_.resize(performances.size());
+		for(int i = 0; i < accumulatedPerformances_.size(); i++)
+		{
+			accumulatedPerformances_[i] = performances[i];
+			SNUCL_INFO("After accumulation for dev %d: %g\n", i, accumulatedPerformances_[i]);
+		}
+	}
+	else
+	{
+		if(performances.size() != accumulatedPerformances_.size()) {
+			SNUCL_ERROR("Cannot accumulate unequal vectors\n", 0);
+		}
+		for(int i = 0; i < accumulatedPerformances_.size(); i++)
+		{
+			SNUCL_INFO("Before accumulation for dev %d: %g\n", i, accumulatedPerformances_[i]);
+			accumulatedPerformances_[i] += performances[i];
+			SNUCL_INFO("After accumulation for dev %d: %g\n", i, accumulatedPerformances_[i]);
+		}
+	}
+}
+
+std::vector<double> CLCommandQueue::getAccumulatedEpochCosts() {
+	//if(accumulatedPerformances_.size() > 0)
+	
+	SNUCL_INFO("[Q %p] Accumulated vector size: %d\n", this, accumulatedPerformances_.size());
+	for(int i = 0; i < accumulatedPerformances_.size(); i++) {
+		SNUCL_INFO("Acc Perf[%d]: %g\n", i, accumulatedPerformances_[i]);
+	}
+		return accumulatedPerformances_;
+	//return std::vector<double>(0);
+}
+
+void CLCommandQueue::resetAccumulatedEpochCosts() {
+	accumulatedPerformances_.clear();
+}
+
 cl_int CLCommandQueue::GetCommandQueueInfo(cl_command_queue_info param_name,
                                            size_t param_value_size,
                                            void* param_value,
@@ -301,8 +341,8 @@ cl_int CLCommandQueue::set_device(CLDevice *d) {
 	return CL_SUCCESS;
 }
 
-void CLInOrderCommandQueue::Flush() {
-    device_->ProgressScheduler();	
+void CLInOrderCommandQueue::Flush(bool special_event) {
+    device_->ProgressScheduler(special_event);	
 	commands_.clear();
 	InvokeScheduler();
 }

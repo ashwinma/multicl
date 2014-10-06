@@ -318,10 +318,10 @@ typedef struct _cl_buffer_region {
 #define CL_QUEUE_DEVICE_SELECT_NEAREST				0x06F0
 #define CL_QUEUE_DEVICE_SELECT_LEAST_LOADED			0x07F0
 
-#define CL_QUEUE_COMPUTE_INTENSIVE					0x08F0
-#define CL_QUEUE_MEM_INTENSIVE						0x09F0
-#define CL_QUEUE_LMEM_INTENSIVE						0x0aF0
-#define CL_QUEUE_IO_INTENSIVE						0x0bF0
+#define CL_QUEUE_COMPUTE_INTENSIVE					0x0100
+#define CL_QUEUE_MEM_INTENSIVE						0x0200
+#define CL_QUEUE_LMEM_INTENSIVE						0x0400
+#define CL_QUEUE_IO_INTENSIVE						0x0800
 
 #define CL_QUEUE_AUTO_DEVICE_SELECTION				0x0010
 #define CL_QUEUE_ITERATIVE							0x0020
@@ -350,6 +350,8 @@ typedef struct _cl_buffer_region {
 #define CL_CONTEXT_SCHEDULER_RR							0x1
 #define CL_CONTEXT_SCHEDULER_PRIORITY_RR				0x2
 #define CL_CONTEXT_SCHEDULER_PERF_MODEL					0x3
+#define CL_CONTEXT_SCHEDULER_EPOCH_BASED_PERF_MODEL		0x3
+#define CL_CONTEXT_SCHEDULER_CODE_SEGMENTED_PERF_MODEL	0x4
 // CL_CONTEXT_SCHEDULER_PERF_MODEL_KERNEL
 // CL_CONTEXT_SCHEDULER_PERF_MODEL_KERNEL_IO
 // CL_CONTEXT_SCHEDULER_PERF_MODEL_MINIKERNEL
@@ -1156,6 +1158,16 @@ clEnqueueMigrateMemObjects(cl_command_queue       /* command_queue */,
                            cl_uint                /* num_events_in_wait_list */,
                            const cl_event *       /* event_wait_list */,
                            cl_event *             /* event */) CL_API_SUFFIX__VERSION_1_2;
+
+extern CL_API_ENTRY cl_int CL_API_CALL
+clSetKernelLaunchConfiguration(cl_device_id, 
+			cl_kernel, 
+			cl_uint,
+    		const size_t*, 
+			const size_t*,
+    		const size_t* )
+			CL_API_SUFFIX__VERSION_1_0;
+
 
 extern CL_API_ENTRY cl_int CL_API_CALL
 clEnqueueNDRangeKernel(cl_command_queue /* command_queue */,

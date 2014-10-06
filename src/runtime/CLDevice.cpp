@@ -736,8 +736,8 @@ void CLDevice::InvokeScheduler() {
   scheduler_->Invoke();
 }
 
-void CLDevice::ProgressScheduler() {
-	scheduler_->Progress();
+void CLDevice::ProgressScheduler(bool special_event) {
+	scheduler_->Progress(special_event);
 }
 
 void CLDevice::EnqueueReadyQueue(CLCommand* command) {

@@ -60,7 +60,7 @@ class CLScheduler {
   void Start();
   void Stop();
   void Invoke();
-  void Progress();
+  void Progress(bool special_event = false);
   void AddCommandQueue(CLCommandQueue* queue);
   void RemoveCommandQueue(CLCommandQueue* queue);
 

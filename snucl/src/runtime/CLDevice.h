@@ -105,7 +105,7 @@ class CLDevice: public CLObject<struct _cl_device_id, CLDevice,
   void AddCommandQueue(CLCommandQueue* queue);
   void RemoveCommandQueue(CLCommandQueue* queue);
   void InvokeScheduler();
-  void ProgressScheduler();
+  void ProgressScheduler(bool special_event = false);
 
   void EnqueueReadyQueue(CLCommand* command);
   CLCommand* DequeueReadyQueue();

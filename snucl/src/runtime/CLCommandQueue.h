@@ -84,7 +84,7 @@ class CLCommandQueue: public CLObject<struct _cl_command_queue,
   virtual CLCommand* Peek() = 0;
   virtual void Enqueue(CLCommand* command) = 0;
   virtual void Dequeue(CLCommand* command) = 0;
-  virtual void Flush() = 0;
+  virtual void Flush(bool special_event = false) = 0;
   void PrintInfo();
   std::list<CLCommand *> commands() const {
   	return commands_;
@@ -92,7 +92,10 @@ class CLCommandQueue: public CLObject<struct _cl_command_queue,
 
   //bool isEpochRecorded(std::string epoch);
   //void recordEpoch(std::string epoch, std::vector<double> performances);
+  void accumulateEpoch(std::vector<double> performances);
   //std::vector<double> getEpochCosts(std::string epoch);
+  std::vector<double> getAccumulatedEpochCosts();
+  void resetAccumulatedEpochCosts();
   void set_perf_model_done(bool val) {perfModDone_ = val;}
   bool get_perf_model_done() {return perfModDone_;}
   void set_properties(cl_command_queue_properties properties) {properties_ = properties; }
@@ -107,9 +110,11 @@ class CLCommandQueue: public CLObject<struct _cl_command_queue,
   std::list<CLCommand*> commands_;
 
  private:
-  //typedef std::vector<double> devicePerfVector;
+  typedef std::vector<double> devicePerfVector;
+  devicePerfVector accumulatedPerformances_;
   //std::map<std::string, devicePerfVector> epochPerformances_; 
   bool perfModDone_;
+  bool explicitEpochMarkerSet_;
   CLContext* context_;
   cl_command_queue_properties properties_;
   cl_command_queue_type type_;
@@ -129,7 +134,7 @@ class CLInOrderCommandQueue: public CLCommandQueue {
   CLCommand* Peek();
   void Enqueue(CLCommand* command);
   void Dequeue(CLCommand* command);
-  void Flush();
+  void Flush(bool special_event = false);
   //std::list<CLCommand *> commands() const {
   //	return commands_;
   //}
@@ -147,7 +152,7 @@ class CLOutOfOrderCommandQueue: public CLCommandQueue {
   ~CLOutOfOrderCommandQueue();
 
   CLCommand* Peek();
-  void Flush() {}
+  void Flush(bool special_event = false) {}
   void Enqueue(CLCommand* command);
   void Dequeue(CLCommand* command);
   //std::list<CLCommand *> commands() const {

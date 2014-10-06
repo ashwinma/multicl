@@ -205,11 +205,11 @@ void CLEvent::SetStatus(cl_int status) {
     CLPlatform::GetPlatform()->InvokeAllSchedulers();
 }
 
-cl_int CLEvent::Wait() {
+cl_int CLEvent::Wait(bool special_event) {
   pthread_mutex_lock(&mutex_complete_);
   if (status_ != CL_COMPLETE && status_ > 0)
   {
-  	if(queue_) queue_->Flush();
+  	if(queue_) queue_->Flush(special_event);
   //	gEventWaitTimer.Start();
     pthread_cond_wait(&cond_complete_, &mutex_complete_);
  // 	gEventWaitTimer.Stop();

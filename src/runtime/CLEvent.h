@@ -79,7 +79,7 @@ class CLEvent: public CLObject<struct _cl_event, CLEvent,
   }
 
   void SetStatus(cl_int status);
-  cl_int Wait();
+  cl_int Wait(bool special_event = false);
 
   void AddCallback(EventCallback* callback);
 

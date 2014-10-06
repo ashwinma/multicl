@@ -2298,9 +2298,20 @@ SNUCL_API_FUNCTION(clSetCommandQueueProperty)(
     CL_API_SUFFIX__VERSION_1_0 {
   // not yet implemented: is it deprecated?
   if (command_queue == NULL) return CL_INVALID_COMMAND_QUEUE;
-  if(clFinish(command_queue) != CL_SUCCESS) return CL_INVALID_COMMAND_QUEUE;
-
   CLCommandQueue* q = command_queue->c_obj;
+  //q->SetExplicitEpochMarker(properties);
+  CLCommand* command = CLCommand::CreateMarker(NULL, NULL, q);
+  if (command == NULL) return CL_OUT_OF_HOST_MEMORY;
+
+  CLEvent* blocking = command->ExportEvent();
+  q->Enqueue(command);
+  if(q->IsProfiled()) gQueueFinishTimer.Start();
+  blocking->Wait(true);
+  if(q->IsProfiled()) gQueueFinishTimer.Stop();
+  blocking->Release();
+
+//  if(clFinish(command_queue) != CL_SUCCESS) return CL_INVALID_COMMAND_QUEUE;
+
   if(old_properties) *old_properties = q->get_properties(); 
   if(enable) q->set_properties(properties);
   return CL_SUCCESS;

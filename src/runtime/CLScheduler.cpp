@@ -121,7 +121,7 @@ void CLScheduler::RemoveCommandQueue(CLCommandQueue* queue) {
   pthread_mutex_unlock(&mutex_queues_);
 }
 
-void CLScheduler::Progress() {
+void CLScheduler::Progress(bool explicit_synch_flag) {
 	if(queues_.size() <= 0) return;
 	/* Analyze the pending cmds in all the target queues and 
 	 * then invoke the scheduler */
@@ -169,7 +169,187 @@ void CLScheduler::Progress() {
 			chosen_dev_id = (chosen_dev_id + 1) % num_devices;
 		}
 	}
-	else if(ctx_sched_type == CL_CONTEXT_SCHEDULER_PERF_MODEL)
+	else if(ctx_sched_type == CL_CONTEXT_SCHEDULER_CODE_SEGMENTED_PERF_MODEL)
+	{
+		// performance modeling
+		/* this function should do the following 
+		 * identify best device for the given SET of commands
+		 * that are 'enqueued'
+		 */
+		size_t num_queues = queues_.size();
+		std::vector<std::vector<double> > est_epoch_times;
+		est_epoch_times.resize(num_queues);
+		std::vector<bool> queue_has_kernel(queues_.size());
+		// collect perf data
+		Global::RealTimer q_perf_estimation_timer;
+		q_perf_estimation_timer.Init();
+		Global::RealTimer q_cmd_clone_timer;
+		q_cmd_clone_timer.Init();
+		for(int q_id = 0; q_id < queues_.size(); q_id++) 
+		{
+			queue_has_kernel[q_id] = false;
+			CLCommandQueue *queue = queues_[q_id];
+			if(queue->IsAutoDeviceSelection() != true) continue;
+			// MEGA HACK....CHANGE LOGIC for queues that need periodic
+			// performance modeling
+			//if(queue->get_perf_model_done()) continue; 
+
+			std::list<CLCommand *> cmds = queue->commands();
+			//SNUCL_INFO("Command count for q_id: %d: %lu\n", q_id, cmds.size());
+			std::string epochString;
+			for (list<CLCommand*>::iterator cmd_it = cmds.begin();
+					cmd_it != cmds.end();
+					++cmd_it) 
+			{
+				if((*cmd_it)->type() != CL_COMMAND_NDRANGE_KERNEL) 
+					continue;
+				epochString += (*cmd_it)->kernel()->name();
+			}
+			if(ctx->isEpochRecorded(epochString)) {
+				//SNUCL_INFO("Epoch cost already estimated: %s\n", epochString.c_str());
+				est_epoch_times[q_id] = ctx->getEpochCosts(epochString);
+				queue_has_kernel[q_id] = true; 
+			} else {
+				est_epoch_times[q_id].resize(num_devices);
+				for(int device_id = 0; device_id < num_devices; device_id++) {
+					//SNUCL_INFO("Device %d: %p\n", device_id, devices[device_id]);
+					est_epoch_times[q_id][device_id] = 0.0;
+				}
+				// iterate over all the commands in queue
+				for (list<CLCommand*>::iterator cmd_it = cmds.begin();
+						cmd_it != cmds.end();
+						++cmd_it) 
+				{
+					//CLCommand* cmd = *cmd_it;
+					//SNUCL_INFO("Estimating Cost of Command Type %x for all devices\n", (*cmd_it)->type());
+					std::vector<double> est_kernel_times(num_devices);
+					if((*cmd_it)->type() != CL_COMMAND_NDRANGE_KERNEL) 
+						continue;
+					
+					queue_has_kernel[q_id] = true; 
+					if(ctx->isEpochRecorded((*cmd_it)->kernel()->name())) {
+						est_kernel_times = ctx->getEpochCosts((*cmd_it)->kernel()->name());
+					} else {
+						//SNUCL_INFO("Cloning cmd (%p)\n", (*cmd_it));
+						//if(!q_perf_estimation_timer.IsRunning())
+						
+						q_perf_estimation_timer.Start();
+						q_cmd_clone_timer.Start();
+						CLCommand* cmd = (*cmd_it)->Clone();
+						q_cmd_clone_timer.Stop();
+						//SNUCL_INFO("Cloned cmd (%p->%p)\n", (*cmd_it), cmd);
+						// estimate cost of cmd on device_id
+						double est_cost = 0.0;
+						for(int device_id = 0; device_id < num_devices; device_id++) 
+						{
+							CLDevice *dev = devices[device_id];
+							//cmd = (*cmd_it)->Clone(dev);
+							est_cost = cmd->EstimatedCost(dev, 
+								(queue->get_properties() & CL_QUEUE_COMPUTE_INTENSIVE) ? true : false);
+							est_kernel_times[device_id] = est_cost;
+							SNUCL_INFO("Estimated Cost of Command Type %x for device %p: %g\n", cmd->type(), dev, est_cost);
+							//est_epoch_times[q_id][device_id] += est_cost;
+						}
+						ctx->recordEpoch(cmd->kernel()->name(), est_kernel_times);
+						// why does the below throw segfaults sometimes?
+						//ctx->recordEpoch((*cmd_it)->kernel()->name(), est_kernel_times);
+						//queue->recordEpoch((*cmd_it)->kernel()->name(), est_kernel_times);
+						q_perf_estimation_timer.Stop();
+						if(cmd) delete cmd;
+					}
+					for(int device_id = 0; device_id < num_devices; device_id++) {
+						est_epoch_times[q_id][device_id] += est_kernel_times[device_id];
+					}
+				}
+				//if(q_perf_estimation_timer.IsRunning())
+				if(queue_has_kernel[q_id] == true) 
+				{
+					//q_perf_estimation_timer.Stop();
+					SNUCL_INFO("[Q%d] Epoch: %s Perf_Estimation Overhead: %g sec; Cmd_cloning overhead: %g sec\n", 
+							q_id, epochString.c_str(),
+							q_perf_estimation_timer.Elapsed(),
+							q_cmd_clone_timer.Elapsed());
+					q_cmd_clone_timer.Reset();
+					q_perf_estimation_timer.Reset();
+				}
+				if(!epochString.empty())
+				{
+					//SNUCL_INFO("Epoch String for queue %p: %s\n", queue, epochString.c_str());
+					ctx->recordEpoch(epochString, est_epoch_times[q_id]);
+					//queue->recordEpoch(epochString, est_epoch_times[q_id]);
+					queue->accumulateEpoch(est_epoch_times[q_id]);
+				}
+			}
+			// queue can have an accumulator flag so that the queue->device mapping is done later
+			// if some_flag is not a global flag, then selective scheduling can be done too
+			// [TODO for a future release, but can partially claim for the paper]
+		}
+		//this should not be a global flag for selective scheduling
+		if(explicit_synch_flag == true) {
+			for(int q_id = 0; q_id < queues_.size(); q_id++) {
+			// choose queue->device mapping
+				CLCommandQueue *queue = queues_[q_id];
+				if(queue->IsAutoDeviceSelection() != true) continue;
+			    est_epoch_times[q_id] = queue->getAccumulatedEpochCosts();
+				SNUCL_INFO("Accuulated vector size: %d\n", est_epoch_times[q_id].size());
+				if(est_epoch_times[q_id].size() == 0) continue;
+				//if(queue_has_kernel[q_id] != true) continue;
+
+				//std::list<CLCommand *> cmds = queue->commands();
+				// [FIXME] how should the below command behave for accumulated commands?
+				//if(cmds.size() <= 0) continue;
+				int chosen_dev_id = -1;
+				int cur_dev_id = -1;
+				for(int device_id = 0; device_id < num_devices; device_id++)
+				{
+					if(queues_[q_id]->device() == devices[device_id])
+						cur_dev_id = device_id;
+				}
+
+				chosen_dev_id = cur_dev_id;
+				double q_est_time = est_epoch_times[q_id][cur_dev_id];
+				for(int device_id = 0; device_id < num_devices; device_id++)
+				{
+					SNUCL_INFO("Estimated Cost for Queue %p for device %p: %g\n", queues_[q_id], 
+							devices[device_id], est_epoch_times[q_id][device_id]);
+					// update if difference is more than XX\% at least
+					//SNUCL_INFO("Perentage Diff: %g\n", 100.0 * abs(est_epoch_times[q_id][device_id] - q_est_time) / q_est_time);
+					if((100.0 * abs(est_epoch_times[q_id][device_id] - q_est_time) / q_est_time > 35.0) 
+							&& (est_epoch_times[q_id][device_id] < q_est_time))
+					{
+						SNUCL_INFO("Perentage Diff: %g\n", 100.0 * abs(est_epoch_times[q_id][device_id] - q_est_time) / q_est_time);
+						//SNUCL_INFO("Estimated Cost for Queue %p for device %p: %g\n", queues_[q_id], 
+						//	devices[device_id], est_epoch_times[q_id][device_id]);
+						chosen_dev_id = device_id;
+						SNUCL_INFO("Device changing from %d to %d\n", cur_dev_id, chosen_dev_id);
+						q_est_time = est_epoch_times[q_id][device_id];
+					}
+				}
+				if(cur_dev_id != chosen_dev_id)
+				{
+					queues_[q_id]->set_device(devices[chosen_dev_id]);
+				}
+				// update estimated times to include already chosen time
+				for(int q_idx = q_id; q_idx < queues_.size(); q_idx++)
+				{
+					if(q_idx != q_id)
+						est_epoch_times[q_idx][chosen_dev_id] += q_est_time;
+				}
+				queue->set_perf_model_done(true);
+			}
+		}
+		// "best" device must have been selected by now. 
+		for(int q_id = 0; q_id < queues_.size(); q_id++) {
+			if(explicit_synch_flag == true) queues_[q_id]->resetAccumulatedEpochCosts();
+			if(est_epoch_times[q_id].size() > 0)
+				est_epoch_times[q_id].resize(0);
+		}
+		if(est_epoch_times.size() > 0)
+			est_epoch_times.resize(0);
+
+	}
+	else if(ctx_sched_type == CL_CONTEXT_SCHEDULER_EPOCH_BASED_PERF_MODEL 
+		|| ctx_sched_type == CL_CONTEXT_SCHEDULER_PERF_MODEL)
 	{
 		// performance modeling
 		/* this function should do the following 
@@ -278,7 +458,19 @@ void CLScheduler::Progress() {
 					ctx->recordEpoch(epochString, est_epoch_times[q_id]);
 				}
 			}
+			// queue can have an accumulator flag so that the queue->device mapping is done later
+			// if some_flag is not a global flag, then selective scheduling can be done too
+			// [TODO for a future release, but can partially claim for the paper]
+			//if(some_flag) 
+			//queue->accumulateEpoch(ctx->getEpochCosts(epochString));
 		}
+		//this should not be a global flag for selective scheduling
+		//if(some_flag) {
+		//  for(int qid = 0; qid < queues_.size(); q_id++) {
+		//   est_epoch_times[qid] = queue->getAccumulatedEpoch();
+		//   queue_has_kernel[qid] = true;
+		//  }
+		// }
 		// choose queue->device mapping
 		for(int q_id = 0; q_id < queues_.size(); q_id++) {
 			CLCommandQueue *queue = queues_[q_id];
@@ -286,6 +478,7 @@ void CLScheduler::Progress() {
 			if(queue_has_kernel[q_id] != true) continue;
 
 			std::list<CLCommand *> cmds = queue->commands();
+			// [FIXME] how should the below command behave for accumulated commands?
 			if(cmds.size() <= 0) continue;
 			int chosen_dev_id = -1;
 			int cur_dev_id = -1;

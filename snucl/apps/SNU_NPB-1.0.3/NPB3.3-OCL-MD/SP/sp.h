@@ -201,13 +201,15 @@
 #define zzcon5    (c3c4tz3*c1c5*tz3)
 //--------------------------------------------------------------------------
 
-
+#if 1
 #ifdef USE_CPU
 #pragma OPENCL EXTENSION cl_amd_fp64: enable
 #pragma OPENCL EXTENSION cl_amd_printf: enable
 #else
 #pragma OPENCL EXTENSION cl_khr_fp64: enable
 #endif
+#endif
+//#pragma OPENCL EXTENSION cl_khr_fp64: enable
 
 #include "sp_dim.h"
 

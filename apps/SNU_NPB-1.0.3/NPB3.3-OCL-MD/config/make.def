@@ -89,13 +89,13 @@ CLINK	= mpic++
 #---------------------------------------------------------------------------
 # These macros are passed to the linker 
 #---------------------------------------------------------------------------
-C_LIB = -L$(SNUCLROOT)/lib -lm -lOpenCL
+C_LIB = -L$(SNUCLROOT)/lib -lm -lOpenCL #-lsnucl_single
 #C_LIB = -L$(SNUCLROOT)/lib -lm -lcuda -lSnuCL
 
 #---------------------------------------------------------------------------
 # These macros are passed to the compiler 
 #---------------------------------------------------------------------------
-C_INC = -I../common -I$(SNUCLROOT)/inc -I$(CUDA_INSTALL_PATH)/include
+C_INC = -I../common -I$(SNUCLROOT)/inc #-I$(CUDA_INSTALL_PATH)/include
 
 #---------------------------------------------------------------------------
 # Global *compile time* flags for C programs

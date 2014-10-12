@@ -92,11 +92,18 @@
 
 
 // OPENCL Variables
+static cl_device_type   *devices_type;
 static cl_device_type    device_type;
 static cl_device_id      p_device;
 static char             *device_name;
 static cl_device_id     *devices;
+static cl_device_id     *cpu_devices;
+static cl_device_id     *gpu_devices;
 static cl_uint           num_devices;
+static cl_uint           num_command_queues;
+static cl_uint           actual_num_devices;
+static cl_uint           num_cpu_devices;
+static cl_uint           num_gpu_devices;
 static cl_context        context;
 static cl_command_queue *cmd_queue;
 static cl_program        program;
@@ -154,15 +161,16 @@ static cl_mem *m_chk;
 
 static size_t checksum_lws, checksum_gws, checksum_wgn;
 
+static int TRANSPOSE2_LOCAL1_DIM[DEFAULT_NUM_SUBS];
+static int TRANSPOSE2_LOCAL2_DIM[DEFAULT_NUM_SUBS];
+static int TRANSPOSE2_LOCAL3_DIM[DEFAULT_NUM_SUBS];
+static int TRANSPOSE_X_Z_LOCAL1_DIM[DEFAULT_NUM_SUBS];
+static int TRANSPOSE_X_Z_LOCAL2_DIM[DEFAULT_NUM_SUBS];
+static int TRANSPOSE_X_Y_LOCAL_DIM[DEFAULT_NUM_SUBS];
+
 static int COMPUTE_IMAP_DIM, EVOLVE_DIM;
-static int TRANSPOSE2_LOCAL1_DIM;
-static int TRANSPOSE2_LOCAL2_DIM;
-static int TRANSPOSE2_LOCAL3_DIM;
 static int TRANSPOSE2_FINISH_DIM;
-static int TRANSPOSE_X_Z_LOCAL1_DIM;
-static int TRANSPOSE_X_Z_LOCAL2_DIM;
 static int TRANSPOSE_X_Z_FINISH_DIM;
-static int TRANSPOSE_X_Y_LOCAL_DIM;
 static int TRANSPOSE_X_Y_FINISH_DIM;
 static int CFFTS1_DIM;
 static int CFFTS2_DIM;
@@ -267,9 +275,29 @@ int main(int argc, char *argv[])
 
   if (timers_enabled) timer_stop(T_setup);
 
+#ifdef MINIMD_SNUCL_OPTIMIZATIONS
+  for(i = 0; i < num_command_queues; i++) {
+  	clSetCommandQueueProperty(cmd_queue[i], 
+			CL_QUEUE_AUTO_DEVICE_SELECTION | 
+			CL_QUEUE_ITERATIVE | 
+			CL_QUEUE_COMPUTE_INTENSIVE,
+			true,
+			NULL);
+  }
+#endif
+  timers_enabled = false;
   if (timers_enabled) timer_start(T_fft);
   fft(1, m_u1, m_u0);
   if (timers_enabled) timer_stop(T_fft);
+  timers_enabled = true;
+#ifdef MINIMD_SNUCL_OPTIMIZATIONS
+  for(i = 0; i < num_command_queues; i++) {
+  	clSetCommandQueueProperty(cmd_queue[i], 
+			0,
+			true,
+			NULL);
+  }
+#endif
 
   for (iter = 1; iter <= niter; iter++) {
     if (timers_enabled) timer_start(T_evolve);
@@ -319,8 +347,13 @@ static void evolve(cl_mem *u0, cl_mem *u1, cl_mem *twiddle,
 {
   int i;
   cl_int ecode;
-  size_t evolve_lws[3], evolve_gws[3];
+  size_t evolve_lws[3] = {1, 1, 1}, evolve_gws[3] = {1, 1, 1};
 
+
+  for (i = 0; i < num_devices; i++) {
+  int j;
+  for(j = 0; j < 3; j++) evolve_lws[j] = 1;
+  for(j = 0; j < 3; j++) evolve_gws[j] = 1;
   if (EVOLVE_DIM == 3) {
     evolve_lws[0] = d1 < work_item_sizes[0] ? d1 : work_item_sizes[0];
     int temp = max_work_group_size / evolve_lws[0];
@@ -344,8 +377,6 @@ static void evolve(cl_mem *u0, cl_mem *u1, cl_mem *twiddle,
     evolve_lws[0] = temp == 0 ? 1 : temp;
     evolve_gws[0] = clu_RoundWorkSize((size_t)d3, evolve_lws[0]);
   }
-
-  for (i = 0; i < num_devices; i++) {
     ecode  = clSetKernelArg(k_evolve[i], 0, sizeof(cl_mem), &u0[i]);
     ecode |= clSetKernelArg(k_evolve[i], 1, sizeof(cl_mem), &u1[i]);
     ecode |= clSetKernelArg(k_evolve[i], 2, sizeof(cl_mem), &twiddle[i]);
@@ -356,7 +387,9 @@ static void evolve(cl_mem *u0, cl_mem *u1, cl_mem *twiddle,
 
     ecode = clEnqueueNDRangeKernel(cmd_queue[i],
                                    k_evolve[i],
-                                   EVOLVE_DIM, NULL,
+                                   3,
+								   //EVOLVE_DIM, 
+								   NULL,
                                    evolve_gws,
                                    evolve_lws,
                                    0, NULL, NULL);
@@ -731,6 +764,15 @@ static void setup()
   if (max2 < NY*NZ) max2 = NY * NZ;
   if (max2 < NX*NZ) max2 = NX * NZ;
   ty_size2 = sizeof(dcomplex) * FFTBLOCKPAD_DEFAULT * max2 / np;
+/*  if (CFFTS1_DIM == 2 && CFFTS2_DIM == 2 && CFFTS3_DIM == 2) {
+    ty_size = ty_size1;
+  } else if (ty_size1 > ty_size2) {
+    ty_size = ty_size1;
+  } else {
+    ty_size = ty_size2;
+  }
+*/
+  for (i = 0; i < num_devices; i++) {
   if (CFFTS1_DIM == 2 && CFFTS2_DIM == 2 && CFFTS3_DIM == 2) {
     ty_size = ty_size1;
   } else if (ty_size1 > ty_size2) {
@@ -738,8 +780,6 @@ static void setup()
   } else {
     ty_size = ty_size2;
   }
-
-  for (i = 0; i < num_devices; i++) {
     m_u[i] = clCreateBuffer(context, CL_MEM_READ_ONLY, sizeof(dcomplex) * NX, NULL, &ecode);
     clu_CheckError(ecode, "clCreateBuffer() for m_u");
 
@@ -836,7 +876,7 @@ static void setup()
 static void compute_indexmap(cl_mem *twiddle, int d1, int d2, int d3)
 {
   int i;
-  size_t cimap_lws[3], cimap_gws[3], temp;
+  size_t cimap_lws[3] = {1, 1, 1}, cimap_gws[3] = {1, 1, 1}, temp;
   cl_int ecode;
 
   for (i = 0; i < num_devices; i++) {
@@ -853,6 +893,9 @@ static void compute_indexmap(cl_mem *twiddle, int d1, int d2, int d3)
     ecode |= clSetKernelArg(k_compute_indexmap[i], 5, sizeof(int),
                                                       &layout_type);
     clu_CheckError(ecode, "clSetKernelArg() for compute_indexmap");
+  int j;
+  for(j = 0; j < 3; j++) cimap_lws[j] = 1;
+  for(j = 0; j < 3; j++) cimap_gws[j] = 1;
     if (COMPUTE_IMAP_DIM == 3) {
       cimap_lws[0] = d1 < work_item_sizes[0] ? d1 : work_item_sizes[0];
       temp = max_work_group_size / cimap_lws[0];
@@ -875,11 +918,17 @@ static void compute_indexmap(cl_mem *twiddle, int d1, int d2, int d3)
       temp = 1;
       cimap_lws[0] = temp == 0 ? 1 : temp;
       cimap_gws[0] = clu_RoundWorkSize((size_t)d3, cimap_lws[0]);
+	  //clSetKernelWorkGroupInfo(k_compute_indexmap[i], cpu_devices,
+	  	//	CL_KERNEL_GLOBAL_WORK_SIZE, cimap_gws, 
+			//...
+		//	);
     }
 
     ecode = clEnqueueNDRangeKernel(cmd_queue[i],
                                    k_compute_indexmap[i],
-                                   COMPUTE_IMAP_DIM, NULL,
+                                   3,
+								   //COMPUTE_IMAP_DIM, 
+								   NULL,
                                    cimap_gws,
                                    cimap_lws,
                                    0, NULL, NULL);
@@ -1042,11 +1091,15 @@ static void cffts1(int is, int d1, int d2, int d3, cl_mem *x, cl_mem *xout)
 {
   int i;
   int logd1 = ilog2(d1);
-  size_t cffts1_lws[2], cffts1_gws[2], temp;
+  size_t cffts1_lws[3] = {1, 1, 1}, cffts1_gws[3] = {1, 1, 1}, temp;
   cl_int ecode;
 
   if (timers_enabled) timer_start(T_fftx);
 
+  int j;
+  for (i = 0; i < num_devices; i++) {
+  for(j = 0; j < 3; j++) cffts1_lws[j] = 1;
+  for(j = 0; j < 3; j++) cffts1_gws[j] = 1;
   if (CFFTS1_DIM == 2) {
     //cffts1_lws[0] = d2 < work_item_sizes[0] ? d2 : work_item_sizes[0];
     //temp = max_work_group_size / cffts1_lws[0];
@@ -1066,9 +1119,6 @@ static void cffts1(int is, int d1, int d2, int d3, cl_mem *x, cl_mem *xout)
     //printf("d3=%d cffts1_lws=%lu cffts1_gws=%lu wg=%lu\n",
     //    d3, cffts1_lws[0], cffts1_gws[0], cffts1_gws[0]/cffts1_lws[0]);
   }
-
-
-  for (i = 0; i < num_devices; i++) {
     ecode  = clSetKernelArg(k_cffts1[i], 0, sizeof(cl_mem), &x[i]);
     ecode |= clSetKernelArg(k_cffts1[i], 1, sizeof(cl_mem), &xout[i]);
     ecode |= clSetKernelArg(k_cffts1[i], 2, sizeof(cl_mem), &m_u[i]);
@@ -1083,7 +1133,9 @@ static void cffts1(int is, int d1, int d2, int d3, cl_mem *x, cl_mem *xout)
 
     ecode = clEnqueueNDRangeKernel(cmd_queue[i],
                                    k_cffts1[i],
-                                   CFFTS1_DIM, NULL,
+                                   3,
+								   //CFFTS1_DIM, 
+								   NULL,
                                    cffts1_gws,
                                    cffts1_lws,
                                    0, NULL, NULL);
@@ -1100,11 +1152,16 @@ static void cffts2(int is, int d1, int d2, int d3, cl_mem *x, cl_mem *xout)
 {
   int i;
   int logd2 = ilog2(d2);
-  size_t cffts2_lws[2], cffts2_gws[2], temp;
+  size_t cffts2_lws[3] = {1, 1, 1}, cffts2_gws[3] = {1, 1, 1}, temp;
   cl_int ecode;
 
   if (timers_enabled) timer_start(T_ffty);
 
+
+  int j;
+  for (i = 0; i < num_devices; i++) {
+  for(j = 0; j < 3; j++) cffts2_lws[j] = 1;
+  for(j = 0; j < 3; j++) cffts2_gws[j] = 1;
   if (CFFTS2_DIM == 2) {
     //cffts2_lws[0] = d1 < work_item_sizes[0] ? d1 : work_item_sizes[0];
     //temp = max_work_group_size / cffts2_lws[0];
@@ -1118,8 +1175,6 @@ static void cffts2(int is, int d1, int d2, int d3, cl_mem *x, cl_mem *xout)
     cffts2_lws[0] = 1;
     cffts2_gws[0] = clu_RoundWorkSize((size_t)d3, cffts2_lws[0]);
   }
-
-  for (i = 0; i < num_devices; i++) {
     ecode  = clSetKernelArg(k_cffts2[i], 0, sizeof(cl_mem), &x[i]);
     ecode |= clSetKernelArg(k_cffts2[i], 1, sizeof(cl_mem), &xout[i]);
     ecode |= clSetKernelArg(k_cffts2[i], 2, sizeof(cl_mem), &m_u[i]);
@@ -1134,7 +1189,9 @@ static void cffts2(int is, int d1, int d2, int d3, cl_mem *x, cl_mem *xout)
 
     ecode = clEnqueueNDRangeKernel(cmd_queue[i],
                                    k_cffts2[i],
-                                   CFFTS2_DIM, NULL,
+                                   3,
+								   //CFFTS2_DIM, 
+								   NULL,
                                    cffts2_gws,
                                    cffts2_lws,
                                    0, NULL, NULL);
@@ -1151,11 +1208,16 @@ static void cffts3(int is, int d1, int d2, int d3, cl_mem *x, cl_mem *xout)
 {
   int i;
   int logd3 = ilog2(d3);
-  size_t cffts3_lws[2], cffts3_gws[2], temp;
+  size_t cffts3_lws[3] = {1, 1, 1}, cffts3_gws[3] = {1, 1, 1}, temp;
   cl_int ecode;
 
   if (timers_enabled) timer_start(T_fftz);
 
+
+  int j;
+  for (i = 0; i < num_devices; i++) {
+  for(j = 0; j < 3; j++) cffts3_lws[j] = 1;
+  for(j = 0; j < 3; j++) cffts3_gws[j] = 1;
   if (CFFTS3_DIM == 2) {
     cffts3_lws[0] = d1 < work_item_sizes[0] ? d1 : work_item_sizes[0];
     temp = max_work_group_size / cffts3_lws[0];
@@ -1167,8 +1229,6 @@ static void cffts3(int is, int d1, int d2, int d3, cl_mem *x, cl_mem *xout)
     cffts3_lws[0] = 1;
     cffts3_gws[0] = clu_RoundWorkSize((size_t)d2, cffts3_lws[0]);
   }
-
-  for (i = 0; i < num_devices; i++) {
     ecode  = clSetKernelArg(k_cffts3[i], 0, sizeof(cl_mem), &x[i]);
     ecode |= clSetKernelArg(k_cffts3[i], 1, sizeof(cl_mem), &xout[i]);
     ecode |= clSetKernelArg(k_cffts3[i], 2, sizeof(cl_mem), &m_u[i]);
@@ -1183,7 +1243,9 @@ static void cffts3(int is, int d1, int d2, int d3, cl_mem *x, cl_mem *xout)
 
     ecode = clEnqueueNDRangeKernel(cmd_queue[i],
                                    k_cffts3[i],
-                                   CFFTS3_DIM, NULL,
+                                   3,
+								   //CFFTS3_DIM, 
+								   NULL,
                                    cffts3_gws,
                                    cffts3_lws,
                                    0, NULL, NULL);
@@ -1228,114 +1290,168 @@ static void transpose_xy_z(int l1, int l2, cl_mem *xin, cl_mem *xout)
 
 static void transpose2_local(int n1, int n2, cl_mem *xin, cl_mem *xout)
 {
-  int i;
+  int i, cmdq_id;
   cl_int ecode;
-  size_t t2l1_lws[3], t2l1_gws[3];
-  size_t t2l2_lws[3], t2l2_gws[3];
-  size_t t2l3_lws[3], t2l3_gws[3];
-  size_t temp;
-
   if (timers_enabled) timer_start(T_transxzloc);
 
+  size_t t2l1_lws[3] = {1, 1, 1}, t2l1_gws[3] = {1, 1, 1};
+  size_t t2l2_lws[3] = {1, 1, 1}, t2l2_gws[3] = {1, 1, 1};
+  size_t t2l3_lws[3] = {1, 1, 1}, t2l3_gws[3] = {1, 1, 1};
+  size_t temp;
+
   if (n1 < TRANSBLOCK || n2 < TRANSBLOCK) {
-    if (n1 >= n2) { 
-      if (TRANSPOSE2_LOCAL1_DIM == 2) {
-        t2l1_lws[0] = n1 < work_item_sizes[0] ? n1 : work_item_sizes[0];
-        temp = max_work_group_size / t2l1_lws[0];
-        t2l1_lws[1] = n2 < temp ? n2 : temp;
-        t2l1_gws[0] = clu_RoundWorkSize((size_t)n1, t2l1_lws[0]);
-        t2l1_gws[1] = clu_RoundWorkSize((size_t)n2, t2l1_lws[1]);
-      } else { //TRANSPOSE2_LOCAL1_DIM == 1
-        //temp = n2 / max_compute_units;
-        temp = 1;
-        t2l1_lws[0] = temp == 0 ? 1 : temp;
-        t2l1_gws[0] = clu_RoundWorkSize((size_t)n2, t2l1_lws[0]);
-      }
+	  if (n1 >= n2) { 
 
-      for (i = 0; i < num_devices; i++) {
-        ecode  = clSetKernelArg(k_transpose2_local1[i], 0, sizeof(cl_mem),
-                                                           &xin[i]);
-        ecode |= clSetKernelArg(k_transpose2_local1[i], 1, sizeof(cl_mem),
-                                                           &xout[i]);
-        ecode |= clSetKernelArg(k_transpose2_local1[i], 2, sizeof(int), &n1);
-        ecode |= clSetKernelArg(k_transpose2_local1[i], 3, sizeof(int), &n2);
-        clu_CheckError(ecode, "clSetKernelArg()");
+  		  for (cmdq_id = 0; cmdq_id < num_devices; cmdq_id++) {
+	  		for (i = 0; i < actual_num_devices; i++) {
+			  int j;
+			  for(j = 0; j < 3; j++) t2l1_lws[j] = 1;
+			  for(j = 0; j < 3; j++) t2l1_gws[j] = 1;
+			  if (TRANSPOSE2_LOCAL1_DIM[i] == 2) {
+				  t2l1_lws[0] = n1 < work_item_sizes[0] ? n1 : work_item_sizes[0];
+				  temp = max_work_group_size / t2l1_lws[0];
+				  t2l1_lws[1] = n2 < temp ? n2 : temp;
+				  t2l1_gws[0] = clu_RoundWorkSize((size_t)n1, t2l1_lws[0]);
+				  t2l1_gws[1] = clu_RoundWorkSize((size_t)n2, t2l1_lws[1]);
+			  } else { //TRANSPOSE2_LOCAL1_DIM[i] == 1
+				  //temp = n2 / max_compute_units;
+				  temp = 1;
+				  t2l1_lws[0] = temp == 0 ? 1 : temp;
+				  t2l1_gws[0] = clu_RoundWorkSize((size_t)n2, t2l1_lws[0]);
+			  }
+			  ecode = clSetKernelLaunchConfiguration(devices[i],
+					  k_transpose2_local1[cmdq_id],
+					  3,
+					  //TRANSPOSE2_LOCAL1_DIM, 
+					  NULL,
+					  t2l1_gws,
+					  t2l1_lws
+					  );
+			  clu_CheckError(ecode, "clEnqueueNDRangeKernel()");
+		  }
+		  }
+		  for (i = 0; i < num_devices; i++) {
+			  ecode  = clSetKernelArg(k_transpose2_local1[i], 0, sizeof(cl_mem),
+					  &xin[i]);
+			  ecode |= clSetKernelArg(k_transpose2_local1[i], 1, sizeof(cl_mem),
+					  &xout[i]);
+			  ecode |= clSetKernelArg(k_transpose2_local1[i], 2, sizeof(int), &n1);
+			  ecode |= clSetKernelArg(k_transpose2_local1[i], 3, sizeof(int), &n2);
+			  clu_CheckError(ecode, "clSetKernelArg()");
 
-        ecode = clEnqueueNDRangeKernel(cmd_queue[i],
-                                       k_transpose2_local1[i],
-                                       TRANSPOSE2_LOCAL1_DIM, NULL,
-                                       t2l1_gws,
-                                       t2l1_lws,
-                                       0, NULL, NULL);
-        clu_CheckError(ecode, "clEnqueueNDRangeKernel()");
-      }
-    } else {
-      if (TRANSPOSE2_LOCAL2_DIM == 2) {
-        t2l2_lws[0] = n2 < work_item_sizes[0] ? n2 : work_item_sizes[0];
-        temp = max_work_group_size / t2l2_lws[0];
-        t2l2_lws[1] = n1 < temp ? n1 : temp;
-        t2l2_gws[0] = clu_RoundWorkSize((size_t)n2, t2l2_lws[0]);
-        t2l2_gws[1] = clu_RoundWorkSize((size_t)n1, t2l2_lws[1]);
-      } else { //TRANSPOSE2_LOCAL2_DIM == 1
-        //temp = n1 / max_compute_units;
-        temp = 1;
-        t2l2_lws[0] = temp == 0 ? 1 : temp;
-        t2l2_gws[0] = clu_RoundWorkSize((size_t)n1, t2l2_lws[0]);
-      }
+			  ecode = clEnqueueNDRangeKernel(cmd_queue[i],
+					  k_transpose2_local1[i],
+					  3,
+					  //TRANSPOSE2_LOCAL1_DIM, 
+					  NULL,
+					  t2l1_gws,
+					  t2l1_lws,
+					  0, NULL, NULL);
+			  clu_CheckError(ecode, "clEnqueueNDRangeKernel()");
+		  }
+	  } else {
 
-      for (i = 0; i < num_devices; i++) {
-        ecode  = clSetKernelArg(k_transpose2_local2[i], 0, sizeof(cl_mem),
-                                                           &xin[i]);
-        ecode |= clSetKernelArg(k_transpose2_local2[i], 1, sizeof(cl_mem),
-                                                           &xout[i]);
-        ecode |= clSetKernelArg(k_transpose2_local2[i], 2, sizeof(int), &n1);
-        ecode |= clSetKernelArg(k_transpose2_local2[i], 3, sizeof(int), &n2);
-        clu_CheckError(ecode, "clSetKernelArg()");
+  		  for (cmdq_id = 0; cmdq_id < num_devices; cmdq_id++) {
+	  		for (i = 0; i < actual_num_devices; i++) {
+			  int j;
+			  for(j = 0; j < 3; j++) t2l2_lws[j] = 1;
+			  for(j = 0; j < 3; j++) t2l2_gws[j] = 1;
+			  if (TRANSPOSE2_LOCAL2_DIM[i] == 2) {
+				  t2l2_lws[0] = n2 < work_item_sizes[0] ? n2 : work_item_sizes[0];
+				  temp = max_work_group_size / t2l2_lws[0];
+				  t2l2_lws[1] = n1 < temp ? n1 : temp;
+				  t2l2_gws[0] = clu_RoundWorkSize((size_t)n2, t2l2_lws[0]);
+				  t2l2_gws[1] = clu_RoundWorkSize((size_t)n1, t2l2_lws[1]);
+			  } else { //TRANSPOSE2_LOCAL2_DIM[i] == 1
+				  //temp = n1 / max_compute_units;
+				  temp = 1;
+				  t2l2_lws[0] = temp == 0 ? 1 : temp;
+				  t2l2_gws[0] = clu_RoundWorkSize((size_t)n1, t2l2_lws[0]);
+			  }
+			  ecode = clSetKernelLaunchConfiguration(devices[i],
+					  k_transpose2_local2[cmdq_id],
+					  3,
+					  //TRANSPOSE2_LOCAL2_DIM, 
+					  NULL,
+					  t2l2_gws,
+					  t2l2_lws
+					  );
+			  clu_CheckError(ecode, "clEnqueueNDRangeKernel()");
+		  }
+		  }
+		  for (i = 0; i < num_devices; i++) {
+			  ecode  = clSetKernelArg(k_transpose2_local2[i], 0, sizeof(cl_mem),
+					  &xin[i]);
+			  ecode |= clSetKernelArg(k_transpose2_local2[i], 1, sizeof(cl_mem),
+					  &xout[i]);
+			  ecode |= clSetKernelArg(k_transpose2_local2[i], 2, sizeof(int), &n1);
+			  ecode |= clSetKernelArg(k_transpose2_local2[i], 3, sizeof(int), &n2);
+			  clu_CheckError(ecode, "clSetKernelArg()");
 
-        ecode = clEnqueueNDRangeKernel(cmd_queue[i],
-                                       k_transpose2_local2[i],
-                                       TRANSPOSE2_LOCAL2_DIM, NULL,
-                                       t2l2_gws,
-                                       t2l2_lws,
-                                       0, NULL, NULL);
-        clu_CheckError(ecode, "clEnqueueNDRangeKernel()");
-      }
-    }
+			  ecode = clEnqueueNDRangeKernel(cmd_queue[i],
+					  k_transpose2_local2[i],
+					  3,
+					  //TRANSPOSE2_LOCAL2_DIM, 
+					  NULL,
+					  t2l2_gws,
+					  t2l2_lws,
+					  0, NULL, NULL);
+			  clu_CheckError(ecode, "clEnqueueNDRangeKernel()");
+		  }
+	  }
   } else {
-    if (TRANSPOSE2_LOCAL3_DIM == 2) {
-      size_t num_1d = n1 / TRANSBLOCK;
-      size_t num_2d = n2 / TRANSBLOCK;
-      t2l3_lws[0] = num_1d < work_item_sizes[0] ? num_1d : work_item_sizes[0];
-      temp = max_work_group_size / t2l3_lws[0];
-      t2l3_lws[1] = num_2d < temp ? num_2d : temp;
-      t2l3_gws[0] = clu_RoundWorkSize((size_t)num_1d, t2l3_lws[0]);
-      t2l3_gws[1] = clu_RoundWorkSize((size_t)num_2d, t2l3_lws[1]);
-    } else { //TRANSPOSE2_LOCAL3_DIM == 1
-      size_t num_1d = n2 / TRANSBLOCK;
-      //temp = num_1d / max_compute_units;
-      temp = 1;
-      t2l3_lws[0] = temp == 0 ? 1 : temp;
-      t2l3_gws[0] = clu_RoundWorkSize((size_t)num_1d, t2l3_lws[0]);
-    }
 
-    for (i = 0; i < num_devices; i++) {
-      ecode  = clSetKernelArg(k_transpose2_local3[i], 0, sizeof(cl_mem),
-                                                         &xin[i]);
-      ecode |= clSetKernelArg(k_transpose2_local3[i], 1, sizeof(cl_mem),
-                                                         &xout[i]);
-      ecode |= clSetKernelArg(k_transpose2_local3[i], 2, sizeof(int), &n1);
-      ecode |= clSetKernelArg(k_transpose2_local3[i], 3, sizeof(int), &n2);
-      clu_CheckError(ecode, "clSetKernelArg()");
+  		  for (cmdq_id = 0; cmdq_id < num_devices; cmdq_id++) {
+	  		for (i = 0; i < actual_num_devices; i++) {
+		  int j;
+		  for(j = 0; j < 3; j++) t2l3_lws[j] = 1;
+		  for(j = 0; j < 3; j++) t2l3_gws[j] = 1;
+		  if (TRANSPOSE2_LOCAL3_DIM[i] == 2) {
+			  size_t num_1d = n1 / TRANSBLOCK;
+			  size_t num_2d = n2 / TRANSBLOCK;
+			  t2l3_lws[0] = num_1d < work_item_sizes[0] ? num_1d : work_item_sizes[0];
+			  temp = max_work_group_size / t2l3_lws[0];
+			  t2l3_lws[1] = num_2d < temp ? num_2d : temp;
+			  t2l3_gws[0] = clu_RoundWorkSize((size_t)num_1d, t2l3_lws[0]);
+			  t2l3_gws[1] = clu_RoundWorkSize((size_t)num_2d, t2l3_lws[1]);
+		  } else { //TRANSPOSE2_LOCAL3_DIM[i] == 1
+			  size_t num_1d = n2 / TRANSBLOCK;
+			  //temp = num_1d / max_compute_units;
+			  temp = 1;
+			  t2l3_lws[0] = temp == 0 ? 1 : temp;
+			  t2l3_gws[0] = clu_RoundWorkSize((size_t)num_1d, t2l3_lws[0]);
+		  }
+		  ecode = clSetKernelLaunchConfiguration(devices[i],
+				  k_transpose2_local3[cmdq_id],
+				  3, 
+				  //TRANSPOSE2_LOCAL3_DIM, 
+				  NULL,
+				  t2l3_gws,
+				  t2l3_lws
+				  );
+		  clu_CheckError(ecode, "clEnqueueNDRangeKernel()");
+		  }
+		  }
+	  for (i = 0; i < num_devices; i++) {
+		  ecode  = clSetKernelArg(k_transpose2_local3[i], 0, sizeof(cl_mem),
+				  &xin[i]);
+		  ecode |= clSetKernelArg(k_transpose2_local3[i], 1, sizeof(cl_mem),
+				  &xout[i]);
+		  ecode |= clSetKernelArg(k_transpose2_local3[i], 2, sizeof(int), &n1);
+		  ecode |= clSetKernelArg(k_transpose2_local3[i], 3, sizeof(int), &n2);
+		  clu_CheckError(ecode, "clSetKernelArg()");
 
-      //printf("[LOCAL3_DIM] [%d] [%lu,%lu,%lu] [%lu,%lu,%lu]\n", TRANSPOSE2_LOCAL3_DIM, t2l3_gws[0], t2l3_gws[1], t2l3_gws[2], t2l3_lws[0], t2l3_lws[1], t2l3_lws[2]);
-      ecode = clEnqueueNDRangeKernel(cmd_queue[i],
-                                     k_transpose2_local3[i],
-                                     TRANSPOSE2_LOCAL3_DIM, NULL,
-                                     t2l3_gws,
-                                     t2l3_lws,
-                                     0, NULL, NULL);
-      clu_CheckError(ecode, "clEnqueueNDRangeKernel()");
-    }
+		  //printf("[LOCAL3_DIM] [%d] [%lu,%lu,%lu] [%lu,%lu,%lu]\n", TRANSPOSE2_LOCAL3_DIM, t2l3_gws[0], t2l3_gws[1], t2l3_gws[2], t2l3_lws[0], t2l3_lws[1], t2l3_lws[2]);
+		  ecode = clEnqueueNDRangeKernel(cmd_queue[i],
+				  k_transpose2_local3[i],
+				  3, 
+				  //TRANSPOSE2_LOCAL3_DIM, 
+				  NULL,
+				  t2l3_gws,
+				  t2l3_lws,
+				  0, NULL, NULL);
+		  clu_CheckError(ecode, "clEnqueueNDRangeKernel()");
+	  }
   }
 
   for (i = 0; i < num_devices; i++) {
@@ -1437,10 +1553,15 @@ static void transpose2_finish(int n1, int n2, cl_mem *xin, cl_mem *xout)
 {
   int i;
   cl_int ecode;
-  size_t t2f_lws[3], t2f_gws[3], temp;
+  size_t t2f_lws[3] = {1, 1, 1}, t2f_gws[3] = {1, 1, 1}, temp;
 
   if (timers_enabled) timer_start(T_transxzfin);
 
+
+  for (i = 0; i < num_devices; i++) {
+  int j;
+  for(j = 0; j < 3; j++) t2f_lws[j] = 1;
+  for(j = 0; j < 3; j++) t2f_gws[j] = 1;
   if (TRANSPOSE2_FINISH_DIM == 3) {
     size_t num_2d = n1/np2;
     t2f_lws[0] = n2 < work_item_sizes[0] ? n2 : work_item_sizes[0];
@@ -1468,8 +1589,6 @@ static void transpose2_finish(int n1, int n2, cl_mem *xin, cl_mem *xout)
     t2f_lws[0] = temp == 0 ? 1 : temp;
     t2f_gws[0] = clu_RoundWorkSize((size_t)np2, t2f_lws[0]);
   }
-
-  for (i = 0; i < num_devices; i++) {
     ecode  = clSetKernelArg(k_transpose2_finish[i], 0, sizeof(cl_mem),
                                                        &xin[i]);
     ecode |= clSetKernelArg(k_transpose2_finish[i], 1, sizeof(cl_mem),
@@ -1481,7 +1600,9 @@ static void transpose2_finish(int n1, int n2, cl_mem *xin, cl_mem *xout)
 
     ecode = clEnqueueNDRangeKernel(cmd_queue[i],
                                    k_transpose2_finish[i],
-                                   TRANSPOSE2_FINISH_DIM, NULL,
+                                   3,
+								   //TRANSPOSE2_FINISH_DIM, 
+								   NULL,
                                    t2f_gws,
                                    t2f_lws,
                                    0, NULL, NULL);
@@ -1508,10 +1629,11 @@ static void transpose_x_z(int l1, int l2, cl_mem *xin, cl_mem *xout)
 static void transpose_x_z_local(int d1, int d2, int d3, 
                                 cl_mem *xin, cl_mem *xout)
 {
+  int cmdq_id;
   int block1, block3;
   int i;
-  size_t txzl1_lws[3], txzl1_gws[3];
-  size_t txzl2_lws[3], txzl2_gws[3];
+  size_t txzl1_lws[3] = {1, 1, 1}, txzl1_gws[3] = {1, 1, 1};
+  size_t txzl2_lws[3] = {1, 1, 1}, txzl2_gws[3] = {1, 1, 1};
   size_t temp;
   cl_int ecode;
 
@@ -1521,31 +1643,46 @@ static void transpose_x_z_local(int d1, int d2, int d3,
     //---------------------------------------------------------------------
     // basic transpose
     //---------------------------------------------------------------------
-    if (TRANSPOSE_X_Z_LOCAL1_DIM == 3) {
-      txzl1_lws[0] = d1 < work_item_sizes[0] ? d1 : work_item_sizes[0];
-      temp = max_work_group_size / txzl1_lws[0];
-      txzl1_lws[1] = d3 < temp ? d3 : temp;
-      temp = temp / txzl1_lws[1];
-      txzl1_lws[2] = d2 < temp ? d2 : temp;
 
-      txzl1_gws[0] = clu_RoundWorkSize((size_t)d1, txzl1_lws[0]);
-      txzl1_gws[1] = clu_RoundWorkSize((size_t)d3, txzl1_lws[1]);
-      txzl1_gws[2] = clu_RoundWorkSize((size_t)d2, txzl1_lws[2]);
-    } else if (TRANSPOSE_X_Z_LOCAL1_DIM == 2) {
-      txzl1_lws[0] = d3 < work_item_sizes[0] ? d3 : work_item_sizes[0];
-      temp = max_work_group_size / txzl1_lws[0];
-      txzl1_lws[1] = d2 < temp ? d2 : temp;
+	  for (cmdq_id = 0; cmdq_id < num_devices; cmdq_id++) {
+		  for (i = 0; i < actual_num_devices; i++) {
+			  int j;
+			  for(j = 0; j < 3; j++) txzl1_lws[j] = 1;
+			  for(j = 0; j < 3; j++) txzl1_gws[j] = 1;
+			  if (TRANSPOSE_X_Z_LOCAL1_DIM[i] == 3) {
+				  txzl1_lws[0] = d1 < work_item_sizes[0] ? d1 : work_item_sizes[0];
+				  temp = max_work_group_size / txzl1_lws[0];
+				  txzl1_lws[1] = d3 < temp ? d3 : temp;
+				  temp = temp / txzl1_lws[1];
+				  txzl1_lws[2] = d2 < temp ? d2 : temp;
 
-      txzl1_gws[0] = clu_RoundWorkSize((size_t)d3, txzl1_lws[0]);
-      txzl1_gws[1] = clu_RoundWorkSize((size_t)d2, txzl1_lws[1]);
-    } else {
-      //temp = d2 / max_compute_units;
-      temp = 1;
-      txzl1_lws[0] = temp == 0 ? 1 : temp;
-      txzl1_gws[0] = clu_RoundWorkSize((size_t)d2, txzl1_lws[0]);
-    }
+				  txzl1_gws[0] = clu_RoundWorkSize((size_t)d1, txzl1_lws[0]);
+				  txzl1_gws[1] = clu_RoundWorkSize((size_t)d3, txzl1_lws[1]);
+				  txzl1_gws[2] = clu_RoundWorkSize((size_t)d2, txzl1_lws[2]);
+			  } else if (TRANSPOSE_X_Z_LOCAL1_DIM[i] == 2) {
+				  txzl1_lws[0] = d3 < work_item_sizes[0] ? d3 : work_item_sizes[0];
+				  temp = max_work_group_size / txzl1_lws[0];
+				  txzl1_lws[1] = d2 < temp ? d2 : temp;
 
-    for (i = 0; i < num_devices; i++) {
+				  txzl1_gws[0] = clu_RoundWorkSize((size_t)d3, txzl1_lws[0]);
+				  txzl1_gws[1] = clu_RoundWorkSize((size_t)d2, txzl1_lws[1]);
+			  } else {
+				  //temp = d2 / max_compute_units;
+				  temp = 1;
+				  txzl1_lws[0] = temp == 0 ? 1 : temp;
+				  txzl1_gws[0] = clu_RoundWorkSize((size_t)d2, txzl1_lws[0]);
+			  }
+      	ecode = clSetKernelLaunchConfiguration(devices[i],
+                                     k_transpose_x_z_local1[cmdq_id],
+                                     //TRANSPOSE_X_Z_LOCAL1_DIM, NULL,
+									 3, NULL,
+                                     txzl1_gws,
+                                     txzl1_lws
+                                     );
+      	clu_CheckError(ecode, "clEnqueueNDRangeKernel()");
+		  }
+	  }
+	for (i = 0; i < num_devices; i++) {
       ecode  = clSetKernelArg(k_transpose_x_z_local1[i], 0, sizeof(cl_mem),
                                                             &xin[i]);
       ecode |= clSetKernelArg(k_transpose_x_z_local1[i], 1, sizeof(cl_mem),
@@ -1557,7 +1694,8 @@ static void transpose_x_z_local(int d1, int d2, int d3,
 
       ecode = clEnqueueNDRangeKernel(cmd_queue[i],
                                      k_transpose_x_z_local1[i],
-                                     TRANSPOSE_X_Z_LOCAL1_DIM, NULL,
+                                     //TRANSPOSE_X_Z_LOCAL1_DIM, NULL,
+									 3, NULL,
                                      txzl1_gws,
                                      txzl1_lws,
                                      0, NULL, NULL);
@@ -1573,34 +1711,49 @@ static void transpose_x_z_local(int d1, int d2, int d3,
     //---------------------------------------------------------------------
     // blocked transpose
     //---------------------------------------------------------------------
-    if (TRANSPOSE_X_Z_LOCAL2_DIM == 3) {
-      int num_1d = d1 / block1;
-      int num_2d = d3 / block3;
-      txzl2_lws[0] = num_1d<work_item_sizes[0] ? num_1d : work_item_sizes[0];
-      temp = max_work_group_size / txzl2_lws[0];
-      txzl2_lws[1] = num_2d < temp ? num_2d : temp;
-      temp = temp / txzl2_lws[1];
-      txzl2_lws[2] = d2 < temp ? d2 : temp;
 
-      txzl2_gws[0] = clu_RoundWorkSize((size_t)num_1d, txzl2_lws[0]);
-      txzl2_gws[1] = clu_RoundWorkSize((size_t)num_2d, txzl2_lws[1]);
-      txzl2_gws[2] = clu_RoundWorkSize((size_t)d2, txzl2_lws[2]);
-    } else if (TRANSPOSE_X_Z_LOCAL2_DIM == 2) {
-      int num_1d = d3 / block3;
-      txzl2_lws[0] = num_1d<work_item_sizes[0] ? num_1d : work_item_sizes[0];
-      temp = max_work_group_size / txzl2_lws[0];
-      txzl2_lws[1] = d2 < temp ? d2 : temp;
+	for (cmdq_id = 0; cmdq_id < num_devices; cmdq_id++) {
+		for (i = 0; i < actual_num_devices; i++) {
+			int j;
+			for(j = 0; j < 3; j++) txzl2_lws[j] = 1;
+			for(j = 0; j < 3; j++) txzl2_gws[j] = 1;
+			if (TRANSPOSE_X_Z_LOCAL2_DIM[i] == 3) {
+				int num_1d = d1 / block1;
+				int num_2d = d3 / block3;
+				txzl2_lws[0] = num_1d<work_item_sizes[0] ? num_1d : work_item_sizes[0];
+				temp = max_work_group_size / txzl2_lws[0];
+				txzl2_lws[1] = num_2d < temp ? num_2d : temp;
+				temp = temp / txzl2_lws[1];
+				txzl2_lws[2] = d2 < temp ? d2 : temp;
 
-      txzl2_gws[0] = clu_RoundWorkSize((size_t)num_1d, txzl2_lws[0]);
-      txzl2_gws[1] = clu_RoundWorkSize((size_t)d2, txzl2_lws[1]);
-    } else {
-      //temp = d2 / max_compute_units;
-      temp = 1;
-      txzl2_lws[0] = temp == 0 ? 1 : temp;
-      txzl2_gws[0] = clu_RoundWorkSize((size_t)d2, txzl2_lws[0]);
-    }
+				txzl2_gws[0] = clu_RoundWorkSize((size_t)num_1d, txzl2_lws[0]);
+				txzl2_gws[1] = clu_RoundWorkSize((size_t)num_2d, txzl2_lws[1]);
+				txzl2_gws[2] = clu_RoundWorkSize((size_t)d2, txzl2_lws[2]);
+			} else if (TRANSPOSE_X_Z_LOCAL2_DIM[i] == 2) {
+				int num_1d = d3 / block3;
+				txzl2_lws[0] = num_1d<work_item_sizes[0] ? num_1d : work_item_sizes[0];
+				temp = max_work_group_size / txzl2_lws[0];
+				txzl2_lws[1] = d2 < temp ? d2 : temp;
 
-    for (i = 0; i < num_devices; i++) {
+				txzl2_gws[0] = clu_RoundWorkSize((size_t)num_1d, txzl2_lws[0]);
+				txzl2_gws[1] = clu_RoundWorkSize((size_t)d2, txzl2_lws[1]);
+			} else {
+				//temp = d2 / max_compute_units;
+				temp = 1;
+				txzl2_lws[0] = temp == 0 ? 1 : temp;
+				txzl2_gws[0] = clu_RoundWorkSize((size_t)d2, txzl2_lws[0]);
+			}
+			ecode = clSetKernelLaunchConfiguration(devices[i],
+					k_transpose_x_z_local2[cmdq_id],
+					//TRANSPOSE_X_Z_LOCAL2_DIM, NULL,
+					3, NULL,
+					txzl2_gws,
+					txzl2_lws
+					);
+			clu_CheckError(ecode, "clEnqueueNDRangeKernel()");
+		}
+	}
+	for (i = 0; i < num_devices; i++) {
       ecode  = clSetKernelArg(k_transpose_x_z_local2[i], 0, sizeof(cl_mem),
                                                             &xin[i]);
       ecode |= clSetKernelArg(k_transpose_x_z_local2[i], 1, sizeof(cl_mem),
@@ -1616,7 +1769,8 @@ static void transpose_x_z_local(int d1, int d2, int d3,
 
       ecode = clEnqueueNDRangeKernel(cmd_queue[i],
                                      k_transpose_x_z_local2[i],
-                                     TRANSPOSE_X_Z_LOCAL2_DIM, NULL,
+                                     //TRANSPOSE_X_Z_LOCAL2_DIM, NULL,
+									 3, NULL,
                                      txzl2_gws,
                                      txzl2_lws,
                                      0, NULL, NULL);
@@ -1727,10 +1881,15 @@ static void transpose_x_z_finish(int d1, int d2, int d3,
 {
   int i;
   cl_int ecode;
-  size_t txzf_lws[3], txzf_gws[3], temp;
+  size_t txzf_lws[3] = {1, 1, 1}, txzf_gws[3] = {1, 1, 1}, temp;
 
   if (timers_enabled) timer_start(T_transxzfin);
 
+
+  for (i = 0; i < num_devices; i++) {
+  int j;
+  for(j = 0; j < 3; j++) txzf_lws[j] = 1;
+  for(j = 0; j < 3; j++) txzf_gws[j] = 1;
   if (TRANSPOSE_X_Z_FINISH_DIM == 3) {
     txzf_lws[0] = d2 < work_item_sizes[0] ? d2 : work_item_sizes[0];
     temp = max_work_group_size / txzf_lws[0];
@@ -1756,8 +1915,6 @@ static void transpose_x_z_finish(int d1, int d2, int d3,
     txzf_lws[0] = temp == 0 ? 1 : temp;
     txzf_gws[0] = clu_RoundWorkSize((size_t)np2, txzf_lws[0]);
   }
-
-  for (i = 0; i < num_devices; i++) {
     ecode  = clSetKernelArg(k_transpose_x_z_finish[i], 0, sizeof(cl_mem),
                                                           &xin[i]);
     ecode |= clSetKernelArg(k_transpose_x_z_finish[i], 1, sizeof(cl_mem),
@@ -1770,7 +1927,8 @@ static void transpose_x_z_finish(int d1, int d2, int d3,
 
     ecode = clEnqueueNDRangeKernel(cmd_queue[i],
                                    k_transpose_x_z_finish[i],
-                                   TRANSPOSE_X_Z_FINISH_DIM, NULL,
+                                   //TRANSPOSE_X_Z_FINISH_DIM, NULL,
+									 3, NULL,
                                    txzf_gws,
                                    txzf_lws,
                                    0, NULL, NULL);
@@ -1805,34 +1963,48 @@ static void transpose_x_y(int l1, int l2, cl_mem *xin, cl_mem *xout)
 static void transpose_x_y_local(int d1, int d2, int d3,
                                 cl_mem *xin, cl_mem *xout)
 {
-  int i;
-  size_t txyl_lws[3], txyl_gws[3], temp;
+  int i, cmdq_id;
+  size_t txyl_lws[3] = {1, 1, 1}, txyl_gws[3] = {1, 1, 1}, temp;
   cl_int ecode;
 
-  if (TRANSPOSE_X_Y_LOCAL_DIM == 3) {
-    txyl_lws[0] = d2 < work_item_sizes[0] ? d2 : work_item_sizes[0];
-    temp = max_work_group_size / txyl_lws[0];
-    txyl_lws[1] = d1 < temp ? d1 : temp;
-    temp = temp / txyl_lws[1];
-    txyl_lws[2] = d3 < temp ? d3 : temp;
+  for (cmdq_id = 0; cmdq_id < num_devices; cmdq_id++) {
+	  for (i = 0; i < actual_num_devices; i++) {
+		  int j;
+		  for(j = 0; j < 3; j++) txyl_lws[j] = 1;
+		  for(j = 0; j < 3; j++) txyl_gws[j] = 1;
+		  if (TRANSPOSE_X_Y_LOCAL_DIM[i] == 3) {
+			  txyl_lws[0] = d2 < work_item_sizes[0] ? d2 : work_item_sizes[0];
+			  temp = max_work_group_size / txyl_lws[0];
+			  txyl_lws[1] = d1 < temp ? d1 : temp;
+			  temp = temp / txyl_lws[1];
+			  txyl_lws[2] = d3 < temp ? d3 : temp;
 
-    txyl_gws[0] = clu_RoundWorkSize((size_t)d2, txyl_lws[0]);
-    txyl_gws[1] = clu_RoundWorkSize((size_t)d1, txyl_lws[1]);
-    txyl_gws[2] = clu_RoundWorkSize((size_t)d3, txyl_lws[2]);
-  } else if (TRANSPOSE_X_Y_LOCAL_DIM == 2) {
-    txyl_lws[0] = d1 < work_item_sizes[0] ? d1 : work_item_sizes[0];
-    temp = max_work_group_size / txyl_lws[0];
-    txyl_lws[1] = d3 < temp ? d3 : temp;
+			  txyl_gws[0] = clu_RoundWorkSize((size_t)d2, txyl_lws[0]);
+			  txyl_gws[1] = clu_RoundWorkSize((size_t)d1, txyl_lws[1]);
+			  txyl_gws[2] = clu_RoundWorkSize((size_t)d3, txyl_lws[2]);
+		  } else if (TRANSPOSE_X_Y_LOCAL_DIM[i] == 2) {
+			  txyl_lws[0] = d1 < work_item_sizes[0] ? d1 : work_item_sizes[0];
+			  temp = max_work_group_size / txyl_lws[0];
+			  txyl_lws[1] = d3 < temp ? d3 : temp;
 
-    txyl_gws[0] = clu_RoundWorkSize((size_t)d1, txyl_lws[0]);
-    txyl_gws[1] = clu_RoundWorkSize((size_t)d3, txyl_lws[1]);
-  } else {
-    //temp = d3 / max_compute_units;
-    temp = 1;
-    txyl_lws[0] = temp == 0 ? 1 : temp;
-    txyl_gws[0] = clu_RoundWorkSize((size_t)d3, txyl_lws[0]);
+			  txyl_gws[0] = clu_RoundWorkSize((size_t)d1, txyl_lws[0]);
+			  txyl_gws[1] = clu_RoundWorkSize((size_t)d3, txyl_lws[1]);
+		  } else {
+			  //temp = d3 / max_compute_units;
+			  temp = 1;
+			  txyl_lws[0] = temp == 0 ? 1 : temp;
+			  txyl_gws[0] = clu_RoundWorkSize((size_t)d3, txyl_lws[0]);
+		  }
+		  ecode = clSetKernelLaunchConfiguration(devices[i],
+				  k_transpose_x_y_local[cmdq_id],
+				  //TRANSPOSE_X_Y_LOCAL_DIM, NULL,
+				  3, NULL,
+				  txyl_gws,
+				  txyl_lws
+				  );
+		  clu_CheckError(ecode, "clEnqueueNDRangeKernel()");
+	  }
   }
-
   for (i = 0; i < num_devices; i++) {
     ecode  = clSetKernelArg(k_transpose_x_y_local[i], 0, sizeof(cl_mem),
                                                          &xin[i]);
@@ -1845,7 +2017,8 @@ static void transpose_x_y_local(int d1, int d2, int d3,
 
     ecode = clEnqueueNDRangeKernel(cmd_queue[i],
                                    k_transpose_x_y_local[i],
-                                   TRANSPOSE_X_Y_LOCAL_DIM, NULL,
+                                   //TRANSPOSE_X_Y_LOCAL_DIM, NULL,
+									 3, NULL,
                                    txyl_gws,
                                    txyl_lws,
                                    0, NULL, NULL);
@@ -1960,10 +2133,14 @@ static void transpose_x_y_finish(int d1, int d2, int d3,
 {
   int i;
   cl_int ecode;
-  size_t txyf_lws[3], txyf_gws[3], temp;
+  size_t txyf_lws[3] = {1, 1, 1}, txyf_gws[3] = {1, 1, 1}, temp;
 
   if (timers_enabled) timer_start(T_transxyfin);
 
+int j;
+  for (i = 0; i < num_devices; i++) {
+  for(j = 0; j < 3; j++) txyf_lws[j] = 1;
+  for(j = 0; j < 3; j++) txyf_gws[j] = 1;
   if (TRANSPOSE_X_Y_FINISH_DIM == 3) {
     txyf_lws[0] = d2 < work_item_sizes[0] ? d2 : work_item_sizes[0];
     temp = max_work_group_size / txyf_lws[0];
@@ -1987,8 +2164,6 @@ static void transpose_x_y_finish(int d1, int d2, int d3,
     txyf_lws[0] = temp == 0 ? 1 : temp;
     txyf_gws[0] = clu_RoundWorkSize((size_t)np1, txyf_lws[0]);
   }
-
-  for (i = 0; i < num_devices; i++) {
     ecode  = clSetKernelArg(k_transpose_x_y_finish[i], 0, sizeof(cl_mem),
                                                           &xin[i]);
     ecode |= clSetKernelArg(k_transpose_x_y_finish[i], 1, sizeof(cl_mem),
@@ -2001,7 +2176,8 @@ static void transpose_x_y_finish(int d1, int d2, int d3,
 
     ecode = clEnqueueNDRangeKernel(cmd_queue[i],
                                    k_transpose_x_y_finish[i],
-                                   TRANSPOSE_X_Y_FINISH_DIM, NULL,
+                                   //TRANSPOSE_X_Y_FINISH_DIM, NULL,
+									 3, NULL,
                                    txyf_gws,
                                    txyf_lws,
                                    0, NULL, NULL);
@@ -2047,6 +2223,8 @@ static void checksum(int it, cl_mem *u1, int d1, int d2, int d3)
                                    &checksum_lws,
                                    0, NULL, NULL);
     clu_CheckError(ecode, "clEnqueueNDRangeKernel()");
+    ecode = clFinish(cmd_queue[i]);
+    clu_CheckError(ecode, "clFinish()");
 
     g_chk[i] = (dcomplex *)malloc(sizeof(dcomplex) * checksum_wgn);
 
@@ -2063,16 +2241,19 @@ static void checksum(int it, cl_mem *u1, int d1, int d2, int d3)
   for (i = 0; i < num_devices; i++) {
     ecode = clFinish(cmd_queue[i]);
     clu_CheckError(ecode, "clFinish()");
+  }
 
+  for (i = 0; i < num_devices; i++) {
     for (k = 0; k < checksum_wgn; k++) {
       chk = dcmplx_add(chk, g_chk[i][k]);
     }
+  	printf(" T =%5d Dev_ID: %d Dividend: %g   Checksum =%22.12E%22.12E\n", it, i, NTOTAL_F, chk.real, chk.imag);
     free(g_chk[i]);
   }
 
   chk = dcmplx_div2(chk, NTOTAL_F);
 
-  printf(" T =%5d     Checksum =%22.12E%22.12E\n", it, chk.real, chk.imag);
+  printf(" T =%5d  Dividend: %g   Checksum =%22.12E%22.12E\n", it, NTOTAL_F, chk.real, chk.imag);
 
   // sums[it] = allchk
   // If we compute the checksum for diagnostic purposes, we let it be
@@ -2300,7 +2481,9 @@ static void setup_opencl(int argc, char *argv[])
 
   // 1. Find the default device type and get a device for the device type
   //    Then, create sub-devices from the parent device.
-  device_type = CL_DEVICE_TYPE_CPU;
+  device_type = CL_DEVICE_TYPE_ALL;
+  //device_type = CL_DEVICE_TYPE_CPU;
+  //device_type = CL_DEVICE_TYPE_GPU;
 
   cl_platform_id platform;
   ecode = clGetPlatformIDs(1, &platform, NULL);
@@ -2308,7 +2491,12 @@ static void setup_opencl(int argc, char *argv[])
 
   ecode = clGetDeviceIDs(platform, device_type, 0, NULL, &num_devices);
   clu_CheckError(ecode, "clGetDeviceIDs()");
-
+  //num_devices = 2;
+  actual_num_devices = num_devices;
+  num_command_queues = 2;
+  char *num_command_queues_str = getenv("SNU_NPB_COMMAND_QUEUES");
+  if(num_command_queues_str != NULL)
+  	num_command_queues = atoi(num_command_queues_str);
   ecode = clGetDeviceIDs(platform, device_type, num_devices, devices, NULL);
   clu_CheckError(ecode, "clGetDeviceIDs()");
 
@@ -2326,37 +2514,44 @@ static void setup_opencl(int argc, char *argv[])
       }
     }
   }
-  if (device_type & CL_DEVICE_TYPE_CPU) {
-    COMPUTE_IMAP_DIM = COMPUTE_IMAP_DIM_CPU;
-    EVOLVE_DIM = EVOLVE_DIM_CPU;
-    TRANSPOSE2_LOCAL1_DIM = TRANSPOSE2_LOCAL1_DIM_CPU;
-    TRANSPOSE2_LOCAL2_DIM = TRANSPOSE2_LOCAL2_DIM_CPU;
-    TRANSPOSE2_LOCAL3_DIM = TRANSPOSE2_LOCAL3_DIM_CPU;
-    TRANSPOSE2_FINISH_DIM = TRANSPOSE2_FINISH_DIM_CPU;
-    TRANSPOSE_X_Z_LOCAL1_DIM = TRANSPOSE_X_Z_LOCAL1_DIM_CPU;
-    TRANSPOSE_X_Z_LOCAL2_DIM = TRANSPOSE_X_Z_LOCAL2_DIM_CPU;
-    TRANSPOSE_X_Z_FINISH_DIM = TRANSPOSE_X_Z_FINISH_DIM_CPU;
-    TRANSPOSE_X_Y_LOCAL_DIM = TRANSPOSE_X_Y_LOCAL_DIM_CPU;
-    TRANSPOSE_X_Y_FINISH_DIM = TRANSPOSE_X_Y_FINISH_DIM_CPU;
-    CFFTS1_DIM = CFFTS1_DIM_CPU;
-    CFFTS2_DIM = CFFTS2_DIM_CPU;
-    CFFTS3_DIM = CFFTS3_DIM_CPU;
+
+ devices_type = (cl_device_type *)malloc(sizeof(cl_device_type) * num_devices);
+
+ COMPUTE_IMAP_DIM = COMPUTE_IMAP_DIM_CPU;
+ EVOLVE_DIM = EVOLVE_DIM_CPU;
+ TRANSPOSE2_FINISH_DIM = TRANSPOSE2_FINISH_DIM_CPU;
+ TRANSPOSE_X_Z_FINISH_DIM = TRANSPOSE_X_Z_FINISH_DIM_CPU;
+ TRANSPOSE_X_Y_FINISH_DIM = TRANSPOSE_X_Y_FINISH_DIM_CPU;
+ CFFTS1_DIM = CFFTS1_DIM_CPU;
+ CFFTS2_DIM = CFFTS2_DIM_CPU;
+ CFFTS3_DIM = CFFTS3_DIM_CPU;
+
+ for (i = 0; i < actual_num_devices; i++) {
+    cl_device_type cur_device_type;
+  	cl_int err = clGetDeviceInfo(devices[i],
+	 			CL_DEVICE_TYPE,
+		 		sizeof(cl_device_type),
+			 	&cur_device_type,
+				NULL);
+    clu_CheckError(err, "clGetDeviceInfo()");
+
+ if (cur_device_type == CL_DEVICE_TYPE_CPU) {
+    TRANSPOSE2_LOCAL1_DIM[i] = TRANSPOSE2_LOCAL1_DIM_CPU;
+    TRANSPOSE2_LOCAL2_DIM[i] = TRANSPOSE2_LOCAL2_DIM_CPU;
+    TRANSPOSE2_LOCAL3_DIM[i] = TRANSPOSE2_LOCAL3_DIM_CPU;
+    TRANSPOSE_X_Z_LOCAL1_DIM[i] = TRANSPOSE_X_Z_LOCAL1_DIM_CPU;
+    TRANSPOSE_X_Z_LOCAL2_DIM[i] = TRANSPOSE_X_Z_LOCAL2_DIM_CPU;
+    TRANSPOSE_X_Y_LOCAL_DIM[i] = TRANSPOSE_X_Y_LOCAL_DIM_CPU;
   } else {
-    COMPUTE_IMAP_DIM = COMPUTE_IMAP_DIM_GPU;
-    EVOLVE_DIM = EVOLVE_DIM_GPU;
-    TRANSPOSE2_LOCAL1_DIM = TRANSPOSE2_LOCAL1_DIM_GPU;
-    TRANSPOSE2_LOCAL2_DIM = TRANSPOSE2_LOCAL2_DIM_GPU;
-    TRANSPOSE2_LOCAL3_DIM = TRANSPOSE2_LOCAL3_DIM_GPU;
-    TRANSPOSE2_FINISH_DIM = TRANSPOSE2_FINISH_DIM_GPU;
-    TRANSPOSE_X_Z_LOCAL1_DIM = TRANSPOSE_X_Z_LOCAL1_DIM_GPU;
-    TRANSPOSE_X_Z_LOCAL2_DIM = TRANSPOSE_X_Z_LOCAL2_DIM_GPU;
-    TRANSPOSE_X_Z_FINISH_DIM = TRANSPOSE_X_Z_FINISH_DIM_GPU;
-    TRANSPOSE_X_Y_LOCAL_DIM = TRANSPOSE_X_Y_LOCAL_DIM_GPU;
-    TRANSPOSE_X_Y_FINISH_DIM = TRANSPOSE_X_Y_FINISH_DIM_GPU;
-    CFFTS1_DIM = CFFTS1_DIM_GPU;
-    CFFTS2_DIM = CFFTS2_DIM_GPU;
-    CFFTS3_DIM = CFFTS3_DIM_GPU;
+    TRANSPOSE2_LOCAL1_DIM[i] = TRANSPOSE2_LOCAL1_DIM_GPU;
+    TRANSPOSE2_LOCAL2_DIM[i] = TRANSPOSE2_LOCAL2_DIM_GPU;
+    TRANSPOSE2_LOCAL3_DIM[i] = TRANSPOSE2_LOCAL3_DIM_GPU;
+    TRANSPOSE_X_Z_LOCAL1_DIM[i] = TRANSPOSE_X_Z_LOCAL1_DIM_GPU;
+    TRANSPOSE_X_Z_LOCAL2_DIM[i] = TRANSPOSE_X_Z_LOCAL2_DIM_GPU;
+    TRANSPOSE_X_Y_LOCAL_DIM[i] = TRANSPOSE_X_Y_LOCAL_DIM_GPU;
   }
+  }
+
 
   // 2. Create a context for devices
 #ifdef MINIMD_SNUCL_OPTIMIZATIONS
@@ -2364,7 +2559,10 @@ static void setup_opencl(int argc, char *argv[])
 		CL_CONTEXT_PLATFORM,
 		(cl_context_properties)platform,
 		CL_CONTEXT_SCHEDULER,
-		CL_CONTEXT_SCHEDULER_PERF_MODEL,
+		CL_CONTEXT_SCHEDULER_CODE_SEGMENTED_PERF_MODEL,
+		//CL_CONTEXT_SCHEDULER_PERF_MODEL,
+		//CL_CONTEXT_SCHEDULER_FIRST_EPOCH_BASED_PERF_MODEL,
+		//CL_CONTEXT_SCHEDULER_ALL_EPOCH_BASED_PERF_MODEL,
 		0 };
   context = clCreateContext(props, 
 #else
@@ -2375,14 +2573,45 @@ static void setup_opencl(int argc, char *argv[])
                             NULL, NULL, &ecode);
   clu_CheckError(ecode, "clCreateContext()");
 
+#if 0
+#if 0
+  clGetDeviceIDs(context, CL_DEVICE_TYPE_CPU, 0, 
+  			NULL, &num_cpu_devices);
+  clGetDeviceIDs(context, CL_DEVICE_TYPE_GPU, 0, 
+  			NULL, &num_gpu_devices);
+  cpu_devices = (cl_device_id *)malloc(sizeof(cl_device_id) * 
+  			num_cpu_devices);
+  gpu_devices = (cl_device_id *)malloc(sizeof(cl_device_id) * 
+  			num_gpu_devices);
+  clGetDeviceIDs(context, CL_DEVICE_TYPE_CPU, num_cpu_devices,
+  			cpu_devices, NULL);
+  clGetDeviceIDs(context, CL_DEVICE_TYPE_GPU, num_gpu_devices,
+  			gpu_devices, NULL);
+#else
+  clGetDeviceIDs(platform, CL_DEVICE_TYPE_CPU, 0, 
+  			NULL, &num_cpu_devices);
+  clGetDeviceIDs(platform, CL_DEVICE_TYPE_GPU, 0, 
+  			NULL, &num_gpu_devices);
+  cpu_devices = (cl_device_id *)malloc(sizeof(cl_device_id) * 
+  			num_cpu_devices);
+  gpu_devices = (cl_device_id *)malloc(sizeof(cl_device_id) * 
+  			num_gpu_devices);
+  clGetDeviceIDs(platform, CL_DEVICE_TYPE_CPU, num_cpu_devices,
+  			cpu_devices, NULL);
+  clGetDeviceIDs(platform, CL_DEVICE_TYPE_GPU, num_gpu_devices,
+  			gpu_devices, NULL);
+#endif
+#endif
   // 3. Create a command queue
-  cmd_queue = (cl_command_queue*)malloc(sizeof(cl_command_queue)*num_devices);
-  for (i = 0; i < num_devices; i++) {
-    cmd_queue[i] = clCreateCommandQueue(context, devices[i], 
+  cmd_queue = (cl_command_queue*)malloc(sizeof(cl_command_queue)*num_command_queues);
+  for (i = 0; i < num_command_queues; i++) {
+    cmd_queue[i] = clCreateCommandQueue(context, devices[(i % num_devices)], 
+    //cmd_queue[i] = clCreateCommandQueue(context, devices[(num_devices - 1) - (i % num_devices)], 
 #ifdef MINIMD_SNUCL_OPTIMIZATIONS
-			CL_QUEUE_AUTO_DEVICE_SELECTION | 
-			CL_QUEUE_ITERATIVE | 
-			CL_QUEUE_COMPUTE_INTENSIVE,
+			0,
+			//CL_QUEUE_AUTO_DEVICE_SELECTION | 
+			//CL_QUEUE_ITERATIVE, 
+			//CL_QUEUE_COMPUTE_INTENSIVE,
 #else
 	0,
 #endif
@@ -2395,21 +2624,37 @@ static void setup_opencl(int argc, char *argv[])
   char *source_file = "ft_kernel.cl";
   //program = clu_MakeProgram(context, devices, source_dir, source_file, build_option);
   program = clu_CreateProgram(context, source_dir, source_file);
-  char build_option[50];
-  if (device_type & CL_DEVICE_TYPE_CPU) {
-    sprintf(build_option, "-I. -DCLASS=%d -DUSE_CPU", CLASS);
-  //clu_MakeProgram(program, 1, &devices[0], source_dir, build_option);
-  } 
-  else if (device_type & CL_DEVICE_TYPE_GPU) {
-    sprintf(build_option, "-I. -DCLASS=%d", CLASS);
-  //clu_MakeProgram(program, 2, &devices[1], source_dir, build_option);
-  } else {
-    fprintf(stderr, "Set the environment variable OPENCL_DEVICE_TYPE!\n");
-    exit(EXIT_FAILURE);
+  for(i = 0; i < num_devices; i++) {
+	  char build_option[50] = {0};
+	  cl_device_type cur_device_type;
+	  cl_int err = clGetDeviceInfo(devices[i],
+			  CL_DEVICE_TYPE,
+			  sizeof(cl_device_type),
+			  &cur_device_type,
+			  NULL);
+	  clu_CheckError(err, "clGetDeviceInfo()");
+	  //cur_device_type = CL_DEVICE_TYPE_CPU;
+	  //cur_device_type = CL_DEVICE_TYPE_GPU;
+	  printf("Device %d is of type %d\n", i, cur_device_type);
+  	  //if (device_type == CL_DEVICE_TYPE_CPU || device_type == CL_DEVICE_TYPE_ALL) {
+	  if (cur_device_type == CL_DEVICE_TYPE_CPU) { 
+		  sprintf(build_option, "-I. -DCLASS=%d -DUSE_CPU", CLASS);
+		  //clu_MakeProgram(program, 1, &devices[0], source_dir, build_option);
+	  } 
+	  //else if (device_type == CL_DEVICE_TYPE_GPU) {
+	  else if (cur_device_type == CL_DEVICE_TYPE_GPU) {
+		  sprintf(build_option, "-I. -DCLASS=%d", CLASS);
+		  //clu_MakeProgram(program, 2, &devices[1], source_dir, build_option);
+	  } else {
+		  fprintf(stderr, "Set the environment variable OPENCL_DEVICE_TYPE!\n");
+		  exit(EXIT_FAILURE);
+	  }
+	  printf("Build Options: %s\n", build_option);
+	  clu_MakeProgram(program, 1, &devices[i], source_dir, build_option);
+	  //clu_MakeProgram(program, num_devices, devices, source_dir, build_option);
+
   }
-  clu_MakeProgram(program, num_devices, devices, source_dir, build_option);
-
-
+  num_devices = num_command_queues;
   if (timers_enabled) timer_stop(TIMER_BUILD);
 
   // 5. Create kernels
@@ -2587,7 +2832,10 @@ static void release_opencl()
   clReleaseContext(context);
   clReleaseProgram(program);
 
+  free(devices_type);
   free(devices);
+  free(cpu_devices);
+  free(gpu_devices);
 
   if (timers_enabled) {
     timer_stop(TIMER_RELEASE);

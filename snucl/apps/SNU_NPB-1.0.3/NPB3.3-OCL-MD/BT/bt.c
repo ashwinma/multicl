@@ -413,8 +413,11 @@ static void setup_opencl(int argc, char *argv[])
 
   ecode = clGetDeviceIDs(platform, device_type, 0, NULL, &num_devices);
   clu_CheckError(ecode, "clGetDeviceIDs()");
-  //num_devices = 1;
+  //num_command_queues = 1;
   num_command_queues = 4;
+  char *num_command_queues_str = getenv("SNU_NPB_COMMAND_QUEUES");
+  if(num_command_queues_str != NULL)
+  	num_command_queues = atoi(num_command_queues_str);
   actual_num_devices = num_devices;
 
   devices = (cl_device_id *)malloc(sizeof(cl_device_id) * num_devices);
@@ -496,7 +499,10 @@ static void setup_opencl(int argc, char *argv[])
 		CL_CONTEXT_PLATFORM,
 		(cl_context_properties)platform,
 		CL_CONTEXT_SCHEDULER,
-		CL_CONTEXT_SCHEDULER_PERF_MODEL,
+		CL_CONTEXT_SCHEDULER_CODE_SEGMENTED_PERF_MODEL,
+		//CL_CONTEXT_SCHEDULER_PERF_MODEL,
+		//CL_CONTEXT_SCHEDULER_FIRST_EPOCH_BASED_PERF_MODEL,
+		//CL_CONTEXT_SCHEDULER_ALL_EPOCH_BASED_PERF_MODEL,
 		0 };
   context = clCreateContext(props, 
 #else
@@ -512,8 +518,9 @@ static void setup_opencl(int argc, char *argv[])
   //-----------------------------------------------------------------------
   cmd_queue = (cl_command_queue*)malloc(sizeof(cl_command_queue)*num_command_queues);
   for (i = 0; i < num_command_queues; i++) {
-    cmd_queue[i] = clCreateCommandQueue(context, devices[(i < 3) ? 0 : 1], 
-    //cmd_queue[i] = clCreateCommandQueue(context, devices[i%actual_num_devices], 
+    //cmd_queue[i] = clCreateCommandQueue(context, devices[(i < 3) ? 0 : 1], 
+    //cmd_queue[i] = clCreateCommandQueue(context, devices[(i%actual_num_devices)], 
+    cmd_queue[i] = clCreateCommandQueue(context, devices[num_devices - 1 - (i%actual_num_devices)], 
 #ifdef MINIMD_SNUCL_OPTIMIZATIONS
 	0,
 			//CL_QUEUE_AUTO_DEVICE_SELECTION | 

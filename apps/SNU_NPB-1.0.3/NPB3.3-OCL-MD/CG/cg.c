@@ -49,7 +49,7 @@
 
 #define DEFAULT_NUM_SUBS    32
 
-#define USE_CHUNK_SCHEDULE
+//#define USE_CHUNK_SCHEDULE
 #define CHUNK_WG            (16)
 #define REDUCTION_WG        (16)
 
@@ -706,6 +706,8 @@ static void setup_opencl(int argc, char *argv[])
 
   // 1. Find the default device type and get a device for the device type
 
+  //device_type = CL_DEVICE_TYPE_CPU;
+  //device_type = CL_DEVICE_TYPE_GPU;
   device_type = CL_DEVICE_TYPE_ALL;
 
   cl_platform_id platform;
@@ -715,6 +717,10 @@ static void setup_opencl(int argc, char *argv[])
   ecode = clGetDeviceIDs(platform, device_type, 0, NULL, &num_devices);
   clu_CheckError(ecode, "clGetDeviceIDs()");
 
+  cl_uint num_command_queues = 1;
+  char *num_command_queues_str = getenv("SNU_NPB_COMMAND_QUEUES");
+  if(num_command_queues_str != NULL)
+  	num_command_queues = atoi(num_command_queues_str);
   devices = (cl_device_id *)malloc(sizeof(cl_device_id) * num_devices);
 
   ecode = clGetDeviceIDs(platform, device_type, num_devices, devices, NULL);
@@ -737,7 +743,10 @@ static void setup_opencl(int argc, char *argv[])
 		CL_CONTEXT_PLATFORM,
 		(cl_context_properties)platform,
 		CL_CONTEXT_SCHEDULER,
-		CL_CONTEXT_SCHEDULER_PERF_MODEL,
+		//CL_CONTEXT_SCHEDULER_CODE_SEGMENTED_PERF_MODEL,
+		//CL_CONTEXT_SCHEDULER_PERF_MODEL,
+		CL_CONTEXT_SCHEDULER_FIRST_EPOCH_BASED_PERF_MODEL,
+		//CL_CONTEXT_SCHEDULER_ALL_EPOCH_BASED_PERF_MODEL,
 		0 };
   context = clCreateContext(props,
 #else
@@ -749,12 +758,13 @@ static void setup_opencl(int argc, char *argv[])
   clu_CheckError(ecode, "clCreateContext()");
 
   // 3. Create a command queue
-  cmd_queue = (cl_command_queue*)malloc(sizeof(cl_command_queue)*num_devices);
-  for (i = 0; i < num_devices; i++) {
-    cmd_queue[i] = clCreateCommandQueue(context, devices[i], 
+  cmd_queue = (cl_command_queue*)malloc(sizeof(cl_command_queue)*num_command_queues);
+  for (i = 0; i < num_command_queues; i++) {
+    cmd_queue[i] = clCreateCommandQueue(context, devices[i % num_devices], 
+    //cmd_queue[i] = clCreateCommandQueue(context, devices[(num_devices - 1) - (i % num_devices)], 
 #ifdef CG_SNUCL_OPTIMIZATIONS
 			CL_QUEUE_AUTO_DEVICE_SELECTION | 
-			CL_QUEUE_ITERATIVE | 
+			//CL_QUEUE_ITERATIVE | 
 			CL_QUEUE_COMPUTE_INTENSIVE | 
 #endif
 		0, &ecode);
@@ -764,14 +774,25 @@ static void setup_opencl(int argc, char *argv[])
   // 4. Build the program
   if (timers_enabled) timer_start(TIMER_BUILD);
   char *source_file = "cg_kernel.cl";
-  char build_option[50];
+ // p_program = clu_MakeProgram(context, num_devices, devices, source_dir, source_file, build_option);
+  p_program = clu_CreateProgram(context, source_dir, source_file);
+  for(i = 0; i < num_devices; i++) {
+  char build_option[50] = {0};
+	  cl_device_type cur_device_type;
+	  cl_int err = clGetDeviceInfo(devices[i],
+			  CL_DEVICE_TYPE,
+			  sizeof(cl_device_type),
+			  &cur_device_type,
+			  NULL);
+	  clu_CheckError(err, "clGetDeviceInfo()");
 /*  if (device_type == CL_DEVICE_TYPE_CPU) {
 #ifdef USE_CHUNK_SCHEDULE
     sprintf(build_option, "-I. -DCLASS=%d -DUSE_CPU -DUSE_CHUNK_SCHEDULE", Class);
 #else
     sprintf(build_option, "-I. -DCLASS=%d -DUSE_CPU", Class);
 #endif
-  } else */if (device_type & CL_DEVICE_TYPE_GPU || device_type & CL_DEVICE_TYPE_CPU) {
+  } else */if (cur_device_type & CL_DEVICE_TYPE_GPU || 
+  			cur_device_type & CL_DEVICE_TYPE_CPU) {
 #ifdef USE_CHUNK_SCHEDULE
     sprintf(build_option, "-I. -DCLASS=%d -DUSE_CHUNK_SCHEDULE", Class);
 #else
@@ -782,10 +803,10 @@ static void setup_opencl(int argc, char *argv[])
     exit(EXIT_FAILURE);
   }
 
- // p_program = clu_MakeProgram(context, num_devices, devices, source_dir, source_file, build_option);
-  p_program = clu_CreateProgram(context, source_dir, source_file);
-  clu_MakeProgram(p_program, num_devices, devices, source_dir, build_option);
-
+  clu_MakeProgram(p_program, 1, &devices[i], source_dir, build_option);
+  //clu_MakeProgram(p_program, num_devices, devices, source_dir, build_option);
+  }
+  num_devices = num_command_queues;
   // FIXME: Can we share the program among all devices if they are the same?
   program = (cl_program *)malloc(sizeof(cl_program) * num_devices);
   for (i = 0; i < num_devices; i++) {
@@ -1911,6 +1932,7 @@ void conj_grad (int **colidx, int **rowstr, double **x, double **z, double **a, 
         //				clu_CheckError(ecode, "clEnqueueWriteBuffer()");
 
         ecode = clEnqueueCopyBuffer(cmd_queue[id],
+        //ecode = clEnqueueCopyBuffer(cmd_queue[reduce_exch_proc[id][i]],
             m_w[reduce_exch_proc[id][i]],
             m_q[id],
             reduce_send_starts[reduce_exch_proc[id][i]][i] * sizeof(double),
@@ -1972,6 +1994,7 @@ void conj_grad (int **colidx, int **rowstr, double **x, double **z, double **a, 
         //				memcpy(&q[id][1], &w[exch_proc[id]][send_start[exch_proc[id]]],
         //					sizeof(double) * exch_recv_length[id]);
         ecode = clEnqueueCopyBuffer(cmd_queue[id],
+        //ecode = clEnqueueCopyBuffer(cmd_queue[exch_proc[id]],
             m_w[exch_proc[id]],
             m_q[id],
             send_start[exch_proc[id]] * sizeof(double),
@@ -2424,6 +2447,7 @@ void conj_grad (int **colidx, int **rowstr, double **x, double **z, double **a, 
       //					&w[reduce_exch_proc[id][i]][reduce_send_starts[reduce_exch_proc[id][i]][i]],
       //					sizeof(double) * reduce_recv_lengths[id][i]);
       ecode = clEnqueueCopyBuffer(cmd_queue[id],
+      //ecode = clEnqueueCopyBuffer(cmd_queue[reduce_exch_proc[id][i]],
           m_w[reduce_exch_proc[id][i]],
           m_r[id],
           reduce_send_starts[reduce_exch_proc[id][i]][i] * sizeof(double),
@@ -2488,6 +2512,7 @@ void conj_grad (int **colidx, int **rowstr, double **x, double **z, double **a, 
 
     for (id = 0; id < nprocs; id++){
       ecode = clEnqueueCopyBuffer(cmd_queue[id],
+      //ecode = clEnqueueCopyBuffer(cmd_queue[exch_proc[id]],
           m_w[exch_proc[id]],
           m_r[id],
           send_start[exch_proc[id]] * sizeof(double),

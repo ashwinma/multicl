@@ -77,7 +77,7 @@
 #endif
 
 //#define USE_CHUNK_SCHEDULE
-//#define MINIMD_SNUCL_OPTIMIZATIONS
+#define MINIMD_SNUCL_OPTIMIZATIONS
 
 //--------------------------------------------------------------------
 // OpenCL part
@@ -406,7 +406,10 @@ void setup_opencl(int argc, char *argv[])
 		CL_CONTEXT_PLATFORM,
 		(cl_context_properties)platform,
 		CL_CONTEXT_SCHEDULER,
-		CL_CONTEXT_SCHEDULER_PERF_MODEL,
+		//CL_CONTEXT_SCHEDULER_CODE_SEGMENTED_PERF_MODEL,
+		//CL_CONTEXT_SCHEDULER_PERF_MODEL,
+		//CL_CONTEXT_SCHEDULER_FIRST_EPOCH_BASED_PERF_MODEL,
+		CL_CONTEXT_SCHEDULER_ALL_EPOCH_BASED_PERF_MODEL,
 		0 };
   context = clCreateContext(props, 
 #else
@@ -416,21 +419,6 @@ void setup_opencl(int argc, char *argv[])
                             devices,
                             NULL, NULL, &err_code);
   clu_CheckError(err_code, "clCreateContext()");
-
-  // 3. Create a command queue
-  cmd_queue = (cl_command_queue*)malloc(sizeof(cl_command_queue)*num_devices);
-  for (i = 0; i < num_devices; i++) {
-    cmd_queue[i] = clCreateCommandQueue(context, devices[i], 
-#ifdef MINIMD_SNUCL_OPTIMIZATIONS
-			CL_QUEUE_AUTO_DEVICE_SELECTION | 
-			CL_QUEUE_ITERATIVE | 
-			CL_QUEUE_COMPUTE_INTENSIVE,
-#else
-	0,
-#endif
-	&err_code);
-    clu_CheckError(err_code, "clCreateCommandQueue()");
-  }
 
   // 4. Build the program
   if (timers_enabled) timer_start(TIMER_BUILD);
@@ -457,6 +445,24 @@ void setup_opencl(int argc, char *argv[])
   clu_MakeProgram(program, num_devices, devices, source_dir, build_option);
 
   if (timers_enabled) timer_stop(TIMER_BUILD);
+
+  // 3. Create a command queue
+  char *num_command_queues_str = getenv("SNU_NPB_COMMAND_QUEUES");
+  if(num_command_queues_str != NULL)
+  	num_devices = atoi(num_command_queues_str);
+  cmd_queue = (cl_command_queue*)malloc(sizeof(cl_command_queue)*num_devices);
+  for (i = 0; i < num_devices; i++) {
+    cmd_queue[i] = clCreateCommandQueue(context, devices[i], 
+#ifdef MINIMD_SNUCL_OPTIMIZATIONS
+			CL_QUEUE_AUTO_DEVICE_SELECTION
+			| CL_QUEUE_ITERATIVE,
+			//| CL_QUEUE_COMPUTE_INTENSIVE,
+#else
+	0,
+#endif
+	&err_code);
+    clu_CheckError(err_code, "clCreateCommandQueue()");
+  }
 
   // 5. Create buffers
   if (timers_enabled) timer_start(TIMER_BUFFER);

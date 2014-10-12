@@ -667,8 +667,10 @@ void kernel_norm2u3( __global double* r,
             __global double *res_max,
 						int offset)
 {
-  __local double scratch_sum[1];
-  __local double scratch_max[1];
+  //__local double scratch_sum[1];
+  //__local double scratch_max[1];
+  double scratch_sum[1];
+  double scratch_max[1];
 	int i1, i2, i3;
   double s = 0.0; //s is the accumulator
   double local_max = 0.0;

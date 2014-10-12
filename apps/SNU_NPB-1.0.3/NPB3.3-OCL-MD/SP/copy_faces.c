@@ -112,6 +112,7 @@ void copy_faces()
                                 start_recv_west[successor[i][0]]*sizeof(double),
                                 east_size[i]*sizeof(double),
                                 0, NULL, NULL);
+        CHECK_FINISH(successor[i][0] * 2 + 1);
   }
 
   for (i = 0; i < num_devices; i++) {
@@ -123,6 +124,7 @@ void copy_faces()
                                 west_size[i]*sizeof(double),
                                 0, NULL, NULL);
 
+        CHECK_FINISH(predecessor[i][0] * 2 + 1);
     ecode = clEnqueueCopyBuffer(cmd_queue[successor[i][1] * 2 + 1],
                                 m_out_buffer[i],
                                 m_in_buffer[successor[i][1]],
@@ -131,6 +133,7 @@ void copy_faces()
                                 north_size[i]*sizeof(double),
                                 0, NULL, NULL);
 
+        CHECK_FINISH(successor[i][1] * 2 + 1);
     ecode = clEnqueueCopyBuffer(cmd_queue[predecessor[i][1] * 2 + 1],
                                 m_out_buffer[i],
                                 m_in_buffer[predecessor[i][1]],
@@ -139,6 +142,7 @@ void copy_faces()
                                 south_size[i]*sizeof(double),
                                 0, NULL, NULL);
 
+        CHECK_FINISH(predecessor[i][1] * 2 + 1);
     ecode = clEnqueueCopyBuffer(cmd_queue[successor[i][2] * 2 + 1],
                                 m_out_buffer[i],
                                 m_in_buffer[successor[i][2]],
@@ -147,6 +151,7 @@ void copy_faces()
                                 top_size[i]*sizeof(double),
                                 0, NULL, NULL);
 
+        CHECK_FINISH(successor[i][2] * 2 + 1);
     ecode = clEnqueueCopyBuffer(cmd_queue[predecessor[i][2] * 2 + 1],
                                 m_out_buffer[i],
                                 m_in_buffer[predecessor[i][2]],
@@ -154,6 +159,7 @@ void copy_faces()
                                 start_recv_top[predecessor[i][2]]*sizeof(double),
                                 bottom_size[i]*sizeof(double),
                                 0, NULL, NULL);
+        CHECK_FINISH(predecessor[i][2] * 2 + 1);
   }
   if (timeron) timer_stop(t_exch);
 

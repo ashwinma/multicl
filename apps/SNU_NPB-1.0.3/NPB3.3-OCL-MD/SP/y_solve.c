@@ -157,6 +157,7 @@ void y_solve()
                                     m_in_buffer[successor[i][1]],
                                     0, 0, 22*buffer_size*sizeof(double),
                                     0, NULL, NULL);
+        CHECK_FINISH(successor[i][1] * 2 + 1);
       }
     }
   }
@@ -251,6 +252,7 @@ void y_solve()
                                     m_in_buffer[predecessor[i][1]],
                                     0, 0, 10*buffer_size*sizeof(double),
                                     0, NULL, NULL);
+        CHECK_FINISH(predecessor[i][1] * 2 + 1);
       }
     }
 

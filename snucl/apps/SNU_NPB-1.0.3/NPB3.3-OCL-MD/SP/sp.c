@@ -309,6 +309,7 @@ static void setup_opencl(int argc, char **argv);
 static void release_opencl();
 
 #define DEFAULT_NUM_SUBS    40
+#define MINIMD_SNUCL_OPTIMIZATIONS
 
 
 #ifdef CLUSTER
@@ -390,7 +391,26 @@ int main(int argc, char **argv)
   //---------------------------------------------------------------------
   // do one time step to touch all code, and reinitialize
   //---------------------------------------------------------------------
+#ifdef MINIMD_SNUCL_OPTIMIZATIONS
+  // set cmd queue property
+  for(i = 0; i < num_devices; i++) {
+  	clSetCommandQueueProperty(cmd_queue[i], 
+			CL_QUEUE_AUTO_DEVICE_SELECTION | 
+			//CL_QUEUE_ITERATIVE | 
+			CL_QUEUE_COMPUTE_INTENSIVE,
+			true,
+			NULL);
+  }
+#endif
   adi();
+#ifdef MINIMD_SNUCL_OPTIMIZATIONS
+  for(i = 0; i < num_devices; i++) {
+  	clSetCommandQueueProperty(cmd_queue[i], 
+			0,
+			true,
+			NULL);
+  }
+#endif
 
   initialize();
 
@@ -480,7 +500,7 @@ static void setup_opencl(int argc, char **argv)
   char *source_dir = ".";  //FIXME
   int num_subs = DEFAULT_NUM_SUBS;
   int num_cus;
-  int sqrt_num_devices;
+  int sqrt_num_command_queues;
 
   if (argc > 1) source_dir = argv[1];
 
@@ -497,7 +517,14 @@ static void setup_opencl(int argc, char **argv)
 
   // 1. Find the default device type and get a device for the device type
   //    Then, create sub-devices from the parent device.
-  device_type = CL_DEVICE_TYPE_GPU;
+  //device_type = CL_DEVICE_TYPE_CPU;
+  device_type = CL_DEVICE_TYPE_ALL;
+  //device_type = CL_DEVICE_TYPE_GPU;
+  cl_uint num_command_queues = 4;
+  char *num_command_queues_str = getenv("SNU_NPB_COMMAND_QUEUES");
+  if(num_command_queues_str != NULL)
+  	num_command_queues = atoi(num_command_queues_str);
+
   cl_platform_id platform;
   ecode = clGetPlatformIDs(1, &platform, NULL);
   clu_CheckError(ecode, "clGetPlatformIDs()");
@@ -505,20 +532,22 @@ static void setup_opencl(int argc, char **argv)
   ecode = clGetDeviceIDs(platform, device_type, 0, NULL, &num_devices);
   clu_CheckError(ecode, "clGetDeviceIDs()");
 
+  //num_devices = 2;
   ecode = clGetDeviceIDs(platform, device_type, num_devices, devices, NULL);
   clu_CheckError(ecode, "clGetDeviceIDs()");
+  cl_device_id tmp_dev;
 
   work_item_sizes[0] = work_item_sizes[1] = work_item_sizes[2] = 1024;
   max_work_group_size = 1024;
   max_compute_units = 22;
 
-  sqrt_num_devices = (int)(sqrt((double)(num_devices) + 0.00001));
-  if (num_devices != sqrt_num_devices * sqrt_num_devices) {
+  sqrt_num_command_queues = (int)(sqrt((double)(num_command_queues) + 0.00001));
+  if (num_command_queues != sqrt_num_command_queues * sqrt_num_command_queues) {
     fprintf(stderr, "Number of devices is not a square of some integer\n");
     exit(EXIT_FAILURE);
   }
 
-  ncells = (int)(sqrt((double)(num_devices) + 0.00001));
+  ncells = (int)(sqrt((double)(num_command_queues) + 0.00001));
   MAX_CELL_DIM = ((PROBLEM_SIZE/ncells)+1);
   IMAX = MAX_CELL_DIM;
   JMAX = MAX_CELL_DIM;
@@ -543,33 +572,66 @@ static void setup_opencl(int argc, char **argv)
   }
 
   // 2. Create a context for devices
+#ifdef MINIMD_SNUCL_OPTIMIZATIONS
+	cl_context_properties props[5] = {
+		CL_CONTEXT_PLATFORM,
+		(cl_context_properties)platform,
+		CL_CONTEXT_SCHEDULER,
+		CL_CONTEXT_SCHEDULER_CODE_SEGMENTED_PERF_MODEL,
+		//CL_CONTEXT_SCHEDULER_PERF_MODEL,
+		//CL_CONTEXT_SCHEDULER_FIRST_EPOCH_BASED_PERF_MODEL,
+		//CL_CONTEXT_SCHEDULER_ALL_EPOCH_BASED_PERF_MODEL,
+		0 };
+  context = clCreateContext(props, 
+#else
   context = clCreateContext(NULL, 
+#endif
                             num_devices,
                             devices,
                             NULL, NULL, &ecode);
   clu_CheckError(ecode, "clCreateContext()");
 
   // 3. Create a command queue
-  cmd_queue = (cl_command_queue*)malloc(sizeof(cl_command_queue)*num_devices*3);
-  for (i = 0; i < num_devices * 2; i++) {
-    cmd_queue[i] = clCreateCommandQueue(context, devices[i / 2], 0, &ecode);
+  cmd_queue = (cl_command_queue*)malloc(sizeof(cl_command_queue)*num_command_queues*3);
+  for (i = 0; i < num_command_queues * 2; i++) {
+   // cmd_queue[i] = clCreateCommandQueue(context, devices[(i / 2) % num_devices], 
+    cmd_queue[i] = clCreateCommandQueue(context, devices[0], 
+#ifdef MINIMD_SNUCL_OPTIMIZATIONS
+	0,
+	//		CL_QUEUE_AUTO_DEVICE_SELECTION | 
+	//		CL_QUEUE_ITERATIVE, 
+			//CL_QUEUE_COMPUTE_INTENSIVE,
+#else
+	0,
+#endif
+	&ecode);
     clu_CheckError(ecode, "clCreateCommandQueue()");
   }
 
   // 4. Build the program
   if (timeron) timer_start(TIMER_BUILD);
   char *source_file = "sp_kernel.cl";
-  char build_option[200];
-  if (device_type == CL_DEVICE_TYPE_CPU) {
+  //p_program = clu_MakeProgram(context, devices, source_dir, source_file, build_option);
+  p_program = clu_CreateProgram(context, source_dir, source_file);
+  for(i = 0; i < num_devices; i++) {
+	  char build_option[200] = {0};
+	  cl_device_type cur_device_type;
+	  cl_int err = clGetDeviceInfo(devices[i],
+			  CL_DEVICE_TYPE,
+			  sizeof(cl_device_type),
+			  &cur_device_type,
+			  NULL);
+	  clu_CheckError(err, "clGetDeviceInfo()");
+  if (cur_device_type == CL_DEVICE_TYPE_CPU) {
     sprintf(build_option, "-I. -DCLASS=%d -DUSE_CPU -DMAX_CELL_DIM=%d -DIMAX=%d -DJMAX=%d -DKMAX=%d -DIMAXP=%d -DJMAXP=%d", CLASS, MAX_CELL_DIM, IMAX, JMAX, KMAX, IMAXP, JMAXP);
   } else {
     sprintf(build_option, "-I. -DCLASS=%d -DUSE_GPU -DMAX_CELL_DIM=%d -DIMAX=%d -DJMAX=%d -DKMAX=%d -DIMAXP=%d -DJMAXP=%d", CLASS, MAX_CELL_DIM, IMAX, JMAX, KMAX, IMAXP, JMAXP);
   }
 
-  //p_program = clu_MakeProgram(context, devices, source_dir, source_file, build_option);
-  p_program = clu_CreateProgram(context, source_dir, source_file);
-  clu_MakeProgram(p_program, num_devices, devices, source_dir, build_option);
-
+  clu_MakeProgram(p_program, 1, &devices[i], source_dir, build_option);
+  //clu_MakeProgram(p_program, num_devices, devices, source_dir, build_option);
+  }
+  num_devices = num_command_queues;
   program = (cl_program *)malloc(sizeof(cl_program) * num_devices);
   for (i = 0; i < num_devices; i++) {
     program[i] = p_program;

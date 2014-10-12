@@ -36,6 +36,7 @@
 //      program mg_ocl_md
 //---------------------------------------------------------------------
 
+//#define MINIMD_SNUCL_OPTIMIZATIONS
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -363,6 +364,7 @@ int main(int argc, char *argv[])
       debug_vec[i] = DEBUG_DEFAULT;
     }
   }
+  debug_vec[0] = 1;
 
   if ( (nx[lt] != ny[lt]) || (nx[lt] != nz[lt]) ) {
     Class = 'U';
@@ -546,6 +548,7 @@ int main(int argc, char *argv[])
   zran3(v_buf, n1, n2, n3, nx[lt], ny[lt], k);
 
   norm2u3(v_buf, n1, n2, n3, &rnm2, &rnmu, nx[lt], ny[lt], nz[lt], null_offset);
+  printf("Before Begin rnm2 = %lf, rnmu = %lf\n",rnm2, rnmu);
 
   printf(" Size: %4dx%4dx%4d  (class %c)\n", nx[lt], ny[lt], nz[lt], Class);
   printf(" Iterations: %4d\n", nit);
@@ -560,6 +563,17 @@ int main(int argc, char *argv[])
   //---------------------------------------------------------------------
   // One iteration for startup
   //---------------------------------------------------------------------
+#ifdef MINIMD_SNUCL_OPTIMIZATIONS
+  // set cmd queue property
+  for(i = 0; i < num_devices; i++) {
+  	clSetCommandQueueProperty(cmd_queue[i], 
+			CL_QUEUE_AUTO_DEVICE_SELECTION | 
+			//CL_QUEUE_ITERATIVE | 
+			CL_QUEUE_COMPUTE_INTENSIVE,
+			true,
+			NULL);
+  }
+#endif
   mg3P(u_buf, v_buf, r_buf, a, c, n1, n2, n3);
 
   resid(u_buf, v_buf, r_buf, n1, n2, n3, a, k, null_offset);
@@ -567,6 +581,14 @@ int main(int argc, char *argv[])
   zero3(u_buf, n1, n2, n3, null_offset);
   zran3(v_buf, n1, n2, n3, nx[lt], ny[lt], k);
 
+#ifdef MINIMD_SNUCL_OPTIMIZATIONS
+  for(i = 0; i < num_devices; i++) {
+  	clSetCommandQueueProperty(cmd_queue[i], 
+			0,
+			true,
+			NULL);
+  }
+#endif
   timer_stop(t_init);
   tinit = timer_read(t_init);
   printf("\n Initialization time: %15.3f seconds\n\n", tinit);
@@ -642,9 +664,13 @@ int main(int argc, char *argv[])
     timer_start(t_part3_mg3p);
     mg3P(u_buf, v_buf, r_buf, a, c, n1, n2, n3);
     timer_stop(t_part3_mg3p);
+    norm2u3(r_buf, n1, n2, n3, &rnm2, &rnmu, nx[lt], ny[lt], nz[lt], null_offset);
+    printf("Iter %d mid rnm2 = %lf, rnmu = %lf\n",it, rnm2, rnmu);
     timer_start(t_part4_resid);
     resid(u_buf, v_buf, r_buf, n1, n2, n3, a, k, null_offset);
     timer_stop(t_part4_resid);
+    norm2u3(r_buf, n1, n2, n3, &rnm2, &rnmu, nx[lt], ny[lt], nz[lt], null_offset);
+    printf("Iter %d end rnm2 = %lf, rnmu = %lf\n",it, rnm2, rnmu);
   }
 
 
@@ -1104,6 +1130,7 @@ static void resid(cl_mem *ou_buf, cl_mem *ov_buf, cl_mem *or_buf, int* n1, int* 
   int i;
   cl_int ecode;
   size_t resid_lws[3], resid_gws[3];
+    rep_nrm(or_buf, n1, n2, n3, " begin resid", k, offset);
 
   if (timeron) timer_start(t_resid);
   for (i = 0; i < num_devices; i++) 
@@ -1148,6 +1175,7 @@ static void resid(cl_mem *ou_buf, cl_mem *ov_buf, cl_mem *or_buf, int* n1, int* 
   //---------------------------------------------------------------------
   // exchange boundary data
   //---------------------------------------------------------------------
+    rep_nrm(or_buf, n1, n2, n3, " before comm resid", k, offset);
   comm3(or_buf, n1, n2, n3, k, offset);
 
   if (debug_vec[0] >= 1) {
@@ -1324,6 +1352,7 @@ static void interp(cl_mem *ou_buf, int* mm1, int* mm2, int* mm3,
           interp_1_lws,
           0, NULL, NULL);
       clu_CheckError(ecode, "clEnqueueNDRangeKernel() for k_interp_1");
+  CHECK_FINISH_DEBUG();
     }
     else {
       if (n1[i] == 3) {
@@ -1390,6 +1419,7 @@ static void interp(cl_mem *ou_buf, int* mm1, int* mm2, int* mm3,
           interp_2_lws,
           0, NULL, NULL);
       clu_CheckError(ecode, "clEnqueueNDRangeKernel() for k_interp_2");
+  CHECK_FINISH_DEBUG();
 
       if(INTERP_3_DIM == 2)
       {
@@ -1431,6 +1461,7 @@ static void interp(cl_mem *ou_buf, int* mm1, int* mm2, int* mm3,
           interp_3_lws,
           0, NULL, NULL);
       clu_CheckError(ecode, "clEnqueueNDRangeKernel() for k_interp_3");
+  CHECK_FINISH_DEBUG();
 
       if(INTERP_4_DIM == 2)
       {
@@ -1472,6 +1503,7 @@ static void interp(cl_mem *ou_buf, int* mm1, int* mm2, int* mm3,
           interp_4_lws,
           0, NULL, NULL);
       clu_CheckError(ecode, "clEnqueueNDRangeKernel() for k_interp_4");
+  CHECK_FINISH_DEBUG();
 
       if(INTERP_5_DIM == 2)
       {
@@ -1513,6 +1545,7 @@ static void interp(cl_mem *ou_buf, int* mm1, int* mm2, int* mm3,
           interp_5_lws,
           0, NULL, NULL);
       clu_CheckError(ecode, "clEnqueueNDRangeKernel() for k_interp_5");
+  CHECK_FINISH_DEBUG();
     }
   } 
   CHECK_FINISH_DEBUG();
@@ -1679,12 +1712,21 @@ static void norm2u3(cl_mem *or_buf, int* n1, int* n2, int* n3,
     }
     else
     {
+	  double tmp = 0.0;
+	  double tmp_sum = 0.0;
+	  double tmp2 = 0.0;
       for( i1=0; i1<group_size[i][0]; i1++)
       {
         addr = i1;
         s_dev[i] = s_dev[i] + res_sum[i][addr];
         if (max_rnmu[i] < res_max[i][addr]) max_rnmu[i] = res_max[i][addr];
       } 
+      if( max_rnmu[i] > tmp )
+        tmp = max_rnmu[i];
+	  //tmp_sum += s_dev[i];
+  	  //tmp2 = sqrt( tmp_sum / dn );
+	  printf("Intermediate Norm for device %d: rnmu: %g tmp_rnm2: %g dn: %g\n",
+	  				i, tmp, s_dev[i], dn);
     }
   }
 
@@ -2081,6 +2123,7 @@ static void give3(int axis, int dir, cl_mem *ou_buf, int* n1, int* n2, int* n3, 
       give3_1_lws,
       0, NULL, &send_events[i][1+dir][axis]);
   clu_CheckError(ecode, "clEnqueueNDRangeKernel() for k_give3_1");
+  CHECK_FINISH_DEBUG();
 
 //  printf("GIVE3 NDR [%lu / %lu = %lu]\n", give3_1_gws[0], give3_1_lws[0], (give3_1_gws[0] / give3_1_lws[0]) * (give3_1_gws[1] / give3_1_lws[1]));
 
@@ -2110,7 +2153,7 @@ static void copy_buffer(int axis, int dir, int i)
 
     if(COPY_BUFFER_DIM  == 1)
     {
-      int temp = 1024;
+      int temp = 256;
       copy_buffer_lws[0] = temp == 0 ? 1 : temp;
       copy_buffer_gws[0] = clu_RoundWorkSize((size_t)(size), copy_buffer_lws[0]);
     }
@@ -2132,6 +2175,7 @@ static void copy_buffer(int axis, int dir, int i)
           copy_buffer_lws,
           1, recv_params[i][1+dir][axis].event, &recv_events[i][0][1+dir][axis]);
       clu_CheckError(ecode, "clEnqueueTask()");
+  CHECK_FINISH_DEBUG();
     }
     else
     {
@@ -2139,10 +2183,12 @@ static void copy_buffer(int axis, int dir, int i)
           k_copy_buffer[i],
           1, recv_params[i][1+dir][axis].event, &recv_events[i][0][1+dir][axis]);
       clu_CheckError(ecode, "clEnqueueTask()");
+  CHECK_FINISH_DEBUG();
     }
   }
   else
   {
+    printf("Copying Buffers\n");
     ecode = clEnqueueCopyBuffer(cmd_queue[i],
         recv_params[i][1+dir][axis].src_buf,
         recv_params[i][1+dir][axis].dst_buf,
@@ -2151,6 +2197,7 @@ static void copy_buffer(int axis, int dir, int i)
         recv_params[i][1+dir][axis].cb,
         1, recv_params[i][1+dir][axis].event, &recv_events[i][0][1+dir][axis]);
     clu_CheckError(ecode, "clEnqueueCopyBuffer()");
+  CHECK_FINISH_DEBUG();
   }
   // recv end
 }
@@ -2247,6 +2294,7 @@ static void take3(int axis, int dir, cl_mem *ou_buf, int* n1, int* n2, int* n3, 
       take3_1_lws,
       0, NULL, NULL);
   clu_CheckError(ecode, "clEnqueueNDRangeKernel() for k_take3_1");
+  CHECK_FINISH_DEBUG();
 }
 
 
@@ -2426,6 +2474,7 @@ static void give3_ex(int axis, int dir, cl_mem *ou_buf, int* n1, int* n2, int* n
       give3ex_1_lws,
       0, NULL, &send_events[i][1+dir][axis]);
   clu_CheckError(ecode, "clEnqueueNDRangeKernel() for k_give3ex_1");
+  CHECK_FINISH_DEBUG();
 
   int dst_dev = nbr[i][k][1+dir][axis];
   recv_params[dst_dev][1+dir][axis].src_id = i;
@@ -2597,6 +2646,7 @@ static void take3_ex(int axis, int dir, cl_mem *ou_buf, int* n1, int* n2, int* n
       take3ex_1_lws,
       0, NULL, NULL);//&send_events[i][1+dir][axis]);
   clu_CheckError(ecode, "clEnqueueNDRangeKernel() for k_take3_1");
+  CHECK_FINISH_DEBUG();
 }
 
 
@@ -2923,6 +2973,7 @@ static void comm1p_ex(int axis, cl_mem *ou_buf, int* n1, int* n2, int* n3, int k
           comm1pex_2_lws,
           0, NULL, NULL);
       clu_CheckError(ecode, "clEnqueueNDRangeKernel() for k_comm1pex_2");
+  CHECK_FINISH_DEBUG();
       // comm1pex_2 end
 
       // comm1pex_3
@@ -2995,6 +3046,7 @@ static void comm1p_ex(int axis, cl_mem *ou_buf, int* n1, int* n2, int* n3, int k
           comm1pex_3_lws,
           0, NULL, NULL);
       clu_CheckError(ecode, "clEnqueueNDRangeKernel() for k_comm1pex_3");
+  CHECK_FINISH_DEBUG();
     }
   }
 
@@ -3090,6 +3142,7 @@ static void comm1p_ex(int axis, cl_mem *ou_buf, int* n1, int* n2, int* n3, int k
           comm1pex_4_lws,
           0, NULL, NULL);
       clu_CheckError(ecode, "clEnqueueNDRangeKernel() for k_comm1pex_4");
+  CHECK_FINISH_DEBUG();
 
 
       // comm1pex_5
@@ -3162,6 +3215,7 @@ static void comm1p_ex(int axis, cl_mem *ou_buf, int* n1, int* n2, int* n3, int k
           comm1pex_5_lws,
           0, NULL, NULL);
       clu_CheckError(ecode, "clEnqueueNDRangeKernel() for k_comm1pex_5");
+  CHECK_FINISH_DEBUG();
     }
     // comm1pex_5 end
   }
@@ -3194,6 +3248,7 @@ static void comm1p_ex(int axis, cl_mem *ou_buf, int* n1, int* n2, int* n3, int k
       &comm1p_3_lws,
       0, NULL, NULL);
   clu_CheckError(ecode, "clEnqueueNDRangeKernel() for k_comm1p_3");
+  CHECK_FINISH_DEBUG();
   //    ecode = clEnqueueTask(cmd_queue[i],
   //                          k_comm1p_3[i],
   //                          0, NULL, NULL);
@@ -3687,6 +3742,7 @@ static void zero3(cl_mem *oz_buf, int* n1, int* n2, int* n3, int* offset)
         0, NULL, NULL);
     clu_CheckError(ecode, "clEnqueueNDRangeKernel() for zero3");
   }
+  CHECK_FINISH_DEBUG();
   if (timeron) timer_stop(t_zero3);
 
   CHECK_FINISH();
@@ -3739,6 +3795,7 @@ static void zero3_for_one_dev(cl_mem *oz_buf, int* n1, int* n2, int* n3, int i, 
       zero3_lws,
       0, NULL, NULL);
   clu_CheckError(ecode, "clEnqueueNDRangeKernel() for zero3");
+  CHECK_FINISH_DEBUG();
 
   if (timeron) timer_stop(t_zero3);
 }
@@ -3768,6 +3825,8 @@ static void setup_opencl(int argc, char *argv[])
 
   // 1. Find the default device type and get a device for the device type
   //    Then, create sub-devices from the parent device.
+  //device_type = CL_DEVICE_TYPE_CPU;
+  //device_type = CL_DEVICE_TYPE_GPU;
   device_type = CL_DEVICE_TYPE_ALL;
 
   cl_platform_id platform;
@@ -3777,6 +3836,11 @@ static void setup_opencl(int argc, char *argv[])
   ecode = clGetDeviceIDs(platform, device_type, 0, NULL, &num_devices);
   clu_CheckError(ecode, "clGetDeviceIDs()");
 
+  cl_uint num_command_queues = 2;
+  char *num_command_queues_str = getenv("SNU_NPB_COMMAND_QUEUES");
+  if(num_command_queues_str != NULL)
+  	num_command_queues = atoi(num_command_queues_str);
+  //num_devices = 2;
   devices = (cl_device_id *)malloc(sizeof(cl_device_id) * num_devices);
   ecode = clGetDeviceIDs(platform, device_type, num_devices, devices, NULL);
   clu_CheckError(ecode, "clGetDeviceIDs()");
@@ -3786,12 +3850,12 @@ static void setup_opencl(int argc, char *argv[])
   max_compute_units = 16;
 
   // FIXME
-  if (max_work_group_size > 64) {
-    max_work_group_size = 64;
+  if (max_work_group_size > 256) {
+    max_work_group_size = 256;
     int i;
     for (i = 0; i < 3; i++) {
-      if (work_item_sizes[i] > 64) {
-        work_item_sizes[i] = 64;
+      if (work_item_sizes[i] > 256) {
+        work_item_sizes[i] = 256;
       }
     }
   }
@@ -3845,7 +3909,7 @@ static void setup_opencl(int argc, char *argv[])
 
 
   //setup global values
-  nprocs = num_devices;
+  nprocs = num_command_queues;
   int log2_size = LT_DEFAULT;
   int log2_nprocs = ilog2(nprocs);
   int lm = log2_size - log2_nprocs/3;
@@ -3860,36 +3924,71 @@ static void setup_opencl(int argc, char *argv[])
   M = (NM+1);
 
   // 2. Create a context for devices
+#ifdef MINIMD_SNUCL_OPTIMIZATIONS
+	cl_context_properties props[5] = {
+		CL_CONTEXT_PLATFORM,
+		(cl_context_properties)platform,
+		CL_CONTEXT_SCHEDULER,
+		CL_CONTEXT_SCHEDULER_CODE_SEGMENTED_PERF_MODEL,
+		//CL_CONTEXT_SCHEDULER_PERF_MODEL,
+		//CL_CONTEXT_SCHEDULER_FIRST_EPOCH_BASED_PERF_MODEL,
+		//CL_CONTEXT_SCHEDULER_ALL_EPOCH_BASED_PERF_MODEL,
+		0 };
+  context = clCreateContext(props, 
+#else
   context = clCreateContext(NULL, 
+#endif
       num_devices,
       devices,
       NULL, NULL, &ecode);
   clu_CheckError(ecode, "clCreateContext()");
 
   // 3. Create a command queue
-  cmd_queue = (cl_command_queue*)malloc(sizeof(cl_command_queue)*num_devices);
-  for (i = 0; i < num_devices; i++) {
-    cmd_queue[i] = clCreateCommandQueue(context, devices[i], 0, &ecode);
+  cmd_queue = (cl_command_queue*)malloc(sizeof(cl_command_queue)*num_command_queues);
+  for (i = 0; i < num_command_queues; i++) {
+    cmd_queue[i] = clCreateCommandQueue(context, devices[i%num_devices], 
+#ifdef MINIMD_SNUCL_OPTIMIZATIONS
+	0,
+//			CL_QUEUE_AUTO_DEVICE_SELECTION | 
+//			CL_QUEUE_ITERATIVE | 
+//			CL_QUEUE_COMPUTE_INTENSIVE,
+#else
+	0,
+#endif
+	&ecode);
     clu_CheckError(ecode, "clCreateCommandQueue()");
   }
 
   // 4. Build the program
   if (timers_enabled) timer_start(TIMER_BUILD);
   char *source_file = "mg_kernel.cl";
-  char build_option[50];
-  if (device_type & CL_DEVICE_TYPE_CPU) {
-    sprintf(build_option, "-DM=%d -DNM2=%d -I. -DUSE_CPU", M,NM2);
-  } else if (device_type == CL_DEVICE_TYPE_GPU) {
-    sprintf(build_option, "-DM=%d -DNM2=%d -I.", M,NM2);
-  } else {
-    fprintf(stderr, "Set the environment variable OPENCL_DEVICE_TYPE!\n");
-    exit(EXIT_FAILURE);
-  }
-
 //  p_program = clu_MakeProgram(context, devices, source_dir, source_file, build_option);
   p_program = clu_CreateProgram(context, source_dir, source_file);
-  clu_MakeProgram(p_program, num_devices, devices, source_dir, build_option);
+  for(i = 0; i < num_devices; i++) {
+	  char build_option[50] = {0};
+	  cl_device_type cur_device_type;
+	  cl_int err = clGetDeviceInfo(devices[i],
+			  CL_DEVICE_TYPE,
+			  sizeof(cl_device_type),
+			  &cur_device_type,
+			  NULL);
+	  clu_CheckError(err, "clGetDeviceInfo()");
+	  //cur_device_type = CL_DEVICE_TYPE_CPU;
+	  //cur_device_type = CL_DEVICE_TYPE_GPU;
+	  printf("Device %d is of type %d\n", i, cur_device_type);
+  if (cur_device_type == CL_DEVICE_TYPE_CPU) {
+    sprintf(build_option, "-DM=%d -DNM2=%d -I. -DUSE_CPU", M,NM2);
+  } else //if (cur_device_type & CL_DEVICE_TYPE_GPU) {
+    sprintf(build_option, "-DM=%d -DNM2=%d -I.", M,NM2);
+ /*} else {
+    fprintf(stderr, "Set the environment variable OPENCL_DEVICE_TYPE!\n");
+    exit(EXIT_FAILURE);
+  }*/
 
+  clu_MakeProgram(p_program, 1, &devices[i], source_dir, build_option);
+  //clu_MakeProgram(p_program, num_devices, devices, source_dir, build_option);
+  }
+  num_devices = num_command_queues;
   program = (cl_program *)malloc(sizeof(cl_program) * num_devices);
 
   for (i = 0; i < num_devices; i++) {

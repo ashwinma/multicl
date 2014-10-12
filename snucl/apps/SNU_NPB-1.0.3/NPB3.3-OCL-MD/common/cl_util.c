@@ -428,8 +428,9 @@ void clu_MakeProgram(cl_program program,
   //err_code = clBuildProgram(program, 0, NULL, build_opts, NULL, NULL);
   err_code = clBuildProgram(program, num_devices, devices, build_opts, NULL, NULL);
   if (err_code != CL_SUCCESS) {
-		clu_PrintBuildLog(program, NULL);
-	//	clu_PrintBuildLog(program, device[0]);
+        printf("Failed device: %p\n", devices[0]);
+	//	clu_PrintBuildLog(program, NULL);
+		clu_PrintBuildLog(program, devices[0]);
     clu_CheckError(err_code, "clBuldProgram()");
   }
 

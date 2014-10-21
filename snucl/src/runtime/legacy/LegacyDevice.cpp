@@ -427,6 +427,24 @@ LegacyDevice::~LegacyDevice() {
     free((char*)device_extensions_);
 }
 
+double LegacyDevice::WaitForKernel(CLCommand *command) {
+  //cl_int err = dispatch_->clFinish(kernel_queue_);
+  cl_int err = dispatch_->clWaitForEvents(1, &kernel_event_);
+  
+  cl_ulong start = 0, end = 0;
+  dispatch_->clGetEventProfilingInfo(kernel_event_, CL_PROFILING_COMMAND_START, sizeof(cl_ulong), &start, NULL);
+  dispatch_->clGetEventProfilingInfo(kernel_event_, CL_PROFILING_COMMAND_END, sizeof(cl_ulong), &end, NULL);
+  //END-START gives you hints on kind of “pure HW execution time”
+  ////the resolution of the events is 1e-09 sec
+  double g_NDRangePureExecTimeMs = (double)(end - start)*(double)(1e-06); 
+  SNUCL_INFO("Test Kernel Event Time: %g msec\n", g_NDRangePureExecTimeMs);
+  if (err != CL_SUCCESS) {                        
+    if(command)command->SetError(err);            
+    SNUCL_ERROR("legacy vendor error with device %p : %d\n", device_id_, err);
+  }
+  return g_NDRangePureExecTimeMs/1000;
+}
+
 void LegacyDevice::LaunchTestKernel(CLCommand* command, CLKernel* kernel,
                                 cl_uint work_dim, size_t gwo[3], size_t gws[3],
                                 size_t lws[3], size_t nwg[3],
@@ -470,7 +488,7 @@ void LegacyDevice::LaunchTestKernel(CLCommand* command, CLKernel* kernel,
     }
     UPDATE_ERROR(err);
   }
-  cl_event event;
+  //cl_event event;
   if(kernel->HasDevSpecificLaunchConfiguration(this)) {
 	  work_dim = legacy_kernel_launch_params.work_dim_;
 //	  SNUCL_INFO("Just before launching test kernel with work_dim:%u\n", work_dim);
@@ -488,18 +506,11 @@ void LegacyDevice::LaunchTestKernel(CLCommand* command, CLKernel* kernel,
   gLegacyTimer.Start();
   err = dispatch_->clEnqueueNDRangeKernel(kernel_queue_, legacy_kernel,
                                           work_dim, gwo, gws, lws, 0, NULL,
-                                          &event);
+                                          &kernel_event_);
   UPDATE_ERROR(err);
-  err = dispatch_->clWaitForEvents(1, &event);
+  //err = dispatch_->clWaitForEvents(1, &event);
   gLegacyTimer.Stop();
-  cl_ulong start = 0, end = 0;
-  dispatch_->clGetEventProfilingInfo(event, CL_PROFILING_COMMAND_START, sizeof(cl_ulong), &start, NULL);
-  dispatch_->clGetEventProfilingInfo(event, CL_PROFILING_COMMAND_END, sizeof(cl_ulong), &end, NULL);
-  //END-START gives you hints on kind of “pure HW execution time”
-  ////the resolution of the events is 1e-09 sec
-  double g_NDRangePureExecTimeMs = (double)(end - start)*(double)(1e-06); 
-  SNUCL_INFO("Test Kernel Time: %g sec\n", gLegacyTimer.CurrentElapsed());
-  SNUCL_INFO("Test Kernel Event Time: %g msec\n", g_NDRangePureExecTimeMs);
+  SNUCL_INFO("Test Kernel Launch Time: %g sec\n", gLegacyTimer.CurrentElapsed());
   UPDATE_ERROR(err);
 }
 

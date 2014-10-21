@@ -206,7 +206,7 @@ void CLCommandQueue::recordEpoch(std::string epoch, std::vector<double> performa
 	epochPerformances_[epoch] = performances;
 }
 #endif
-void CLCommandQueue::accumulateEpoch(std::vector<double> performances) {
+void CLCommandQueue::accumulateEpoch(std::vector<double> &performances) {
 	SNUCL_INFO("[Q %p] To be accumulated vector size: %d\n", this, performances.size());
 	if(accumulatedPerformances_.size() == 0) {
 		accumulatedPerformances_.resize(performances.size());

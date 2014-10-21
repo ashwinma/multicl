@@ -90,9 +90,11 @@ class CLCommandQueue: public CLObject<struct _cl_command_queue,
   	return commands_;
   }
 
+  void clearCommands() {commands_.clear(); }
+
   //bool isEpochRecorded(std::string epoch);
   //void recordEpoch(std::string epoch, std::vector<double> performances);
-  void accumulateEpoch(std::vector<double> performances);
+  void accumulateEpoch(std::vector<double> &performances);
   //std::vector<double> getEpochCosts(std::string epoch);
   std::vector<double> getAccumulatedEpochCosts();
   void resetAccumulatedEpochCosts();

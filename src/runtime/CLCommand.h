@@ -90,7 +90,8 @@ class CLCommand {
             cl_command_type type);
   ~CLCommand();
 
-  double EstimatedCost(CLDevice *target_device, bool useTrainingKernel);
+  std::vector<double> EstimatedCost(std::vector<CLDevice *> &target_device, bool useTrainingKernel);
+  //double EstimatedCost(CLDevice *target_device, bool useTrainingKernel);
   cl_command_type type() const { return type_; }
   CLContext* context() const { return context_; }
   CLDevice* device() const { return device_; }

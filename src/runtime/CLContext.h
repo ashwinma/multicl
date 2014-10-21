@@ -80,7 +80,7 @@ class CLContext: public CLObject<struct _cl_context, CLContext,
   const std::vector<perf_order_vector>& d2h_distances() const { return devices_hosts_distances_; }
 
   bool isEpochRecorded(std::string epoch);
-  void recordEpoch(std::string epoch, std::vector<double> performances);
+  void recordEpoch(std::string epoch, std::vector<double> &performances);
   std::vector<double> getEpochCosts(std::string epoch);
   cl_int GetContextInfo(cl_context_info param_name, size_t param_value_size,
                         void* param_value, size_t* param_value_size_ret);

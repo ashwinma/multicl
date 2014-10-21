@@ -350,8 +350,9 @@ typedef struct _cl_buffer_region {
 #define CL_CONTEXT_SCHEDULER_RR							0x1
 #define CL_CONTEXT_SCHEDULER_PRIORITY_RR				0x2
 #define CL_CONTEXT_SCHEDULER_PERF_MODEL					0x3
-#define CL_CONTEXT_SCHEDULER_EPOCH_BASED_PERF_MODEL		0x3
+#define CL_CONTEXT_SCHEDULER_FIRST_EPOCH_BASED_PERF_MODEL		0x3
 #define CL_CONTEXT_SCHEDULER_CODE_SEGMENTED_PERF_MODEL	0x4
+#define CL_CONTEXT_SCHEDULER_ALL_EPOCH_BASED_PERF_MODEL		0x5
 // CL_CONTEXT_SCHEDULER_PERF_MODEL_KERNEL
 // CL_CONTEXT_SCHEDULER_PERF_MODEL_KERNEL_IO
 // CL_CONTEXT_SCHEDULER_PERF_MODEL_MINIKERNEL
@@ -705,6 +706,11 @@ clGetCommandQueueInfo(cl_command_queue      /* command_queue */,
                       void *                /* param_value */,
                       size_t *              /* param_value_size_ret */) CL_API_SUFFIX__VERSION_1_0;
 
+extern CL_API_ENTRY cl_int CL_API_CALL
+clSetCommandQueueProperty(cl_command_queue              /* command_queue */,
+                          cl_command_queue_properties   /* properties */, 
+                          cl_bool                        /* enable */,
+                          cl_command_queue_properties * /* old_properties */) CL_EXT_SUFFIX__VERSION_1_0_DEPRECATED;
 /* Memory Object APIs */
 extern CL_API_ENTRY cl_mem CL_API_CALL
 clCreateBuffer(cl_context   /* context */,

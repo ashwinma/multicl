@@ -164,49 +164,71 @@ CLCommand::~CLCommand() {
   event_->Release();
 }
 
-double CLCommand::EstimatedCost(CLDevice *target_device, bool useTrainingKernel) {
+std::vector<double> CLCommand::EstimatedCost(std::vector<CLDevice *> &target_device, bool useTrainingKernel) {
 	Global::RealTimer cmd_timer;
+	int i;
 	cmd_timer.Init();
 	cmd_timer.Start();
-	switch(type_)
-	{
-		case CL_COMMAND_NDRANGE_KERNEL:
-			/*for(std::map<cl_uint, CLKernelArg*>::iterator it=kernel_args_->begin(); 
-						it!=kernel_args_->end(); ++it) {
-    			//SNUCL_INFO("Kernel Idx: %u, param: %p\n", it->first, it->second);
+	std::vector<double> est_costs(target_device.size());
+	for(i = 0; i < target_device.size(); i++) {
+		switch(type_)
+		{
+			case CL_COMMAND_NDRANGE_KERNEL:
+				/*for(std::map<cl_uint, CLKernelArg*>::iterator it=kernel_args_->begin(); 
+				  it!=kernel_args_->end(); ++it) {
+				//SNUCL_INFO("Kernel Idx: %u, param: %p\n", it->first, it->second);
 				CLMem *mem = it->second->mem;
 				if(mem != NULL) {
-					
+
 				}
-			}*/
-			/*for(all kernel params)
-			{
-				create buffer on device if param is a dev buf
-				should we init it//?
-			}*/
-      		target_device->LaunchTestKernel(this, kernel_, work_dim_, gwo_, gws_, lws_, nwg_,
-                            kernel_args_, useTrainingKernel);
-			/*for(all kernel params)
-			{
-				destroy buffer params one by one
-			}*/
-			break;
-		//case CL_COMMAND_READ_BUFFER:
-      	//	target_device->ReadBuffer(this, mem_src_, off_src_, size_, ptr_);
-		//	break;
-		//case CL_COMMAND_WRITE_BUFFER:
-      	//	target_device->WriteBuffer(this, mem_dst_, off_dst_, size_, ptr_);
-		//	break;
-			//case CL_COMMAND_COPY_BUFFER:
-			//case CL_COMMAND_MAP_IMAGE:
-			//case CL_COMMAND_UNMAP_MEM_OBJECT:
-		default:
-			// ignore this command for cost
-			// estimation
-			break;
+				}*/
+				/*for(all kernel params)
+				  {
+				  create buffer on device if param is a dev buf
+				  should we init it//?
+				  }*/
+				target_device[i]->LaunchTestKernel(this, kernel_, work_dim_, gwo_, gws_, lws_, nwg_,
+						kernel_args_, useTrainingKernel);
+				/*for(all kernel params)
+				  {
+				  destroy buffer params one by one
+				  }*/
+				break;
+				//case CL_COMMAND_READ_BUFFER:
+				//	target_device->ReadBuffer(this, mem_src_, off_src_, size_, ptr_);
+				//	break;
+				//case CL_COMMAND_WRITE_BUFFER:
+				//	target_device->WriteBuffer(this, mem_dst_, off_dst_, size_, ptr_);
+				//	break;
+				//case CL_COMMAND_COPY_BUFFER:
+				//case CL_COMMAND_MAP_IMAGE:
+				//case CL_COMMAND_UNMAP_MEM_OBJECT:
+			default:
+				// ignore this command for cost
+				// estimation
+				break;
+		}
+	}
+	for(i = 0; i < target_device.size(); i++) {
+		Global::RealTimer wait_timer;
+		wait_timer.Init();
+		wait_timer.Start();
+		switch(type_)
+		{
+			case CL_COMMAND_NDRANGE_KERNEL:
+				est_costs[i] = target_device[i]->WaitForKernel(this);
+				break;
+			default:
+				// ignore this command for cost
+				// estimation
+				break;
+		}
+		wait_timer.Stop();
+		//est_costs[i] = wait_timer.CurrentElapsed();
 	}
 	cmd_timer.Stop();
-	return cmd_timer.CurrentElapsed();
+//	return cmd_timer.CurrentElapsed();
+	return est_costs;
 }
 
 void CLCommand::SetWaitList(cl_uint num_events_in_wait_list,
@@ -951,11 +973,12 @@ bool CLCommand::ResolveConsistencyOfCopyMem() {
         SNUCL_ERROR("Unsupported command [%x]", type_);
         break;
     }
-    //ptr = memalign(4096, size);
+    ptr = memalign(4096, size);
 	//ptr = device_->AllocHostMem(mem_dst_);
 	//ptr = mem_src_->GetDevSpecificHostPtr(source);
 	//ptr = mem_src_->GetDevSpecificHostPtr(device_);
-	ptr = mem_dst_->GetDevSpecificHostPtr(source);
+//	
+	//ptr = mem_dst_->GetDevSpecificHostPtr(source);
 	//ptr = mem_dst_->GetDevSpecificHostPtr(device_);
 	//SNUCL_INFO("CopyMem Mapped Host Ptr: %p\n", ptr);
   }
@@ -1219,8 +1242,9 @@ CLEvent* CLCommand::CloneMem(CLDevice* dev_src, CLDevice* dev_dst,
   if (alloc_ptr)
   {
     //gCommandTimer.Start();
-    //ptr = memalign(4096, mem->size());
-	ptr = mem->GetDevSpecificHostPtr(dev_src);
+    ptr = memalign(4096, mem->size());
+	//
+	//ptr = mem->GetDevSpecificHostPtr(dev_src);
 	//ptr = mem->GetDevSpecificHostPtr(dev_dst);
 	//ptr = dev_dst->AllocHostMem(mem);
 	//SNUCL_INFO("Mapped Host Ptr: %p\n", ptr);

@@ -62,6 +62,7 @@ class CPUDevice: public CLDevice {
   CPUDevice(int num_cores);
   ~CPUDevice();
 
+  virtual double WaitForKernel(CLCommand *command) {return 0.0;}
   virtual void LaunchTestKernel(CLCommand* command, CLKernel* kernel,
                             cl_uint work_dim, size_t gwo[3], size_t gws[3],
                             size_t lws[3], size_t nwg[3],

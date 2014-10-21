@@ -121,6 +121,7 @@ class CLDevice: public CLObject<struct _cl_device_id, CLDevice,
                               std::vector<CLProgramBinary*>& binaries,
                               const char* options);
 
+  virtual double WaitForKernel(CLCommand *command) = 0;
   virtual void LaunchTestKernel(CLCommand* command, CLKernel* kernel,
                             cl_uint work_dim, size_t gwo[3], size_t gws[3],
                             size_t lws[3], size_t nwg[3],

@@ -65,6 +65,7 @@ class LegacyDevice: public CLDevice {
                cl_platform_id platform_id, cl_device_id device_id);
   ~LegacyDevice();
 
+  virtual double WaitForKernel(CLCommand *command);
   virtual void LaunchTestKernel(CLCommand* command, CLKernel* kernel,
                             cl_uint work_dim, size_t gwo[3], size_t gws[3],
                             size_t lws[3], size_t nwg[3],
@@ -159,6 +160,7 @@ class LegacyDevice: public CLDevice {
   cl_device_id device_id_;
   cl_context context_;
   cl_command_queue kernel_queue_;
+  cl_event kernel_event_;
   cl_command_queue mem_queue_;
   cl_command_queue misc_queue_;
   int version_;

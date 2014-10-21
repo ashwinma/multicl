@@ -234,13 +234,17 @@ bool CLContext::isEpochRecorded(std::string epoch) {
 }
 
 std::vector<double> CLContext::getEpochCosts(std::string epoch) {
-	if(isEpochRecorded(epoch))
+	//if(isEpochRecorded(epoch))
 		return epochPerformances_[epoch];
-	return std::vector<double>(0);
+	//return std::vector<double>(0);
 }
 
-void CLContext::recordEpoch(std::string epoch, std::vector<double> performances) {
-	epochPerformances_[epoch] = performances;
+void CLContext::recordEpoch(std::string epoch, std::vector<double> &performances) {
+	epochPerformances_[epoch].resize(performances.size());
+	for(int i = 0; i < performances.size(); i++) {
+		epochPerformances_[epoch][i] = performances[i];
+	}
+//	epochPerformances_[epoch] = performances;
 }
 #endif
 cl_int CLContext::GetContextInfo(cl_context_info param_name,

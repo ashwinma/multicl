@@ -268,7 +268,7 @@ map<cl_uint, CLKernelArg*>* CLKernel::DuplicateArgs(CLDevice* target_device) {
 	  			//  SNUCL_INFO("Cloning to Dest Device: %p, Mem: %p, dev specific: %p, size: %llu\n", (*it), new_arg->mem, new_arg->mem->GetDevSpecific(*it), new_arg->mem->size());
 				#endif
 			  	kernel_clone_timer.Stop();
-  				SNUCL_INFO("Test Kernel Clone Time (%p->%p): %g sec\n", src_dev, *it, kernel_clone_timer.CurrentElapsed());
+  				SNUCL_INFO("Test Kernel Clone Time (%p->%p): %llu bytes takes %g sec\n", src_dev, *it, m->size(), kernel_clone_timer.CurrentElapsed());
 			  }
 			  }
 		  }

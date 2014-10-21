@@ -2306,6 +2306,7 @@ SNUCL_API_FUNCTION(clSetCommandQueueProperty)(
   CLEvent* blocking = command->ExportEvent();
   q->Enqueue(command);
   if(q->IsProfiled()) gQueueFinishTimer.Start();
+  SNUCL_INFO("Triggering Scheduling\n", 0);
   blocking->Wait(true);
   if(q->IsProfiled()) gQueueFinishTimer.Stop();
   blocking->Release();

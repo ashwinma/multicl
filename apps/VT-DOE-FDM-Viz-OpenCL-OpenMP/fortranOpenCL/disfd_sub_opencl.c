@@ -33,8 +33,12 @@
 	}
 //#define DISFD_DEBUG
 //#define DISFD_PAPI
-#define DISFD_USE_ROW_MAJOR_DATA
-#define DISFD_H2D_SYNC_KERNEL
+//#define DISFD_USE_ROW_MAJOR_DATA
+#if 1
+//#define DISFD_H2D_SYNC_KERNEL
+#else
+#define DISFD_EAGER_DATA_TRANSFER
+#endif
 #define SNUCL_PERF_MODEL_OPTIMIZATION
 /***********************************************/
 /* for debug: check the output                 */
@@ -71,10 +75,10 @@ size_t localWorkSize[3];
 
 RealTimer kernelTimerStress[NUM_COMMAND_QUEUES];
 RealTimer kernelTimerVelocity[NUM_COMMAND_QUEUES];
-RealTimer h2dTimerStress;
-RealTimer h2dTimerVelocity;
-RealTimer d2hTimerStress;
-RealTimer d2hTimerVelocity;
+RealTimer h2dTimerStress[NUM_COMMAND_QUEUES];
+RealTimer h2dTimerVelocity[NUM_COMMAND_QUEUES];
+RealTimer d2hTimerStress[NUM_COMMAND_QUEUES];
+RealTimer d2hTimerVelocity[NUM_COMMAND_QUEUES];
 
 cl_kernel _cl_Kernel_velocity_inner_IC;
 cl_kernel _cl_Kernel_velocity_inner_IIC;
@@ -292,11 +296,11 @@ void init_cl(int *deviceID)
     for(i = 0; i < NUM_COMMAND_QUEUES; i++) {
     Init(&kernelTimerStress[i]);
     Init(&kernelTimerVelocity[i]);
+	Init(&h2dTimerStress[i]);
+	Init(&h2dTimerVelocity[i]);
+	Init(&d2hTimerStress[i]);
+	Init(&d2hTimerVelocity[i]);
 	}
-	Init(&h2dTimerStress);
-	Init(&h2dTimerVelocity);
-	Init(&d2hTimerStress);
-	Init(&d2hTimerVelocity);
   	errNum = clGetPlatformIDs(0, NULL, &num_platforms);
   	CHECK_ERROR(errNum, "Platform Count");
     platforms = (cl_platform_id*)malloc(sizeof(cl_platform_id) * num_platforms);
@@ -349,9 +353,9 @@ void init_cl(int *deviceID)
 		(cl_context_properties *)_cl_firstPlatform,
 		CL_CONTEXT_SCHEDULER,
 		//CL_CONTEXT_SCHEDULER_CODE_SEGMENTED_PERF_MODEL,
-		CL_CONTEXT_SCHEDULER_PERF_MODEL,
+		//CL_CONTEXT_SCHEDULER_PERF_MODEL,
 		//CL_CONTEXT_SCHEDULER_FIRST_EPOCH_BASED_PERF_MODEL,
-		//CL_CONTEXT_SCHEDULER_ALL_EPOCH_BASED_PERF_MODEL,
+		CL_CONTEXT_SCHEDULER_ALL_EPOCH_BASED_PERF_MODEL,
 		0 };
     _cl_context = clCreateContext(props, num_devices, _cl_devices, NULL, NULL, &errNum);
 #else
@@ -386,7 +390,8 @@ void init_cl(int *deviceID)
 #ifdef SNUCL_PERF_MODEL_OPTIMIZATION
 			CL_QUEUE_AUTO_DEVICE_SELECTION | 
 			CL_QUEUE_ITERATIVE | 
-			CL_QUEUE_COMPUTE_INTENSIVE | 
+			CL_QUEUE_IO_INTENSIVE | 
+			//CL_QUEUE_COMPUTE_INTENSIVE | 
 #endif
 			CL_QUEUE_PROFILING_ENABLE, NULL);
 		if(_cl_commandQueues[i] == NULL)
@@ -400,7 +405,8 @@ void init_cl(int *deviceID)
 #ifdef SNUCL_PERF_MODEL_OPTIMIZATION
 			CL_QUEUE_AUTO_DEVICE_SELECTION | 
 			CL_QUEUE_ITERATIVE | 
-			CL_QUEUE_COMPUTE_INTENSIVE | 
+			CL_QUEUE_IO_INTENSIVE | 
+			//CL_QUEUE_COMPUTE_INTENSIVE | 
 #endif
 			CL_QUEUE_PROFILING_ENABLE, NULL);
 	if(_cl_commandQueues[0] == NULL)
@@ -555,12 +561,17 @@ void free_device_memC_opencl(int *lbx, int *lby)
 //    printf("[Opencl] str_once h2d = %.3f\n", onceTime2);
 	Print(&kernelTimerStress[0], "Stress Kernel 0 Time");
 	Print(&kernelTimerVelocity[0], "Velocity Kernel 0 Time");
+	Print(&h2dTimerStress[0], "Stress H2D 0 Time");
+	Print(&h2dTimerVelocity[0], "Velocity H2D 0 Time");
+	Print(&d2hTimerStress[0], "Stress D2H 0 Time");
+	Print(&d2hTimerVelocity[0], "Velocity D2H 0 Time");
+
 	Print(&kernelTimerStress[1], "Stress Kernel 1 Time");
 	Print(&kernelTimerVelocity[1], "Velocity Kernel 1 Time");
-	Print(&h2dTimerStress, "Stress H2D Time");
-	Print(&h2dTimerVelocity, "Velocity H2D Time");
-	Print(&d2hTimerStress, "Stress D2H Time");
-	Print(&d2hTimerVelocity, "Velocity D2H Time");
+	Print(&h2dTimerStress[1], "Stress H2D 1 Time");
+	Print(&h2dTimerVelocity[1], "Velocity H2D 1 Time");
+	Print(&d2hTimerStress[1], "Stress D2H 1 Time");
+	Print(&d2hTimerVelocity[1], "Velocity D2H 1 Time");
 #ifdef DISFD_PAPI
 	papi_print_all_events();
 	papi_stop_all_events();
@@ -1796,6 +1807,17 @@ void cpy_h2d_velocityInputsC_opencl(float *t1xx,
 	int i;
 
 	//for inner_I
+#ifdef DISFD_EAGER_DATA_TRANSFER
+	Start(&h2dTimerVelocity[0]);
+#endif
+	printf("[OpenCL H2D] vel1 0 size: %lu\n", 
+	      sizeof(float) * (*nztop) * (*nxtop) * (*nytop) +
+		  sizeof(float) * (*nztop + 1) * (*nxtop) * (*nytop + 3) +
+		  sizeof(float) * (*nztop) * (*nxtop) * (*nytop + 3) +
+		  sizeof(float) * (*nztop + 1) * (*nxtop + 3) * (*nytop) +
+		  sizeof(float) * (*nztop) * (*nxtop + 3) * (*nytop + 3) +
+		  sizeof(float) * (*nztop) * (*nxtop + 3) * (*nytop)
+		  );
 	errNum = clEnqueueWriteBuffer(_cl_commandQueues[0], t1xxD, CL_FALSE, 0, sizeof(float) * (*nztop) * (*nxtop + 3) * (*nytop), t1xx, 0, NULL, NULL);
 	CHECK_ERROR(errNum, "InputDataCopyHostToDevice1, t1xx");
 	errNum = clEnqueueWriteBuffer(_cl_commandQueues[0], t1xyD, CL_FALSE, 0, sizeof(float) * (*nztop) * (*nxtop + 3) * (*nytop + 3), t1xy, 0, NULL, NULL);
@@ -1809,7 +1831,22 @@ void cpy_h2d_velocityInputsC_opencl(float *t1xx,
 	errNum = clEnqueueWriteBuffer(_cl_commandQueues[0], t1zzD, CL_FALSE, 0, sizeof(float) * (*nztop) * (*nxtop) * (*nytop), t1zz, 0, NULL, NULL);
 	CHECK_ERROR(errNum, "InputDataCopyHostToDevice1, t1zz");
 
+#ifdef DISFD_EAGER_DATA_TRANSFER
+	errNum = clFinish(_cl_commandQueues[0]);
+	CHECK_ERROR(errNum, "H2DS");
+	Stop(&h2dTimerVelocity[0]);
 	//for inner_II
+	Start(&h2dTimerVelocity[1]);
+#endif
+	
+	printf("[OpenCL H2D] vel1 1 size: %lu\n", 
+	      sizeof(float) * (*nzbtm + 1) * (*nxbtm) * (*nybtm) +
+		  sizeof(float) * (*nzbtm + 1) * (*nxbtm) * (*nybtm + 3) +
+		  sizeof(float) * (*nzbtm) * (*nxbtm) * (*nybtm + 3) +
+		  sizeof(float) * (*nzbtm + 1) * (*nxbtm + 3) * (*nybtm) +
+		  sizeof(float) * (*nzbtm) * (*nxbtm + 3) * (*nybtm + 3) +
+		  sizeof(float) * (*nzbtm) * (*nxbtm + 3) * (*nybtm)
+		  );
 	errNum = clEnqueueWriteBuffer(_cl_commandQueues[1], t2xxD, CL_FALSE, 0, sizeof(float) * (*nzbtm) * (*nxbtm + 3) * (*nybtm), t2xx, 0, NULL, NULL);
 	CHECK_ERROR(errNum, "InputDataCopyHostToDevice1, t2xx");
 	errNum = clEnqueueWriteBuffer(_cl_commandQueues[1], t2xyD, CL_FALSE, 0, sizeof(float) * (*nzbtm) * (*nxbtm + 3) * (*nybtm + 3), t2xy, 0, NULL, NULL);
@@ -1822,9 +1859,19 @@ void cpy_h2d_velocityInputsC_opencl(float *t1xx,
 	CHECK_ERROR(errNum, "InputDataCopyHostToDevice1, t2yz");
 	errNum = clEnqueueWriteBuffer(_cl_commandQueues[1], t2zzD, CL_FALSE, 0, sizeof(float) * (*nzbtm + 1) * (*nxbtm) * (*nybtm), t2zz, 0, NULL, NULL);
 	CHECK_ERROR(errNum, "InputDataCopyHostToDevice1, t2zz");
+#ifdef DISFD_EAGER_DATA_TRANSFER
+	errNum = clFinish(_cl_commandQueues[1]);
+	CHECK_ERROR(errNum, "H2DS");
+	Stop(&h2dTimerVelocity[1]);
+#endif
+	
 #ifdef DISFD_H2D_SYNC_KERNEL 
 	for(i = 0; i < NUM_COMMAND_QUEUES; i++) {
+	Start(&h2dTimerVelocity[i]);
+	}
+	for(i = 0; i < NUM_COMMAND_QUEUES; i++) {
 		errNum = clFinish(_cl_commandQueues[i]);
+		Stop(&h2dTimerVelocity[i]);
 		if(errNum != CL_SUCCESS) {
 			fprintf(stderr, "Vel H2D Error!\n");
 		}
@@ -1853,7 +1900,15 @@ void cpy_h2d_velocityOutputsC_opencl(float *v1x,
 	cl_int errNum;
 	int i;
 
+#ifdef DISFD_EAGER_DATA_TRANSFER
+	Start(&h2dTimerVelocity[0]);
+#endif
 	//for inner_I
+	printf("[OpenCL H2D] vel2 0 size: %lu\n", 
+	      sizeof(float) * (*nztop + 2) * (*nxtop + 3) * (*nytop + 3) +
+		  sizeof(float) * (*nztop + 2) * (*nxtop + 3) * (*nytop + 3) +
+		  sizeof(float) * (*nztop + 2) * (*nxtop + 3) * (*nytop + 3)
+		  );
 	errNum = clEnqueueWriteBuffer(_cl_commandQueues[0], v1xD, CL_FALSE, 0, sizeof(float) * (*nztop + 2) * (*nxtop + 3) * (*nytop + 3), v1x, 0, NULL, NULL);
 	CHECK_ERROR(errNum, "outputDataCopyHostToDevice1, v1x");
 	errNum = clEnqueueWriteBuffer(_cl_commandQueues[0], v1yD, CL_FALSE, 0, sizeof(float) * (*nztop + 2) * (*nxtop + 3) * (*nytop + 3), v1y, 0, NULL, NULL);
@@ -1861,16 +1916,38 @@ void cpy_h2d_velocityOutputsC_opencl(float *v1x,
 	errNum = clEnqueueWriteBuffer(_cl_commandQueues[0], v1zD, CL_FALSE, 0, sizeof(float) * (*nztop + 2) * (*nxtop + 3) * (*nytop + 3), v1z, 0, NULL, NULL);
 	CHECK_ERROR(errNum, "outputDataCopyHostToDevice1, v1z");
 
+#ifdef DISFD_EAGER_DATA_TRANSFER
+	errNum = clFinish(_cl_commandQueues[0]);
+	CHECK_ERROR(errNum, "H2DS");
+	Stop(&h2dTimerVelocity[0]);
 	//for inner_II
+	Start(&h2dTimerVelocity[1]);
+#endif
+	
+	printf("[OpenCL H2D] vel2 1 size: %lu\n",
+	      sizeof(float) * (*nzbtm + 1) * (*nxbtm + 3) * (*nybtm + 3) +
+		  sizeof(float) * (*nzbtm + 1) * (*nxbtm + 3) * (*nybtm + 3) +
+		  sizeof(float) * (*nzbtm + 1) * (*nxbtm + 3) * (*nybtm + 3)
+		  );
 	errNum = clEnqueueWriteBuffer(_cl_commandQueues[1], v2xD, CL_FALSE, 0, sizeof(float) * (*nzbtm + 1) * (*nxbtm + 3) * (*nybtm + 3), v2x, 0, NULL, NULL);
 	CHECK_ERROR(errNum, "outputDataCopyHostToDevice1, v2x");
 	errNum = clEnqueueWriteBuffer(_cl_commandQueues[1], v2yD, CL_FALSE, 0, sizeof(float) * (*nzbtm + 1) * (*nxbtm + 3) * (*nybtm + 3), v2y, 0, NULL, NULL);
 	CHECK_ERROR(errNum, "outputDataCopyHostToDevice1, v2y");
 	errNum = clEnqueueWriteBuffer(_cl_commandQueues[1], v2zD, CL_FALSE, 0, sizeof(float) * (*nzbtm + 1) * (*nxbtm + 3) * (*nybtm + 3), v2z, 0, NULL, NULL);
 	CHECK_ERROR(errNum, "outputDataCopyHostToDevice1, v2z");
+#ifdef DISFD_EAGER_DATA_TRANSFER
+	errNum = clFinish(_cl_commandQueues[1]);
+	CHECK_ERROR(errNum, "H2DS");
+	Stop(&h2dTimerVelocity[1]);
+#endif
+	
 #ifdef DISFD_H2D_SYNC_KERNEL 
 	for(i = 0; i < NUM_COMMAND_QUEUES; i++) {
+	Start(&h2dTimerVelocity[i]);
+	}
+	for(i = 0; i < NUM_COMMAND_QUEUES; i++) {
 		errNum = clFinish(_cl_commandQueues[i]);
+		Stop(&h2dTimerVelocity[i]);
 		if(errNum != CL_SUCCESS) {
 			fprintf(stderr, "Vel H2D Error!\n");
 		}
@@ -1897,7 +1974,15 @@ void cpy_d2h_velocityOutputsC_opencl(float *v1x,
 
 	cl_int errNum;
 	int i;
+	printf("[OpenCL D2H] vel 0 size: %lu\n", 
+		  sizeof(float) * (*nztop + 2) * (*nxtop + 3) * (*nytop + 3) + 
+		  sizeof(float) * (*nztop + 2) * (*nxtop + 3) * (*nytop + 3) + 
+		  sizeof(float) * (*nztop + 2) * (*nxtop + 3) * (*nytop + 3)
+		  );
 	//for inner_I
+#ifdef DISFD_EAGER_DATA_TRANSFER
+	Start(&d2hTimerVelocity[0]);
+#endif
 	errNum = clEnqueueReadBuffer(_cl_commandQueues[0], v1xD, CL_FALSE, 0, sizeof(float) * (*nztop + 2) * (*nxtop + 3) * (*nytop + 3), v1x, 0, NULL, NULL);
 	CHECK_ERROR(errNum, "outputDataCopyDeviceToHost1, v1x");
 	errNum = clEnqueueReadBuffer(_cl_commandQueues[0], v1yD, CL_FALSE, 0, sizeof(float) * (*nztop + 2) * (*nxtop + 3) * (*nytop + 3), v1y, 0, NULL, NULL);
@@ -1905,7 +1990,19 @@ void cpy_d2h_velocityOutputsC_opencl(float *v1x,
 	errNum = clEnqueueReadBuffer(_cl_commandQueues[0], v1zD, CL_FALSE, 0, sizeof(float) * (*nztop + 2) * (*nxtop + 3) * (*nytop + 3), v1z, 0, NULL, NULL);
 	CHECK_ERROR(errNum, "outputDataCopyDeviceToHost1, v1z");
 
+#ifdef DISFD_EAGER_DATA_TRANSFER
+	errNum = clFinish(_cl_commandQueues[0]);
+	CHECK_ERROR(errNum, "H2DS");
+	Stop(&d2hTimerVelocity[0]);
 	//for inner_II
+	Start(&d2hTimerVelocity[1]);
+#endif
+	
+	printf("[OpenCL D2H] vel 1 size: %lu\n", 
+		  sizeof(float) * (*nzbtm + 1) * (*nxbtm + 3) * (*nybtm + 3) + 
+		  sizeof(float) * (*nzbtm + 1) * (*nxbtm + 3) * (*nybtm + 3) + 
+		  sizeof(float) * (*nzbtm + 1) * (*nxbtm + 3) * (*nybtm + 3)
+		  );
 	errNum = clEnqueueReadBuffer(_cl_commandQueues[1], v2xD, CL_FALSE, 0, sizeof(float) * (*nzbtm + 1) * (*nxbtm + 3) * (*nybtm + 3), v2x, 0, NULL, NULL);
 	CHECK_ERROR(errNum, "outputDataCopyDeviceToHost1, v2x");
 	errNum = clEnqueueReadBuffer(_cl_commandQueues[1], v2yD, CL_FALSE, 0, sizeof(float) * (*nzbtm + 1) * (*nxbtm + 3) * (*nybtm + 3), v2y, 0, NULL, NULL);
@@ -1913,12 +2010,24 @@ void cpy_d2h_velocityOutputsC_opencl(float *v1x,
 	errNum = clEnqueueReadBuffer(_cl_commandQueues[1], v2zD, CL_FALSE, 0, sizeof(float) * (*nzbtm + 1) * (*nxbtm + 3) * (*nybtm + 3), v2z, 0, NULL, NULL);
 	CHECK_ERROR(errNum, "outputDataCopyDeviceToHost1, vzz");
 
+#ifdef DISFD_EAGER_DATA_TRANSFER
+	errNum = clFinish(_cl_commandQueues[1]);
+	CHECK_ERROR(errNum, "H2DS");
+	Stop(&d2hTimerVelocity[1]);
+#endif
+	
+//#ifdef DISFD_H2D_SYNC_KERNEL
+	for(i = 0; i < NUM_COMMAND_QUEUES; i++) {
+	Start(&d2hTimerVelocity[i]);
+	}
 	for(i = 0; i < NUM_COMMAND_QUEUES; i++) {
 		errNum = clFinish(_cl_commandQueues[i]);
+		Stop(&d2hTimerVelocity[i]);
 		if(errNum != CL_SUCCESS) {
 			fprintf(stderr, "Vel H2D Error!\n");
 		}
 	}
+//#endif
     //printf("done!\n");
 	return;
 }
@@ -1961,11 +2070,11 @@ void compute_velocityC_opencl(int *nztop, int *nztm1, float *ca, int *lbx,
     procID = *myid;
 
     gettimeofday(&t1, NULL);
-	Start(&h2dTimerVelocity);
+	//Start(&h2dTimerVelocity);
     cpy_h2d_velocityInputsC_opencl(t1xxM, t1xyM, t1xzM, t1yyM, t1yzM, t1zzM, t2xxM, t2xyM, t2xzM, t2yyM, t2yzM, t2zzM, nxtop, nytop, nztop, nxbtm, nybtm, nzbtm);
 
     cpy_h2d_velocityOutputsC_opencl(v1xM, v1yM, v1zM, v2xM, v2yM, v2zM, nxtop, nytop, nztop, nxbtm, nybtm, nzbtm);
-	Stop(&h2dTimerVelocity);
+	//Stop(&h2dTimerVelocity);
     gettimeofday(&t2, NULL);
     tmpTime = 1000.0 * (t2.tv_sec - t1.tv_sec) + (t2.tv_usec - t1.tv_usec) / 1000.0;
     totalTimeH2DV += tmpTime;
@@ -2393,9 +2502,9 @@ void compute_velocityC_opencl(int *nztop, int *nztm1, float *ca, int *lbx,
     totalTimeCompV += tmpTime;
 
     gettimeofday(&t1, NULL);
-	Start(&d2hTimerVelocity);
+	//Start(&d2hTimerVelocity);
     cpy_d2h_velocityOutputsC_opencl(v1xM, v1yM, v1zM, v2xM, v2yM, v2zM, nxtop,	nytop, nztop, nxbtm, nybtm, nzbtm);
-	Stop(&d2hTimerVelocity);
+	//Stop(&d2hTimerVelocity);
     gettimeofday(&t2, NULL);
     tmpTime = 1000.0 * (t2.tv_sec - t1.tv_sec) + (t2.tv_usec - t1.tv_usec) / 1000.0;
     totalTimeD2HV += tmpTime;
@@ -2432,6 +2541,14 @@ void cpy_h2d_stressInputsC_opencl(float *v1x,
 	cl_int errNum;
 
 	//for inner_I
+#ifdef DISFD_EAGER_DATA_TRANSFER
+	Start(&h2dTimerStress[0]);
+#endif
+	printf("[OpenCL H2D] str1 0 size: %lu\n",
+		  sizeof(float) * (*nztop + 2) * (*nxtop + 3) * (*nytop + 3) + 
+		  sizeof(float) * (*nztop + 2) * (*nxtop + 3) * (*nytop + 3) + 
+		  sizeof(float) * (*nztop + 2) * (*nxtop + 3) * (*nytop + 3)
+		  );
 	errNum = clEnqueueWriteBuffer(_cl_commandQueues[0], v1xD, CL_FALSE, 0, sizeof(float) * (*nztop + 2) * (*nxtop + 3) * (*nytop + 3), v1x, 0, NULL, NULL);
 	CHECK_ERROR(errNum, "outputDataCopyHostToDevice, v1x");
 	errNum = clEnqueueWriteBuffer(_cl_commandQueues[0], v1yD, CL_FALSE, 0, sizeof(float) * (*nztop + 2) * (*nxtop + 3) * (*nytop + 3), v1y, 0, NULL, NULL);
@@ -2439,7 +2556,19 @@ void cpy_h2d_stressInputsC_opencl(float *v1x,
 	errNum = clEnqueueWriteBuffer(_cl_commandQueues[0], v1zD, CL_FALSE, 0, sizeof(float) * (*nztop + 2) * (*nxtop + 3) * (*nytop + 3), v1z, 0, NULL, NULL);
 	CHECK_ERROR(errNum, "outputDataCopyHostToDevice, v1z");
 
+#ifdef DISFD_EAGER_DATA_TRANSFER
+	errNum = clFinish(_cl_commandQueues[0]);
+	CHECK_ERROR(errNum, "H2DS");
+	Stop(&h2dTimerStress[0]);
 	//for inner_II
+	Start(&h2dTimerStress[1]);
+#endif
+	
+	printf("[OpenCL H2D] str1 1 size: %lu\n",
+	      sizeof(float) * (*nzbtm + 1) * (*nxbtm + 3) * (*nybtm + 3) +
+		  sizeof(float) * (*nzbtm + 1) * (*nxbtm + 3) * (*nybtm + 3) +
+		  sizeof(float) * (*nzbtm + 1) * (*nxbtm + 3) * (*nybtm + 3)
+		  );
 	errNum = clEnqueueWriteBuffer(_cl_commandQueues[1], v2xD, CL_FALSE, 0, sizeof(float) * (*nzbtm + 1) * (*nxbtm + 3) * (*nybtm + 3), v2x, 0, NULL, NULL);
 	CHECK_ERROR(errNum, "outputDataCopyHostToDevice, v2x");
 	errNum = clEnqueueWriteBuffer(_cl_commandQueues[1], v2yD, CL_FALSE, 0, sizeof(float) * (*nzbtm + 1) * (*nxbtm + 3) * (*nybtm + 3), v2y, 0, NULL, NULL);
@@ -2447,9 +2576,19 @@ void cpy_h2d_stressInputsC_opencl(float *v1x,
 	errNum = clEnqueueWriteBuffer(_cl_commandQueues[1], v2zD, CL_FALSE, 0, sizeof(float) * (*nzbtm + 1) * (*nxbtm + 3) * (*nybtm + 3), v2z, 0, NULL, NULL);
 	CHECK_ERROR(errNum, "outputDataCopyHostToDevice, v2z");
 
+#ifdef DISFD_EAGER_DATA_TRANSFER
+	errNum = clFinish(_cl_commandQueues[1]);
+	CHECK_ERROR(errNum, "H2DS");
+	Stop(&h2dTimerStress[1]);
+#endif
+	
 #ifdef DISFD_H2D_SYNC_KERNEL 
 	for(i = 0; i < NUM_COMMAND_QUEUES; i++) {
+	Start(&h2dTimerStress[i]);
+	}
+	for(i = 0; i < NUM_COMMAND_QUEUES; i++) {
 		errNum = clFinish(_cl_commandQueues[i]);
+		Stop(&h2dTimerStress[i]);
 		if(errNum != CL_SUCCESS) {
 			fprintf(stderr, "Vel H2D Error!\n");
 		}
@@ -2483,6 +2622,17 @@ void cpy_h2d_stressOutputsC_opencl(float *t1xx,
 	int i;
 	int nth, nti;
 
+#ifdef DISFD_EAGER_DATA_TRANSFER
+	Start(&h2dTimerStress[0]);
+#endif
+	printf("[OpenCL H2D] str2 0 size: %lu\n",
+		  sizeof(float) * (*nztop) * (*nxtop) * (*nytop) +
+		  sizeof(float) * (*nztop + 1) * (*nxtop) * (*nytop + 3) +
+		  sizeof(float) * (*nztop) * (*nxtop) * (*nytop + 3) +
+		  sizeof(float) * (*nztop + 1) * (*nxtop + 3) * (*nytop) +
+		  sizeof(float) * (*nztop) * (*nxtop + 3) * (*nytop + 3) +
+		  sizeof(float) * (*nztop) * (*nxtop + 3) * (*nytop)
+		  );
 	errNum = clEnqueueWriteBuffer(_cl_commandQueues[0], t1xxD, CL_FALSE, 0, sizeof(float) * (*nztop) * (*nxtop + 3) * (*nytop), t1xx, 0, NULL, NULL);
 	CHECK_ERROR(errNum, "outputDataCopyHostToDevice, t1xx");
 	errNum = clEnqueueWriteBuffer(_cl_commandQueues[0], t1xyD, CL_FALSE, 0, sizeof(float) * (*nztop) * (*nxtop + 3) * (*nytop + 3), t1xy, 0, NULL, NULL);
@@ -2496,7 +2646,22 @@ void cpy_h2d_stressOutputsC_opencl(float *t1xx,
 	errNum = clEnqueueWriteBuffer(_cl_commandQueues[0], t1zzD, CL_FALSE, 0, sizeof(float) * (*nztop) * (*nxtop) * (*nytop), t1zz, 0, NULL, NULL);
 	CHECK_ERROR(errNum, "outputDataCopyHostToDevice, t1zz");
 
+#ifdef DISFD_EAGER_DATA_TRANSFER
+	errNum = clFinish(_cl_commandQueues[0]);
+	CHECK_ERROR(errNum, "H2DS");
+	Stop(&h2dTimerStress[0]);
 	//for inner_II
+	Start(&h2dTimerStress[1]);
+#endif
+	
+	printf("[OpenCL H2D] str2 1 size: %lu\n",
+	      sizeof(float) * (*nzbtm + 1) * (*nxbtm) * (*nybtm) +
+		  sizeof(float) * (*nzbtm + 1) * (*nxbtm) * (*nybtm + 3) +
+		  sizeof(float) * (*nzbtm) * (*nxbtm) * (*nybtm + 3) +
+		  sizeof(float) * (*nzbtm + 1) * (*nxbtm + 3) * (*nybtm) +
+		  sizeof(float) * (*nzbtm) * (*nxbtm + 3) * (*nybtm + 3) +
+		  sizeof(float) * (*nzbtm) * (*nxbtm + 3) * (*nybtm)
+		  );
 	errNum = clEnqueueWriteBuffer(_cl_commandQueues[1], t2xxD, CL_FALSE, 0, sizeof(float) * (*nzbtm) * (*nxbtm + 3) * (*nybtm), t2xx, 0, NULL, NULL);
 	CHECK_ERROR(errNum, "outputDataCopyHostToDevice, t2xx");
 	errNum = clEnqueueWriteBuffer(_cl_commandQueues[1], t2xyD, CL_FALSE, 0, sizeof(float) * (*nzbtm) * (*nxbtm + 3) * (*nybtm + 3), t2xy, 0, NULL, NULL);
@@ -2510,9 +2675,19 @@ void cpy_h2d_stressOutputsC_opencl(float *t1xx,
 	errNum = clEnqueueWriteBuffer(_cl_commandQueues[1], t2zzD, CL_FALSE, 0, sizeof(float) * (*nzbtm + 1) * (*nxbtm) * (*nybtm), t2zz, 0, NULL, NULL);
 	CHECK_ERROR(errNum, "outputDataCopyHostToDevice, t2zz");
 
+#ifdef DISFD_EAGER_DATA_TRANSFER
+	errNum = clFinish(_cl_commandQueues[1]);
+	CHECK_ERROR(errNum, "H2DS");
+	Stop(&h2dTimerStress[1]);
+#endif
+	
 #ifdef DISFD_H2D_SYNC_KERNEL 
 	for(i = 0; i < NUM_COMMAND_QUEUES; i++) {
+	Start(&h2dTimerStress[i]);
+	}
+	for(i = 0; i < NUM_COMMAND_QUEUES; i++) {
 		errNum = clFinish(_cl_commandQueues[i]);
+		Stop(&h2dTimerStress[i]);
 		if(errNum != CL_SUCCESS) {
 			fprintf(stderr, "Vel H2D Error!\n");
 		}
@@ -2550,6 +2725,17 @@ void cpy_d2h_stressOutputsC_opencl(float *t1xx,
 
     // printf("t1xxD: %d\n", sizeof(float) *  sizeof(float) * (*nztop) * (*nxtop + 3) * (*nytop));
     
+#ifdef DISFD_EAGER_DATA_TRANSFER
+	Start(&d2hTimerStress[0]);
+#endif
+	printf("[OpenCL D2H] str 0 size: %lu\n", 
+		  sizeof(float) * (*nztop) * (*nxtop) * (*nytop), t1zz + 
+		  sizeof(float) * (*nztop + 1) * (*nxtop) * (*nytop + 3) + 
+		  sizeof(float) * (*nztop) * (*nxtop) * (*nytop + 3) + 
+		  sizeof(float) * (*nztop + 1) * (*nxtop + 3) * (*nytop) + 
+		  sizeof(float) * (*nztop) * (*nxtop + 3) * (*nytop + 3) + 
+		  sizeof(float) * (*nztop) * (*nxtop + 3) * (*nytop)
+		  );
 	errNum = clEnqueueReadBuffer(_cl_commandQueues[0], t1xxD, CL_FALSE, 0, sizeof(float) * (*nztop) * (*nxtop + 3) * (*nytop), t1xx, 0, NULL, NULL);
 	CHECK_ERROR(errNum, "outputDataCopyDeviceToHost, t1xx");
 	errNum = clEnqueueReadBuffer(_cl_commandQueues[0], t1xyD, CL_FALSE, 0, sizeof(float) * (*nztop) * (*nxtop + 3) * (*nytop + 3), t1xy, 0, NULL, NULL);
@@ -2563,6 +2749,21 @@ void cpy_d2h_stressOutputsC_opencl(float *t1xx,
 	errNum = clEnqueueReadBuffer(_cl_commandQueues[0], t1zzD, CL_FALSE, 0, sizeof(float) * (*nztop) * (*nxtop) * (*nytop), t1zz, 0, NULL, NULL);
 	CHECK_ERROR(errNum, "outputDataCopyDeviceToHost, t1zz");
 
+#ifdef DISFD_EAGER_DATA_TRANSFER
+	errNum = clFinish(_cl_commandQueues[0]);
+	CHECK_ERROR(errNum, "H2DS");
+	Stop(&d2hTimerStress[0]);
+	Start(&d2hTimerStress[1]);
+#endif
+	
+	printf("[OpenCL D2H] str 1 size: %lu\n", 
+		  sizeof(float) * (*nzbtm + 1) * (*nxbtm) * (*nybtm) + 
+		  sizeof(float) * (*nzbtm + 1) * (*nxbtm) * (*nybtm + 3) + 
+		  sizeof(float) * (*nzbtm) * (*nxbtm) * (*nybtm + 3) + 
+		  sizeof(float) * (*nzbtm + 1) * (*nxbtm + 3) * (*nybtm) + 
+		  sizeof(float) * (*nzbtm) * (*nxbtm + 3) * (*nybtm + 3) + 
+		  sizeof(float) * (*nzbtm) * (*nxbtm + 3) * (*nybtm)
+		  );
 	errNum = clEnqueueReadBuffer(_cl_commandQueues[1], t2xxD, CL_FALSE, 0, sizeof(float) * (*nzbtm) * (*nxbtm + 3) * (*nybtm), t2xx, 0, NULL, NULL);
 	CHECK_ERROR(errNum, "outputDataCopyDeviceToHost, t2xx");
 	errNum = clEnqueueReadBuffer(_cl_commandQueues[1], t2xyD, CL_FALSE, 0, sizeof(float) * (*nzbtm) * (*nxbtm + 3) * (*nybtm + 3), t2xy, 0, NULL, NULL);
@@ -2576,13 +2777,24 @@ void cpy_d2h_stressOutputsC_opencl(float *t1xx,
 	errNum = clEnqueueReadBuffer(_cl_commandQueues[1], t2zzD, CL_FALSE, 0, sizeof(float) * (*nzbtm + 1) * (*nxbtm) * (*nybtm), t2zz, 0, NULL, NULL);
 	CHECK_ERROR(errNum, "outputDataCopyDeviceToHost, t2zz");
 
+#ifdef DISFD_EAGER_DATA_TRANSFER
+	errNum = clFinish(_cl_commandQueues[1]);
+	CHECK_ERROR(errNum, "H2DS");
+	Stop(&d2hTimerStress[1]);
+#endif
+	
+//#ifdef DISFD_H2D_SYNC_KERNEL
+	for(i = 0; i < NUM_COMMAND_QUEUES; i++) {
+	Start(&d2hTimerStress[i]);
+	}
 	for(i = 0; i < NUM_COMMAND_QUEUES; i++) {
 		errNum = clFinish(_cl_commandQueues[i]);
+		Stop(&d2hTimerStress[i]);
 		if(errNum != CL_SUCCESS) {
 			fprintf(stderr, "Vel H2D Error!\n");
 		}
 	}
-
+//#endif
     //printf("done!\n");
     
 	return;
@@ -2626,10 +2838,10 @@ void compute_stressC_opencl(int *nxb1, int *nyb1, int *nx1p1, int *ny1p1, int *n
 	v2zM = (float *) *v2zMp;
 
     gettimeofday(&t1, NULL);
-	Start(&h2dTimerStress);
+	//Start(&h2dTimerStress);
 	cpy_h2d_stressInputsC_opencl(v1xM, v1yM, v1zM, v2xM, v2yM, v2zM, nxtop, nytop, nztop, nxbtm, nybtm, nzbtm);
 	cpy_h2d_stressOutputsC_opencl(t1xxM, t1xyM, t1xzM, t1yyM, t1yzM, t1zzM, t2xxM, t2xyM, t2xzM,t2yyM, t2yzM, t2zzM, nxtop, nytop, nztop, nxbtm, nybtm, nzbtm);
-	Stop(&h2dTimerStress);
+	//Stop(&h2dTimerStress);
     gettimeofday(&t2, NULL);
     tmpTime = 1000.0 * (t2.tv_sec - t1.tv_sec) + (t2.tv_usec - t1.tv_usec) / 1000.0;
     totalTimeH2DS += tmpTime;
@@ -3973,9 +4185,9 @@ void compute_stressC_opencl(int *nxb1, int *nyb1, int *nx1p1, int *ny1p1, int *n
     totalTimeCompS += tmpTime;
 
     gettimeofday(&t1, NULL);
-	Start(&d2hTimerStress);
+	//Start(&d2hTimerStress);
     cpy_d2h_stressOutputsC_opencl(t1xxM, t1xyM, t1xzM, t1yyM, t1yzM, t1zzM, t2xxM, t2xyM, t2xzM, t2yyM, t2yzM, t2zzM, nxtop, nytop, nztop, nxbtm, nybtm, nzbtm);
-	Stop(&d2hTimerStress);
+	//Stop(&d2hTimerStress);
     gettimeofday(&t2, NULL);
 
     tmpTime = 1000.0 * (t2.tv_sec - t1.tv_sec) + (t2.tv_usec - t1.tv_usec) / 1000.0;

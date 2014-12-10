@@ -164,12 +164,49 @@ CLCommand::~CLCommand() {
   event_->Release();
 }
 
-std::vector<double> CLCommand::EstimatedCost(std::vector<CLDevice *> &target_device, bool useTrainingKernel) {
+std::vector<double> CLCommand::EstimatedCost(std::vector<CLDevice *> &target_device, bool useTrainingKernel,
+			std::set<CLMem *> &memObjCache) {
 	Global::RealTimer cmd_timer;
 	int i;
+	cl_command_queue_properties is_io_intensive = (queue_->get_properties() & CL_QUEUE_IO_INTENSIVE) ? true : false;
+
 	cmd_timer.Init();
 	cmd_timer.Start();
 	std::vector<double> est_costs(target_device.size());
+	for(i = 0; i < target_device.size(); i++) { est_costs[i] = 0.0; }
+
+	if(is_io_intensive) {
+		// do the following if the Data Model flag is On
+		// If this is the first epoch, then we may want to do a H-D distance calculation
+		std::vector<CLContext::perf_order_vector> d2h_distances = context_->d2h_distances();
+		int cur_host_idx = GetCurrentHostIDx();
+		for (map<cl_uint, CLKernelArg*>::iterator it = kernel_args_->begin();
+				it != kernel_args_->end();
+				++it) {
+			CLKernelArg* arg = it->second;
+			if (arg->mem != NULL)
+			{
+				if(!(arg->mem->flags() & CL_MEM_READ_ONLY)) {
+					if(memObjCache.find(arg->mem) == memObjCache.end()) {
+						SNUCL_INFO("Data Movement for %lu bytes\n", arg->mem->size()); 
+						for(i = 0; i < target_device.size(); i++) {
+							//   find distance between host thread and devices for this data size
+							CLMem *param = arg->mem;
+							int cur_device = d2h_distances[cur_host_idx][i].second;
+							double h2d_cost = 2 * (d2h_distances[cur_host_idx][i].first * param->size() / (512 * 1024 * (10e6)));
+							//SNUCL_INFO("DM Cost for mem %p = %g for %lu bytes %g\n", arg->mem, 
+	//								d2h_distances[cur_host_idx][i].first, param->size(), h2d_cost);
+							est_costs[cur_device] += h2d_cost;
+						}
+					}
+					memObjCache.insert(arg->mem);
+				}
+			}
+		}
+		for(i = 0; i < target_device.size(); i++) {
+			SNUCL_INFO("After IO Modeling: Cost for device %d = %g\n", i, est_costs[i]);
+		}
+	}
 	for(i = 0; i < target_device.size(); i++) {
 		switch(type_)
 		{
@@ -216,7 +253,8 @@ std::vector<double> CLCommand::EstimatedCost(std::vector<CLDevice *> &target_dev
 		switch(type_)
 		{
 			case CL_COMMAND_NDRANGE_KERNEL:
-				est_costs[i] = target_device[i]->WaitForKernel(this);
+				est_costs[i] += target_device[i]->WaitForKernel(this);
+				SNUCL_INFO("After Kernel Modeling: Cost for device %d = %g\n", i, est_costs[i]);
 				break;
 			default:
 				// ignore this command for cost
@@ -226,6 +264,13 @@ std::vector<double> CLCommand::EstimatedCost(std::vector<CLDevice *> &target_dev
 		wait_timer.Stop();
 		//est_costs[i] = wait_timer.CurrentElapsed();
 	}
+	/*// If this is not the first epoch, then we should do a D-D distance calculation
+	for(i = 0; i < target_device.size(); i++) {
+	    // for all kernel params {
+		//   find distance between host thread and devices for this data size
+		// }
+		est_costs[i] += target_device[i]->TimeToMoveData(kernel_);
+	}*/
 	cmd_timer.Stop();
 //	return cmd_timer.CurrentElapsed();
 	return est_costs;
@@ -716,6 +761,43 @@ int CLCommand::ResolveDeviceOfLaunchKernel() {
 	//SNUCL_INFO("(After) Submitted %u command type to %u type device with ID %u (%u/%u)\n", type_, device_type, vendor_id, device_id, devices.size());
 	return 0;
 }
+
+int CLCommand::GetCurrentHostIDx() {
+	//gCommandTimer.Start();
+	unsigned int chosen_device_id = 0;
+	unsigned int chosen_host_id = 0;
+	const std::vector<CLDevice*> devices = context_->devices();
+	const std::vector<hwloc_obj_t> hosts = context_->hosts();
+	// Find current host cpuset index/hwloc_obj_t
+	CLPlatform *platform = CLPlatform::GetPlatform();
+	hwloc_topology_t topology = platform->HWLOCTopology();
+	hwloc_cpuset_t cpuset;
+	cpuset = hwloc_bitmap_alloc();
+	hwloc_bitmap_zero(cpuset);
+	hwloc_get_cpubind(topology, cpuset, HWLOC_CPUBIND_THREAD);
+	hwloc_obj_t cpuset_obj = hwloc_get_next_obj_covering_cpuset_by_type(topology, cpuset, HWLOC_OBJ_NODE, NULL);
+	assert(cpuset_obj != NULL);
+
+	std::vector<CLContext::perf_order_vector> d2h_distances = context_->d2h_distances();
+	for(unsigned int idx = 0; idx < hosts.size(); idx++)
+	{
+		//SNUCL_INFO("Comparing cpuset obj: %p Hosts hwloc ptr[%d]: %p\n", cpuset_obj, idx, hosts[idx]);
+		//SNUCL_INFO("Chosen ones...host ID: %u/%u and device ID: %u/%u\n", chosen_host_id, hosts.size(), chosen_device_id, devices.size());
+		if(hosts[idx] == cpuset_obj)
+		{
+			// choose this to find distance between this cpuset and all devices
+			chosen_host_id = idx;
+			// Nearest device will be at d2h_distances[idx][0];
+			chosen_device_id = d2h_distances[idx][0].second;
+			//SNUCL_INFO("Chosen ones...host ID: %u/%u and device ID: %u/%u\n", chosen_host_id, hosts.size(), chosen_device_id, devices.size());
+		}
+	}
+
+	hwloc_bitmap_free(cpuset);
+    return chosen_host_id;
+	//gCommandTimer.Stop();
+}
+
 
 int CLCommand::ResolveDeviceOfWriteMem() {
 	static bool has_printed = false;

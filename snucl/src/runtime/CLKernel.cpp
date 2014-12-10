@@ -241,35 +241,40 @@ map<cl_uint, CLKernelArg*>* CLKernel::DuplicateArgs(CLDevice* target_device) {
 				  target_device->WriteBuffer(NULL, new_arg->mem, 0, m->size(), tmp); 
 			  }
 			  else {
-			  for (vector<CLDevice*>::iterator it = devices.begin();
-					  it != devices.end(); ++it) {
-			  	kernel_clone_timer.Start();
-				#if 0
-				  (*it)->WriteBuffer(NULL, new_arg->mem, 0, m->size(), tmp); 
-				#else
-				  if((*it) != src_dev) 
-				  // && ((*it)->context() != src_dev->context()))
-				  // We have to do D2H once anyway for *some* device...so why not use the same 
-				  // host buffer to transfer to all devices other than the source, although there 
-				  // may be other devices within the same context as the source...
-				  {
-				  	//SNUCL_INFO("%d->%d Clone mem\n", src_dev->type(), (*it)->type());
-				  	(*it)->WriteBuffer(NULL, new_arg->mem, 0, m->size(), tmp); 
+				  for (vector<CLDevice*>::iterator it = devices.begin();
+						  it != devices.end(); ++it) {
+#if 0
+					  (*it)->WriteBuffer(NULL, new_arg->mem, 0, m->size(), tmp); 
+#else
+					  if((*it) != src_dev) 
+						  // && ((*it)->context() != src_dev->context()))
+						  // We have to do D2H once anyway for *some* device...so why not use the same 
+						  // host buffer to transfer to all devices other than the source, although there 
+						  // may be other devices within the same context as the source...
+					  {
+						  //SNUCL_INFO("%d->%d Clone mem\n", src_dev->type(), (*it)->type());
+						  (*it)->WriteBufferAsync(NULL, new_arg->mem, 0, m->size(), tmp); 
+					  }
+					  else {
+						  //SNUCL_INFO("%d->%d Clone mem\n", src_dev->type(), (*it)->type());
+						  cl_mem src_dev_specific_ptr = (cl_mem)m->GetDevSpecific(src_dev);
+						  cl_mem dest_dev_specific_ptr = (cl_mem)new_arg->mem->GetDevSpecific(*it);
+						  //src_dev->CopyBuffer(NULL, m, new_arg->mem, 
+						  (*it)->CopyBufferAsync(NULL, m, new_arg->mem, 
+								  src_dev_specific_ptr, dest_dev_specific_ptr, 
+								  0, 0, m->size()); 
+					  } 
+					  //  SNUCL_INFO("Cloning to Dest Device: %p, Mem: %p, dev specific: %p, size: %llu\n", (*it), new_arg->mem, new_arg->mem->GetDevSpecific(*it), new_arg->mem->size());
+#endif
+					  //SNUCL_INFO("Test Kernel Clone Time (%p->%p): %llu bytes takes %g sec\n", src_dev, *it, m->size(), kernel_clone_timer.CurrentElapsed());
 				  }
-				  else {
-				  	//SNUCL_INFO("%d->%d Clone mem\n", src_dev->type(), (*it)->type());
-  					cl_mem src_dev_specific_ptr = (cl_mem)m->GetDevSpecific(src_dev);
-  					cl_mem dest_dev_specific_ptr = (cl_mem)new_arg->mem->GetDevSpecific(*it);
-				  	//src_dev->CopyBuffer(NULL, m, new_arg->mem, 
-				  	(*it)->CopyBuffer(NULL, m, new_arg->mem, 
-						src_dev_specific_ptr, dest_dev_specific_ptr, 
-						0, 0, m->size()); 
-				  } 
-	  			//  SNUCL_INFO("Cloning to Dest Device: %p, Mem: %p, dev specific: %p, size: %llu\n", (*it), new_arg->mem, new_arg->mem->GetDevSpecific(*it), new_arg->mem->size());
-				#endif
-			  	kernel_clone_timer.Stop();
-  				SNUCL_INFO("Test Kernel Clone Time (%p->%p): %llu bytes takes %g sec\n", src_dev, *it, m->size(), kernel_clone_timer.CurrentElapsed());
-			  }
+			  	  for (vector<CLDevice*>::iterator it = devices.begin();
+						  it != devices.end(); ++it) {
+					  kernel_clone_timer.Start();
+				  	  (*it)->WaitForIO();
+					  kernel_clone_timer.Stop();
+					  SNUCL_INFO("Test Kernel Clone Time (%p->%p): %g sec\n", src_dev, *it, kernel_clone_timer.CurrentElapsed());
+				  }
 			  }
 		  }
 		  // copy D2D between new_args and old_args in the
@@ -285,18 +290,25 @@ map<cl_uint, CLKernelArg*>* CLKernel::DuplicateArgs(CLDevice* target_device) {
 			  {
 				  src_dev = *it;
 			  } else {
-			  	kernel_clone_timer.Start();
+			  	//kernel_clone_timer.Start();
 				  cl_mem dest_dev_specific_ptr = (cl_mem)m->GetDevSpecific(*it);
 				  cl_mem src_dev_specific_ptr = (cl_mem)new_arg->mem->GetDevSpecific(*it);
 				  //src_dev->CopyBuffer(NULL, m, new_arg->mem, 
-				  (*it)->CopyBuffer(NULL, new_arg->mem, m,
+				  (*it)->CopyBufferAsync(NULL, new_arg->mem, m,
 						  src_dev_specific_ptr, dest_dev_specific_ptr, 
 						  0, 0, m->size()); 
 				   m->AddLatest(*it);
-			  	kernel_clone_timer.Stop();
-  				SNUCL_INFO("Test D2D Time (%p->%p): %g sec\n", *it, *it, kernel_clone_timer.CurrentElapsed());
+			  	//kernel_clone_timer.Stop();
+  				//SNUCL_INFO("Test D2D Time (%p->%p): %g sec\n", *it, *it, kernel_clone_timer.CurrentElapsed());
 			  }
 		  }
+			  	  for (vector<CLDevice*>::iterator it = devices.begin();
+						  it != devices.end(); ++it) {
+					  kernel_clone_timer.Start();
+				  	  (*it)->WaitForIO();
+					  kernel_clone_timer.Stop();
+  					  SNUCL_INFO("Test D2D Time (%p->%p): %g sec\n", *it, *it, kernel_clone_timer.CurrentElapsed());
+				  }
 		  #endif
 #else
 		  // create array with arbitrary data

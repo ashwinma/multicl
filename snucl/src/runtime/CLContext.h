@@ -110,6 +110,7 @@ class CLContext: public CLObject<struct _cl_context, CLContext,
       ContextErrorNotificationCallback* callback);
   void NotifyError(const char* errinfo, const void* private_info, size_t cb);
 
+  int GetCurrentHostIDx();
  private:
   typedef std::vector<double> devicePerfVector;
   std::map<std::string, devicePerfVector> epochPerformances_; 

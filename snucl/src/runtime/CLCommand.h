@@ -90,13 +90,13 @@ class CLCommand {
             cl_command_type type);
   ~CLCommand();
 
-  std::vector<double> EstimatedCost(std::vector<CLDevice *> &target_device, bool useTrainingKernel);
+  std::vector<double> EstimatedCost(std::vector<CLDevice *> &target_device, bool useTrainingKernel, std::set<CLMem *> &memObjCache);
   //double EstimatedCost(CLDevice *target_device, bool useTrainingKernel);
   cl_command_type type() const { return type_; }
   CLContext* context() const { return context_; }
   CLDevice* device() const { return device_; }
   CLKernel* kernel() const { return kernel_; }
-
+  size_t size() const { return size_; }
   CLDevice* source_device() const { return dev_src_; }
   CLDevice* destination_device() const { return dev_dst_; }
   int source_node() const { return node_src_; }
@@ -113,6 +113,7 @@ class CLCommand {
   void SetAsRunning();
   void SetAsComplete();
 
+  int GetCurrentHostIDx();
   CLEvent* ExportEvent();
   CLCommand* Clone(CLDevice* target_device = NULL);
   /* Extra annotations for commands

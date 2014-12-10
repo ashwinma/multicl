@@ -192,6 +192,7 @@ void CLScheduler::Progress(bool explicit_synch_flag) {
 		q_cmd_clone_timer.Init();
 		for(int q_id = 0; q_id < queues_.size(); q_id++) 
 		{
+			std::set<CLMem *> memObjCache; 
 			queue_has_kernel[q_id] = false;
 			CLCommandQueue *queue = queues_[q_id];
 			if(queue->IsAutoDeviceSelection() != true) continue;
@@ -257,7 +258,8 @@ void CLScheduler::Progress(bool explicit_synch_flag) {
 						// estimate cost of cmd on device_id
 						std::vector<double> est_costs;
 						est_costs = cmd->EstimatedCost(devices,
-								(queue->get_properties() & CL_QUEUE_COMPUTE_INTENSIVE) ? true : false);
+								(queue->get_properties() & CL_QUEUE_COMPUTE_INTENSIVE) ? true : false, 
+								memObjCache);
 						for(int device_id = 0; device_id < num_devices; device_id++) 
 						{
 							CLDevice *dev = devices[device_id];
@@ -428,6 +430,7 @@ void CLScheduler::Progress(bool explicit_synch_flag) {
 		q_cmd_clone_timer.Init();
 		for(int q_id = 0; q_id < queues_.size(); q_id++) 
 		{
+			std::set<CLMem *> memObjCache; 
 			queue_has_kernel[q_id] = false;
 			CLCommandQueue *queue = queues_[q_id];
 			if(queue->IsAutoDeviceSelection() != true) continue;
@@ -447,6 +450,7 @@ void CLScheduler::Progress(bool explicit_synch_flag) {
 					continue;
 				epochString += (*cmd_it)->kernel()->name();
 			}
+			if(!epochString.empty()) SNUCL_INFO("Epoch String: %s\n", epochString.c_str());
 			if(ctx->isEpochRecorded(epochString)) {
 				//SNUCL_INFO("Epoch cost already estimated: %s\n", epochString.c_str());
 				est_epoch_times[q_id].resize(num_devices);
@@ -491,7 +495,8 @@ void CLScheduler::Progress(bool explicit_synch_flag) {
 						// estimate cost of cmd on device_id
 						std::vector<double> est_costs;
 						est_costs = cmd->EstimatedCost(devices,
-								(queue->get_properties() & CL_QUEUE_COMPUTE_INTENSIVE) ? true : false);
+								(queue->get_properties() & CL_QUEUE_COMPUTE_INTENSIVE) ? true : false,
+								memObjCache);
 						for(int device_id = 0; device_id < num_devices; device_id++) 
 						{
 							CLDevice *dev = devices[device_id];
@@ -545,6 +550,25 @@ void CLScheduler::Progress(bool explicit_synch_flag) {
 			//if(some_flag) 
 			//queue->accumulateEpoch(ctx->getEpochCosts(epochString));
 		}
+	#if 0
+	// do the following if the Data Model flag is On
+	// If this is the first epoch, then we may want to do a H-D distance calculation
+	std::vector<CLContext::perf_order_vector> d2h_distances = ctx->d2h_distances();
+	int cur_host_idx = ctx->GetCurrentHostIDx();
+	for(int q_id = 0; q_id < num_queues; q_id++) {
+		CLCommandQueue *queue = queues_[q_id];
+		size_t h2d_sizes = queue->get_h2d_size();
+		h2d_sizes += queue->get_d2h_size();
+		for(int i = 0; i < devices.size(); i++) {
+			//   find distance between host thread and devices for this data size
+			int cur_device = d2h_distances[cur_host_idx][i].second;
+			double h2d_cost = (d2h_distances[cur_host_idx][i].first * h2d_sizes / (512 * 1024));
+			SNUCL_INFO("DM Cost for queue %p = %g for %lu bytes %g\n", queue, 
+					d2h_distances[cur_host_idx][i].first, h2d_sizes, h2d_cost);
+			est_epoch_times[q_id][cur_device] += h2d_cost;
+		}
+	}
+	#endif
 		//this should not be a global flag for selective scheduling
 		//if(some_flag) {
 		//  for(int qid = 0; qid < queues_.size(); q_id++) {
@@ -620,6 +644,7 @@ void CLScheduler::Progress(bool explicit_synch_flag) {
 	{
 //		SNUCL_INFO("No Context Scheduling Defined\n", 0);
 	}
+	SNUCL_INFO("Schedule Done\n", 0);
 }
 
 void CLScheduler::Run() {

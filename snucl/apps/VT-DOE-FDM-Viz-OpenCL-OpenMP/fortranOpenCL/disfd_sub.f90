@@ -1,3 +1,4 @@
+#include "switches.h"
 !-----------------------------------------------------------------------
 subroutine read_inp(myid_world,numprocs,fileInp,fileMod,fileRec, &
                     fileInf,fileOut,nd2_pml,RF,ierr)
@@ -2507,13 +2508,114 @@ subroutine vxy_image_layer(comm_worker)
  use grid_node_comm
  use wave_field_comm
  use itface_comm
+ use:: iso_c_binding
+! use logging
+ use metadata
+ use ctimer
  implicit NONE
+ interface
+!     subroutine vxy_image_layer_vel1 (v1x, v1y, v1z, v2x, v2y, v2z, &
+!                                        neighb1, neighb2, neighb3, neighb4, &
+!                                        nxtm1, nytm1, nxtop, nytop, nztop,&
+!                                         nxbtm, nybtm, nzbtm) &
+!       bind(C, name="vxy_image_layer_vel1")
+!        use:: iso_c_binding
+!        type(c_ptr), intent(in), value :: v1x, v1y, v1z, v2x, v2y, v2z
+!        integer(c_int) :: nxtm1, nytm1, nxtop, nytop, nztop
+!        integer(c_int), intent(in), value:: neighb1, neighb2, neighb3, neighb4 
+!     end subroutine vxy_image_layer_vel1
+
+     subroutine vxy_image_layer_vel1 ( nd1_vel, i, dzdx, &
+                                       nxbtm, nybtm, nzbtm, &
+                                       nxtop, nytop, nztop)&
+       bind(C, name="vxy_image_layer_vel1")
+        use:: iso_c_binding
+        integer(c_int), intent(in), value :: i, nxtop, nytop, nztop, nxbtm, nybtm, nzbtm
+        real(c_float), intent(in), value:: dzdx
+        integer(c_int), dimension(*), intent(in) :: nd1_vel
+     end subroutine vxy_image_layer_vel1
+ 
+     subroutine vxy_image_layer_vel2 ( nd1_vel, v1x, iix, dzdt, &
+                                       nxbtm, nybtm, nzbtm, &
+                                       nxtop, nytop, nztop)&
+       bind(C, name="vxy_image_layer_vel2")
+        use:: iso_c_binding
+        integer(c_int) :: iix, nxtop, nytop, nztop, nxbtm, nybtm, nzbtm
+        real(c_float) :: dzdt
+        integer(c_int), dimension(*), intent(in) :: nd1_vel
+        type(c_ptr), intent(in), value :: v1x
+     end subroutine vxy_image_layer_vel2
+ 
+     subroutine vxy_image_layer_vel3 ( nd1_vel, j, dzdy, &
+                                       nxbtm, nybtm, nzbtm, &
+                                       nxtop, nytop, nztop)&
+       bind(C, name="vxy_image_layer_vel3")
+        use:: iso_c_binding
+        integer(c_int) :: j, nxtop, nytop, nztop, nxbtm, nybtm, nzbtm
+        real(c_float) :: dzdy
+        integer(c_int), dimension(*), intent(in) :: nd1_vel
+     end subroutine vxy_image_layer_vel3
+ 
+     subroutine vxy_image_layer_vel4 ( nd1_vel, v1y, jjy, dzdt, &
+                                       nxbtm, nybtm, nzbtm, &
+                                       nxtop, nytop, nztop)&
+       bind(C, name="vxy_image_layer_vel4")
+        use:: iso_c_binding
+        integer(c_int) :: jjy, nxtop, nytop, nztop, nxbtm, nybtm, nzbtm
+        real(c_float) :: dzdt
+        integer(c_int), dimension(*), intent(in) :: nd1_vel
+        type(c_ptr), intent(in), value :: v1y
+     end subroutine vxy_image_layer_vel4
+  
+     subroutine vxy_image_layer_sdx_vel(sdx1, sdx2, nxtop, nytop, nztop) &
+         bind (C, name="vxy_image_layer_sdx_vel")
+         use:: iso_c_binding
+        type(c_ptr), intent(in), value:: sdx1, sdx2
+        integer(c_int) , intent(in) :: nytop, nxtop, nztop
+     end subroutine vxy_image_layer_sdx_vel
+
+     subroutine vxy_image_layer_sdy_vel(sdy1, sdy2, nxtop, nytop, nztop) &
+         bind (C, name="vxy_image_layer_sdy_vel")
+         use:: iso_c_binding
+        type(c_ptr), intent(in), value:: sdy1, sdy2
+        integer(c_int) , intent(in) :: nxtop, nztop, nytop
+     end subroutine vxy_image_layer_sdy_vel
+
+     subroutine vxy_image_layer_rcx_vel(rcx1, rcx2, nxtop, nytop, nztop, nx1p1) &
+         bind (C, name="vxy_image_layer_rcx_vel")
+         use:: iso_c_binding
+        type(c_ptr), intent(in), value::rcx1, rcx2
+        integer(c_int), intent(in) :: nytop, nx1p1, nxtop, nztop
+     end subroutine vxy_image_layer_rcx_vel
+
+     subroutine vxy_image_layer_rcx2_vel(rcy1, rcy2, nxtop, nytop, nztop, ny1p1) &
+         bind (C, name="vxy_image_layer_rcx2_vel")
+         use:: iso_c_binding
+        type(c_ptr), intent(in), value:: rcy1, rcy2
+        integer(c_int) , intent(in) :: nxtop, ny1p1, nytop, nztop
+     end subroutine vxy_image_layer_rcx2_vel
+
+     subroutine getsizeof_float(sizeof_) bind(C, name='getsizeof_float')
+        use::iso_c_binding
+        integer(c_int), intent(out) :: sizeof_
+     end subroutine getsizeof_float
+
+    include "mpiacc_wrappers.h"
+ end interface
+
  integer, intent(IN):: comm_worker
  integer:: i,j,k,iix,jjy,nnum,ierr
  integer, dimension(MPI_STATUS_SIZE):: status
  integer:: req(8),istatus(MPI_STATUS_SIZE,8),nr
+ integer:: reqX(8),istatusX(MPI_STATUS_SIZE,8)
+ integer::sizeof_float
+ real:: time_marsh=0.0
+ real(c_double) :: gpu_tstart, gpu_tend, cpu_tstart, cpu_tend
+ real(c_double):: total_gpu_marsh_time=0.0, total_cpu_marsh_time=0.0
  real:: dzdt,dzdx,dzdy
  real, dimension(5):: sendv,recev
+ total_gpu_marsh_time =0.0
+ total_cpu_marsh_time =0.0
 ! finding X- and Y-componet velocity on the image layer.
  dzdt=ca/dzh1(3,1)
 !--Vx
@@ -2525,10 +2627,23 @@ subroutine vxy_image_layer(comm_worker)
      i=nxtm1
    endif
    dzdx=dzdt*dxi1(3,i)/ca
+#ifdef DISFD_GPU_MARSHALING
+ if(DETAILED_TIMING .eq. 1) then;  call record_time(gpu_tstart) ; end if
+   call vxy_image_layer_vel1(nd1_vel, i, dzdx, nxbtm, nybtm, nzbtm, nxtop, nytop, nztop);
+ if(DETAILED_TIMING .eq. 1) then; call record_time(gpu_tend); call log_timing ("GPU vel1_vxy_image_layer", gpu_tend-gpu_tstart); &
+        total_gpu_marsh_time = total_gpu_marsh_time + (gpu_tend-gpu_tstart); end if
+#else
    do j=nd1_vel(1),nd1_vel(6)
      v1x(0,i,j)=v1x(1,i,j)+dzdx*(v1z(1,i+1,j)-v1z(1,i,j))
    enddo
+#endif
  endif
+#ifdef DISFD_GPU_MARSHALING
+ if(DETAILED_TIMING .eq. 1) then;  call record_time(gpu_tstart) ; end if
+   call vxy_image_layer_vel2(nd1_vel, cptr_v1x, iix, dzdt, nxbtm, nybtm, nzbtm, nxtop, nytop, nztop);
+ if(DETAILED_TIMING .eq. 1) then; call record_time(gpu_tend); call log_timing ("GPU vel2_vxy_image_layer", gpu_tend-gpu_tstart); &
+        total_gpu_marsh_time = total_gpu_marsh_time + (gpu_tend-gpu_tstart); end if
+#else
  do j=nd1_vel(1),nd1_vel(6)
  do i=nd1_vel(7),iix
      v1x(0,i,j)=v1x(1,i,j)+dzdt* &
@@ -2536,6 +2651,7 @@ subroutine vxy_image_layer(comm_worker)
                 dxi1(3,i)*v1z(1,i+1,j)+dxi1(4,i)*v1z(1,i+2,j))
  enddo
  enddo
+#endif
 !---Vy
  jjy=nd1_vel(6)
  if(neighb(3) < 0 .or. neighb(4) < 0) then
@@ -2545,10 +2661,23 @@ subroutine vxy_image_layer(comm_worker)
      j=nytm1
    endif
    dzdy=dzdt*dyi1(3,j)/ca
+#ifdef DISFD_GPU_MARSHALING
+ if(DETAILED_TIMING .eq. 1) then;  call record_time(gpu_tstart) ; end if
+   call vxy_image_layer_vel3(nd1_vel, j, dzdy, nxbtm, nybtm, nzbtm, nxtop, nytop, nztop);
+ if(DETAILED_TIMING .eq. 1) then; call record_time(gpu_tend); call log_timing ("GPU vel3_vxy_image_layer", gpu_tend-gpu_tstart); &
+        total_gpu_marsh_time = total_gpu_marsh_time + (gpu_tend-gpu_tstart); end if
+#else
    do i=nd1_vel(7),nd1_vel(12)
      v1y(0,i,j)=v1y(1,i,j)+dzdy*(v1z(1,i,j+1)-v1z(1,i,j))
    enddo
+#endif
  endif
+#ifdef DISFD_GPU_MARSHALING
+ if(DETAILED_TIMING .eq. 1) then;  call record_time(gpu_tstart) ; end if
+   call vxy_image_layer_vel4(nd1_vel, cptr_v1y, jjy, dzdt, nxbtm, nybtm, nzbtm, nxtop, nytop, nztop);
+ if(DETAILED_TIMING .eq. 1) then; call record_time(gpu_tend); call log_timing ("GPU vxy_image_layer_vel4", gpu_tend-gpu_tstart); &
+        total_gpu_marsh_time = total_gpu_marsh_time + (gpu_tend-gpu_tstart); end if
+#else
  do j=nd1_vel(1),jjy
  do i=nd1_vel(7),nd1_vel(12)
      v1y(0,i,j)=v1y(1,i,j)+dzdt* &
@@ -2556,10 +2685,34 @@ subroutine vxy_image_layer(comm_worker)
                 dyi1(3,j)*v1z(1,i,j+1)+dyi1(4,j)*v1z(1,i,j+2))
  enddo
  enddo
+#endif
 !
  nnum=nztop+2
+
+#define v1xD(i, j, k) c_v1x_id,((i) + (nztop + 2) * ((j) + 1 + (k) * (nxtop + 3)))
+#define v1yD(i, j, k) c_v1y_id,((i) + (nztop + 2) * ((j) + ((k) + 1) * (nxtop + 3)))
+#define v1zD(i, j, k) c_v1z_id,((i) + (nztop + 2) * ((j) + (k) * (nxtop + 3)))
+#define v2xD(i, j, k) c_v2x_id,((i) + (nzbtm + 1) * ((j) + 1 + (nxbtm + 3) * (k)))
+#define v2yD(i, j, k) c_v2y_id,((i) + (nzbtm + 1) * ((j) + (nxbtm + 3) * ((k) + 1)))
+#define v2zD(i, j, k) c_v2z_id,((i) + (nzbtm + 1) * ((j) + (nxbtm + 3) * (k)))
+
+
  select case(order_imsr) 
  case(1) 
+#if USE_MPIX == 1
+   call MPIX_RECV_offset_C(v1xD(0,nx1p1,ny1p1),nnum, MPI_REAL, &
+                 pid_imr,211,comm_worker,status(1),ierr, 0)
+   call MPIX_RECV_offset_C(v1yD(0,nx1p1,ny1p1),nnum, MPI_REAL, &
+                 pid_imr,221,comm_worker,status(1),ierr, 0)
+   call MPIX_RECV_offset_C(v1zD(0,nx1p1,ny1p1),nnum, MPI_REAL, &
+                 pid_imr,231,comm_worker,status(1),ierr, 0)
+   call MPIX_RECV_offset_C(v2xD(0,nx2p1,ny2p1),nzbtm, MPI_REAL, &
+                 pid_imr,241,comm_worker,status(1),ierr, 1)
+   call MPIX_RECV_offset_C(v2yD(0,nx2p1,ny2p1),nzbtm, MPI_REAL, &
+                 pid_imr,251,comm_worker,status(1),ierr, 1)
+   call MPIX_RECV_offset_C(v2zD(0,nx2p1,ny2p1),nzbtm, MPI_REAL, &
+                pid_imr,261,comm_worker,status(1),ierr, 1)
+#else
    call MPI_RECV(v1x(0,nx1p1,ny1p1),nnum, MPI_REAL, &
                  pid_imr,21,comm_worker,status,ierr)
    call MPI_RECV(v1y(0,nx1p1,ny1p1),nnum, MPI_REAL, &
@@ -2572,7 +2725,34 @@ subroutine vxy_image_layer(comm_worker)
                  pid_imr,25,comm_worker,status,ierr)
    call MPI_RECV(v2z(0,nx2p1,ny2p1),nzbtm, MPI_REAL, &
                  pid_imr,26,comm_worker,status,ierr)
+#endif
  case(2)
+#if USE_MPIX ==1
+   call MPIX_RECV_offset_C(v1xD(0,nx1p1,ny1p1),nnum, MPI_REAL, &
+                 pid_imr,211,comm_worker,status(1),ierr, 0)
+   call MPIX_RECV_offset_C(v1yD(0,nx1p1,ny1p1),nnum, MPI_REAL, &
+                 pid_imr,221,comm_worker,status(1),ierr, 0)
+   call MPIX_RECV_offset_C(v1zD(0,nx1p1,ny1p1),nnum, MPI_REAL, &
+                 pid_imr,231,comm_worker,status(1),ierr, 0)
+   call MPIX_RECV_offset_C(v2xD(0,nx2p1,ny2p1),nzbtm, MPI_REAL, &
+                 pid_imr,241,comm_worker,status(1),ierr, 1)
+   call MPIX_RECV_offset_C(v2yD(0,nx2p1,ny2p1),nzbtm, MPI_REAL, &
+                 pid_imr,251,comm_worker,status(1),ierr, 1)
+   call MPIX_RECV_offset_C(v2zD(0,nx2p1,ny2p1),nzbtm, MPI_REAL, &
+                 pid_imr,261,comm_worker,status(1),ierr, 1)
+   call MPIX_SEND_offset_C(v1xD(0,1,1), nnum, MPI_REAL, &
+                 pid_ims, 211, comm_worker, ierr, 0)
+   call MPIX_SEND_offset_C(v1yD(0,1,1), nnum, MPI_REAL, &
+                 pid_ims, 221, comm_worker, ierr, 0)
+   call MPIX_SEND_offset_C(v1zD(0,1,1), nnum, MPI_REAL, &
+                 pid_ims, 231, comm_worker, ierr, 0)
+   call MPIX_SEND_offset_C(v2xD(0,1,1), nzbtm, MPI_REAL, &
+                 pid_ims, 241, comm_worker, ierr, 1)
+   call MPIX_SEND_offset_C(v2yD(0,1,1), nzbtm, MPI_REAL, &
+                 pid_ims, 251, comm_worker, ierr, 1)
+   call MPIX_SEND_offset_C(v2zD(0,1,1), nzbtm, MPI_REAL, &
+                 pid_ims, 261, comm_worker, ierr, 1)
+#else
    call MPI_RECV(v1x(0,nx1p1,ny1p1),nnum, MPI_REAL, &
                  pid_imr,21,comm_worker,status,ierr)
    call MPI_RECV(v1y(0,nx1p1,ny1p1),nnum, MPI_REAL, &
@@ -2597,7 +2777,34 @@ subroutine vxy_image_layer(comm_worker)
                  pid_ims, 25, comm_worker, ierr)
    call MPI_SEND(v2z(0,1,1), nzbtm, MPI_REAL, &
                  pid_ims, 26, comm_worker, ierr)
+#endif
  case(3) 
+#if USE_MPIX ==1 
+   call MPIX_SEND_offset_C(v1xD(0,1,1), nnum, MPI_REAL, &
+                 pid_ims, 211, comm_worker, ierr, 0)
+   call MPIX_SEND_offset_C(v1yD(0,1,1), nnum, MPI_REAL, &
+                 pid_ims, 221, comm_worker, ierr, 0)
+   call MPIX_SEND_offset_C(v1zD(0,1,1), nnum, MPI_REAL, &
+                 pid_ims, 231, comm_worker, ierr, 0)
+   call MPIX_SEND_offset_C(v2xD(0,1,1), nzbtm, MPI_REAL, &
+                 pid_ims, 241, comm_worker, ierr, 1)
+   call MPIX_SEND_offset_C(v2yD(0,1,1), nzbtm, MPI_REAL, &
+                 pid_ims, 251, comm_worker, ierr, 1)
+   call MPIX_SEND_offset_C(v2zD(0,1,1), nzbtm, MPI_REAL, &
+                 pid_ims, 261, comm_worker, ierr, 1)
+   call MPIX_RECV_offset_C(v1xD(0,nx1p1,ny1p1),nnum, MPI_REAL, &
+                 pid_imr,211,comm_worker,status(1),ierr, 0)
+   call MPIX_RECV_offset_C(v1yD(0,nx1p1,ny1p1),nnum, MPI_REAL, &
+                 pid_imr,221,comm_worker,status(1),ierr, 0)
+   call MPIX_RECV_offset_C(v1zD(0,nx1p1,ny1p1),nnum, MPI_REAL, &
+                 pid_imr,231,comm_worker,status(1),ierr, 0)
+   call MPIX_RECV_offset_C(v2xD(0,nx2p1,ny2p1),nzbtm, MPI_REAL, &
+                 pid_imr,241,comm_worker,status(1),ierr, 1)
+   call MPIX_RECV_offset_C(v2yD(0,nx2p1,ny2p1),nzbtm, MPI_REAL, &
+                 pid_imr,251,comm_worker,status(1),ierr, 1)
+   call MPIX_RECV_offset_C(v2zD(0,nx2p1,ny2p1),nzbtm, MPI_REAL, &
+                 pid_imr,261,comm_worker,status(1),ierr, 1)
+#else
    call MPI_SEND(v1x(0,1,1), nnum, MPI_REAL, &
                  pid_ims, 21, comm_worker, ierr)
    call MPI_SEND(v1y(0,1,1), nnum, MPI_REAL, &
@@ -2622,8 +2829,23 @@ subroutine vxy_image_layer(comm_worker)
                  pid_imr,25,comm_worker,status,ierr)
    call MPI_RECV(v2z(0,nx2p1,ny2p1),nzbtm, MPI_REAL, &
                  pid_imr,26,comm_worker,status,ierr)
+#endif
  case(4) 
-   call MPI_SEND(v1x(0,1,1), nnum, MPI_REAL, &
+#if USE_MPIX ==1
+   call MPIX_SEND_offset_C(v1xD(0,1,1), nnum, MPI_REAL, &
+                 pid_ims, 211, comm_worker, ierr, 0)
+   call MPIX_SEND_offset_C(v1yD(0,1,1), nnum, MPI_REAL, &
+                 pid_ims, 221, comm_worker, ierr, 0)
+   call MPIX_SEND_offset_C(v1zD(0,1,1), nnum, MPI_REAL, &
+                 pid_ims, 231, comm_worker, ierr, 0)
+   call MPIX_SEND_offset_C(v2xD(0,1,1), nzbtm, MPI_REAL, &
+                 pid_ims, 241, comm_worker, ierr, 1)
+   call MPIX_SEND_offset_C(v2yD(0,1,1), nzbtm, MPI_REAL, &
+                 pid_ims, 251, comm_worker, ierr, 1)
+   call MPIX_SEND_offset_C(v2zD(0,1,1), nzbtm, MPI_REAL, &
+                 pid_ims, 261, comm_worker, ierr, 1)
+#else
+    call MPI_SEND(v1x(0,1,1), nnum, MPI_REAL, &
                  pid_ims, 21, comm_worker, ierr)
    call MPI_SEND(v1y(0,1,1), nnum, MPI_REAL, &
                  pid_ims, 22, comm_worker, ierr)
@@ -2635,55 +2857,130 @@ subroutine vxy_image_layer(comm_worker)
                  pid_ims, 25, comm_worker, ierr)
    call MPI_SEND(v2z(0,1,1), nzbtm, MPI_REAL, &
                  pid_ims, 26, comm_worker, ierr)
+#endif
  end select
 !
  nr=0
 ! SEND
  if(neighb(1) > -1) then
+#ifdef DISFD_GPU_MARSHALING
+   if(DETAILED_TIMING .eq. 1) then;  call record_time(gpu_tstart) ; end if
+   call vxy_image_layer_sdx_vel(c_loc(sdx1), c_loc(sdx2), nxtop, nytop, nztop)
+   if(DETAILED_TIMING .eq. 1) then; call record_time(gpu_tend); call log_timing ("GPU vxy_image_layer_sdx_vel", gpu_tend-gpu_tstart); &
+        total_gpu_marsh_time = total_gpu_marsh_time + (gpu_tend-gpu_tstart); end if
+#else
    sdx1(1:nytop)=v1x(0,1,1:nytop)
    sdx2(1:nytop)=v1y(0,1,1:nytop)
+#endif
    nr=nr+1
+#if USE_MPIX==1
+  call MPIX_ISEND_C(c_sdx1_id, nytop, MPI_REAL, &
+                  neighb(1), 111, comm_worker, reqX(nr), ierr, 0)
+#else
    call MPI_ISEND(sdx1(1), nytop, MPI_REAL, &
                   neighb(1), 11, comm_worker, req(nr), ierr)
+#endif
    nr=nr+1
+#if USE_MPIX==1
+   call MPIX_ISEND_C(c_sdx2_id, nytop, MPI_REAL, &
+                  neighb(1), 121, comm_worker, reqX(nr), ierr, 1)
+#else
    call MPI_ISEND(sdx2(1), nytop, MPI_REAL, &
                   neighb(1), 12, comm_worker, req(nr), ierr)
+#endif
  endif
  if(neighb(3) > -1) then
+#ifdef DISFD_GPU_MARSHALING
+    if(DETAILED_TIMING .eq. 1) then;  call record_time(gpu_tstart) ; end if
+    call vxy_image_layer_sdy_vel(c_loc(sdy1), c_loc(sdy2), nxtop, nytop, nztop)
+    if(DETAILED_TIMING .eq. 1) then; call record_time(gpu_tend); call log_timing ("GPU vxy_image_layer_sdy_vel", gpu_tend-gpu_tstart); &
+        total_gpu_marsh_time = total_gpu_marsh_time + (gpu_tend-gpu_tstart); end if
+#else
    sdy1(1:nxtop)=v1x(0,1:nxtop,1)
    sdy2(1:nxtop)=v1y(0,1:nxtop,1)
+#endif
    nr=nr+1
+#if USE_MPIX==1
+   call MPIX_ISEND_C(c_sdy1_id, nxtop, MPI_REAL, &
+                  neighb(3), 331, comm_worker, reqX(nr), ierr, 0)
+#else
    call MPI_ISEND(sdy1(1), nxtop, MPI_REAL, &
                   neighb(3), 33, comm_worker, req(nr), ierr)
+#endif
    nr=nr+1
+#if USE_MPIX==1
+   call MPIX_ISEND_C(c_sdy2_id, nxtop, MPI_REAL, &
+                  neighb(3), 341, comm_worker, reqX(nr), ierr, 1)
+#else
    call MPI_ISEND(sdy2(1), nxtop, MPI_REAL, &
                   neighb(3), 34, comm_worker, req(nr), ierr)
+#endif
  endif
 ! RECV
  if(neighb(2) > -1) then
    nr=nr+1
+#if USE_MPIX==1
+   call MPIX_IRECV_C(c_rcx1_id, nytop, MPI_REAL, &
+                  neighb(2), 111, comm_worker, reqX(nr), ierr, 0)
+#else
    call MPI_IRECV(rcx1(1), nytop, MPI_REAL, &
                   neighb(2), 11, comm_worker, req(nr), ierr)
+#endif
    nr=nr+1
+#if USE_MPIX==1
+   call MPIX_IRECV_C(c_rcx2_id, nytop, MPI_REAL, &
+                  neighb(2), 121, comm_worker, reqX(nr), ierr, 1)
+#else
    call MPI_IRECV(rcx2(1), nytop, MPI_REAL, &
                   neighb(2), 12, comm_worker, req(nr), ierr)
+#endif
  endif
  if(neighb(4) > -1) then
    nr=nr+1
+#if USE_MPIX==1
+   call MPIX_IRECV_C(c_rcy1_id, nxtop, MPI_REAL, &
+                  neighb(4), 331, comm_worker, reqX(nr), ierr, 0)
+#else
    call MPI_IRECV(rcy1(1), nxtop, MPI_REAL, &
                   neighb(4), 33, comm_worker, req(nr), ierr)
+#endif
    nr=nr+1
+#if USE_MPIX==1
+   call MPIX_IRECV_C(c_rcy2_id, nxtop, MPI_REAL, &
+                  neighb(4), 341, comm_worker, reqX(nr), ierr, 1)
+#else
    call MPI_IRECV(rcy2(1), nxtop, MPI_REAL, &
                   neighb(4), 34, comm_worker, req(nr), ierr)
+#endif
  endif
+#if USE_MPIX==1
+ call MPI_WAITALL(nr,reqX,istatusX,ierr)
+#else
  call MPI_WAITALL(nr,req,istatus,ierr)
+#endif
  if(neighb(2) > -1) then
+#ifdef DISFD_GPU_MARSHALING
+   if(DETAILED_TIMING .eq. 1) then;  call record_time(gpu_tstart) ; end if
+   call vxy_image_layer_rcx_vel(c_loc(rcx1), c_loc(rcx2), nxtop, nytop, nztop, nx1p1)
+   if(DETAILED_TIMING .eq. 1) then; call record_time(gpu_tend); call log_timing ("GPU vxy_image_layer_rcx_vel", gpu_tend-gpu_tstart); &
+        total_gpu_marsh_time = total_gpu_marsh_time + (gpu_tend-gpu_tstart); end if
+
+#else
    v1x(0,nx1p1,1:nytop)=rcx1(1:nytop)
    v1y(0,nx1p1,1:nytop)=rcx2(1:nytop)
+#endif
  endif
  if(neighb(4) > -1) then
+#ifdef DISFD_GPU_MARSHALING
+   if(DETAILED_TIMING .eq. 1) then;  call record_time(gpu_tstart) ; end if
+   call vxy_image_layer_rcx2_vel(c_loc(rcx1), c_loc(rcx2), nxtop, nytop, nztop, ny1p1)
+   if(DETAILED_TIMING .eq. 1) then; call record_time(gpu_tend); call log_timing ("GPU vxy_image_layer_rcx2_vel", gpu_tend-gpu_tstart); &
+        total_gpu_marsh_time = total_gpu_marsh_time + (gpu_tend-gpu_tstart); end if
+
+#else
    v1x(0,1:nxtop,ny1p1)=rcx1(1:nxtop)
    v1y(0,1:nxtop,ny1p1)=rcx2(1:nxtop)
+#endif
  endif
  return
 end subroutine vxy_image_layer
@@ -3346,11 +3643,50 @@ subroutine add_dcs(tim)
  use iso_c_binding
  use ctimer
  implicit NONE
+
+ interface
+    subroutine add_dcs_vel(sutmArr, nfadd, ixsX, ixsY, ixsZ, fampX, fampY, ruptmX, &
+    risetX, sparam2X, nzrg11, nzrg12, nzrg13, nzrg14, nxtop, nytop, nztop, nxbtm, nybtm, nzbtm) &
+        bind(C, name="add_dcs_vel")
+        use :: iso_c_binding
+        integer(c_int), value, intent(in) :: nfadd, nzrg11, nzrg12, nzrg13, nzrg14, nxtop, nytop, nztop, nxbtm, nybtm, nzbtm, &
+                                            ixsX, ixsY, ixsZ, fampX, fampY, ruptmX, risetX, sparam2X
+        type(c_ptr),value, intent(in) :: sutmArr
+    end subroutine add_dcs_vel
+ end interface
+
  real, intent(IN):: tim
  integer:: i,j,k,kap
  real::sutm,fsource
+ real, allocatable, target, dimension(:) :: sutmArr
  real(c_double) :: tstart, tend
+ real(c_double) :: gpu_tstart, gpu_tend, cpu_tstart, cpu_tend
+ real(c_double):: total_gpu_marsh_time=0.0, total_cpu_marsh_time=0.0
+ total_gpu_marsh_time =0.0
+ total_cpu_marsh_time =0.0
  
+ allocate(sutmArr(nfadd))
+ if (nfadd .eq. 0) then
+    return
+ endif    
+
+ do  kap=1,nfadd
+   sutmArr(kap)=-fsource(tim-ruptm(kap),riset(kap),sparam2(kap),id_sf_type)
+ enddo
+
+#ifdef DISFD_GPU_MARSHALING
+ if(DETAILED_TIMING .eq. 1) then;  call record_time(gpu_tstart) ; end if
+ call add_dcs_vel(c_loc(sutmArr), nfadd, size(index_xyz_source,1),&
+                size(index_xyz_source,2), size(index_xyz_source,3), &
+                size(famp,1), size(famp,2), &
+                size(ruptm, 1), &
+                size(riset, 1), &
+                size(sparam2, 1), nzrg1(1), nzrg1(2), nzrg1(3), nzrg1(4), &
+                nxtop, nytop, nztop, nxbtm, nybtm , nzbtm)
+ if(DETAILED_TIMING .eq. 1) then; call record_time(gpu_tend); call log_timing ("GPU add_dcs", gpu_tend-gpu_tstart); &
+        total_gpu_marsh_time = total_gpu_marsh_time + (gpu_tend-gpu_tstart); end if
+ 
+#else
  call record_time(tstart)
 ! Mxx, Myy, Mzz:
  do  kap=1,nfadd
@@ -3411,6 +3747,7 @@ subroutine add_dcs(tim)
 
  call record_time(tend)
  write(*,*) "TIME :: add_dcs :", tend-tstart
+#endif
  return
 end subroutine add_dcs
 !
@@ -4755,14 +5092,73 @@ end subroutine stress_yz_PmlZ_II
 subroutine stress_interp
  use grid_node_comm
  use wave_field_comm
+! use logging
+ use metadata
+ use ctimer
  implicit NONE
+ interface
+     subroutine interp_stress (neighb1, neighb2, neighb3, neighb4,&
+                    nxbm1, nybm1, nxbtm, nybtm, nzbtm, nxtop, nytop, nztop, nz1p1) &
+                    bind(C, name="interp_stress")
+            use iso_c_binding
+            integer(c_int), value, intent(in) :: nxbtm, nybtm, nzbtm , &
+                            nxtop, nytop, nztop, nz1p1, &
+                            neighb1, neighb2, neighb3, neighb4, nxbm1, nybm1 
+     end subroutine interp_stress
+
+     subroutine interp_stress1 (ntx1, nz1p1, nxbtm, nybtm, nzbtm, &
+                                nxtop, nytop, nztop) bind (C, name="interp_stress1")
+            use iso_c_binding
+            integer(c_int), value, intent(in) :: ntx1, nz1p1, &
+                                                nxbtm, nybtm, nzbtm, &
+                                                nxtop, nytop, nztop 
+     end subroutine interp_stress1
+
+     subroutine interp_stress2 (nty1, nz1p1, nxbtm, nybtm, nzbtm, &
+                                nxtop, nytop, nztop) bind (C, name="interp_stress2")
+            use iso_c_binding
+            integer(c_int), value, intent(in) :: nty1, nz1p1, &
+                                                nxbtm, nybtm, nzbtm, &
+                                                nxtop, nytop, nztop 
+     end subroutine interp_stress2
+ 
+     subroutine interp_stress3 (nxbtm, nybtm, nzbtm, &
+                                nxtop, nytop, nztop) bind (C, name="interp_stress3")
+            use iso_c_binding
+            integer(c_int), value, intent(in) :: nxbtm, nybtm, nzbtm, &
+                                                nxtop, nytop, nztop 
+     end subroutine interp_stress3
+ 
+ end interface
  integer:: i,j,ii,jj,ntx1,nty1
+ real(c_double) :: gpu_tstart, gpu_tend, cpu_tstart, cpu_tend
+ real(c_double):: total_gpu_marsh_time=0.0, total_cpu_marsh_time=0.0
+ total_gpu_marsh_time =0.0
+ total_cpu_marsh_time =0.0
+
 !
  ntx1=nxbtm
  if(neighb(2) < 0) ntx1=nxbm1
  nty1=nybtm
  if(neighb(4) < 0) nty1=nybm1
 !
+#ifdef DISFD_GPU_MARSHALING
+ if(DETAILED_TIMING .eq. 1) then;  call record_time(gpu_tstart) ; end if
+ call interp_stress1(ntx1, nz1p1, nxbtm, nybtm, nzbtm, nxtop, nytop, nztop);
+ if(DETAILED_TIMING .eq. 1) then; call record_time(gpu_tend); call log_timing ("GPU stress_interp1", gpu_tend-gpu_tstart); &
+        total_gpu_marsh_time = total_gpu_marsh_time + (gpu_tend-gpu_tstart); end if
+
+ if(DETAILED_TIMING .eq. 1) then;  call record_time(gpu_tstart) ; end if
+ call interp_stress2(nty1, nz1p1, nxbtm, nybtm, nzbtm, nxtop, nytop, nztop);
+ if(DETAILED_TIMING .eq. 1) then; call record_time(gpu_tend); call log_timing ("GPU stress_interp2", gpu_tend-gpu_tstart); &
+        total_gpu_marsh_time = total_gpu_marsh_time + (gpu_tend-gpu_tstart); end if
+ 
+ if(DETAILED_TIMING .eq. 1) then;  call record_time(gpu_tstart) ; end if
+ call interp_stress3(nxbtm, nybtm, nzbtm, nxtop, nytop, nztop);
+ if(DETAILED_TIMING .eq. 1) then; call record_time(gpu_tend); call log_timing ("GPU stress_interp3", gpu_tend-gpu_tstart); &
+        total_gpu_marsh_time = total_gpu_marsh_time + (gpu_tend-gpu_tstart); end if
+ if(DETAILED_TIMING .eq. 1) then; call log_timing ("GPU Marshaling stress_interp", total_gpu_marsh_time); end if
+#else
  j=-2
  do jj=1,nybtm
    j=j+3
@@ -4794,6 +5190,7 @@ subroutine stress_interp
      t2zz(0,ii,jj)=t1zz(nztop,i,j)
    enddo
  enddo
+#endif
  return
 end subroutine stress_interp
 !
@@ -5664,92 +6061,298 @@ subroutine ISEND_IRECV_Stress(comm_worker)
  use mpi
  use grid_node_comm
  use wave_field_comm
+! use logging
+ use metadata
+ use ctimer
  implicit NONE
+ interface
+     subroutine sdx41_stress (c_sdx41, nxtop, nytop, nztop) bind(C, name="sdx41_stress")
+        use :: iso_c_binding
+        type(c_ptr), intent(inout) :: c_sdx41
+        integer(c_int), intent(in) :: nxtop, nytop, nztop
+     end subroutine sdx41_stress
+
+     subroutine sdx42_stress (c_sdx42, nxbtm, nybtm, nzbtm) bind(C, name="sdx42_stress")
+        use :: iso_c_binding
+        type(c_ptr), intent(inout) :: c_sdx42
+        integer(c_int), intent(in) :: nxbtm,nybtm, nzbtm
+     end subroutine sdx42_stress
+
+     subroutine sdx51_stress (c_sdx51, nxtop, nytop, nztop, nxtm1) bind(C, name="sdx51_stress")
+        use :: iso_c_binding
+        type(c_ptr), intent(inout) :: c_sdx51
+        integer(c_int), intent(in) :: nxtop, nytop, nztop, nxtm1
+     end subroutine sdx51_stress
+
+     subroutine sdx52_stress (c_sdx52, nxbtm, nybtm, nzbtm, nxbm1) bind(C, name="sdx52_stress")
+        use :: iso_c_binding
+        type(c_ptr), intent(inout) :: c_sdx52
+        integer(c_int), intent(in) :: nxbtm, nybtm, nzbtm, nxbm1
+     end subroutine sdx52_stress
+
+     subroutine sdy41_stress (c_sdy41, nxtop, nytop, nztop) bind(C, name="sdy41_stress")
+        use :: iso_c_binding
+        type(c_ptr), intent(inout) :: c_sdy41
+        integer(c_int), intent(in) :: nxtop, nytop, nztop
+     end subroutine sdy41_stress
+
+     subroutine sdy42_stress (c_sdy42, nxbtm, nybtm, nzbtm) bind(C, name="sdy42_stress")
+        use :: iso_c_binding
+        type(c_ptr), intent(inout) :: c_sdy42
+        integer(c_int), intent(in) :: nxbtm, nybtm, nzbtm
+     end subroutine sdy42_stress
+
+     subroutine sdy51_stress (c_sdy51, nxtop, nytop, nztop, nytm1) bind(C, name="sdy51_stress")
+        use :: iso_c_binding
+        type(c_ptr), intent(inout) :: c_sdy51
+        integer(c_int), intent(in) :: nxtop, nytop, nztop, nytm1
+     end subroutine sdy51_stress
+
+     subroutine sdy52_stress (c_sdy52, nxbtm, nybtm, nzbtm, nybm1) bind(C, name="sdy52_stress")
+        use :: iso_c_binding
+        type(c_ptr), intent(inout) :: c_sdy52
+        integer(c_int), intent(in) :: nxbtm, nybtm, nzbtm, nybm1
+     end subroutine sdy52_stress
+
+     subroutine rcx41_stress (c_rcx41, nxtop, nytop, nztop, nx1p1, nx1p2) bind(C, name="rcx41_stress")
+        use :: iso_c_binding
+        type(c_ptr), intent(inout) :: c_rcx41
+        integer(c_int), intent(in) :: nxtop, nytop, nztop, nx1p1, nx1p2
+     end subroutine rcx41_stress
+
+     subroutine rcx42_stress (c_rcx42, nxbtm, nybtm, nzbtm, nx2p1, nx2p2) bind(C, name="rcx42_stress")
+        use :: iso_c_binding
+        type(c_ptr), intent(inout) :: c_rcx42
+        integer(c_int), intent(in) :: nxbtm,nybtm, nzbtm, nx2p1, nx2p2
+     end subroutine rcx42_stress
+
+     subroutine rcx51_stress (c_rcx51, nxtop, nytop, nztop) bind(C, name="rcx51_stress")
+        use :: iso_c_binding
+        type(c_ptr), intent(inout) :: c_rcx51
+        integer(c_int), intent(in) :: nxtop, nytop, nztop
+     end subroutine rcx51_stress
+
+     subroutine rcx52_stress (c_rcx52, nxbtm, nybtm, nzbtm) bind(C, name="rcx52_stress")
+        use :: iso_c_binding
+        type(c_ptr), intent(inout) :: c_rcx52
+        integer(c_int), intent(in) :: nxbtm, nybtm, nzbtm
+     end subroutine rcx52_stress
+
+     subroutine rcy41_stress (c_rcy41, nxtop, nytop, nztop, ny1p1, ny1p2) bind(C, name="rcy41_stress")
+        use :: iso_c_binding
+        type(c_ptr), intent(inout) :: c_rcy41
+        integer(c_int), intent(in) :: nxtop, nytop, nztop, ny1p1, ny1p2
+     end subroutine rcy41_stress
+
+     subroutine rcy42_stress (c_rcy42, nxbtm, nybtm, nzbtm, ny2p1, ny2p2) bind(C, name="rcy42_stress")
+        use :: iso_c_binding
+        type(c_ptr), intent(inout) :: c_rcy42
+        integer(c_int), intent(in) :: nxbtm, nybtm, nzbtm, ny2p1, ny2p2
+     end subroutine rcy42_stress
+
+     subroutine rcy51_stress (c_rcy51, nxtop, nytop, nztop) bind(C, name="rcy51_stress")
+        use :: iso_c_binding
+        type(c_ptr), intent(inout) :: c_rcy51
+        integer(c_int), intent(in) :: nxtop, nytop, nztop
+     end subroutine rcy51_stress
+
+     subroutine rcy52_stress (c_rcy52, nxbtm, nybtm, nzbtm) bind(C, name="rcy52_stress")
+        use :: iso_c_binding
+        type(c_ptr), intent(inout) :: c_rcy52
+        integer(c_int), intent(in) :: nxbtm, nybtm, nzbtm
+     end subroutine rcy52_stress
+
+     include "mpiacc_wrappers.h"
+ end interface
+
  integer, intent(IN):: comm_worker
  integer:: req(16),ncout(16),status(MPI_STATUS_SIZE,16),ierr,nr
+ integer:: reqX(16),statusX(MPI_STATUS_SIZE,16)
  integer:: i,j,k
+ real(c_double) :: gpu_tstart, gpu_tend, cpu_tstart, cpu_tend
+ real(c_double):: total_gpu_marsh_time=0.0, total_cpu_marsh_time=0.0
+
+ total_gpu_marsh_time =0.0
+ total_cpu_marsh_time =0.0
 !
  nr=0
 ! Send 
 !-from 1 to 2
  if(neighb(1)>-1) then
+#ifdef DISFD_GPU_MARSHALING
+   if(DETAILED_TIMING .eq. 1) then;  call record_time(gpu_tstart) ; end if
+        call sdx41_stress(cptr_sdx41, nxtop, nytop, nztop);
+   if(DETAILED_TIMING .eq. 1) then; call record_time(gpu_tend); call log_timing ("GPU sdx41_stress", gpu_tend-gpu_tstart); &
+        total_gpu_marsh_time = total_gpu_marsh_time + (gpu_tend-gpu_tstart); end if
+#else
    sdx41(:, :, 1)=t1xx(1:nztop, 1, 1:nytop)
    sdx41(:, :, 2)=t1xx(1:nztop, 2, 1:nytop)
    sdx41(:, :, 3)=t1xy(1:nztop, 1, 1:nytop)
    sdx41(:, :, 4)=t1xz(1:nztop, 1, 1:nytop)
+#endif
    nr=nr+1
    ncout(nr)=4*nztop*nytop
+#if USE_MPIX == 1
+   call MPIX_ISEND_C(c_sdx41_id, ncout(nr), MPI_REAL, &
+                  neighb(1), 5011, comm_worker, reqX(nr), ierr, 0)
+#else
    call MPI_ISEND(sdx41, ncout(nr), MPI_REAL, &
                   neighb(1), 501, comm_worker, req(nr), ierr)
+#endif
+
+#ifdef DISFD_GPU_MARSHALING
+   if(DETAILED_TIMING .eq. 1) then;  call record_time(gpu_tstart) ; end if
+        call sdx42_stress(cptr_sdx42, nxbtm, nybtm, nzbtm);
+   if(DETAILED_TIMING .eq. 1) then; call record_time(gpu_tend); call log_timing ("GPU sdx42_stress", gpu_tend-gpu_tstart); &
+        total_gpu_marsh_time = total_gpu_marsh_time + (gpu_tend-gpu_tstart); end if
+#else
    sdx42(:, :, 1)=t2xx(1:nzbtm, 1, 1:nybtm)
    sdx42(:, :, 2)=t2xx(1:nzbtm, 2, 1:nybtm)
    sdx42(:, :, 3)=t2xy(1:nzbtm, 1, 1:nybtm)
    sdx42(:, :, 4)=t2xz(1:nzbtm, 1, 1:nybtm)
+#endif
    nr=nr+1
    ncout(nr)=4*nzbtm*nybtm
+#if USE_MPIX == 1
+   call MPIX_ISEND_C(c_sdx42_id, ncout(nr), MPI_REAL, & 
+                  neighb(1), 5021, comm_worker, reqX(nr), ierr, 1)
+#else
    call MPI_ISEND(sdx42, ncout(nr), MPI_REAL, & 
                   neighb(1), 502, comm_worker, req(nr), ierr)
+#endif
  endif
 !-from 2 to 1
  if(neighb(2)>-1) then
+#ifdef DISFD_GPU_MARSHALING
+   if(DETAILED_TIMING .eq. 1) then;  call record_time(gpu_tstart) ; end if
+        call sdx51_stress(cptr_sdx51, nxtop, nytop, nztop, nxtm1);
+   if(DETAILED_TIMING .eq. 1) then; call record_time(gpu_tend); call log_timing ("GPU sdx51_stress", gpu_tend-gpu_tstart); &
+        total_gpu_marsh_time = total_gpu_marsh_time + (gpu_tend-gpu_tstart); end if
+#else
    sdx51(:, :, 1)=t1xx(1:nztop, nxtop, 1:nytop)
    sdx51(:, :, 2)=t1xy(1:nztop, nxtm1, 1:nytop)
    sdx51(:, :, 3)=t1xy(1:nztop, nxtop, 1:nytop)
    sdx51(:, :, 4)=t1xz(1:nztop, nxtm1, 1:nytop)
    sdx51(:, :, 5)=t1xz(1:nztop, nxtop, 1:nytop)
+#endif
    nr=nr+1
    ncout(nr)=5*nztop*nytop
+#if USE_MPIX == 1
+   call MPIX_ISEND_C(c_sdx51_id, ncout(nr), MPI_REAL, & 
+                  neighb(2), 6011, comm_worker, reqX(nr), ierr, 0)
+#else
    call MPI_ISEND(sdx51, ncout(nr), MPI_REAL, & 
                   neighb(2), 601, comm_worker, req(nr), ierr)
+#endif
+#ifdef DISFD_GPU_MARSHALING
+   if(DETAILED_TIMING .eq. 1) then;  call record_time(gpu_tstart) ; end if
+        call sdx52_stress(cptr_sdx52, nxbtm, nybtm, nzbtm, nxbm1);
+   if(DETAILED_TIMING .eq. 1) then; call record_time(gpu_tend); call log_timing ("GPU sdx52_stress", gpu_tend-gpu_tstart); &
+        total_gpu_marsh_time = total_gpu_marsh_time + (gpu_tend-gpu_tstart); end if
+#else
    sdx52(:, :, 1)=t2xx(1:nzbtm, nxbtm, 1:nybtm)
    sdx52(:, :, 2)=t2xy(1:nzbtm, nxbm1, 1:nybtm)
    sdx52(:, :, 3)=t2xy(1:nzbtm, nxbtm, 1:nybtm)
    sdx52(:, :, 4)=t2xz(1:nzbtm, nxbm1, 1:nybtm)
    sdx52(:, :, 5)=t2xz(1:nzbtm, nxbtm, 1:nybtm)
+#endif
    nr=nr+1
    ncout(nr)=5*nzbtm*nybtm
+#if USE_MPIX == 1
+  call MPIX_ISEND_C(c_sdx52_id, ncout(nr), MPI_REAL, &
+                  neighb(2), 6021, comm_worker, reqX(nr), ierr, 1)
+#else
    call MPI_ISEND(sdx52, ncout(nr), MPI_REAL, &
                   neighb(2), 602, comm_worker, req(nr), ierr)
+#endif
  endif
 !-from 3 to 4
  if(neighb(3)>-1) then
+#ifdef DISFD_GPU_MARSHALING
+   if(DETAILED_TIMING .eq. 1) then;  call record_time(gpu_tstart) ; end if
+        call sdy41_stress(cptr_sdy41, nxtop, nytop, nztop);
+   if(DETAILED_TIMING .eq. 1) then; call record_time(gpu_tend); call log_timing ("GPU sdy41_stress", gpu_tend-gpu_tstart); &
+        total_gpu_marsh_time = total_gpu_marsh_time + (gpu_tend-gpu_tstart); end if
+#else
    sdy41(:, :, 1)=t1yy(1:nztop, 1:nxtop, 1)
    sdy41(:, :, 2)=t1yy(1:nztop, 1:nxtop, 2)
    sdy41(:, :, 3)=t1xy(1:nztop, 1:nxtop, 1)
    sdy41(:, :, 4)=t1yz(1:nztop, 1:nxtop, 1)
+#endif
    nr=nr+1
    ncout(nr)=4*nztop*nxtop
+#if USE_MPIX == 1
+ call MPIX_ISEND_C(c_sdy41_id, ncout(nr), MPI_REAL, &
+                  neighb(3), 7011, comm_worker, reqX(nr), ierr, 0)
+#else
    call MPI_ISEND(sdy41, ncout(nr), MPI_REAL, &
                   neighb(3), 701, comm_worker, req(nr), ierr)
+#endif
+#ifdef DISFD_GPU_MARSHALING
+   if(DETAILED_TIMING .eq. 1) then;  call record_time(gpu_tstart) ; end if
+        call sdy42_stress(cptr_sdy42, nxbtm, nybtm, nzbtm);
+   if(DETAILED_TIMING .eq. 1) then; call record_time(gpu_tend); call log_timing ("GPU sdy42_stress", gpu_tend-gpu_tstart); &
+        total_gpu_marsh_time = total_gpu_marsh_time + (gpu_tend-gpu_tstart); end if
+#else
    sdy42(:, :, 1)=t2yy(1:nzbtm, 1:nxbtm, 1)
    sdy42(:, :, 2)=t2yy(1:nzbtm, 1:nxbtm, 2)
    sdy42(:, :, 3)=t2xy(1:nzbtm, 1:nxbtm, 1)
    sdy42(:, :, 4)=t2yz(1:nzbtm, 1:nxbtm, 1)
+#endif
    nr=nr+1
    ncout(nr)=4*nzbtm*nxbtm
+#if USE_MPIX == 1
+    call MPIX_ISEND_C(c_sdy42_id, ncout(nr), MPI_REAL, &
+                  neighb(3), 7021, comm_worker, reqX(nr), ierr, 1)
+#else
    call MPI_ISEND(sdy42, ncout(nr), MPI_REAL, &
                   neighb(3), 702, comm_worker, req(nr), ierr)
+#endif
  endif
 !-from 4 to 3
  if(neighb(4)>-1) then
+#ifdef DISFD_GPU_MARSHALING
+   if(DETAILED_TIMING .eq. 1) then;  call record_time(gpu_tstart) ; end if
+        call sdy51_stress(cptr_sdy51, nxtop, nytop, nztop, nytm1)
+   if(DETAILED_TIMING .eq. 1) then; call record_time(gpu_tend); call log_timing ("GPU sdy51_stress", gpu_tend-gpu_tstart); &
+        total_gpu_marsh_time = total_gpu_marsh_time + (gpu_tend-gpu_tstart); end if
+#else
    sdy51(:, :, 1)=t1yy(1:nztop, 1:nxtop, nytop)
    sdy51(:, :, 2)=t1xy(1:nztop, 1:nxtop, nytm1)
    sdy51(:, :, 3)=t1xy(1:nztop, 1:nxtop, nytop)
    sdy51(:, :, 4)=t1yz(1:nztop, 1:nxtop, nytm1)
    sdy51(:, :, 5)=t1yz(1:nztop, 1:nxtop, nytop)
+#endif
    nr=nr+1
    ncout(nr)=5*nztop*nxtop
+#if USE_MPIX == 1
+    call MPIX_ISEND_C(c_sdy51_id, ncout(nr), MPI_REAL, &
+                  neighb(4), 8011, comm_worker, reqX(nr), ierr, 0)
+#else
    call MPI_ISEND(sdy51, ncout(nr), MPI_REAL, &
                   neighb(4), 801, comm_worker, req(nr), ierr)
+#endif
+#ifdef DISFD_GPU_MARSHALING
+   if(DETAILED_TIMING .eq. 1) then;  call record_time(gpu_tstart) ; end if
+        call sdy52_stress(cptr_sdy52, nxbtm, nybtm, nzbtm, nybm1)
+   if(DETAILED_TIMING .eq. 1) then; call record_time(gpu_tend); call log_timing ("GPU sdy52_stress", gpu_tend-gpu_tstart); &
+        total_gpu_marsh_time = total_gpu_marsh_time + (gpu_tend-gpu_tstart); end if
+#else
    sdy52(:, :, 1)=t2yy(1:nzbtm, 1:nxbtm, nybtm)
    sdy52(:, :, 2)=t2xy(1:nzbtm, 1:nxbtm, nybm1)
    sdy52(:, :, 3)=t2xy(1:nzbtm, 1:nxbtm, nybtm)
    sdy52(:, :, 4)=t2yz(1:nzbtm, 1:nxbtm, nybm1)
    sdy52(:, :, 5)=t2yz(1:nzbtm, 1:nxbtm, nybtm)
+#endif
    nr=nr+1
    ncout(nr)=5*nzbtm*nxbtm
+#if USE_MPIX == 1
+ call MPIX_ISEND_C(c_sdy52_id, ncout(nr), MPI_REAL, &
+                  neighb(4), 8021, comm_worker, reqX(nr), ierr, 1)
+#else
    call MPI_ISEND(sdy52, ncout(nr), MPI_REAL, &
                   neighb(4), 802, comm_worker, req(nr), ierr)
+#endif
  endif
 !
 ! Receive
@@ -5757,49 +6360,100 @@ subroutine ISEND_IRECV_Stress(comm_worker)
  if(neighb(2)>-1) then
    nr=nr+1
    ncout(nr)=4*nztop*nytop
+#if USE_MPIX == 1
+  call MPIX_IRECV_C(c_rcx41_id, ncout(nr), MPI_REAL, &
+                  neighb(2), 5011, comm_worker, reqX(nr), ierr, 0)
+#else
    call MPI_IRECV(rcx41, ncout(nr), MPI_REAL, &
                   neighb(2), 501, comm_worker, req(nr), ierr)
+#endif
    nr=nr+1
    ncout(nr)=4*nzbtm*nybtm
+#if USE_MPIX == 1
+ call MPIX_IRECV_C(c_rcx42_id, ncout(nr), MPI_REAL, &
+                  neighb(2), 5021, comm_worker, reqX(nr), ierr, 1)
+#else
    call MPI_IRECV(rcx42, ncout(nr), MPI_REAL, &
                   neighb(2), 502, comm_worker, req(nr), ierr)
+#endif
  endif
 !-from 2 to 1
  if(neighb(1)>-1) then
    nr=nr+1
    ncout(nr)=5*nztop*nytop
+#if USE_MPIX == 1
+    call MPIX_IRECV_C(c_rcx51_id, ncout(nr), MPI_REAL, &
+                  neighb(1), 6011, comm_worker, reqX(nr), ierr, 0)
+#else
    call MPI_IRECV(rcx51, ncout(nr), MPI_REAL, &
                   neighb(1), 601, comm_worker, req(nr), ierr)
+#endif
    nr=nr+1
    ncout(nr)=5*nzbtm*nybtm
+#if USE_MPIX == 1
+    call MPIX_IRECV_C(c_rcx52_id, ncout(nr), MPI_REAL, &
+                  neighb(1), 6021, comm_worker, reqX(nr), ierr, 1)
+#else
    call MPI_IRECV(rcx52, ncout(nr), MPI_REAL, &
                   neighb(1), 602, comm_worker, req(nr), ierr)
+#endif
  endif
 !-from 3 to 4
  if(neighb(4)>-1) then
    nr=nr+1
    ncout(nr)=4*nztop*nxtop
+#if USE_MPIX == 1
+    call MPIX_IRECV_C(c_rcy41_id, ncout(nr), MPI_REAL, &
+                  neighb(4), 7011, comm_worker, reqX(nr), ierr, 0)
+#else
    call MPI_IRECV(rcy41, ncout(nr), MPI_REAL, &
                   neighb(4), 701, comm_worker, req(nr), ierr)
+#endif
    nr=nr+1
    ncout(nr)=4*nzbtm*nxbtm
+#if USE_MPIX == 1
+    call MPIX_IRECV_C(c_rcy42_id, ncout(nr), MPI_REAL, &
+                  neighb(4), 7021, comm_worker, reqX(nr), ierr, 1)
+#else
    call MPI_IRECV(rcy42, ncout(nr), MPI_REAL, &
                   neighb(4), 702, comm_worker, req(nr), ierr)
+#endif
  endif
 !-from 4 to 3
  if(neighb(3)>-1) then
    nr=nr+1
    ncout(nr)=5*nztop*nxtop
+#if USE_MPIX == 1
+    call MPIX_IRECV_C(c_rcy51_id, ncout(nr), MPI_REAL, &
+                  neighb(3), 8011, comm_worker, reqX(nr), ierr, 0)
+#else
    call MPI_IRECV(rcy51, ncout(nr), MPI_REAL, &
                   neighb(3), 801, comm_worker, req(nr), ierr)
+#endif
    nr=nr+1
    ncout(nr)=5*nzbtm*nxbtm
+#if USE_MPIX == 1
+    call MPIX_IRECV_C(c_rcy52_id, ncout(nr), MPI_REAL, &
+                  neighb(3), 8021, comm_worker, reqX(nr), ierr, 1)
+#else
    call MPI_IRECV(rcy52, ncout(nr), MPI_REAL, &
                   neighb(3), 802, comm_worker, req(nr), ierr)
+#endif
  endif
+#if USE_MPIX == 1
+ call MPI_WAITALL(nr,reqX,statusX,ierr)
+#else
  call MPI_WAITALL(nr,req,status,ierr)
+#endif
 !-from 1 to 2
  if(neighb(2)>-1) then
+#ifdef DISFD_GPU_MARSHALING
+   if(DETAILED_TIMING .eq. 1) then;  call record_time(gpu_tstart) ; end if
+        call rcx41_stress(cptr_rcx41, nxtop, nytop, nztop, nx1p1, nx1p2)
+        call rcx42_stress(cptr_rcx42, nxbtm, nybtm, nzbtm, nx2p1, nx2p2)   
+   if(DETAILED_TIMING .eq. 1) then; call record_time(gpu_tend); call log_timing ("GPU rcx41/2_stress", gpu_tend-gpu_tstart); &
+        total_gpu_marsh_time = total_gpu_marsh_time + (gpu_tend-gpu_tstart); end if
+#else
    t1xx(1:nztop, nx1p1, 1:nytop) = rcx41(:, :, 1)
    t1xx(1:nztop, nx1p2, 1:nytop) = rcx41(:, :, 2)
    t1xy(1:nztop, nx1p1, 1:nytop) = rcx41(:, :, 3)
@@ -5808,9 +6462,17 @@ subroutine ISEND_IRECV_Stress(comm_worker)
    t2xx(1:nzbtm, nx2p2, 1:nybtm) = rcx42(:, :, 2)
    t2xy(1:nzbtm, nx2p1, 1:nybtm) = rcx42(:, :, 3)
    t2xz(1:nzbtm, nx2p1, 1:nybtm) = rcx42(:, :, 4)
+#endif
  endif
 !-from 2 to 1
  if(neighb(1)>-1) then
+#ifdef DISFD_GPU_MARSHALING
+   if(DETAILED_TIMING .eq. 1) then;  call record_time(gpu_tstart) ; end if
+           call rcx51_stress(cptr_rcx51, nxtop, nytop, nztop)
+           call rcx52_stress(cptr_rcx52, nxbtm, nybtm, nzbtm)
+   if(DETAILED_TIMING .eq. 1) then; call record_time(gpu_tend); call log_timing ("GPU rcx51/2_stress", gpu_tend-gpu_tstart); &
+        total_gpu_marsh_time = total_gpu_marsh_time + (gpu_tend-gpu_tstart); end if
+#else
    t1xx(1:nztop,  0, 1:nytop) = rcx51(:, :, 1)
    t1xy(1:nztop, -1, 1:nytop) = rcx51(:, :, 2)
    t1xy(1:nztop,  0, 1:nytop) = rcx51(:, :, 3)
@@ -5821,9 +6483,17 @@ subroutine ISEND_IRECV_Stress(comm_worker)
    t2xy(1:nzbtm,  0, 1:nybtm) = rcx52(:, :, 3)
    t2xz(1:nzbtm, -1, 1:nybtm) = rcx52(:, :, 4)
    t2xz(1:nzbtm,  0, 1:nybtm) = rcx52(:, :, 5)
+#endif
  endif
 !------------------ from 3 to 4
  if(neighb(4)>-1) then
+#ifdef DISFD_GPU_MARSHALING
+   if(DETAILED_TIMING .eq. 1) then;  call record_time(gpu_tstart) ; end if
+        call rcy41_stress(cptr_rcy41, nxtop, nytop, nztop, ny1p1, ny1p2)
+        call rcy42_stress(cptr_rcy42, nxbtm, nybtm, nzbtm, ny2p1, ny2p2)
+   if(DETAILED_TIMING .eq. 1) then; call record_time(gpu_tend); call log_timing ("GPU rcy41/2_stress", gpu_tend-gpu_tstart); &
+        total_gpu_marsh_time = total_gpu_marsh_time + (gpu_tend-gpu_tstart); end if
+#else
    t1yy(1:nztop, 1:nxtop, ny1p1) = rcy41(:, :, 1)
    t1yy(1:nztop, 1:nxtop, ny1p2) = rcy41(:, :, 2)
    t1xy(1:nztop, 1:nxtop, ny1p1) = rcy41(:, :, 3)
@@ -5832,9 +6502,17 @@ subroutine ISEND_IRECV_Stress(comm_worker)
    t2yy(1:nzbtm, 1:nxbtm, ny2p2) = rcy42(:, :, 2)
    t2xy(1:nzbtm, 1:nxbtm, ny2p1) = rcy42(:, :, 3)
    t2yz(1:nzbtm, 1:nxbtm, ny2p1) = rcy42(:, :, 4)
+#endif
  endif
 !-from 4 to 3
  if(neighb(3)>-1) then
+#ifdef DISFD_GPU_MARSHALING
+   if(DETAILED_TIMING .eq. 1) then;  call record_time(gpu_tstart) ; end if
+        call rcy51_stress(cptr_rcy51, nxtop, nytop, nztop)
+        call rcy52_stress(cptr_rcy52, nxbtm, nybtm, nzbtm)
+   if(DETAILED_TIMING .eq. 1) then; call record_time(gpu_tend); call log_timing ("GPU rcy51/2_stress", gpu_tend-gpu_tstart); &
+        total_gpu_marsh_time = total_gpu_marsh_time + (gpu_tend-gpu_tstart); end if
+#else
    t1yy(1:nztop, 1:nxtop,  0) = rcy51(:, :, 1)
    t1xy(1:nztop, 1:nxtop, -1) = rcy51(:, :, 2)
    t1xy(1:nztop, 1:nxtop,  0) = rcy51(:, :, 3)
@@ -5845,6 +6523,7 @@ subroutine ISEND_IRECV_Stress(comm_worker)
    t2xy(1:nzbtm, 1:nxbtm,  0) = rcy52(:, :, 3)
    t2yz(1:nzbtm, 1:nxbtm, -1) = rcy52(:, :, 4)
    t2yz(1:nzbtm, 1:nxbtm,  0) = rcy52(:, :, 5)
+#endif
  endif
  return
 end subroutine ISEND_IRECV_Stress
@@ -5854,14 +6533,157 @@ subroutine ISEND_IRECV_Velocity(comm_worker)
  use mpi
  use grid_node_comm
  use wave_field_comm
+ use, intrinsic :: iso_c_binding
  implicit NONE
+
+ interface
+     subroutine sdx51_vel(c_ptr_sdx51, c_nytop, c_nztop, c_nxtop) &
+         bind(C, name="sdx51_vel")
+         use, intrinsic :: iso_c_binding, ONLY: C_INT, C_PTR, C_F_POINTER
+         type(c_ptr), intent(inout) :: c_ptr_sdx51
+         integer(c_int), intent(in):: c_nytop, c_nztop, c_nxtop
+     end subroutine sdx51_vel
+
+     subroutine sdx52_vel(c_ptr_sdx52, c_nybtm, c_nzbtm, c_nxbtm) &
+         bind(C, name="sdx52_vel")
+         use, intrinsic :: iso_c_binding, ONLY: C_INT, C_PTR, C_F_POINTER
+         type(c_ptr), intent(inout) :: c_ptr_sdx52
+         integer(c_int), intent(in):: c_nybtm, c_nzbtm, c_nxbtm
+     end subroutine sdx52_vel
+
+     subroutine sdx41_vel(c_ptr_sdx41, c_nxtop, c_nytop, c_nztop,c_nxtm1) &
+         bind(C, name="sdx41_vel")
+         use, intrinsic :: iso_c_binding, ONLY: C_INT, C_PTR, C_F_POINTER
+         type(c_ptr), intent(inout) :: c_ptr_sdx41
+         integer(c_int), intent(in):: c_nytop, c_nztop, c_nxtop, c_nxtm1
+     end subroutine sdx41_vel
+    
+    subroutine sdx42_vel(c_ptr_sdx42, c_nxbtm, c_nybtm, c_nzbtm, c_nxbm1) &
+         bind(C, name="sdx42_vel")
+         use, intrinsic :: iso_c_binding, ONLY: C_INT, C_PTR, C_F_POINTER
+         type(c_ptr), intent(inout) :: c_ptr_sdx42
+         integer(c_int), intent(in):: c_nybtm, c_nzbtm, c_nxbtm, c_nxbm1
+     end subroutine sdx42_vel
+
+    subroutine sdy51_vel(c_ptr_sdy51, c_nxtop, c_nytop, c_nztop) &
+         bind(C, name="sdy51_vel")
+         use, intrinsic :: iso_c_binding, ONLY: C_INT, C_PTR, C_F_POINTER
+         type(c_ptr), intent(inout) :: c_ptr_sdy51
+         integer(c_int), intent(in):: c_nytop, c_nztop, c_nxtop
+     end subroutine sdy51_vel
+
+     subroutine sdy52_vel(c_ptr_sdy52, c_nxbtm, c_nybtm, c_nzbtm) &
+         bind(C, name="sdy52_vel")
+         use, intrinsic :: iso_c_binding, ONLY: C_INT, C_PTR, C_F_POINTER
+         type(c_ptr), intent(inout) :: c_ptr_sdy52
+         integer(c_int), intent(in):: c_nybtm, c_nzbtm, c_nxbtm
+     end subroutine sdy52_vel
+
+     subroutine sdy41_vel(c_ptr_sdy41, c_nxtop, c_nytop, c_nztop,c_nytm1) &
+         bind(C, name="sdy41_vel")
+         use, intrinsic :: iso_c_binding, ONLY: C_INT, C_PTR, C_F_POINTER
+         type(c_ptr), intent(inout) :: c_ptr_sdy41
+         integer(c_int), intent(in):: c_nytop, c_nztop, c_nxtop, c_nytm1
+     end subroutine sdy41_vel
+
+    subroutine sdy42_vel(c_ptr_sdy42, c_nxbtm, c_nybtm, c_nzbtm, c_nybm1) &
+         bind(C, name="sdy42_vel")
+         use, intrinsic :: iso_c_binding, ONLY: C_INT, C_PTR, C_F_POINTER
+         type(c_ptr), intent(inout) :: c_ptr_sdy42
+         integer(c_int), intent(in):: c_nybtm, c_nzbtm, c_nxbtm, c_nybm1
+     end subroutine sdy42_vel
+
+     subroutine rcx51_vel(c_ptr_rcx51, c_nxtop, c_nytop, c_nztop, nx1p1, nx1p2) &
+         bind(C, name="rcx51_vel")
+         use, intrinsic :: iso_c_binding, ONLY: C_INT, C_PTR, C_F_POINTER
+         type(c_ptr), intent(inout) :: c_ptr_rcx51
+         integer(c_int), intent(in):: c_nytop, c_nztop, c_nxtop, nx1p1, nx1p2
+     end subroutine rcx51_vel
+
+     subroutine rcx52_vel(c_ptr_rcx52, c_nxbtm, c_nybtm, c_nzbtm, nx2p1, nx2p2) &
+         bind(C, name="rcx52_vel")
+         use, intrinsic :: iso_c_binding, ONLY: C_INT, C_PTR, C_F_POINTER
+         type(c_ptr), intent(inout) :: c_ptr_rcx52
+         integer(c_int), intent(in):: c_nybtm, c_nzbtm, c_nxbtm, nx2p1, nx2p2
+     end subroutine rcx52_vel
+
+     subroutine rcx41_vel(c_ptr_rcx41, c_nxtop, c_nytop, c_nztop) &
+         bind(C, name="rcx41_vel")
+         use, intrinsic :: iso_c_binding, ONLY: C_INT, C_PTR, C_F_POINTER
+         type(c_ptr), intent(inout) :: c_ptr_rcx41
+         integer(c_int), intent(in):: c_nytop, c_nztop, c_nxtop
+     end subroutine rcx41_vel
+
+    subroutine rcx42_vel(c_ptr_rcx42, c_nxbtm, c_nybtm, c_nzbtm) &
+         bind(C, name="rcx42_vel")
+         use, intrinsic :: iso_c_binding, ONLY: C_INT, C_PTR, C_F_POINTER
+         type(c_ptr), intent(inout) :: c_ptr_rcx42
+         integer(c_int), intent(in):: c_nybtm, c_nzbtm, c_nxbtm
+     end subroutine rcx42_vel
+
+    subroutine rcy51_vel(c_ptr_rcy51, c_nxtop, c_nytop, c_nztop, ny1p1, ny1p2) &
+         bind(C, name="rcy51_vel")
+         use, intrinsic :: iso_c_binding, ONLY: C_INT, C_PTR, C_F_POINTER
+         type(c_ptr), intent(inout) :: c_ptr_rcy51
+         integer(c_int), intent(in):: c_nytop, c_nztop, c_nxtop, ny1p1, ny1p2
+     end subroutine rcy51_vel
+
+     subroutine rcy52_vel(c_ptr_rcy52, c_nxbtm, c_nybtm, c_nzbtm, ny2p1, ny2p2) &
+         bind(C, name="rcy52_vel")
+         use, intrinsic :: iso_c_binding, ONLY: C_INT, C_PTR, C_F_POINTER
+         type(c_ptr), intent(inout) :: c_ptr_rcy52
+         integer(c_int), intent(in):: c_nybtm, c_nzbtm, c_nxbtm, ny2p1, ny2p2
+     end subroutine rcy52_vel
+
+     subroutine rcy41_vel(c_ptr_rcy41, c_nxtop, c_nytop, c_nztop) &
+         bind(C, name="rcy41_vel")
+         use, intrinsic :: iso_c_binding, ONLY: C_INT, C_PTR, C_F_POINTER
+         type(c_ptr), intent(inout) :: c_ptr_rcy41
+         integer(c_int), intent(in):: c_nytop, c_nztop, c_nxtop
+     end subroutine rcy41_vel
+
+    subroutine rcy42_vel(c_ptr_rcy42, c_nxbtm, c_nybtm, c_nzbtm) &
+         bind(C, name="rcy42_vel")
+         use, intrinsic :: iso_c_binding, ONLY: C_INT, C_PTR, C_F_POINTER
+         type(c_ptr), intent(inout) :: c_ptr_rcy42
+         integer(c_int), intent(in):: c_nybtm, c_nzbtm, c_nxbtm
+     end subroutine rcy42_vel
+
+
+    subroutine print_3d_array(array_name, array_ptr, size_x, size_y, size_z)
+        use  :: iso_c_binding
+        integer , intent(in):: size_x, size_y, size_z
+        real(c_float), pointer, dimension(:,:,:) :: array_ptr
+        integer:: i,j,k
+        character(len=10):: array_name
+    end subroutine print_3d_array
+
+    include "mpiacc_wrappers.h"
+ end interface
+
  integer, intent(IN):: comm_worker
  integer:: req(54),ncout(54),status(MPI_STATUS_SIZE,54),ierr,nr,i,j,k
+ integer:: reqX(54), statusX(MPI_STATUS_SIZE,54)
+ real:: time_marsh_send_ISRV=0.0,time_marsh_recv_ISRV=0.0
+ real(c_double) :: gpu_tstart, gpu_tend, cpu_tstart, cpu_tend
+ real(c_double) :: total_gpu_marsh_time=0.0, total_cpu_marsh_time=0.0
+ type(c_ptr) :: temp_rcx41C
+ real(c_float), pointer, dimension(:,:,:) :: rcx41_tmp
+ integer(kind=MPI_ADDRESS_KIND) size 
+ integer :: real_itemsize, ierror
+ total_gpu_marsh_time =0.0
+ total_cpu_marsh_time =0.0
 !
  nr=0
 ! Send
 !-from 1 to 2
  if(neighb(1)>-1) then
+#ifdef DISFD_GPU_MARSHALING   
+   if(DETAILED_TIMING .eq. 1) then;  call record_time(gpu_tstart) ; end if
+   call sdx51_vel(cptr_sdx51, nytop, nztop, nxtop);
+   if(DETAILED_TIMING .eq. 1) then; call record_time(gpu_tend); call log_timing ("GPU sdx51_vel", gpu_tend-gpu_tstart); &
+        total_gpu_marsh_time = total_gpu_marsh_time + (gpu_tend-gpu_tstart); end if
+#else
    do j=1,nytop
    do k=1,nztop
      sdx51(k,j,1)=v1x(k,1,j)
@@ -5871,10 +6693,22 @@ subroutine ISEND_IRECV_Velocity(comm_worker)
      sdx51(k,j,5)=v1z(k,2,j)
    enddo
    enddo
+#endif
    nr=nr+1
    ncout(nr)=5*nztop*nytop
+#if USE_MPIX == 1
+   call MPIX_ISEND_C(c_sdx51_id, ncout(nr), MPI_REAL, &
+                neighb(1), 1011, comm_worker, reqX(nr), ierr, 0)
+#else 
    call MPI_ISEND(sdx51, ncout(nr), MPI_REAL, &
                   neighb(1), 101, comm_worker, req(nr), ierr)
+#endif
+#ifdef DISFD_GPU_MARSHALING   
+   if(DETAILED_TIMING .eq. 1) then;  call record_time(gpu_tstart) ; end if
+   call sdx52_vel(cptr_sdx52, nybtm, nzbtm, nxbtm);
+   if(DETAILED_TIMING .eq. 1) then; call record_time(gpu_tend); call log_timing ("GPU sdx52_vel", gpu_tend-gpu_tstart); &
+        total_gpu_marsh_time = total_gpu_marsh_time + (gpu_tend-gpu_tstart); end if
+#else
    do j=1,nybtm
    do k=1,nzbtm
      sdx52(k,j,1)=v2x(k,1,j)
@@ -5884,13 +6718,25 @@ subroutine ISEND_IRECV_Velocity(comm_worker)
      sdx52(k,j,5)=v2z(k,2,j)
    enddo
    enddo
+#endif
    nr=nr+1
    ncout(nr)=5*nzbtm*nybtm
-   call MPI_ISEND(sdx52, ncout(nr), MPI_REAL, &
+#if USE_MPIX == 1
+  call MPIX_ISEND_C(c_sdx52_id, ncout(nr), MPI_REAL, &
+                  neighb(1), 1021, comm_worker, reqX(nr), ierr, 1)
+#else
+  call MPI_ISEND(sdx52, ncout(nr), MPI_REAL, &
                   neighb(1), 102, comm_worker, req(nr), ierr)
+#endif
  endif
 !-from 2 to 1
  if(neighb(2)>-1) then
+#ifdef DISFD_GPU_MARSHALING   
+   if(DETAILED_TIMING .eq. 1) then;  call record_time(gpu_tstart) ; end if
+   call sdx41_vel(cptr_sdx41, nxtop,  nytop, nztop, nxtm1)
+   if(DETAILED_TIMING .eq. 1) then; call record_time(gpu_tend); call log_timing ("GPU sdx41_vel", gpu_tend-gpu_tstart); &
+        total_gpu_marsh_time = total_gpu_marsh_time + (gpu_tend-gpu_tstart); end if
+#else
    do j=1,nytop
    do k=1,nztop
      sdx41(k,j,1)=v1x(k,nxtm1,j)
@@ -5899,10 +6745,22 @@ subroutine ISEND_IRECV_Velocity(comm_worker)
      sdx41(k,j,4)=v1z(k,nxtop,j)
    enddo
    enddo
+#endif
    nr=nr+1
    ncout(nr)=4*nztop*nytop
-   call MPI_ISEND(sdx41, ncout(nr), MPI_REAL, &
+#if USE_MPIX == 1
+     call MPIX_ISEND_C(c_sdx41_id, ncout(nr), MPI_REAL, &
+                  neighb(2), 2011, comm_worker, reqX(nr), ierr, 0)
+#else
+     call MPI_ISEND(sdx41, ncout(nr), MPI_REAL, &
                   neighb(2), 201, comm_worker, req(nr), ierr)
+#endif
+#ifdef DISFD_GPU_MARSHALING   
+   if(DETAILED_TIMING .eq. 1) then;  call record_time(gpu_tstart) ; end if    
+   call sdx42_vel(cptr_sdx42, nxbtm, nybtm, nzbtm, nxbm1)
+   if(DETAILED_TIMING .eq. 1) then; call record_time(gpu_tend); call log_timing ("GPU sdx42_vel", gpu_tend-gpu_tstart); &
+        total_gpu_marsh_time = total_gpu_marsh_time + (gpu_tend-gpu_tstart); end if
+#else
    do j=1,nybtm
    do k=1,nzbtm
      sdx42(k,j,1)=v2x(k,nxbm1,j)
@@ -5911,13 +6769,25 @@ subroutine ISEND_IRECV_Velocity(comm_worker)
      sdx42(k,j,4)=v2z(k,nxbtm,j)
    enddo
    enddo
+#endif
    nr=nr+1
    ncout(nr)=4*nzbtm*nybtm
+#if USE_MPIX == 1
+    call MPIX_ISEND_C(c_sdx42_id, ncout(nr), MPI_REAL, &
+                  neighb(2), 2021, comm_worker, reqX(nr), ierr, 1)
+#else
    call MPI_ISEND(sdx42, ncout(nr), MPI_REAL, &
                   neighb(2), 202, comm_worker, req(nr), ierr)
+#endif
  endif
 !-from 3 to 4
  if(neighb(3)>-1) then
+#ifdef DISFD_GPU_MARSHALING   
+    if(DETAILED_TIMING .eq. 1) then;  call record_time(gpu_tstart) ; end if
+    call sdy51_vel(cptr_sdy51, nxtop, nytop, nztop)
+   if(DETAILED_TIMING .eq. 1) then; call record_time(gpu_tend); call log_timing ("GPU sdy51_vel", gpu_tend-gpu_tstart); &
+        total_gpu_marsh_time = total_gpu_marsh_time + (gpu_tend-gpu_tstart); end if
+#else
    do i=1,nxtop
    do k=1,nztop
      sdy51(k,i,1)=v1x(k,i,1)
@@ -5927,10 +6797,22 @@ subroutine ISEND_IRECV_Velocity(comm_worker)
      sdy51(k,i,5)=v1z(k,i,2)
    enddo
    enddo
+#endif
    nr=nr+1
    ncout(nr)=5*nztop*nxtop
+#if USE_MPIX == 1
+    call MPIX_ISEND_C(c_sdy51_id, ncout(nr), MPI_REAL, &
+                  neighb(3), 3011, comm_worker, reqX(nr), ierr, 0)
+#else
    call MPI_ISEND(sdy51, ncout(nr), MPI_REAL, &
                   neighb(3), 301, comm_worker, req(nr), ierr)
+#endif
+#ifdef DISFD_GPU_MARSHALING   
+   if(DETAILED_TIMING .eq. 1) then;  call record_time(gpu_tstart) ; end if
+   call sdy52_vel(cptr_sdy52, nxbtm, nybtm, nzbtm)
+   if(DETAILED_TIMING .eq. 1) then; call record_time(gpu_tend); call log_timing ("GPU sdy52_vel", gpu_tend-gpu_tstart); &
+        total_gpu_marsh_time = total_gpu_marsh_time + (gpu_tend-gpu_tstart); end if
+#else
    do i=1,nxbtm
    do k=1,nzbtm
      sdy52(k,i,1)=v2x(k,i,1)
@@ -5940,13 +6822,25 @@ subroutine ISEND_IRECV_Velocity(comm_worker)
      sdy52(k,i,5)=v2z(k,i,2)
    enddo
    enddo
+#endif
    nr=nr+1
    ncout(nr)=5*nzbtm*nxbtm
+#if USE_MPIX == 1
+  call MPIX_ISEND_C(c_sdy52_id, ncout(nr), MPI_REAL, &
+                  neighb(3), 3021, comm_worker, reqX(nr), ierr, 1)
+#else
    call MPI_ISEND(sdy52, ncout(nr), MPI_REAL, &
                   neighb(3), 302, comm_worker, req(nr), ierr)
+#endif
  endif
 !-from 4 to 3
  if(neighb(4)>-1) then
+#ifdef DISFD_GPU_MARSHALING   
+   if(DETAILED_TIMING .eq. 1) then;  call record_time(gpu_tstart) ; end if
+    call sdy41_vel(cptr_sdy41, nxtop, nytop, nztop, nytm1)
+   if(DETAILED_TIMING .eq. 1) then; call record_time(gpu_tend); call log_timing ("GPU sdy41_vel", gpu_tend-gpu_tstart); &
+        total_gpu_marsh_time = total_gpu_marsh_time + (gpu_tend-gpu_tstart); end if
+#else
    do i=1,nxtop
    do k=1,nztop
      sdy41(k,i,1)=v1x(k,i,nytop)
@@ -5955,10 +6849,22 @@ subroutine ISEND_IRECV_Velocity(comm_worker)
      sdy41(k,i,4)=v1z(k,i,nytop)
    enddo
    enddo
+#endif
    nr=nr+1
    ncout(nr)=4*nztop*nxtop
+#if USE_MPIX == 1
+  call MPIX_ISEND_C(c_sdy41_id, ncout(nr), MPI_REAL, &
+                  neighb(4), 4011, comm_worker, reqX(nr), ierr, 0)
+#else
    call MPI_ISEND(sdy41, ncout(nr), MPI_REAL, &
                   neighb(4), 401, comm_worker, req(nr), ierr)
+#endif
+#ifdef DISFD_GPU_MARSHALING   
+  if(DETAILED_TIMING .eq. 1) then;  call record_time(gpu_tstart) ; end if
+  call sdy42_vel(cptr_sdy42, nxbtm, nybtm, nzbtm, nybm1)
+  if(DETAILED_TIMING .eq. 1) then; call record_time(gpu_tend); call log_timing ("GPU sdy42_vel", gpu_tend-gpu_tstart); &
+        total_gpu_marsh_time = total_gpu_marsh_time + (gpu_tend-gpu_tstart); end if
+#else
    do i=1,nxbtm
    do k=1,nzbtm
      sdy42(k,i,1)=v2x(k,i,nybtm)
@@ -5967,10 +6873,16 @@ subroutine ISEND_IRECV_Velocity(comm_worker)
      sdy42(k,i,4)=v2z(k,i,nybtm)
    enddo
    enddo
+#endif
    nr=nr+1
    ncout(nr)=4*nzbtm*nxbtm
+#if USE_MPIX == 1
+  call MPIX_ISEND_C(c_sdy42_id, ncout(nr), MPI_REAL, &
+                  neighb(4), 4021, comm_worker, reqX(nr), ierr, 1)
+#else
    call MPI_ISEND(sdy42, ncout(nr), MPI_REAL, &
                   neighb(4), 402, comm_worker, req(nr), ierr)
+#endif
  endif
 !
 ! Receive
@@ -5978,49 +6890,99 @@ subroutine ISEND_IRECV_Velocity(comm_worker)
  if(neighb(2)>-1) then
    nr=nr+1
    ncout(nr)=5*nztop*nytop
+#if USE_MPIX == 1
+  call MPIX_IRECV_C(c_rcx51_id, ncout(nr), MPI_REAL, &
+                  neighb(2), 1011, comm_worker, reqX(nr), ierr, 0)
+#else
    call MPI_IRECV(rcx51, ncout(nr), MPI_REAL, &
                   neighb(2), 101, comm_worker, req(nr), ierr)
+#endif
    nr=nr+1
    ncout(nr)=5*nzbtm*nybtm
+#if USE_MPIX == 1
+      call MPIX_IRECV_C(c_rcx52_id, ncout(nr), MPI_REAL, &
+                  neighb(2), 1021, comm_worker, reqX(nr), ierr, 1)
+#else
    call MPI_IRECV(rcx52, ncout(nr), MPI_REAL, &
                   neighb(2), 102, comm_worker, req(nr), ierr)
+#endif
  endif
 !-from 2 to 1
  if(neighb(1)>-1) then
    nr=nr+1
    ncout(nr)=4*nztop*nytop
+#if USE_MPIX == 1
+      call MPIX_IRECV_C(c_rcx41_id, ncout(nr), MPI_REAL, &
+                  neighb(1), 2011, comm_worker, reqX(nr), ierr, 0)
+#else
    call MPI_IRECV(rcx41, ncout(nr), MPI_REAL, &
                   neighb(1), 201, comm_worker, req(nr), ierr)
+#endif
    nr=nr+1
    ncout(nr)=4*nzbtm*nybtm
+#if USE_MPIX == 1
+  call MPIX_IRECV_C(c_rcx42_id, ncout(nr), MPI_REAL, &
+                  neighb(1), 2021, comm_worker, reqX(nr), ierr, 1)
+#else
    call MPI_IRECV(rcx42, ncout(nr), MPI_REAL, &
                   neighb(1), 202, comm_worker, req(nr), ierr)
+#endif
  endif
 !-from 3 to 4
  if(neighb(4)>-1) then
    nr=nr+1
    ncout(nr)=5*nztop*nxtop
+#if USE_MPIX == 1
+  call MPIX_IRECV_C(c_rcy51_id, ncout(nr), MPI_REAL, &
+                  neighb(4), 3011, comm_worker, reqX(nr), ierr, 0)
+#else
    call MPI_IRECV(rcy51, ncout(nr), MPI_REAL, &
                   neighb(4), 301, comm_worker, req(nr), ierr)
+#endif
    nr=nr+1
    ncout(nr)=5*nzbtm*nxbtm
+#if USE_MPIX == 1
+  call MPIX_IRECV_C(c_rcy52_id, ncout(nr), MPI_REAL, &
+                  neighb(4), 3021, comm_worker, reqX(nr), ierr, 1)
+#else
    call MPI_IRECV(rcy52, ncout(nr), MPI_REAL, &
                   neighb(4), 302, comm_worker, req(nr), ierr)
+#endif
  endif
 !-from 4 to 3
  if(neighb(3)>-1) then
    nr=nr+1
    ncout(nr)=4*nztop*nxtop
+#if USE_MPIX == 1
+      call MPIX_IRECV_C(c_rcy41_id, ncout(nr), MPI_REAL, &
+                  neighb(3), 4011, comm_worker, reqX(nr), ierr, 0)
+#else
    call MPI_IRECV(rcy41, ncout(nr), MPI_REAL, &
                   neighb(3), 401, comm_worker, req(nr), ierr)
+#endif
    nr=nr+1
    ncout(nr)=4*nzbtm*nxbtm
+#if USE_MPIX == 1
+      call MPIX_IRECV_C(c_rcy42_id, ncout(nr), MPI_REAL, &
+                  neighb(3), 4021, comm_worker, reqX(nr), ierr, 1)
+#else
    call MPI_IRECV(rcy42, ncout(nr), MPI_REAL, &
                   neighb(3), 402, comm_worker, req(nr), ierr)
+#endif
  endif
  call MPI_WAITALL(nr,req,status,ierr)
 !-from 1 to 2
  if(neighb(2)>-1) then
+#ifdef DISFD_GPU_MARSHALING   
+   if(DETAILED_TIMING .eq. 1) then;  call record_time(gpu_tstart) ; end if
+    call rcx51_vel (cptr_rcx51, nxtop, nytop, nztop, nx1p1, nx1p2)
+   if(DETAILED_TIMING .eq. 1) then; call record_time(gpu_tend); call log_timing ("GPU rcx51_vel", gpu_tend-gpu_tstart); &
+        total_gpu_marsh_time = total_gpu_marsh_time + (gpu_tend-gpu_tstart); end if
+   if(DETAILED_TIMING .eq. 1) then;  call record_time(gpu_tstart) ; end if
+    call rcx52_vel(cptr_rcx52, nxbtm, nybtm, nzbtm, nx2p1, nx2p2)
+   if(DETAILED_TIMING .eq. 1) then; call record_time(gpu_tend); call log_timing ("GPU rcx52_vel", gpu_tend-gpu_tstart); &
+        total_gpu_marsh_time = total_gpu_marsh_time + (gpu_tend-gpu_tstart); end if
+#else
    do j=1,nytop
    do k=1,nztop
      v1x(k,nx1p1,j) = rcx51(k,j,1)
@@ -6039,9 +7001,20 @@ subroutine ISEND_IRECV_Velocity(comm_worker)
      v2z(k,nx2p2,j) = rcx52(k,j,5)
    enddo
    enddo
+#endif
  endif
 !-from 2 to 1
  if(neighb(1)>-1) then
+#ifdef DISFD_GPU_MARSHALING   
+   if(DETAILED_TIMING .eq. 1) then;  call record_time(gpu_tstart) ; end if
+    call rcx41_vel(cptr_rcx41, nxtop, nytop, nztop)
+   if(DETAILED_TIMING .eq. 1) then; call record_time(gpu_tend); call log_timing ("GPU rcx41_vel", gpu_tend-gpu_tstart); &
+        total_gpu_marsh_time = total_gpu_marsh_time + (gpu_tend-gpu_tstart); end if
+   if(DETAILED_TIMING .eq. 1) then;  call record_time(gpu_tstart) ; end if
+   call rcx42_vel(cptr_rcx42, nxbtm, nybtm, nzbtm)
+   if(DETAILED_TIMING .eq. 1) then; call record_time(gpu_tend); call log_timing ("GPU rcx42_vel", gpu_tend-gpu_tstart); &
+        total_gpu_marsh_time = total_gpu_marsh_time + (gpu_tend-gpu_tstart); end if
+#else
    do j=1,nytop
    do k=1,nztop
      v1x(k,-1,j) = rcx41(k,j,1)
@@ -6058,9 +7031,20 @@ subroutine ISEND_IRECV_Velocity(comm_worker)
      v2z(k, 0,j) = rcx42(k,j,4)
    enddo
    enddo
+#endif
  endif
 !-from 3 to 4
  if(neighb(4)>-1) then
+#ifdef DISFD_GPU_MARSHALING   
+   if(DETAILED_TIMING .eq. 1) then;  call record_time(gpu_tstart) ; end if
+   call rcy51_vel(cptr_rcy51, nxtop, nytop, nztop, ny1p1, ny1p2)
+   if(DETAILED_TIMING .eq. 1) then; call record_time(gpu_tend); call log_timing ("GPU rcy51_vel", gpu_tend-gpu_tstart); &
+        total_gpu_marsh_time = total_gpu_marsh_time + (gpu_tend-gpu_tstart); end if
+   if(DETAILED_TIMING .eq. 1) then;  call record_time(gpu_tstart) ; end if
+   call rcy52_vel(cptr_rcy52, nxbtm, nybtm, nzbtm, ny2p1, ny2p2)
+   if(DETAILED_TIMING .eq. 1) then; call record_time(gpu_tend); call log_timing ("GPU rcy52_vel", gpu_tend-gpu_tstart); &
+        total_gpu_marsh_time = total_gpu_marsh_time + (gpu_tend-gpu_tstart); end if
+#else
    do i=1,nxtop
    do k=1,nztop
      v1x(k,i,ny1p1) = rcy51(k,i,1)
@@ -6079,9 +7063,20 @@ subroutine ISEND_IRECV_Velocity(comm_worker)
      v2z(k,i,ny2p2) = rcy52(k,i,5)
    enddo
    enddo
+#endif
  endif
 !-from 4 to 3
  if(neighb(3)>-1) then
+#ifdef DISFD_GPU_MARSHALING   
+   if(DETAILED_TIMING .eq. 1) then;  call record_time(gpu_tstart) ; end if
+    call rcy41_vel(cptr_rcy41, nxtop, nytop, nztop)
+   if(DETAILED_TIMING .eq. 1) then; call record_time(gpu_tend); call log_timing ("GPU rcy41_vel", gpu_tend-gpu_tstart); &
+        total_gpu_marsh_time = total_gpu_marsh_time + (gpu_tend-gpu_tstart); end if
+   if(DETAILED_TIMING .eq. 1) then;  call record_time(gpu_tstart) ; end if    
+    call rcy42_vel(cptr_rcy42, nxbtm, nybtm, nzbtm)
+   if(DETAILED_TIMING .eq. 1) then; call record_time(gpu_tend); call log_timing ("GPU rcy42_vel", gpu_tend-gpu_tstart); &
+        total_gpu_marsh_time = total_gpu_marsh_time + (gpu_tend-gpu_tstart); end if
+#else
    do i=1,nxtop
    do k=1,nztop
      v1x(k,i, 0) = rcy41(k,i,1)
@@ -6098,6 +7093,7 @@ subroutine ISEND_IRECV_Velocity(comm_worker)
      v2z(k,i, 0) = rcy42(k,i,4)
    enddo
    enddo
+#endif
  endif
  return
 end subroutine ISEND_IRECV_Velocity
@@ -6111,15 +7107,87 @@ subroutine velocity_interp(comm_worker)
  use ctimer
  use iso_c_binding
  implicit NONE
+
+ interface
+    subroutine sdx1_vel(sdx1, nxtop, nytop , nxbtm, nzbtm, ny2p1, ny2p2) &
+    bind(C, name="sdx1_vel")
+    use:: iso_c_binding
+        type(c_ptr), intent(in), value:: sdx1 
+        integer(c_int), intent(in)::nxtop, nytop, ny2p1, ny2p2, nxbtm, nzbtm 
+    end subroutine sdx1_vel
+
+    subroutine sdy1_vel(sdy1, nxtop, nytop ,nxbtm, nzbtm, nx2p1, nx2p2) &
+    bind(C, name="sdy1_vel")
+    use:: iso_c_binding
+        type(c_ptr), intent(in), value:: sdy1
+        integer(c_int), intent(in)::nxtop, nytop, nx2p1, nx2p2, nxbtm, nzbtm
+    end subroutine sdy1_vel
+
+    subroutine sdx2_vel(sdx2, nxtop, nytop , nxbm1, nxbtm, nzbtm, ny2p1, ny2p2) &
+    bind(C, name="sdx2_vel")
+    use:: iso_c_binding
+        type(c_ptr), intent(in), value:: sdx2
+        integer(c_int), intent(in) :: nxtop, nytop, nxbm1, nxbtm, ny2p1, ny2p2, nzbtm
+    end subroutine sdx2_vel
+
+    subroutine sdy2_vel(sdy2, nxtop, nytop , nybm1, nybtm , nxbtm, nzbtm, nx2p1, nx2p2) &
+    bind(C, name="sdy2_vel")
+    use:: iso_c_binding
+        type(c_ptr), intent(in), value:: sdy2
+        integer(c_int), intent(in) :: nxtop, nytop, nybm1, nybtm, nxbtm, nzbtm, nx2p1, nx2p2
+    end subroutine sdy2_vel
+
+    subroutine rcx1_vel(rcx1, nxtop, nytop ,nxbtm , nzbtm,ny2p1, ny2p2) &
+    bind(C, name="rcx1_vel")
+    use:: iso_c_binding
+        type(c_ptr), intent(in), value:: rcx1
+        integer(c_int), intent(in) :: nxtop, nytop, ny2p1, ny2p2, nxbtm, nzbtm
+    end subroutine rcx1_vel
+
+    subroutine rcy1_vel(rcy1, nxtop, nytop ,nx2p1, nxbtm, nzbtm, nx2p2) &
+    bind(C, name="rcy1_vel")
+    use:: iso_c_binding
+        type(c_ptr), intent(in), value:: rcy1
+        integer(c_int), intent(in) :: nxtop, nytop, nx2p1, nx2p2, nxbtm, nzbtm
+    end subroutine rcy1_vel
+
+    subroutine rcx2_vel(rcx2, nxtop, nytop , nxbtm, nzbtm, nx2p1, nx2p2, ny2p1, ny2p2) &
+    bind(C, name="rcx2_vel")
+    use:: iso_c_binding
+        type(c_ptr), intent(in), value:: rcx2
+        integer(c_int), intent(in) :: nxtop, nytop, nx2p1, nx2p2, ny2p1, ny2p2, nxbtm, nzbtm
+    end subroutine rcx2_vel
+
+    subroutine rcy2_vel(rcy2, nxtop, nytop , nxbtm, nzbtm, nx2p1, nx2p2, ny2p1, ny2p2) &
+    bind(C, name="rcy2_vel")
+    use:: iso_c_binding
+        type(c_ptr), intent(in), value:: rcy2
+        integer(c_int), intent(in) ::nxtop, nytop, ny2p1, ny2p2,  nx2p1, nx2p2, nxbtm,nzbtm
+    end subroutine rcy2_vel
+    
+    include "mpiacc_wrappers.h"
+ end interface
  integer, intent(IN):: comm_worker
  integer:: req(54),ncout(54),status(MPI_STATUS_SIZE,54),nr,ierr
+ integer:: reqX(54),statusX(MPI_STATUS_SIZE,54)
  integer:: i0,i,j0,j
+ real(c_double) :: gpu_tstart, gpu_tend, cpu_tstart, cpu_tend
  real(c_double) :: tend, tstart
+ real(c_double):: total_gpu_marsh_time=0.0, total_cpu_marsh_time=0.0
+ total_gpu_marsh_time =0.0
+ total_cpu_marsh_time =0.0
+
  nr=0
 !
 ! SEND 
 !-from 1 to 2
  if(neighb(1)>-1) then
+#ifdef DISFD_GPU_MARSHALING
+   if(DETAILED_TIMING .eq. 1) then;  call record_time(gpu_tstart) ; end if    
+   call sdx1_vel(c_loc(sdx1), nxtop, nytop, nxbtm, nzbtm,  ny2p1, ny2p2)
+   if(DETAILED_TIMING .eq. 1) then; call record_time(gpu_tend); call log_timing ("GPU sdx1_vel", gpu_tend-gpu_tstart); &
+        total_gpu_marsh_time = total_gpu_marsh_time + (gpu_tend-gpu_tstart); end if
+#else
    j0=ny2p2+2
    do j=0,ny2p2
      sdx1(j+1 ) = v2z(1,3,j)
@@ -6130,13 +7198,25 @@ subroutine velocity_interp(comm_worker)
    sdx1(j0+2) = v2z(1,2,ny2p1)
    sdx1(j0+3) = v2z(1,1,ny2p2)
    sdx1(j0+4) = v2z(1,2,ny2p2)
+#endif
    nr=nr+1
    ncout(nr) = j0+4
+#if USE_MPIX == 1
+   call MPIX_ISEND_C(c_sdx1_id, ncout(nr), MPI_REAL, &
+                  neighb(1), 111, comm_worker, reqX(nr), ierr, 0)
+#else
    call MPI_ISEND(sdx1(1), ncout(nr), MPI_REAL, &
                   neighb(1), 11, comm_worker, req(nr), ierr)
+#endif 
  endif
 !-from 3 to 4
  if(neighb(3)>-1) then
+#ifdef DISFD_GPU_MARSHALING
+   if(DETAILED_TIMING .eq. 1) then;  call record_time(gpu_tstart) ; end if
+    call sdy1_vel(c_loc(sdy1), nxtop, nytop, nxbtm, nzbtm, nx2p1, nx2p2)
+   if(DETAILED_TIMING .eq. 1) then; call record_time(gpu_tend); call log_timing ("GPU sdy1_vel", gpu_tend-gpu_tstart); &
+        total_gpu_marsh_time = total_gpu_marsh_time + (gpu_tend-gpu_tstart); end if
+#else
    i0=nx2p2+2
    do i=0,nx2p2
      sdy1(i+1 ) = v2z(1,i,3)
@@ -6147,13 +7227,25 @@ subroutine velocity_interp(comm_worker)
    sdy1(i0+2) = v2x(1,nx2p1,2)
    sdy1(i0+3) = v2y(1,nx2p1,1)
    sdy1(i0+4) = v2y(1,nx2p2,1)
+#endif
    nr=nr+1
    ncout(nr) = i0 + 4
+#if USE_MPIX == 1
+    call MPIX_ISEND_C(c_sdy1_id, ncout(nr), MPI_REAL, &
+          neighb(3), 331, comm_worker, reqX(nr), ierr, 0)
+#else
    call MPI_ISEND(sdy1(1), ncout(nr), MPI_REAL, &
                   neighb(3), 33, comm_worker, req(nr), ierr)
+#endif 
  endif
 !-from 2 to 1 
  if(neighb(2)>-1) then
+#ifdef DISFD_GPU_MARSHALING
+   if(DETAILED_TIMING .eq. 1) then;  call record_time(gpu_tstart) ; end if
+   call sdx2_vel (c_loc(sdx2), nxtop, nytop, nxbm1, nxbtm, nzbtm, ny2p1, ny2p2)
+    if(DETAILED_TIMING .eq. 1) then; call record_time(gpu_tend); call log_timing ("GPU sdx2_vel", gpu_tend-gpu_tstart); &
+        total_gpu_marsh_time = total_gpu_marsh_time + (gpu_tend-gpu_tstart); end if
+#else
    do j=0,ny2p2
      sdx2(j+1 ) = v2z(1,nxbm1,j)
    enddo
@@ -6165,13 +7257,25 @@ subroutine velocity_interp(comm_worker)
    sdx2(j0+5 ) = v2y(1,nxbtm,ny2p1)
    sdx2(j0+6 ) = v2z(1,nxbtm,ny2p1)
    sdx2(j0+7 ) = v2z(1,nxbtm,ny2p2)
+#endif
    nr=nr+1
    ncout(nr) = j0 + 7
+#if USE_MPIX == 1
+   call MPIX_ISEND_C(c_sdx2_id, ncout(nr), MPI_REAL, &
+                  neighb(2), 221, comm_worker, reqX(nr), ierr, 1)
+#else
    call MPI_ISEND(sdx2(1), ncout(nr), MPI_REAL, &
                   neighb(2), 22, comm_worker, req(nr), ierr)
+#endif 
  endif
 !-from 4 to 3 
  if(neighb(4)>-1) then
+#ifdef DISFD_GPU_MARSHALING
+   if(DETAILED_TIMING .eq. 1) then;  call record_time(gpu_tstart) ; end if
+   call sdy2_vel(c_loc(sdy2), nxtop, nytop, nybm1, nybtm, nxbtm, nzbtm, nx2p1, nx2p2 )
+   if(DETAILED_TIMING .eq. 1) then; call record_time(gpu_tend); call log_timing ("GPU sdy2_vel", gpu_tend-gpu_tstart); &
+        total_gpu_marsh_time = total_gpu_marsh_time + (gpu_tend-gpu_tstart); end if
+#else
    do i=0,nx2p2
      sdy2(i+1 ) = v2z(1,i,nybm1)
    enddo
@@ -6188,10 +7292,16 @@ subroutine velocity_interp(comm_worker)
    sdy2(i0+10)= v2z(1,    0,nybtm)
    sdy2(i0+11)= v2z(1,nx2p1,nybtm)
    sdy2(i0+12)= v2z(1,nx2p2,nybtm)
+#endif
    nr=nr+1
    ncout(nr) = i0 + 12
+#if USE_MPIX == 1
+   call MPIX_ISEND_C(c_sdy2_id, ncout(nr), MPI_REAL, &
+                  neighb(4), 441, comm_worker, reqX(nr), ierr, 1)
+#else
    call MPI_ISEND(sdy2(1), ncout(nr), MPI_REAL, &
                   neighb(4), 44, comm_worker, req(nr), ierr)
+#endif 
  endif
 !
 ! RECEIVE
@@ -6199,49 +7309,93 @@ subroutine velocity_interp(comm_worker)
  if(neighb(2)>-1) then
    nr=nr+1
    ncout(nr) = 2*(ny2p2+1)+4
+#if USE_MPIX == 1
+   call MPIX_IRECV_C(c_rcx2_id, ncout(nr), MPI_REAL, &
+    neighb(2), 111, comm_worker, reqX(nr), ierr, 1)
+#else
    call MPI_IRECV(rcx2(1), ncout(nr), MPI_REAL, &
                   neighb(2), 11, comm_worker, req(nr), ierr)
+#endif
  endif
 !-from 3 to 4
  if(neighb(4)>-1) then
    nr=nr+1
    ncout(nr) = 2*(nx2p2+1) + 4
+#if USE_MPIX == 1
+   call MPIX_IRECV_C(c_rcy2_id, ncout(nr), MPI_REAL, &
+                  neighb(4), 331, comm_worker, reqX(nr), ierr, 1)
+#else
    call MPI_IRECV(rcy2(1), ncout(nr), MPI_REAL, &
                   neighb(4), 33, comm_worker, req(nr), ierr)
+#endif   
  endif
 !-from 2 to 1 
  if(neighb(1)>-1) then
    nr=nr+1
    ncout(nr) = ny2p2+1 + 7
+#if USE_MPIX == 1
+   call MPIX_IRECV_C(c_rcx1_id, ncout(nr), MPI_REAL, &
+                  neighb(1), 221, comm_worker, reqX(nr), ierr, 0)
+#else
    call MPI_IRECV(rcx1(1), ncout(nr), MPI_REAL, &
                   neighb(1), 22, comm_worker, req(nr), ierr)
+#endif   
  endif
 !-from 4 to 3 
  if(neighb(3)>-1) then
    nr=nr+1
    ncout(nr) = nx2p2+1 + 12
+#if USE_MPIX == 1
+   call MPIX_IRECV_C(c_rcy1_id, ncout(nr), MPI_REAL, &
+                  neighb(3), 441, comm_worker, reqX(nr), ierr, 0)
+#else
    call MPI_IRECV(rcy1(1), ncout(nr), MPI_REAL, &
                   neighb(3), 44, comm_worker, req(nr), ierr)
+#endif 
  endif
+#if USE_MPIX == 1
+ call MPI_WAITALL(nr,reqX,statusX,ierr)
+#else
  call MPI_WAITALL(nr,req,status,ierr)
+#endif
 !-from 1 to 2
  if(neighb(2)>-1) then
+#ifdef DISFD_GPU_MARSHALING
+   if(DETAILED_TIMING .eq. 1) then;  call record_time(gpu_tstart) ; end if
+   call rcx2_vel(c_loc(rcx2), nxtop, nytop, nxbtm, nzbtm, nx2p1, nx2p2, ny2p1, ny2p2)
+   if(DETAILED_TIMING .eq. 1) then; call record_time(gpu_tend); call log_timing ("GPU rcx2_vel", gpu_tend-gpu_tstart); &
+        total_gpu_marsh_time = total_gpu_marsh_time + (gpu_tend-gpu_tstart); end if
+#else
    j0=2*(ny2p2+1)
    v2z(1,nx2p1,ny2p1) = rcx2(j0+1)
    v2z(1,nx2p2,ny2p1) = rcx2(j0+2)
    v2z(1,nx2p1,ny2p2) = rcx2(j0+3)
    v2z(1,nx2p2,ny2p2) = rcx2(j0+4)
+#endif
  endif
 !-from 3 to 4
  if(neighb(4)>-1) then
+#ifdef DISFD_GPU_MARSHALING
+   if(DETAILED_TIMING .eq. 1) then;  call record_time(gpu_tstart) ; end if
+   call rcy2_vel(c_loc(rcy2), nxtop, nytop, nxbtm, nzbtm, nx2p1, nx2p2, ny2p1, ny2p2)
+   if(DETAILED_TIMING .eq. 1) then; call record_time(gpu_tend); call log_timing ("GPU rcy2_vel", gpu_tend-gpu_tstart); &
+        total_gpu_marsh_time = total_gpu_marsh_time + (gpu_tend-gpu_tstart); end if
+#else
    i0=2*(nx2p2+1)
    v2x(1,nx2p1,ny2p1) = rcy2(i0+1)
    v2x(1,nx2p1,ny2p2) = rcy2(i0+2)
    v2y(1,nx2p1,ny2p1) = rcy2(i0+3)
    v2y(1,nx2p2,ny2p1) = rcy2(i0+4)
+#endif
  endif
 !-from 2 to 1
  if(neighb(1)>-1) then
+#ifdef DISFD_GPU_MARSHALING
+   if(DETAILED_TIMING .eq. 1) then;  call record_time(gpu_tstart) ; end if
+   call rcx1_vel(c_loc(rcx1), nxtop, nytop, nxbtm, nzbtm, ny2p1, ny2p2)
+   if(DETAILED_TIMING .eq. 1) then; call record_time(gpu_tend); call log_timing ("GPU rcx1_vel", gpu_tend-gpu_tstart); &
+        total_gpu_marsh_time = total_gpu_marsh_time + (gpu_tend-gpu_tstart); end if
+#else
    j0=ny2p2+1
    v2x(1,-1,ny2p1) = rcx1(j0+1)
    v2x(1, 0,ny2p1) = rcx1(j0+2)
@@ -6250,9 +7404,16 @@ subroutine velocity_interp(comm_worker)
    v2y(1, 0,ny2p1) = rcx1(j0+5)
    v2z(1, 0,ny2p1) = rcx1(j0+6)
    v2z(1, 0,ny2p2) = rcx1(j0+7)
+#endif
  endif
 !-from 4 to 3
  if(neighb(3)>-1) then
+#ifdef DISFD_GPU_MARSHALING
+   if(DETAILED_TIMING .eq. 1) then;  call record_time(gpu_tstart) ; end if
+   call rcy1_vel(c_loc(rcy1), nxtop, nytop, nxbtm, nzbtm, nx2p1, nx2p2)
+   if(DETAILED_TIMING .eq. 1) then; call record_time(gpu_tend); call log_timing ("GPU rcy1_vel", gpu_tend-gpu_tstart); &
+        total_gpu_marsh_time = total_gpu_marsh_time + (gpu_tend-gpu_tstart); end if
+#else
    i0=nx2p2+1
    v2x(1,   -1, 0) = rcy1(i0+1 )
    v2x(1,    0, 0) = rcy1(i0+2 )
@@ -6266,6 +7427,7 @@ subroutine velocity_interp(comm_worker)
    v2z(1,    0, 0) = rcy1(i0+10)
    v2z(1,nx2p1, 0) = rcy1(i0+11)
    v2z(1,nx2p2, 0) = rcy1(i0+12)
+#endif
  endif
 
  call record_time(tstart)
@@ -6281,9 +7443,196 @@ subroutine interpl_3vbtm
  use grid_node_comm
  use wave_field_comm
  use itface_comm
+ use:: iso_c_binding
+! use logging
+ use metadata
+ use ctimer
  implicit NONE
+ 
+ interface
+      subroutine interpl_3vbtm_vel1( ny1p2, ny2p2, nz1p1, nyvx, nxbm1, nxbtm, &
+                                     nzbtm, nxtop, nztop, neighb2, & 
+                                    rcx2) bind (C, name="interpl_3vbtm_vel1")
+                use :: iso_c_binding
+                integer(c_int), intent(in) :: ny1p2, ny2p2, nz1p1, nyvx, nxbm1, &
+                                              nxbtm, nzbtm, nxtop, nztop, neighb2
+                type(c_ptr), intent(in), value :: rcx2
+      end subroutine interpl_3vbtm_vel1               
+
+      subroutine interpl_3vbtm_vel3( ny1p2, nz1p1, nyvx1, nxbm1, nxbtm, nybtm, &
+                                     nzbtm, nxtop, nytop, nztop) & 
+                                     bind (C, name="interpl_3vbtm_vel3")
+                use :: iso_c_binding
+                integer(c_int), intent(in) :: ny1p2, nz1p1, nyvx1, nxbm1, &
+                                              nxbtm, nybtm, nzbtm, &
+                                              nxtop, nytop, nztop
+      end subroutine interpl_3vbtm_vel3
+
+      subroutine interpl_3vbtm_vel4( nx1p2, ny2p2, nz1p1, nxvy, nybm1, nxbtm, nybtm, &
+                                     nzbtm, nxtop, nytop, nztop) & 
+                                     bind (C, name="interpl_3vbtm_vel4")
+                use :: iso_c_binding
+                integer(c_int), intent(in) :: nx1p2, ny2p2, nz1p1, nxvy, nybm1, &
+                                              nxbtm, nybtm, nzbtm, &
+                                              nxtop, nytop, nztop
+      end subroutine interpl_3vbtm_vel4
+
+      subroutine interpl_3vbtm_vel5( nx1p2, nx2p2, nz1p1, nxvy, nybm1, nxbtm, nybtm, &
+                                     nzbtm, nxtop, nytop, nztop) & 
+                                     bind (C, name="interpl_3vbtm_vel5")
+                use :: iso_c_binding
+                integer(c_int), intent(in) :: nx1p2, nx2p2, nz1p1, nxvy, nybm1, &
+                                              nxbtm, nybtm, nzbtm, &
+                                              nxtop, nytop, nztop
+      end subroutine interpl_3vbtm_vel5
+
+      subroutine interpl_3vbtm_vel6( nx1p2, nz1p1, nxvy1, nybm1, nxbtm, nybtm, &
+                                     nzbtm, nxtop, nytop, nztop) & 
+                                     bind (C, name="interpl_3vbtm_vel6")
+                use :: iso_c_binding
+                integer(c_int), intent(in) :: nx1p2, nz1p1, nxvy1, nybm1, &
+                                              nxbtm, nybtm, nzbtm, &
+                                              nxtop, nytop, nztop
+      end subroutine interpl_3vbtm_vel6
+
+      subroutine interpl_3vbtm_vel7( nxbtm, nybtm, nzbtm, nxtop, nytop, nztop, sdx1) & 
+                                     bind (C, name="interpl_3vbtm_vel7")
+                use :: iso_c_binding
+                integer(c_int), intent(in) ::nxbtm, nybtm, nzbtm, &
+                                              nxtop, nytop, nztop
+                type(c_ptr), intent(in), value :: sdx1
+      end subroutine interpl_3vbtm_vel7
+
+      subroutine interpl_3vbtm_vel8( nxbtm, nybtm, nzbtm, nxtop, nytop, nztop, sdx2) & 
+                                     bind (C, name="interpl_3vbtm_vel8")
+                use :: iso_c_binding
+                integer(c_int), intent(in) ::nxbtm, nybtm, nzbtm, &
+                                              nxtop, nytop, nztop
+                type(c_ptr), intent(in), value :: sdx2
+
+      end subroutine interpl_3vbtm_vel8
+
+      subroutine interpl_3vbtm_vel9( nx1p2, ny2p1, nz1p1, nxvy, nybm1, nxbtm, nybtm, &
+                                     nzbtm, nxtop, nytop, nztop, neighb4) & 
+                                     bind (C, name="interpl_3vbtm_vel9")
+                use :: iso_c_binding
+                integer(c_int), intent(in) :: nx1p2, ny2p1, nz1p1, nxvy, nybm1, &
+                                              nxbtm, nybtm, nzbtm, &
+                                              nxtop, nytop, nztop, neighb4
+      end subroutine interpl_3vbtm_vel9
+
+      subroutine interpl_3vbtm_vel11( nx1p2, nx2p1, ny1p1, nz1p1, nxvy1, nxbtm, nybtm, &
+                                     nzbtm, nxtop, nytop, nztop) & 
+                                     bind (C, name="interpl_3vbtm_vel11")
+                use :: iso_c_binding
+                integer(c_int), intent(in) :: nx1p2, nx2p1, ny1p1, nz1p1, nxvy1, &
+                                              nxbtm, nybtm, nzbtm, &
+                                              nxtop, nytop, nztop
+      end subroutine interpl_3vbtm_vel11
+
+      subroutine interpl_3vbtm_vel13( nxbtm, nybtm, &
+                                     nzbtm, nxtop, nytop, nztop) & 
+                                     bind (C, name="interpl_3vbtm_vel13")
+                use :: iso_c_binding
+                integer(c_int), intent(in) :: nxbtm, nybtm, nzbtm, &
+                                              nxtop, nytop, nztop
+      end subroutine interpl_3vbtm_vel13
+
+      subroutine interpl_3vbtm_vel14( nxbtm, nybtm, &
+                                     nzbtm, nxtop, nytop, nztop) & 
+                                     bind (C, name="interpl_3vbtm_vel14")
+                use :: iso_c_binding
+                integer(c_int), intent(in) :: nxbtm, nybtm, nzbtm, &
+                                              nxtop, nytop, nztop
+      end subroutine interpl_3vbtm_vel14
+
+      subroutine interpl_3vbtm_vel15( nxbtm, nybtm, &
+                                     nzbtm, nxtop, nytop, nztop) & 
+                                     bind (C, name="interpl_3vbtm_vel15")
+                use :: iso_c_binding
+                integer(c_int), intent(in) :: nxbtm, nybtm, nzbtm, &
+                                              nxtop, nytop, nztop
+      end subroutine interpl_3vbtm_vel15
+ end interface
  integer:: i,j,i0,j0,ii,jj
  real::vv1,vv2,vv3,vv4 
+ real(c_double)::gpu_tstart, gpu_tend, cpu_tstart, cpu_tend
+ real(c_double):: total_gpu_marsh_time=0.0, total_cpu_marsh_time=0.0
+ total_gpu_marsh_time =0.0
+ total_cpu_marsh_time =0.0
+#ifdef DISFD_GPU_MARSHALING
+ if(DETAILED_TIMING .eq. 1) then;  call record_time(gpu_tstart) ; end if
+  call interpl_3vbtm_vel1( ny1p2, ny2p2, nz1p1, nyvx, nxbm1, nxbtm, nzbtm, &
+                          nxtop, nztop, neighb(2), c_loc(rcx2))
+ if(DETAILED_TIMING .eq. 1) then; call record_time(gpu_tend); call log_timing ("GPU interpl_3vbtm_vel1", gpu_tend-gpu_tstart); &
+        total_gpu_marsh_time = total_gpu_marsh_time + (gpu_tend-gpu_tstart); end if
+
+ if(DETAILED_TIMING .eq. 1) then;  call record_time(gpu_tstart) ; end if
+  call interpl_3vbtm_vel3( ny1p2, nz1p1, nyvx1, nxbm1, nxbtm, nybtm, nzbtm, &
+                          nxtop, nytop, nztop)
+ if(DETAILED_TIMING .eq. 1) then; call record_time(gpu_tend); call log_timing ("GPU interpl_3vbtm_3", gpu_tend-gpu_tstart); &
+        total_gpu_marsh_time = total_gpu_marsh_time + (gpu_tend-gpu_tstart); end if
+ 
+ if(DETAILED_TIMING .eq. 1) then;  call record_time(gpu_tstart) ; end if
+  call interpl_3vbtm_vel4( nx1p2, ny2p2, nz1p1, nxvy, nybm1, nxbtm, nybtm, nzbtm, &
+                          nxtop, nytop, nztop)
+  if (neighb(4) > -1 ) then
+        call interpl_3vbtm_vel5 (nx1p2, nx2p2, nz1p1, nxvy, nybm1, nxbtm, nybtm, &
+                                nzbtm, nxtop, nytop, nztop)
+  end if
+ if(DETAILED_TIMING .eq. 1) then; call record_time(gpu_tend); call log_timing ("GPU interpl_3vbtm_4/5", gpu_tend-gpu_tstart); &
+        total_gpu_marsh_time = total_gpu_marsh_time + (gpu_tend-gpu_tstart); end if
+
+ if(DETAILED_TIMING .eq. 1) then;  call record_time(gpu_tstart) ; end if
+  call interpl_3vbtm_vel6( nx1p2, nz1p1, nxvy1, nybm1, nxbtm, nybtm, nzbtm, &
+                          nxtop, nytop, nztop)
+ if(DETAILED_TIMING .eq. 1) then; call record_time(gpu_tend); call log_timing ("GPU interpl_3vbtm_6", gpu_tend-gpu_tstart); &
+        total_gpu_marsh_time = total_gpu_marsh_time + (gpu_tend-gpu_tstart); end if
+ 
+ if(neighb(1) > -1) then 
+  if(DETAILED_TIMING .eq. 1) then;  call record_time(gpu_tstart) ; end if
+     call interpl_3vbtm_vel7( nxbtm, nybtm, nzbtm, nxtop, nytop, nztop,c_loc(sdx1))
+  if(DETAILED_TIMING .eq. 1) then; call record_time(gpu_tend); call log_timing ("GPU interpl_3vbtm_7", gpu_tend-gpu_tstart); &
+        total_gpu_marsh_time = total_gpu_marsh_time + (gpu_tend-gpu_tstart); end if
+ end if
+
+ if(neighb(2) > -1) then 
+  if(DETAILED_TIMING .eq. 1) then;  call record_time(gpu_tstart) ; end if
+     call interpl_3vbtm_vel8( nxbtm, nybtm, nzbtm, nxtop, nytop, nztop, c_loc(sdx2))
+  if(DETAILED_TIMING .eq. 1) then; call record_time(gpu_tend); call log_timing ("GPU interpl_3vbtm_8", gpu_tend-gpu_tstart); &
+        total_gpu_marsh_time = total_gpu_marsh_time + (gpu_tend-gpu_tstart); end if
+ end if
+
+ if(DETAILED_TIMING .eq. 1) then;  call record_time(gpu_tstart) ; end if
+  call interpl_3vbtm_vel9( nx1p2, ny2p1, nz1p1, nxvy, nybm1, nxbtm, nybtm, nzbtm, &
+                          nxtop, nytop, nztop, neighb(4))
+ if(DETAILED_TIMING .eq. 1) then; call record_time(gpu_tend); call log_timing ("GPU interpl_3vbtm_9", gpu_tend-gpu_tstart); &
+        total_gpu_marsh_time = total_gpu_marsh_time + (gpu_tend-gpu_tstart); end if
+
+ if(DETAILED_TIMING .eq. 1) then;  call record_time(gpu_tstart) ; end if
+  call interpl_3vbtm_vel11( nx1p2, nx2p1, ny1p1, nz1p1, nxvy1, nxbtm, nybtm, nzbtm, &
+                          nxtop, nytop, nztop)
+ if(DETAILED_TIMING .eq. 1) then; call record_time(gpu_tend); call log_timing ("GPU interpl_3vbtm_11", gpu_tend-gpu_tstart); &
+        total_gpu_marsh_time = total_gpu_marsh_time + (gpu_tend-gpu_tstart); end if
+
+ if(DETAILED_TIMING .eq. 1) then;  call record_time(gpu_tstart) ; end if
+  call interpl_3vbtm_vel13( nxbtm, nybtm, nzbtm, &
+                          nxtop, nytop, nztop)
+ if(DETAILED_TIMING .eq. 1) then; call record_time(gpu_tend); call log_timing ("GPU interpl_3vbtm_13", gpu_tend-gpu_tstart); &
+        total_gpu_marsh_time = total_gpu_marsh_time + (gpu_tend-gpu_tstart); end if
+
+ if(DETAILED_TIMING .eq. 1) then;  call record_time(gpu_tstart) ; end if
+  call interpl_3vbtm_vel14( nxbtm, nybtm, nzbtm, &
+                          nxtop, nytop, nztop)
+ if(DETAILED_TIMING .eq. 1) then; call record_time(gpu_tend); call log_timing ("GPU interpl_3vbtm_14", gpu_tend-gpu_tstart); &
+        total_gpu_marsh_time = total_gpu_marsh_time + (gpu_tend-gpu_tstart); end if
+
+ if(DETAILED_TIMING .eq. 1) then;  call record_time(gpu_tstart) ; end if
+  call interpl_3vbtm_vel15( nxbtm, nybtm, nzbtm, &
+                          nxtop, nytop, nztop)
+ if(DETAILED_TIMING .eq. 1) then; call record_time(gpu_tend); call log_timing ("GPU interpl_3vbtm_15", gpu_tend-gpu_tstart); &
+        total_gpu_marsh_time = total_gpu_marsh_time + (gpu_tend-gpu_tstart); end if
+#else
 !---Vx----
  j0=ny2p2+2
  j=0
@@ -6492,6 +7841,8 @@ subroutine interpl_3vbtm
      v2z(0,ii,jj)=v1z(nztop,ii*3-2,j)
    enddo
  enddo
+#endif
+ if(DETAILED_TIMING .eq. 1) then; call log_timing ("GPU Marshaling interpl_3vbtm", total_gpu_marsh_time); end if
  return
 end  subroutine interpl_3vbtm
 !-----------------------------------------------------------------------

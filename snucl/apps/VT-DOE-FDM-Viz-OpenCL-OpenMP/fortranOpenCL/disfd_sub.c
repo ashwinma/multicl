@@ -5,7 +5,8 @@
 //
 
 #include <stdio.h>
-#include "mpi.h"
+#include "mpix.h"
+#include "mpiacc_cl.h"
 //!XSC--------------------------------------------------------------------
 #define drvh1(i, j) drvh1M[(i) - 1 + (j) * mw1_pml1]
 #define drti1(i, j) drti1M[(i) - 1 + (j) * mw1_pml1]
@@ -163,17 +164,289 @@
 #define v2z_pz(i, j, k) v2z_pzM[(i) - 1 + mw2_pml * ((j) - 1 + nxbtm * ((k) - 1))]
 
 //debug-------------------
-int procID;
+//int procID;
 //---------------------------
 
+#define OPENCL_CHECK_ERR(err, str) \
+	if (err != CL_SUCCESS) \
+{ \
+	fprintf(stderr, "CL Error %d: %s\n", err, str); \
+}
+
+#define OPENCL_CHECK_ERR_AND_RETURN(err,msg) \
+	{ \
+		OPENCL_CHECK_ERR(err,msg); \
+		return MPI_SUCCESS; \
+	}
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+cl_mem getDevicePointer(int id);
+//--------------------------------------------------------------------
+/*
+    +++++++++++++++++++++++++++++++++++++++++++++++++++++
+    MPI Wrappers functions called from Fortran subroutines
+*/
 void MPI_Init_C (MPI_Fint *ierr) 
 {
     int argcc = 0;
-    char **argvc = {""};
-    *ierr = (MPI_Fint) MPI_Init(&argcc, NULL);
+    char **argvc = NULL;
+    *ierr = (MPI_Fint) MPI_Init(&argcc, &argvc);
     return;
 }
 
+void MPI_Comm_rank_C ( MPI_Fint comm , int* rank , MPI_Fint *ierr) 
+{
+    *ierr = (MPI_Fint) MPI_Comm_rank((MPI_Comm) MPI_Comm_f2c(comm) , rank); 
+}
+
+void MPI_Comm_size_C (MPI_Fint comm, int* nprocs, MPI_Fint *ierr) 
+{
+    *ierr = (MPI_Fint) MPI_Comm_size((MPI_Comm) MPI_Comm_f2c(comm), nprocs);
+}
+
+void MPI_Barrier_C (MPI_Fint comm, MPI_Fint *ierr) 
+{
+    *ierr = (MPI_Fint) MPI_Barrier((MPI_Comm) MPI_Comm_f2c(comm));    
+}
+
+void MPI_Finalize_C(MPI_Fint *ierr) 
+{
+    *ierr = (MPI_Fint) MPI_Finalize();
+}
+
+void MPI_Comm_group_C (MPI_Fint comm, MPI_Fint *group, MPI_Fint *ierr) 
+{
+    MPI_Group group_C;
+    group_C = MPI_Group_f2c(*group);
+    *ierr = MPI_Comm_group ((MPI_Comm)MPI_Comm_f2c(comm), &group_C );
+    *group = MPI_Group_c2f(group_C);
+}
+
+void MPI_Group_excl_C (MPI_Fint group, int n, int *ranks, MPI_Fint *newgroup, MPI_Fint *ierr) 
+{
+    MPI_Group group_C = MPI_Group_f2c(group);
+    MPI_Group newgroup_C;
+    *ierr = MPI_Group_excl(group_C, n, ranks, &newgroup_C);
+    *newgroup = MPI_Group_c2f(newgroup_C);
+}
+
+void MPI_Comm_create_C(MPI_Fint comm, MPI_Fint group, MPI_Fint *newcomm, MPI_Fint *ierr) 
+{
+        MPI_Comm newcomm_C;
+        newcomm_C = MPI_Comm_f2c(*newcomm);
+        *ierr = MPI_Comm_create(MPI_Comm_f2c(comm), MPI_Group_f2c(group), &newcomm_C);
+        *newcomm = MPI_Comm_c2f(newcomm_C);
+}
+
+void MPI_Group_free_C(MPI_Fint *group, MPI_Fint *ierr) 
+{
+    MPI_Group group_C = MPI_Group_f2c(*group);
+    *ierr = MPI_Group_free (&group_C);
+    *group = MPI_Group_c2f(group_C);
+}
+
+void MPI_BCAST_C (void* buffer, int count, MPI_Fint datatype, int root, MPI_Fint comm, MPI_Fint *ierr) 
+{
+    *ierr = MPI_Bcast(buffer, count, MPI_Type_f2c(datatype), root, MPI_Comm_f2c(comm));
+}
+
+void MPI_Send_C (void* buff, int count, MPI_Fint datatype, int dest, int
+tag, MPI_Fint comm, MPI_Fint *ierr) 
+{
+    *ierr = MPI_Send(buff, count, MPI_Type_f2c(datatype), dest, tag,
+    MPI_Comm_f2c(comm));
+}
+
+/*
+void MPI_Recv_C (void* buff, int count, MPI_Fint datatype, int src, int tag, MPI_Fint comm, MPI_Fint *ierr) 
+{
+    *ierr = MPI_Recv(buff, count, MPI_Type_f2c(datatype), src, tag, MPI_Comm_f2c(comm));
+}
+*/
+
+void MPIX_Send_C (int buff_id, int count, MPI_Fint *datatype, int dest, int
+        tag, MPI_Fint *comm, MPI_Fint *ierr, const int cmdq_id) 
+{
+	int err;
+	MPI_Datatype new_type;
+	MPI_Datatype old_type = MPI_Type_f2c(*datatype);
+	err = MPI_Type_dup(old_type, &new_type);
+	OPENCL_CHECK_ERR(err, "MPI type dup");
+	err = MPI_Type_set_attr(new_type, MPI_ATTR_BUFTYPE, (void *) (MPI_Aint) MPIX_GPU_OPENCL);
+	OPENCL_CHECK_ERR(err, "MPI type set attr");
+	err = MPI_Type_set_attr(new_type, MPI_ATTR_OCL_CONTEXT, (void *) _cl_context);
+	OPENCL_CHECK_ERR(err, "MPI type set attr");
+	err = MPI_Type_set_attr(new_type, MPI_ATTR_OCL_CMDQUEUE, (void *) _cl_commandQueues[cmdq_id]);
+	OPENCL_CHECK_ERR(err, "MPI type set attr");
+	err = MPI_Type_set_attr(new_type, MPI_ATTR_OCL_REF_CMDQUEUE, (void *) _cl_commandQueues[cmdq_id]);
+	OPENCL_CHECK_ERR(err, "MPI type set attr");
+	// set event linking only during isend and not send?
+	//err = MPI_Type_set_attr(new_type, MPI_ATTR_OCL_EVENT, (void *) _cl_events[cmdq_id]);
+	//OPENCL_CHECK_ERR(err, "MPI type set attr");
+	*ierr = MPI_Send((void*)getDevicePointer(buff_id), count, new_type, dest, tag,MPI_Comm_f2c(*comm)); 
+	//*ierr = MPIX_Send((void*)getDevicePointer(buff_id), count, MPI_Type_f2c(*datatype), dest, tag,MPI_Comm_f2c(*comm), MPIX_GPU_CUDA, 0, NULL, NULL, NULL, NULL, 0 );
+	MPI_Type_free(&new_type);
+}
+
+void MPIX_Recv_C (int buff_id, int count, MPI_Fint *datatype, int src, int
+tag, MPI_Fint *comm, MPI_Fint *f_status, MPI_Fint *ierr, const int cmdq_id) 
+{
+    MPI_Status c_status;
+    MPI_Status_f2c(f_status, &c_status);
+	int err;
+	MPI_Datatype new_type;
+	MPI_Datatype old_type = MPI_Type_f2c(*datatype);
+	err = MPI_Type_dup(old_type, &new_type);
+	OPENCL_CHECK_ERR(err, "MPI type dup");
+	err = MPI_Type_set_attr(new_type, MPI_ATTR_BUFTYPE, (void *) (MPI_Aint) MPIX_GPU_OPENCL);
+	OPENCL_CHECK_ERR(err, "MPI type set attr");
+	err = MPI_Type_set_attr(new_type, MPI_ATTR_OCL_CONTEXT, (void *) _cl_context);
+	OPENCL_CHECK_ERR(err, "MPI type set attr");
+	err = MPI_Type_set_attr(new_type, MPI_ATTR_OCL_CMDQUEUE, (void *) _cl_commandQueues[cmdq_id]);
+	OPENCL_CHECK_ERR(err, "MPI type set attr");
+	err = MPI_Type_set_attr(new_type, MPI_ATTR_OCL_REF_CMDQUEUE, (void *) _cl_commandQueues[cmdq_id]);
+	OPENCL_CHECK_ERR(err, "MPI type set attr");
+	// set event linking only during isend and not send?
+	//err = MPI_Type_set_attr(new_type, MPI_ATTR_OCL_EVENT, (void *) _cl_events[cmdq_id]);
+	//OPENCL_CHECK_ERR(err, "MPI type set attr");
+    *ierr = MPI_Recv((void *)getDevicePointer(buff_id), count, new_type, src, tag, MPI_Comm_f2c(*comm), &c_status);
+    //*ierr = MPIX_Recv((float*)getDevicePointer(buff_id), count, MPI_Type_f2c(*datatype), src, tag, MPI_Comm_f2c(*comm), &c_status, MPIX_GPU_CUDA, 0, NULL, NULL, NULL, NULL, 0 );
+    MPI_Status_c2f(&c_status, f_status);
+}
+
+/*
+void MPIX_Recv_C1 (int buff_id, int count, MPI_Fint *datatype, int src, int
+tag, MPI_Fint *comm, MPI_Fint *f_status, MPI_Fint *ierr) 
+{
+    MPI_Status c_status;
+    MPI_Status_f2c(f_status, &c_status);
+    *ierr = MPIX_Recv((float*)getDevicePointer(buff_id), count, MPI_Type_f2c(*datatype), src, tag, MPI_Comm_f2c(*comm), MPI_STATUS_IGNORE, MPIX_GPU_CUDA, 0, NULL, NULL, NULL, NULL, 0 );
+    MPI_Status_c2f(&c_status, f_status);
+}
+*/
+
+void MPIX_Send_offset_C (int buff_id, int offset, int count, MPI_Fint *datatype, int dest, int
+        tag, MPI_Fint *comm, MPI_Fint *ierr, const int cmdq_id) 
+{
+	int err;
+	MPI_Datatype new_type;
+	MPI_Datatype old_type = MPI_Type_f2c(*datatype);
+	err = MPI_Type_dup(old_type, &new_type);
+	OPENCL_CHECK_ERR(err, "MPI type dup");
+	err = MPI_Type_set_attr(new_type, MPI_ATTR_BUFTYPE, (void *) (MPI_Aint) MPIX_GPU_OPENCL);
+	OPENCL_CHECK_ERR(err, "MPI type set attr");
+	err = MPI_Type_set_attr(new_type, MPI_ATTR_OCL_CONTEXT, (void *) _cl_context);
+	OPENCL_CHECK_ERR(err, "MPI type set attr");
+	err = MPI_Type_set_attr(new_type, MPI_ATTR_OCL_CMDQUEUE, (void *) _cl_commandQueues[cmdq_id]);
+	OPENCL_CHECK_ERR(err, "MPI type set attr");
+	err = MPI_Type_set_attr(new_type, MPI_ATTR_OCL_REF_CMDQUEUE, (void *) _cl_commandQueues[cmdq_id]);
+	OPENCL_CHECK_ERR(err, "MPI type set attr");
+	err = MPI_Type_set_attr(new_type, MPI_ATTR_BUF_OFFSET, (void *)(MPI_Aint) offset);
+	OPENCL_CHECK_ERR(err, "MPI type set attr");
+	// set event linking only during isend and not send?
+	//err = MPI_Type_set_attr(new_type, MPI_ATTR_OCL_EVENT, (void *) _cl_events[cmdq_id]);
+	//OPENCL_CHECK_ERR(err, "MPI type set attr");
+	*ierr = MPI_Send((void*)getDevicePointer(buff_id), count, new_type, dest, tag,MPI_Comm_f2c(*comm)); 
+    //*ierr = MPIX_Send(((float*)getDevicePointer(buff_id)) + offset, count, MPI_Type_f2c(*datatype), dest, tag,MPI_Comm_f2c(*comm), MPIX_GPU_CUDA, 0, NULL, NULL, NULL, NULL, 0 );
+}
+
+void MPIX_Recv_offset_C (int buff_id, int offset, int count, MPI_Fint *datatype, int src, int
+tag, MPI_Fint *comm, MPI_Fint *f_status, MPI_Fint *ierr, const int cmdq_id) 
+{
+    MPI_Status c_status;
+    MPI_Status_f2c(f_status, &c_status);
+	int err;
+	MPI_Datatype new_type;
+	MPI_Datatype old_type = MPI_Type_f2c(*datatype);
+	err = MPI_Type_dup(old_type, &new_type);
+	OPENCL_CHECK_ERR(err, "MPI type dup");
+	err = MPI_Type_set_attr(new_type, MPI_ATTR_BUFTYPE, (void *) (MPI_Aint) MPIX_GPU_OPENCL);
+	OPENCL_CHECK_ERR(err, "MPI type set attr");
+	err = MPI_Type_set_attr(new_type, MPI_ATTR_OCL_CONTEXT, (void *) _cl_context);
+	OPENCL_CHECK_ERR(err, "MPI type set attr");
+	err = MPI_Type_set_attr(new_type, MPI_ATTR_OCL_CMDQUEUE, (void *) _cl_commandQueues[cmdq_id]);
+	OPENCL_CHECK_ERR(err, "MPI type set attr");
+	err = MPI_Type_set_attr(new_type, MPI_ATTR_OCL_REF_CMDQUEUE, (void *) _cl_commandQueues[cmdq_id]);
+	OPENCL_CHECK_ERR(err, "MPI type set attr");
+	err = MPI_Type_set_attr(new_type, MPI_ATTR_BUF_OFFSET, (void *)(MPI_Aint) offset);
+	OPENCL_CHECK_ERR(err, "MPI type set attr");
+	// set event linking only during isend and not send?
+	//err = MPI_Type_set_attr(new_type, MPI_ATTR_OCL_EVENT, (void *) _cl_events[cmdq_id]);
+	//OPENCL_CHECK_ERR(err, "MPI type set attr");
+    *ierr = MPI_Recv((void *)getDevicePointer(buff_id), count, new_type, src, tag, MPI_Comm_f2c(*comm), &c_status);
+    //*ierr = MPIX_Recv(((float*)getDevicePointer(buff_id)) + offset, count, MPI_Type_f2c(*datatype), src, tag, MPI_Comm_f2c(*comm), &c_status, MPIX_GPU_CUDA, 0, NULL, NULL, NULL, NULL, 0 );
+    MPI_Status_c2f(&c_status, f_status);
+}
+
+
+void MPIX_Isend_C (int buff_id, int count, MPI_Fint *datatype, int dest, int
+tag, MPI_Fint *comm, MPI_Fint *request, MPI_Fint *ierr, const int cmdq_id) 
+{
+    MPI_Request request_C = MPI_Request_f2c(*request);
+	printf("CMDQ ID: %d", cmdq_id);
+	int err;
+	MPI_Datatype new_type;
+	MPI_Datatype old_type = MPI_Type_f2c(*datatype);
+	err = MPI_Type_dup(old_type, &new_type);
+	OPENCL_CHECK_ERR(err, "MPI type dup");
+	err = MPI_Type_set_attr(new_type, MPI_ATTR_BUFTYPE, (void *) (MPI_Aint) MPIX_GPU_OPENCL);
+	OPENCL_CHECK_ERR(err, "MPI type set attr");
+	err = MPI_Type_set_attr(new_type, MPI_ATTR_OCL_CONTEXT, (void *) _cl_context);
+	OPENCL_CHECK_ERR(err, "MPI type set attr");
+	err = MPI_Type_set_attr(new_type, MPI_ATTR_OCL_CMDQUEUE, (void *) _cl_commandQueues[cmdq_id]);
+	OPENCL_CHECK_ERR(err, "MPI type set attr");
+	err = MPI_Type_set_attr(new_type, MPI_ATTR_OCL_REF_CMDQUEUE, (void *) _cl_commandQueues[cmdq_id]);
+	OPENCL_CHECK_ERR(err, "MPI type set attr");
+	// set event linking only during isend and not send?
+	//err = MPI_Type_set_attr(new_type, MPI_ATTR_OCL_EVENT, (void *) _cl_events[cmdq_id]);
+	//OPENCL_CHECK_ERR(err, "MPI type set attr");
+    *ierr = MPI_Isend(getDevicePointer(buff_id), count, new_type, dest, tag,MPI_Comm_f2c(*comm), &request_C);
+    //*ierr = MPIX_Isend(getDevicePointer(buff_id), count, MPI_Type_f2c(*datatype), dest, tag,MPI_Comm_f2c(*comm), &request_C, MPIX_GPU_CUDA, 0, NULL, NULL, NULL, NULL, 0 );
+    *request = MPI_Request_c2f(request_C);
+}
+
+
+void MPIX_Irecv_C (int buff_id, int count, MPI_Fint *datatype, int src, int
+tag, MPI_Fint *comm, MPI_Fint *request, MPI_Fint *ierr, const int cmdq_id) 
+{
+    MPI_Request request_C = MPI_Request_f2c(*request);
+	int err;
+	MPI_Datatype new_type;
+	MPI_Datatype old_type = MPI_Type_f2c(*datatype);
+	err = MPI_Type_dup(old_type, &new_type);
+	OPENCL_CHECK_ERR(err, "MPI type dup");
+	err = MPI_Type_set_attr(new_type, MPI_ATTR_BUFTYPE, (void *) (MPI_Aint) MPIX_GPU_OPENCL);
+	OPENCL_CHECK_ERR(err, "MPI type set attr");
+	err = MPI_Type_set_attr(new_type, MPI_ATTR_OCL_CONTEXT, (void *) _cl_context);
+	OPENCL_CHECK_ERR(err, "MPI type set attr");
+	err = MPI_Type_set_attr(new_type, MPI_ATTR_OCL_CMDQUEUE, (void *) _cl_commandQueues[cmdq_id]);
+	OPENCL_CHECK_ERR(err, "MPI type set attr");
+	err = MPI_Type_set_attr(new_type, MPI_ATTR_OCL_REF_CMDQUEUE, (void *) _cl_commandQueues[cmdq_id]);
+	OPENCL_CHECK_ERR(err, "MPI type set attr");
+	// set event linking only during isend and not send?
+	//err = MPI_Type_set_attr(new_type, MPI_ATTR_OCL_EVENT, (void *) _cl_events[cmdq_id]);
+	//OPENCL_CHECK_ERR(err, "MPI type set attr");
+    *ierr = MPI_Irecv(getDevicePointer(buff_id), count, new_type, src, tag, MPI_Comm_f2c(*comm), &request_C);
+    //*ierr = MPIX_Irecv(getDevicePointer(buff_id), count, MPI_Type_f2c(*datatype), src, tag, MPI_Comm_f2c(*comm), &request_C, MPIX_GPU_CUDA, 0, NULL, NULL, NULL, NULL, 0 );
+    *request = MPI_Request_c2f(request_C);
+}
+/*
+void MPIX_Irecv_C1 (float* buff, int count, MPI_Fint *datatype, int src, int
+tag, MPI_Fint *comm, MPI_Fint *request, MPI_Fint *ierr) 
+{
+    MPI_Request request_C = MPI_Request_f2c(*request);
+    // *ierr = MPI_Irecv(buff_id, count, MPI_Type_f2c(*datatype), src, tag, MPI_Comm_f2c(*comm), &request_C);
+    *ierr = MPIX_Irecv(buff, count, MPI_Type_f2c(*datatype), src, tag, MPI_Comm_f2c(*comm), &request_C, MPIX_TEST_BUF, 0, NULL, NULL, NULL, NULL, 0 );
+    *request = MPI_Request_c2f(request_C);
+}
+*/
+//MPI Wrapper functions end
+#ifdef __cplusplus
+}
+#endif
+// +++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 void velocity_inner_IC(int	nztop,
 					  int 	nztm1,
@@ -2200,7 +2473,7 @@ void compute_stressCDebug(int *nxb1, int *nyb1, int *nx1p1, int *ny1p1, int *nxt
 	v2yM = (float *) *v2yMp;
 	v2zM = (float *) *v2zMp;
 
-	procID = *myid;
+	//procID = *myid;
 
 	stress_norm_xy_IC(*nxb1,
 					  *nyb1,

@@ -307,6 +307,9 @@ static SACHEAD sac_null = {
 #define TMARK	10
 #define USERN	40
 
+#ifdef __cplusplus
+extern "C" {
+#endif
 /* prototype for SACIO functions */
 int	read_sachead(const char *, SACHEAD *);
 float	*read_sac(const char *, SACHEAD *);
@@ -316,4 +319,7 @@ int	wrtsac2(const char *, int, const float *x, const float *y);
 SACHEAD	sachdr(float, int, float);
 void	swab4(char *, int);
 char    *trim(const char *);
+#ifdef __cplusplus
+}
+#endif
 #endif

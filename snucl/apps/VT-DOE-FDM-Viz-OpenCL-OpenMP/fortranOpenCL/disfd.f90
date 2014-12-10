@@ -1514,6 +1514,8 @@ end interface
    include 'allocate_gpu_mem_opencl.h'
    !kaixi!include 'copy_inputs_to_gpu.h'
 ! call opencl function
+   !gpuarr_metadata initialized during gpu mem init
+   !call init_gpuarr_metadata(nxtop, nytop, nztop, nxbtm, nybtm, nzbtm)
    include 'copy_inputs_to_gpu_opencl.h'
 !  include 'copy_outputs_to_gpu.h'
    npt_out = 4

@@ -778,8 +778,10 @@ SNUCL_API_FUNCTION(clCreateProgramWithSource)(
       SET_ERROR_AND_RETURN(CL_INVALID_VALUE, NULL);
 
   cl_int err = CL_SUCCESS;
+  SNUCL_INFO("Before Program Creation\n", 0);
   CLProgram* program = CLProgram::CreateProgramWithSource(
       context->c_obj, count, strings, lengths, &err);
+  SNUCL_INFO("After Program Creation\n", 0);
   if (err != CL_SUCCESS)
     SET_ERROR_AND_RETURN(err, NULL);
   SET_ERROR_AND_RETURN(CL_SUCCESS, program->st_obj());
@@ -1386,7 +1388,6 @@ SNUCL_API_FUNCTION(clEnqueueWriteBuffer)(
   if ((num_events_in_wait_list > 0 && event_wait_list == NULL) ||
       (num_events_in_wait_list == 0 && event_wait_list != NULL))
     return CL_INVALID_EVENT_WAIT_LIST;
-
   CLCommandQueue* q = command_queue->c_obj;
   CLMem* b = buffer->c_obj;
   if (q->context() != b->context())
@@ -2372,7 +2373,10 @@ SNUCL_API_FUNCTION(clEnqueueMarker)(
   if (command == NULL) return CL_OUT_OF_HOST_MEMORY;
 
   *event = command->ExportEvent()->st_obj();
+  //CLEvent* blocking = command->ExportEvent();
   q->Enqueue(command);
+  //blocking->Wait(true);
+  //blocking->Release();
   return CL_SUCCESS;
 }
 

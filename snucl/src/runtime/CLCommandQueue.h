@@ -103,6 +103,8 @@ class CLCommandQueue: public CLObject<struct _cl_command_queue,
   void set_properties(cl_command_queue_properties properties) {properties_ = properties; }
   cl_command_queue_properties get_properties() {return properties_; }
 
+  size_t get_h2d_size() const { return cumulative_h2d_sizes; } 
+  size_t get_d2h_size() const { return cumulative_d2h_sizes; } 
  protected:
   CLDevice* SelectBestDevice(CLContext *context, CLDevice* device, 
                                cl_command_queue_properties properties);
@@ -110,7 +112,8 @@ class CLCommandQueue: public CLObject<struct _cl_command_queue,
   Global::RealTimer gQueueTimer;
   CLDevice* device_;
   std::list<CLCommand*> commands_;
-
+  size_t cumulative_h2d_sizes;
+  size_t cumulative_d2h_sizes;
  private:
   typedef std::vector<double> devicePerfVector;
   devicePerfVector accumulatedPerformances_;

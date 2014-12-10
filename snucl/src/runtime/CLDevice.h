@@ -137,8 +137,14 @@ class CLDevice: public CLObject<struct _cl_device_id, CLDevice,
                                   ptrdiff_t* mem_offsets) = 0;
   virtual void ReadBuffer(CLCommand* command, CLMem* mem_src, size_t off_src,
                           size_t size, void* ptr) = 0;
+  virtual void WriteBufferAsync(CLCommand* command, CLMem* mem_dst, size_t off_dst,
+                           size_t size, void* ptr) = 0;
+  virtual void WaitForIO() = 0;
   virtual void WriteBuffer(CLCommand* command, CLMem* mem_dst, size_t off_dst,
                            size_t size, void* ptr) = 0;
+  virtual void CopyBufferAsync(CLCommand* command, CLMem* mem_src, CLMem* mem_dst,
+							   cl_mem mem_src_dev_specific, cl_mem mem_dst_dev_specific, 
+                          size_t off_src, size_t off_dst, size_t size) = 0;
   virtual void CopyBuffer(CLCommand* command, CLMem* mem_src, CLMem* mem_dst,
 							   cl_mem mem_src_dev_specific, cl_mem mem_dst_dev_specific, 
                           size_t off_src, size_t off_dst, size_t size) = 0;
@@ -238,6 +244,8 @@ class CLDevice: public CLObject<struct _cl_device_id, CLDevice,
 
  protected:
   Global::RealTimer gLegacyTimer;
+  Global::RealTimer gLegacyReadTimer;
+  Global::RealTimer gLegacyWriteTimer;
   CLScheduler* scheduler_;
   LockFreeQueueMS ready_queue_;
   int node_id_;

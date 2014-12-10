@@ -342,7 +342,12 @@ cl_int CLCommandQueue::set_device(CLDevice *d) {
 }
 
 void CLInOrderCommandQueue::Flush(bool special_event) {
-    device_->ProgressScheduler(special_event);	
+    device_->ProgressScheduler(special_event);
+	//cumulative_d2h_sizes = 0;
+	//cumulative_h2d_sizes = 0;
+	//SNUCL_INFO("[Q %p] Cumulative H2D-D2H Sizes: %lu %lu\n", this, 
+	//		cumulative_h2d_sizes,
+	//		cumulative_d2h_sizes);
 	commands_.clear();
 	InvokeScheduler();
 }
@@ -353,6 +358,8 @@ CLInOrderCommandQueue::CLInOrderCommandQueue(
     : CLCommandQueue(context, device, properties),
       queue_(COMMAND_QUEUE_SIZE) {
   last_event_ = NULL;
+	cumulative_d2h_sizes = 0;
+	cumulative_h2d_sizes = 0;
 }
 
 CLInOrderCommandQueue::~CLInOrderCommandQueue() {
@@ -374,6 +381,12 @@ void CLInOrderCommandQueue::Enqueue(CLCommand* command) {
   if(command->type() == CL_COMMAND_WRITE_BUFFER && IsProfiled())
   {
 	  //gQueueTimer.Start();
+  }
+  if(command->type() == CL_COMMAND_READ_BUFFER) {
+  	cumulative_d2h_sizes += command->size();
+  }
+  if(command->type() == CL_COMMAND_WRITE_BUFFER) {
+  	cumulative_h2d_sizes += command->size();
   }
   if (last_event_ != NULL) {
     command->AddWaitEvent(last_event_);

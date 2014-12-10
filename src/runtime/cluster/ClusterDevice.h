@@ -77,8 +77,14 @@ class ClusterDevice: public CLDevice {
                                   ptrdiff_t* mem_offsets);
   virtual void ReadBuffer(CLCommand* command, CLMem* mem_src, size_t off_src,
                           size_t size, void* ptr);
+  virtual void WriteBufferAsync(CLCommand* command, CLMem* mem_dst, size_t off_dst,
+                           size_t size, void* ptr) {}
+  virtual void WaitForIO() {}
   virtual void WriteBuffer(CLCommand* command, CLMem* mem_dst, size_t off_dst,
                            size_t size, void* ptr);
+  virtual void CopyBufferAsync(CLCommand* command, CLMem* mem_src, CLMem* mem_dst,
+							   cl_mem mem_src_dev_specific, cl_mem mem_dst_dev_specific, 
+                          size_t off_src, size_t off_dst, size_t size) {}
   virtual void CopyBuffer(CLCommand* command, CLMem* mem_src, CLMem* mem_dst,
 							   cl_mem mem_src_dev_specific, cl_mem mem_dst_dev_specific, 
                           size_t off_src, size_t off_dst, size_t size);

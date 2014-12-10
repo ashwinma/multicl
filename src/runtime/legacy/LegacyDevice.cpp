@@ -112,6 +112,8 @@ LegacyDevice::LegacyDevice(void* library, struct _cl_icd_dispatch* dispatch,
                            cl_platform_id platform_id, cl_device_id device_id)
     : CLDevice(0) {
   gLegacyTimer.Init();
+  gLegacyReadTimer.Init();
+  gLegacyWriteTimer.Init();
   library_ = library;
   dispatch_ = dispatch;
   platform_id_ = platform_id;
@@ -403,6 +405,10 @@ LegacyDevice::LegacyDevice(void* library, struct _cl_icd_dispatch* dispatch,
 LegacyDevice::~LegacyDevice() {
   if(gLegacyTimer.Count() > 0)
 	  std::cout << "[Device " << name_ << "] Dispatch timer: " << gLegacyTimer << std::endl;
+  if(gLegacyReadTimer.Count() > 0)
+	  std::cout << "[Device " << name_ << "] Read timer: " << gLegacyReadTimer << std::endl;
+  if(gLegacyWriteTimer.Count() > 0)
+	  std::cout << "[Device " << name_ << "] Write timer: " << gLegacyWriteTimer << std::endl;
   if (kernel_queue_)
     dispatch_->clReleaseCommandQueue(kernel_queue_);
   if (mem_queue_)
@@ -437,11 +443,16 @@ double LegacyDevice::WaitForKernel(CLCommand *command) {
   //END-START gives you hints on kind of “pure HW execution time”
   ////the resolution of the events is 1e-09 sec
   double g_NDRangePureExecTimeMs = (double)(end - start)*(double)(1e-06); 
-  SNUCL_INFO("Test Kernel Event Time: %g msec\n", g_NDRangePureExecTimeMs);
   if (err != CL_SUCCESS) {                        
     if(command)command->SetError(err);            
     SNUCL_ERROR("legacy vendor error with device %p : %d\n", device_id_, err);
   }
+  gLegacyTimer.Stop();
+  //if(strcmp(kernel->name(), "cffts1") == 0)
+  SNUCL_INFO("[Device %p Type %d] Test_Kernel %s Time: %g sec\n", 
+  		device_id_, type_,
+		command->kernel()->name(), gLegacyTimer.CurrentElapsed());
+  SNUCL_INFO("Test_Kernel Event Profiled Time: %g sec\n", g_NDRangePureExecTimeMs/1000);
   return g_NDRangePureExecTimeMs/1000;
 }
 
@@ -509,8 +520,8 @@ void LegacyDevice::LaunchTestKernel(CLCommand* command, CLKernel* kernel,
                                           &kernel_event_);
   UPDATE_ERROR(err);
   //err = dispatch_->clWaitForEvents(1, &event);
-  gLegacyTimer.Stop();
-  SNUCL_INFO("Test Kernel Launch Time: %g sec\n", gLegacyTimer.CurrentElapsed());
+  //gLegacyTimer.Stop();
+  //SNUCL_INFO("Test Kernel Launch Time: %g sec\n", gLegacyTimer.CurrentElapsed());
   UPDATE_ERROR(err);
 }
 
@@ -581,9 +592,9 @@ void LegacyDevice::LaunchKernel(CLCommand* command, CLKernel* kernel,
   UPDATE_ERROR(err);
   gLegacyTimer.Stop();
   //if(strcmp(kernel->name(), "cffts1") == 0)
-  //SNUCL_INFO("[Device %p Type %d] Kernel %s Time: %g sec\n", 
-  	//	device_id_, type_,
-	//	kernel->name(), gLegacyTimer.CurrentElapsed());
+  SNUCL_INFO("[Device %p Type %d] Kernel %s Time: %g sec\n", 
+  		device_id_, type_,
+		kernel->name(), gLegacyTimer.CurrentElapsed());
 }
 
 void LegacyDevice::LaunchNativeKernel(CLCommand* command,
@@ -624,6 +635,7 @@ void LegacyDevice::LaunchNativeKernel(CLCommand* command,
 
 void LegacyDevice::ReadBuffer(CLCommand* command, CLMem* mem_src,
                               size_t off_src, size_t size, void* ptr) {
+  gLegacyReadTimer.Start();
   CHECK_ERROR(available_ == CL_FALSE, CL_DEVICE_NOT_AVAILABLE);
   cl_mem mem_src_dev = (cl_mem)mem_src->GetDevSpecific(this);
   CHECK_ERROR(mem_src_dev == NULL, CL_INVALID_MEM_OBJECT);
@@ -632,24 +644,71 @@ void LegacyDevice::ReadBuffer(CLCommand* command, CLMem* mem_src,
 //					this, mem_src, mem_src_dev, off_src, size, ptr);
   err = dispatch_->clEnqueueReadBuffer(mem_queue_, mem_src_dev, CL_TRUE,
                                        off_src, size, ptr, 0, NULL, NULL);
+  gLegacyReadTimer.Stop();
   UPDATE_ERROR(err);
 }
 
 void LegacyDevice::WriteBuffer(CLCommand* command, CLMem* mem_dst,
                                size_t off_dst, size_t size, void* ptr) {
-  //gLegacyTimer.Start();
+  gLegacyWriteTimer.Start();
   CHECK_ERROR(available_ == CL_FALSE, CL_DEVICE_NOT_AVAILABLE);
   cl_mem mem_dst_dev = (cl_mem)mem_dst->GetDevSpecific(this);
-//  SNUCL_INFO("[H2D Device: %p] WriteBuffer CLMem: %p->CLMem: %p, offset: %lu, size: %lu host ptr: %p\n",
-//					this, mem_dst, mem_dst_dev, off_dst, size, ptr);
+  //SNUCL_INFO("[H2D Device: %p] WriteBuffer CLMem: %p->CLMem: %p, offset: %lu, size: %lu host ptr: %p\n",
+	//				this, mem_dst, mem_dst_dev, off_dst, size, ptr);
   CHECK_ERROR(mem_dst_dev == NULL, CL_INVALID_MEM_OBJECT);
   cl_int err;
   err = dispatch_->clEnqueueWriteBuffer(mem_queue_, mem_dst_dev, CL_TRUE,
                                         off_dst, size, ptr, 0, NULL, NULL);
   //err = dispatch_->clFinish(mem_queue_);
  // SNUCL_INFO("Writing Buffer Ptr %p with dispatch ptr: %p\n", ptr, dispatch_);
-  //gLegacyTimer.Stop();
+  gLegacyWriteTimer.Stop();
   UPDATE_ERROR(err);
+}
+
+void LegacyDevice::WriteBufferAsync(CLCommand* command, CLMem* mem_dst,
+                               size_t off_dst, size_t size, void* ptr) {
+  gLegacyWriteTimer.Start();
+  CHECK_ERROR(available_ == CL_FALSE, CL_DEVICE_NOT_AVAILABLE);
+  cl_mem mem_dst_dev = (cl_mem)mem_dst->GetDevSpecific(this);
+//  SNUCL_INFO("[H2D Device: %p] WriteBuffer CLMem: %p->CLMem: %p, offset: %lu, size: %lu host ptr: %p\n",
+//					this, mem_dst, mem_dst_dev, off_dst, size, ptr);
+  CHECK_ERROR(mem_dst_dev == NULL, CL_INVALID_MEM_OBJECT);
+  cl_int err;
+  err = dispatch_->clEnqueueWriteBuffer(mem_queue_, mem_dst_dev, CL_FALSE,
+                                        off_dst, size, ptr, 0, NULL, NULL);
+  //err = dispatch_->clFinish(mem_queue_);
+ // SNUCL_INFO("Writing Buffer Ptr %p with dispatch ptr: %p\n", ptr, dispatch_);
+  gLegacyWriteTimer.Stop();
+  UPDATE_ERROR(err);
+}
+
+void LegacyDevice::WaitForIO() {
+  cl_int err = dispatch_->clFinish(mem_queue_);
+  VERIFY_ERROR(err);
+}
+
+
+void LegacyDevice::CopyBufferAsync(CLCommand* command, CLMem* mem_src,
+                              CLMem* mem_dst, 
+							   cl_mem mem_src_dev_specific, cl_mem mem_dst_dev_specific, 
+							  size_t off_src, size_t off_dst,
+                              size_t size) {
+  CHECK_ERROR(available_ == CL_FALSE, CL_DEVICE_NOT_AVAILABLE);
+  cl_mem mem_src_dev = mem_src_dev_specific;
+  cl_mem mem_dst_dev = mem_dst_dev_specific;
+  CHECK_ERROR(mem_src_dev == NULL, CL_INVALID_MEM_OBJECT);
+  CHECK_ERROR(mem_dst_dev == NULL, CL_INVALID_MEM_OBJECT);
+  cl_int err;
+  cl_event event;
+  //gLegacyTimer.Start();
+  err = dispatch_->clEnqueueCopyBuffer(mem_queue_, mem_src_dev, mem_dst_dev,
+                                       off_src, off_dst, size, 0, NULL,
+                                       &event);
+  UPDATE_ERROR(err);
+  //err = dispatch_->clWaitForEvents(1, &event);
+  //UPDATE_ERROR(err);
+  //gLegacyTimer.Stop();
+  //SNUCL_INFO("Copy Buffer Time: %g sec\n", gLegacyTimer.CurrentElapsed());
 }
 
 void LegacyDevice::CopyBuffer(CLCommand* command, CLMem* mem_src,

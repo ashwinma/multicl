@@ -39,6 +39,9 @@
 	05/29/97	Lupei Zhu	Initial coding
 ************************************************************/
 
+#ifdef __cplusplus
+extern "C" {
+#endif
 int	read_sachead(const char	*name,
 		SACHEAD		*hd
 	)
@@ -570,3 +573,6 @@ float *dtp,  int *ier) {
   free(temp);
   free(name);
 }
+#ifdef __cplusplus
+} 
+#endif

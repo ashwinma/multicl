@@ -3,18 +3,19 @@
 # 
 # This GPU-accelerated code is based on the MPI code supplied by Pengcheng Liu of USBR.
 #
-LINKF      = disfd_comm.o disfd_sub.o disfd_subc.o timer.o disfd_sub_opencl.o papi_interface.o #disfd_subcu.o
-MPIF90     = mpif90 -O3 
-MPICC      = mpicc -O3
-FF90       = gfortran  -O3
-#FF90       = pgf90  -O3
-CC         = gcc -O3
-#CC         = pgcc -O3
-GCC        = gcc -O3
 MPI_DIR    = ${MPICH_DIR}
 CUDA_HOME  = ${CUDA_INSTALL_PATH}
 OPENCL_HOME  = ${SNUCLROOT}
 PAPI_HOME = /opt/apps/gcc4_5/papi/4.2.0
+LINKF      = disfd_comm.o disfd_sub.o disfd_subc.o timer.o disfd_sub_opencl.o papi_interface.o #disfd_subcu.o
+MY_INCLUDES=-I$(HOME)/opt/include -I/usr/include -I$(MPI_DIR)/include -I. -I$(OPENCL_HOME)/inc -I$(CUDA_HOME)/include 
+MPIF90     = mpif90 -ffree-line-length-none -ffixed-line-length-none -O3 -g $(MY_INCLUDES)
+MPICC      = mpicxx -O3 -g $(MY_INCLUDES)
+FF90       = gfortran -ffree-line-length-none -ffixed-line-length-none -O3 -g $(MY_INCLUDES)
+#FF90       = pgf90  -O3
+CC         = g++ -O3 -g $(MY_INCLUDES)
+#CC         = pgcc -O3
+GCC        = g++ -O3 -g $(MY_INCLUDES)
 
 all: disfd vm4dfd_v3 read_dfd
 
@@ -28,16 +29,16 @@ timer.o: timer.c
 #	nvcc -gencode arch=compute_35,code=sm_35 -c $< -o $@
 
 disfd_subc.o: disfd_sub.c
-	$(CC) -I$(MPI_DIR)/include/ -c $< -o $@
+	$(CC) -I$(MPI_DIR)/include/ -I$(OPENCL_HOME)/inc -c $< -o $@
 
 disfd: disfd.f90 ${LINKF}
-	$(MPIF90) -lOpenCL -L$(CUDA_HOME)/lib64 -lcudart -L$(MPI_DIR)/lib -lmpichf90 -L$(PAPI_HOME)/lib -lpapi -o $@ $@.f90 ${LINKF} 
+	$(MPIF90) -cpp -lOpenCL -L$(CUDA_HOME)/lib64 -lcudart -L$(MPI_DIR)/lib -lmpichf90 -L$(PAPI_HOME)/lib -lpapi -o $@ $@.f90 ${LINKF} 
 
 disfd_sub.o: disfd_sub.f90 disfd_comm.o 
-	$(MPIF90) -c disfd_sub.f90
+	$(MPIF90) -cpp -c disfd_sub.f90
 
 disfd_comm.o: disfd_comm.f90
-	$(MPIF90) -c $< -o $@
+	$(MPIF90) -cpp -c $< -o $@
 
 vm4dfd_v3: vm4dfd_v3.f90
 	$(FF90) -o $@ $< 

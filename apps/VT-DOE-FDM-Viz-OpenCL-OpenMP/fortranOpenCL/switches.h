@@ -1,3 +1,5 @@
+#ifndef  __SWITCHES__
+#define __SWITCHES__
 /*
  * Set to 0 or 1 to turn off/on the use of MPIX calls (MPI-ACC)
  * Use of MPIX calls makes GPUs 1st class citizens
@@ -42,3 +44,5 @@
  */
 #define COMPUTATION_CORRECTNESS_MODE 0
 
+
+#endif // __SWITCHES__

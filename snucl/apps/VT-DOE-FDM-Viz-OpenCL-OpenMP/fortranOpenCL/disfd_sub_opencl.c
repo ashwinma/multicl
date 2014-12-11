@@ -22,6 +22,7 @@
 #include "mpiacc_cl.h"
 #include "papi_interface.h"
 #include "RealTimer.h"
+#include "switches.h"
 #define CHECK_ERROR(err, str) \
 	if (err != CL_SUCCESS) \
 {\
@@ -35,7 +36,7 @@
 }
 //#define DISFD_DEBUG
 //#define DISFD_PAPI
-//#define DISFD_USE_ROW_MAJOR_DATA
+#define DISFD_USE_ROW_MAJOR_DATA
 #if 1
 //#define DISFD_H2D_SYNC_KERNEL
 #else
@@ -770,6 +771,7 @@ void init_cl(int *deviceID)
 	}
 
 	// create MPI-ACC related marshaling kernels
+#ifdef DISFD_GPU_MARSHALING
 	_cl_kernel_vel_sdx51 = clCreateKernel(_cl_program, "vel_sdx51", NULL);
 	_cl_kernel_vel_sdx52 = clCreateKernel(_cl_program, "vel_sdx52", NULL);
 	_cl_kernel_vel_sdx41 = clCreateKernel(_cl_program, "vel_sdx41", NULL);
@@ -968,7 +970,7 @@ void init_cl(int *deviceID)
 		fprintf(stderr, "Failed to create kernel _cl_kernel_stress_interp2!\n");
 	if(_cl_kernel_stress_interp3 == NULL)
 		fprintf(stderr, "Failed to create kernel _cl_kernel_stress_interp3!\n");
-
+#endif
 	// create the kernels
 	_cl_kernel_velocity_inner_IC   	= clCreateKernel(_cl_program,"velocity_inner_IC"   	,NULL);
 	_cl_kernel_velocity_inner_IIC  	= clCreateKernel(_cl_program,"velocity_inner_IIC"  	,NULL);
@@ -1094,6 +1096,47 @@ void free_device_memC_opencl(int *lbx, int *lby)
 	papi_print_all_events();
 	papi_stop_all_events();
 #endif
+#ifdef DISFD_GPU_MARSHALING
+clReleaseMemObject(sdx51D);
+clReleaseMemObject(sdx52D);
+clReleaseMemObject(sdx41D);
+clReleaseMemObject(sdx42D);
+clReleaseMemObject(sdy51D);
+clReleaseMemObject(sdy52D);
+clReleaseMemObject(sdy41D);
+clReleaseMemObject(sdy42D);
+clReleaseMemObject(rcx51D);
+clReleaseMemObject(rcx52D);
+clReleaseMemObject(rcx41D);
+clReleaseMemObject(rcx42D);
+clReleaseMemObject(rcy51D);
+clReleaseMemObject(rcy52D);
+clReleaseMemObject(rcy41D);
+clReleaseMemObject(rcy42D);
+
+clReleaseMemObject(sdx1D);
+clReleaseMemObject(sdy1D);
+clReleaseMemObject(sdx2D);
+clReleaseMemObject(sdy2D);
+clReleaseMemObject(rcx1D);
+clReleaseMemObject(rcy1D);
+clReleaseMemObject(rcx2D);
+clReleaseMemObject(rcy2D);
+
+clReleaseMemObject( cixD);
+clReleaseMemObject( ciyD);
+clReleaseMemObject( chxD);
+clReleaseMemObject( chyD);
+
+clReleaseMemObject(index_xyz_sourceD);
+clReleaseMemObject(fampD);
+clReleaseMemObject(sparam2D);
+clReleaseMemObject(risetD);
+clReleaseMemObject(ruptmD);
+clReleaseMemObject(sutmArrD);
+//cl_mem sutmArrD;
+#endif
+
 	clReleaseMemObject(nd1_velD);
 	clReleaseMemObject(nd1_txyD);
 	clReleaseMemObject(nd1_txzD);
@@ -1262,6 +1305,7 @@ void release_cl(int *deviceID)
 {
 	int i;
 	// release the MPI-ACC related marshaling kernels
+#ifdef DISFD_GPU_MARSHALING
 	clReleaseKernel(_cl_kernel_vel_sdx51);
 	clReleaseKernel(_cl_kernel_vel_sdx52);
 	clReleaseKernel(_cl_kernel_vel_sdx41);
@@ -1328,6 +1372,7 @@ void release_cl(int *deviceID)
 	clReleaseKernel(_cl_kernel_stress_interp1);
 	clReleaseKernel(_cl_kernel_stress_interp2);
 	clReleaseKernel(_cl_kernel_stress_interp3);
+#endif
 	// release the opencl context
 	clReleaseKernel(_cl_kernel_velocity_inner_IC   );
 	clReleaseKernel(_cl_kernel_velocity_inner_IIC  );
@@ -1757,6 +1802,7 @@ void allocate_gpu_memC_opencl(int   *lbx,
 	CHECK_NULL_ERROR(v2z_pzD, "v2z_pzD");
 
 // MPI-ACC
+#ifdef DISFD_GPU_MARSHALING
 sdx51D = clCreateBuffer(_cl_context, CL_MEM_READ_WRITE,  sizeof(float) * (*nztop) * (*nytop) * (5), NULL, NULL);
 sdx52D = clCreateBuffer(_cl_context, CL_MEM_READ_WRITE,  sizeof(float) * (*nzbtm) * (*nybtm) * (5), NULL, NULL);
 sdx41D = clCreateBuffer(_cl_context, CL_MEM_READ_WRITE,  sizeof(float) * (*nztop) * (*nytop) * (4), NULL, NULL);
@@ -1826,6 +1872,7 @@ CHECK_NULL_ERROR(chyD, "chyD");
 	//printf("done!\n");
 
 	init_gpuarr_metadata (*nxtop, *nytop, *nztop, *nxbtm, *nybtm, *nzbtm);
+#endif
 	return;
 }
 
@@ -4839,7 +4886,9 @@ void compute_stressC_opencl(int *nxb1, int *nyb1, int *nx1p1, int *ny1p1, int *n
 
 	gettimeofday(&t1, NULL);
 	//Start(&d2hTimerStress);
+//#ifndef DISFD_GPU_MARSHALING
 	cpy_d2h_stressOutputsC_opencl(t1xxM, t1xyM, t1xzM, t1yyM, t1yzM, t1zzM, t2xxM, t2xyM, t2xzM, t2yyM, t2yzM, t2zzM, nxtop, nytop, nztop, nxbtm, nybtm, nzbtm);
+//#endif
 	//Stop(&d2hTimerStress);
 	gettimeofday(&t2, NULL);
 
@@ -5126,6 +5175,8 @@ void sdx42_vel (float** sdx42, int* nxbtm, int* nybtm, int* nzbtm, int* nxbm1){
 	int gridX = (*nzbtm)/blockSizeX + 1;
 	int gridY = (*nybtm)/blockSizeY + 1;
 	size_t dimGrid[3] = {gridX, gridY, 1};
+	printf("Sdx42 Block ( %lu %lu %lu ), Grid: ( %lu %lu %lu ) \n", dimBlock[0], dimBlock[1], dimBlock[2],
+							dimGrid[0], dimGrid[1], dimGrid[2]);
 	localWorkSize[0] = dimBlock[0];
 	localWorkSize[1] = dimBlock[1];
 	localWorkSize[2] = dimBlock[2];
@@ -5250,21 +5301,21 @@ void sdy52_vel (float** sdy52, int* nxbtm, int* nybtm, int* nzbtm) {
 	record_time(&tstart);
 	errNum = CL_SUCCESS;
 	int argIdx = 0;
-	errNum |= clSetKernelArg(_cl_kernel_vel_sdx42, argIdx++, sizeof(cl_mem), &sdy52D);
-	errNum |= clSetKernelArg(_cl_kernel_vel_sdx42, argIdx++, sizeof(cl_mem), &v2xD);
-	errNum |= clSetKernelArg(_cl_kernel_vel_sdx42, argIdx++, sizeof(cl_mem), &v2yD);
-	errNum |= clSetKernelArg(_cl_kernel_vel_sdx42, argIdx++, sizeof(cl_mem), &v2zD);
-	errNum |= clSetKernelArg(_cl_kernel_vel_sdx42, argIdx++, sizeof(int), nybtm);
-	errNum |= clSetKernelArg(_cl_kernel_vel_sdx42, argIdx++, sizeof(int), nzbtm);
-	errNum |= clSetKernelArg(_cl_kernel_vel_sdx42, argIdx++, sizeof(int), nxbtm);
+	errNum |= clSetKernelArg(_cl_kernel_vel_sdy52, argIdx++, sizeof(cl_mem), &sdy52D);
+	errNum |= clSetKernelArg(_cl_kernel_vel_sdy52, argIdx++, sizeof(cl_mem), &v2xD);
+	errNum |= clSetKernelArg(_cl_kernel_vel_sdy52, argIdx++, sizeof(cl_mem), &v2yD);
+	errNum |= clSetKernelArg(_cl_kernel_vel_sdy52, argIdx++, sizeof(cl_mem), &v2zD);
+	errNum |= clSetKernelArg(_cl_kernel_vel_sdy52, argIdx++, sizeof(int), nybtm);
+	errNum |= clSetKernelArg(_cl_kernel_vel_sdy52, argIdx++, sizeof(int), nzbtm);
+	errNum |= clSetKernelArg(_cl_kernel_vel_sdy52, argIdx++, sizeof(int), nxbtm);
 	if(errNum != CL_SUCCESS)
 	{
-		fprintf(stderr, "Error: setting kernel _cl_kernel_vel_sdx42 arguments!\n");
+		fprintf(stderr, "Error: setting kernel _cl_kernel_vel_sdy52 arguments!\n");
 	}
-	errNum = clEnqueueNDRangeKernel(_cl_commandQueues[1], _cl_kernel_vel_sdx42, 3, NULL, globalWorkSize, localWorkSize, 0, NULL, NULL);
+	errNum = clEnqueueNDRangeKernel(_cl_commandQueues[1], _cl_kernel_vel_sdy52, 3, NULL, globalWorkSize, localWorkSize, 0, NULL, NULL);
 	if(errNum != CL_SUCCESS)
 	{
-		fprintf(stderr, "Error: queuing kernel _cl_kernel_vel_sdx42 for execution!\n");
+		fprintf(stderr, "Error: queuing kernel _cl_kernel_vel_sdy52 for execution!\n");
 	}
 	//vel_sdy52 <<< dimGrid, dimBlock >>> (sdy52D, v2xD, v2yD, v2zD,  *nybtm, *nzbtm, *nxbtm);
 	errNum = clFinish(_cl_commandQueues[1]);

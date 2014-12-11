@@ -529,7 +529,7 @@ void LegacyDevice::LaunchKernel(CLCommand* command, CLKernel* kernel,
                                 cl_uint work_dim, size_t gwo[3], size_t gws[3],
                                 size_t lws[3], size_t nwg[3],
                                 map<cl_uint, CLKernelArg*>* kernel_args) {
-//  SNUCL_INFO("run kernel: %s Device Type: %d Ptr: %p\n", 
+  //SNUCL_INFO("run kernel: %s Device Type: %d Ptr: %p\n", 
   //		kernel->name(), type_, device_id_);
   gLegacyTimer.Start();
   CHECK_ERROR(available_ == CL_FALSE, CL_DEVICE_NOT_AVAILABLE);
@@ -584,6 +584,8 @@ void LegacyDevice::LaunchKernel(CLCommand* command, CLKernel* kernel,
 	  }
   }
   cl_event event;
+  SNUCL_INFO("run kernel: %s Device Type: %d Ptr: %p\n", 
+  		kernel->name(), type_, device_id_);
   err = dispatch_->clEnqueueNDRangeKernel(kernel_queue_, legacy_kernel,
                                           work_dim, gwo, gws, lws, 0, NULL,
                                           &event);

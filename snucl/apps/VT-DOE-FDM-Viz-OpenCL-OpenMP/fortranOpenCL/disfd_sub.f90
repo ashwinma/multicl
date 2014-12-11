@@ -6970,7 +6970,11 @@ subroutine ISEND_IRECV_Velocity(comm_worker)
                   neighb(3), 402, comm_worker, req(nr), ierr)
 #endif
  endif
+#if USE_MPIX==1
+ call MPI_WAITALL(nr,reqX,statusX,ierr)
+#else
  call MPI_WAITALL(nr,req,status,ierr)
+#endif
 !-from 1 to 2
  if(neighb(2)>-1) then
 #ifdef DISFD_GPU_MARSHALING   

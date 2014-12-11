@@ -5442,6 +5442,7 @@ void rcx51_vel (float** rcx51, int* nxtop, int* nytop, int* nztop, int* nx1p1, i
 	errNum |= clSetKernelArg(_cl_kernel_vel_rcx51, argIdx++, sizeof(int), nztop);
 	errNum |= clSetKernelArg(_cl_kernel_vel_rcx51, argIdx++, sizeof(int), nxtop);
 	errNum |= clSetKernelArg(_cl_kernel_vel_rcx51, argIdx++, sizeof(int), nx1p1);
+	errNum |= clSetKernelArg(_cl_kernel_vel_rcx51, argIdx++, sizeof(int), nx1p2);
 	if(errNum != CL_SUCCESS)
 	{
 		fprintf(stderr, "Error: setting kernel _cl_kernel_vel_rcx51 arguments!\n");

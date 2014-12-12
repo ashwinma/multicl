@@ -36,7 +36,7 @@
 }
 //#define DISFD_DEBUG
 //#define DISFD_PAPI
-#define DISFD_USE_ROW_MAJOR_DATA
+//#define DISFD_USE_ROW_MAJOR_DATA
 #if 1
 //#define DISFD_H2D_SYNC_KERNEL
 #else
@@ -2771,9 +2771,11 @@ void compute_velocityC_opencl(int *nztop, int *nztm1, float *ca, int *lbx,
 
 	gettimeofday(&t1, NULL);
 	//Start(&h2dTimerVelocity);
+#ifndef DISFD_GPU_MARSHALING
 	cpy_h2d_velocityInputsC_opencl(t1xxM, t1xyM, t1xzM, t1yyM, t1yzM, t1zzM, t2xxM, t2xyM, t2xzM, t2yyM, t2yzM, t2zzM, nxtop, nytop, nztop, nxbtm, nybtm, nzbtm);
 
 	cpy_h2d_velocityOutputsC_opencl(v1xM, v1yM, v1zM, v2xM, v2yM, v2zM, nxtop, nytop, nztop, nxbtm, nybtm, nzbtm);
+#endif
 	//Stop(&h2dTimerVelocity);
 	gettimeofday(&t2, NULL);
 	tmpTime = 1000.0 * (t2.tv_sec - t1.tv_sec) + (t2.tv_usec - t1.tv_usec) / 1000.0;
@@ -3203,7 +3205,9 @@ void compute_velocityC_opencl(int *nztop, int *nztm1, float *ca, int *lbx,
 
 	gettimeofday(&t1, NULL);
 	//Start(&d2hTimerVelocity);
+#ifndef DISFD_GPU_MARSHALING
 	cpy_d2h_velocityOutputsC_opencl(v1xM, v1yM, v1zM, v2xM, v2yM, v2zM, nxtop,	nytop, nztop, nxbtm, nybtm, nzbtm);
+#endif
 	//Stop(&d2hTimerVelocity);
 	gettimeofday(&t2, NULL);
 	tmpTime = 1000.0 * (t2.tv_sec - t1.tv_sec) + (t2.tv_usec - t1.tv_usec) / 1000.0;
@@ -3539,8 +3543,10 @@ void compute_stressC_opencl(int *nxb1, int *nyb1, int *nx1p1, int *ny1p1, int *n
 
 	gettimeofday(&t1, NULL);
 	//Start(&h2dTimerStress);
+#ifndef DISFD_GPU_MARSHALING
 	cpy_h2d_stressInputsC_opencl(v1xM, v1yM, v1zM, v2xM, v2yM, v2zM, nxtop, nytop, nztop, nxbtm, nybtm, nzbtm);
 	cpy_h2d_stressOutputsC_opencl(t1xxM, t1xyM, t1xzM, t1yyM, t1yzM, t1zzM, t2xxM, t2xyM, t2xzM,t2yyM, t2yzM, t2zzM, nxtop, nytop, nztop, nxbtm, nybtm, nzbtm);
+#endif
 	//Stop(&h2dTimerStress);
 	gettimeofday(&t2, NULL);
 	tmpTime = 1000.0 * (t2.tv_sec - t1.tv_sec) + (t2.tv_usec - t1.tv_usec) / 1000.0;
@@ -4886,9 +4892,9 @@ void compute_stressC_opencl(int *nxb1, int *nyb1, int *nx1p1, int *ny1p1, int *n
 
 	gettimeofday(&t1, NULL);
 	//Start(&d2hTimerStress);
-//#ifndef DISFD_GPU_MARSHALING
+#ifndef DISFD_GPU_MARSHALING
 	cpy_d2h_stressOutputsC_opencl(t1xxM, t1xyM, t1xzM, t1yyM, t1yzM, t1zzM, t2xxM, t2xyM, t2xzM, t2yyM, t2yzM, t2zzM, nxtop, nytop, nztop, nxbtm, nybtm, nzbtm);
-//#endif
+#endif
 	//Stop(&d2hTimerStress);
 	gettimeofday(&t2, NULL);
 

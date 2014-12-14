@@ -264,7 +264,7 @@ subroutine run_fd_simul(myid_world)
                    cptr_drvh2, cptr_drti2, cptr_idmat2, cptr_damp2_x, cptr_damp2_y, cptr_damp2_z, &
                    cptr_dxi2, cptr_dyi2, cptr_dzi2, cptr_dxh2, cptr_dyh2, cptr_dzh2, cptr_t2xx, &
                    cptr_t2xy, cptr_t2xz, cptr_t2yy, cptr_t2yz, cptr_t2zz, cptr_v2x_px, cptr_v2y_px, &
-                   cptr_v2z_px, cptr_v2x_py, cptr_v2y_py, cptr_v2z_py, cptr_v2x_pz, cptr_v2y_pz, cptr_v2z_pz, &
+                   cptr_v2z_px, cptr_v2x_py, cptr_v2y_py, cptr_v2z_py, cptr_v2x_pz, cptr_v2y_pz, cptr_v2z_pz, c_cix, c_ciy, c_chx, c_chy, &
                    nmat, mw1_pml1, mw2_pml1, nxtop, nytop, nztop, mw1_pml, mw2_pml,  &
                    nxbtm, nybtm, nzbtm, nzbm1) bind(c, name='cpy_h2d_velocityInputsCOneTime')
        use, intrinsic :: iso_c_binding, ONLY: C_INT, C_FLOAT, C_PTR
@@ -323,6 +323,7 @@ subroutine run_fd_simul(myid_world)
        type (c_ptr), value, intent(in) :: cptr_v2x_pz
        type (c_ptr), value, intent(in) :: cptr_v2y_pz
        type (c_ptr), value, intent(in) :: cptr_v2z_pz
+       type(c_ptr), value, intent(in):: c_cix, c_ciy, c_chx, c_chy
        integer(c_int), intent(in) :: nmat
        integer(c_int), intent(in) :: mw1_pml1
        integer(c_int), intent(in) :: mw2_pml1
@@ -346,7 +347,7 @@ subroutine run_fd_simul(myid_world)
                    cptr_drvh2, cptr_drti2, cptr_idmat2, cptr_damp2_x, cptr_damp2_y, cptr_damp2_z, &
                    cptr_dxi2, cptr_dyi2, cptr_dzi2, cptr_dxh2, cptr_dyh2, cptr_dzh2, cptr_t2xx, &
                    cptr_t2xy, cptr_t2xz, cptr_t2yy, cptr_t2yz, cptr_t2zz, cptr_v2x_px, cptr_v2y_px, &
-                   cptr_v2z_px, cptr_v2x_py, cptr_v2y_py, cptr_v2z_py, cptr_v2x_pz, cptr_v2y_pz, cptr_v2z_pz, &
+                   cptr_v2z_px, cptr_v2x_py, cptr_v2y_py, cptr_v2z_py, cptr_v2x_pz, cptr_v2y_pz, cptr_v2z_pz, c_cix, c_ciy, c_chx, c_chy, &
                    nmat, mw1_pml1, mw2_pml1, nxtop, nytop, nztop, mw1_pml, mw2_pml,  &
                    nxbtm, nybtm, nzbtm, nzbm1) bind(c, name='cpy_h2d_velocityInputsCOneTimecl')
        use, intrinsic :: iso_c_binding, ONLY: C_INT, C_FLOAT, C_PTR
@@ -405,6 +406,7 @@ subroutine run_fd_simul(myid_world)
        type (c_ptr), value, intent(in) :: cptr_v2x_pz
        type (c_ptr), value, intent(in) :: cptr_v2y_pz
        type (c_ptr), value, intent(in) :: cptr_v2z_pz
+       type(c_ptr), value, intent(in):: c_cix, c_ciy, c_chx, c_chy
        integer(c_int), intent(in) :: nmat
        integer(c_int), intent(in) :: mw1_pml1
        integer(c_int), intent(in) :: mw2_pml1
@@ -1424,6 +1426,17 @@ subroutine run_fd_simul(myid_world)
        integer(c_int), dimension(*), intent(in) :: lbx
        integer(c_int), dimension(*), intent(in) :: lby
     end subroutine free_device_memC_opencl
+
+    subroutine one_time_data_vel (index_xyz_source, ixsX, ixsY, ixsZ, &
+                    famp, fampX, fampY, ruptm, ruptmX, riset, risetX, sparam2, &
+                    sparam2X )&
+        bind(C, name="one_time_data_vel")
+        use:: iso_c_binding
+        type(c_ptr), intent(in), value :: index_xyz_source, famp, ruptm, riset, sparam2
+        integer(c_int), value, intent(in):: ixsX, ixsY, ixsZ, fampX, fampY,&
+        ruptmX, risetX, sparam2X
+    end subroutine one_time_data_vel
+
 end interface
  integer, intent(IN):: myid_world
  character (len=72):: fileSou,file_tmp
@@ -1512,6 +1525,18 @@ end interface
    !kaixi!include 'allocate_gpu_mem.h'
 ! call opencl function
    include 'allocate_gpu_mem_opencl.h'
+   if(allocated(index_xyz_source) .and. &
+        allocated(famp) .and. &
+        allocated(ruptm) .and. &
+        allocated(riset) .and. &
+        allocated(sparam2)) then
+       call one_time_data_vel (c_loc(index_xyz_source), size(index_xyz_source,1), & 
+                    size(index_xyz_source,2), size(index_xyz_source,3), &
+                    c_loc(famp), size(famp,1), size(famp,2), &
+                    c_loc(ruptm), size(ruptm, 1), c_loc(riset), size(riset,1), &
+                    c_loc(sparam2), size(sparam2,1))
+   endif
+
    !kaixi!include 'copy_inputs_to_gpu.h'
 ! call opencl function
    !gpuarr_metadata initialized during gpu mem init

@@ -59,6 +59,10 @@ call cpy_h2d_velocityInputsCOneTimecl(lbx, &
                           cptr_v2x_pz, &
                           cptr_v2y_pz, &
                           cptr_v2z_pz, &
+                          c_loc(cix), &
+                          c_loc(ciy), &
+                          c_loc(chx), &
+                          c_loc(chy), &
                           nmat,		&
                           mw1_pml1,	&
                           mw2_pml1,	&

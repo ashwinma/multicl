@@ -1072,6 +1072,54 @@ void init_cl(int *deviceID)
 	printf("[OpenCL] device initialization success!\n");
 }
 
+//===========================================================================
+/*
+    Called from disfd.f90 as one time data transfer to GPU before
+    the time series loop starts
+*/    
+
+void one_time_data_vel (int* index_xyz_source, int ixsX, int ixsY, int ixsZ,
+                            float* famp, int fampX, int fampY,
+                             float* ruptm, int ruptmX, 
+                             float* riset, int risetX,
+                             float* sparam2, int sparam2X ) 
+{
+    cl_int errNum;
+
+    printf("ixsX: %d \n", ixsX);
+    printf("ixsY: %d \n", ixsY);
+    printf("ixsZ: %d \n", ixsZ);
+    printf("fampX: %d \n", fampX);
+    printf("fampY: %d \n", fampY);
+    printf("ruptmX: %d \n", ruptmX);
+    printf("risetX: %d \n", risetX);
+    printf("sparam2X: %d \n", sparam2X);
+
+    //cudaRes = cudaMalloc((int **)&nd1_velD, sizeof(int) * 18);
+    //CHECK_ERROR(cudaRes, "Allocate Device Memory1, nd1_vel");
+    index_xyz_sourceD = clCreateBuffer(_cl_context, CL_MEM_READ_WRITE, sizeof(int) * (ixsX) * (ixsY) * (ixsZ), NULL, NULL);
+    fampD = clCreateBuffer(_cl_context, CL_MEM_READ_WRITE, sizeof(float) * (fampX) * (fampY), NULL, NULL);
+    ruptmD = clCreateBuffer(_cl_context, CL_MEM_READ_WRITE, sizeof(float) * (ruptmX), NULL, NULL);
+    risetD = clCreateBuffer(_cl_context, CL_MEM_READ_WRITE, sizeof(float) * (risetX), NULL, NULL);
+    sparam2D = clCreateBuffer(_cl_context, CL_MEM_READ_WRITE, sizeof(float) * (sparam2X), NULL, NULL);
+	CHECK_NULL_ERROR(index_xyz_sourceD, "index_xyz_sourceD");
+	CHECK_NULL_ERROR(fampD, "fampD");
+	CHECK_NULL_ERROR(ruptmD, "ruptmD");
+	CHECK_NULL_ERROR(risetD, "risetD");
+	CHECK_NULL_ERROR(sparam2D, "sparam2D");
+
+    errNum = clEnqueueWriteBuffer(_cl_commandQueues[0], index_xyz_sourceD, CL_TRUE, 0, sizeof(int) * (ixsX) * (ixsY) *(ixsZ), index_xyz_source, 0, NULL, NULL);
+    CHECK_ERROR(errNum, "InputDataCopyHostToDevice, index_xyz_source");
+    errNum = clEnqueueWriteBuffer(_cl_commandQueues[0], fampD, CL_TRUE, 0, sizeof(float) * (fampX) * (fampY), famp, 0, NULL, NULL);
+    CHECK_ERROR(errNum, "InputDataCopyHostToDevice, fampx");
+    errNum = clEnqueueWriteBuffer(_cl_commandQueues[0], ruptmD, CL_TRUE, 0, sizeof(float) * (ruptmX), ruptm, 0, NULL, NULL);
+    CHECK_ERROR(errNum, "InputDataCopyHostToDevice, ruptm");
+    errNum = clEnqueueWriteBuffer(_cl_commandQueues[0], risetD, CL_TRUE, 0, sizeof(float) * (risetX), riset, 0, NULL, NULL);
+    CHECK_ERROR(errNum, "InputDataCopyHostToDevice, riset");
+    errNum = clEnqueueWriteBuffer(_cl_commandQueues[0], sparam2D, CL_TRUE, 0, sizeof(float) * (sparam2X), sparam2, 0, NULL, NULL);
+    CHECK_ERROR(errNum, "InputDataCopyHostToDevice, sparam2");
+}
+
 void free_device_memC_opencl(int *lbx, int *lby)
 {
 	// timing information
@@ -1835,10 +1883,10 @@ rcx2D = clCreateBuffer(_cl_context, CL_MEM_READ_WRITE,  sizeof(float) * (*nytop 
 
 //
 // ch/i x/y
-cixD = clCreateBuffer(_cl_context, CL_MEM_READ_WRITE,  sizeof(float) * (*nxbtm +6+1)*8, NULL, NULL);
-ciyD = clCreateBuffer(_cl_context, CL_MEM_READ_WRITE,  sizeof(float) * (*nybtm +6+1)*8, NULL, NULL);
-chxD = clCreateBuffer(_cl_context, CL_MEM_READ_WRITE,  sizeof(float) * (*nxbtm +6+1)*8, NULL, NULL);
-chyD = clCreateBuffer(_cl_context, CL_MEM_READ_WRITE,  sizeof(float) * (*nybtm +6+1)*8, NULL, NULL);
+cixD = clCreateBuffer(_cl_context, CL_MEM_READ_ONLY,  sizeof(float) * (*nxbtm +6+1)*8, NULL, NULL);
+ciyD = clCreateBuffer(_cl_context, CL_MEM_READ_ONLY,  sizeof(float) * (*nybtm +6+1)*8, NULL, NULL);
+chxD = clCreateBuffer(_cl_context, CL_MEM_READ_ONLY,  sizeof(float) * (*nxbtm +6+1)*8, NULL, NULL);
+chyD = clCreateBuffer(_cl_context, CL_MEM_READ_ONLY,  sizeof(float) * (*nybtm +6+1)*8, NULL, NULL);
 
 
 CHECK_NULL_ERROR(sdx51D, "sdx51D");
@@ -1932,6 +1980,10 @@ void cpy_h2d_velocityInputsCOneTimecl(int   *lbx,
 		float *v2x_pz,
 		float *v2y_pz,
 		float *v2z_pz,
+                                                  float* cix,
+                                                  float* ciy,
+                                                  float* chx,
+                                                  float* chy,
 		int   *nmat,		//dimension #, int
 		int	*mw1_pml1,	//int
 		int	*mw2_pml1,	//int
@@ -2107,6 +2159,14 @@ void cpy_h2d_velocityInputsCOneTimecl(int   *lbx,
 	errNum = clEnqueueWriteBuffer(_cl_commandQueues[1], v2z_pzD, CL_TRUE, 0, sizeof(float) * (*mw2_pml) * (*nxbtm) * (*nybtm), v2z_pz, 0, NULL, NULL);
 	CHECK_ERROR(errNum, "outputDataCopyHostToDevice1, v2z_pz");
 
+	errNum = clEnqueueWriteBuffer(_cl_commandQueues[0], cixD, CL_TRUE, 0, sizeof(float) * (*nxbtm + 6 +1) * (8), cix, 0, NULL, NULL);
+	CHECK_ERROR(errNum, "outputDataCopyHostToDevice1, cix");
+	errNum = clEnqueueWriteBuffer(_cl_commandQueues[0], ciyD, CL_TRUE, 0, sizeof(float) * (*nybtm + 6 +1) * (8), ciy, 0, NULL, NULL);
+	CHECK_ERROR(errNum, "outputDataCopyHostToDevice1, ciy");
+	errNum = clEnqueueWriteBuffer(_cl_commandQueues[0], chxD, CL_TRUE, 0, sizeof(float) * (*nxbtm + 6 +1) * (8), chx, 0, NULL, NULL);
+	CHECK_ERROR(errNum, "outputDataCopyHostToDevice1, chx");
+	errNum = clEnqueueWriteBuffer(_cl_commandQueues[0], chyD, CL_TRUE, 0, sizeof(float) * (*nybtm + 6 +1) * (8), chy, 0, NULL, NULL);
+	CHECK_ERROR(errNum, "outputDataCopyHostToDevice1, chy");
 	//printf("done!\n");
 	return;
 }
@@ -7704,7 +7764,7 @@ void add_dcs_vel(float* sutmArr, int nfadd, int ixsX, int ixsY, int ixsZ,
 	cl_int errNum;
 	int which_qid = 0;
 	// TODO: change the below to OpenCL
-	clReleaseMemObject(sutmArrD);
+	if(sutmArrD) clReleaseMemObject(sutmArrD);
 	//cudaFree(sutmArrD);
 	sutmArrD = clCreateBuffer(_cl_context, CL_MEM_READ_WRITE, sizeof(float) * (nfadd), NULL, NULL);
 	CHECK_NULL_ERROR(sutmArrD, "sutmArrD");

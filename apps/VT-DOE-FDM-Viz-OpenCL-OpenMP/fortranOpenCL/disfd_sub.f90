@@ -3634,14 +3634,46 @@ subroutine comm_stress(comm_worker)
 end subroutine comm_stress
 !end XSC=======================================================
 
+subroutine velocity_one_time_data
+
+ use grid_node_comm
+ use wave_field_comm
+ use source_parm_comm
+ use :: iso_c_binding
+ implicit NONE
+
+
+    interface
+        subroutine one_time_data_vel(index_xyz_source, ixsX, ixsY, ixsZ, &
+                                    famp, fampX, fampY, &
+                                    ruptm, ruptmX, riset, risetX, sparam2, sparam2X) &
+            bind (C, name="one_time_data_vel")
+            use :: iso_c_binding
+            type(c_ptr), intent(in), value :: index_xyz_source, famp, ruptm, riset, sparam2
+            integer(c_int),intent(in), value:: ixsX, ixsY, ixsZ, fampX, fampY, ruptmX, risetX, sparam2X
+        end subroutine one_time_data_vel
+    end interface
+    call one_time_data_vel(c_loc(index_xyz_source), size(index_xyz_source,1),&
+                size(index_xyz_source,2), size(index_xyz_source,3), &
+                c_loc(famp), size(famp,1), size(famp,2), &
+                c_loc(ruptm), size(ruptm, 1), &
+                c_loc(riset), size(riset, 1), &
+                c_loc(sparam2), size(sparam2, 1)) 
+end subroutine velocity_one_time_data
+
+
+
 !-----------------------------------------------------------------------
 subroutine add_dcs(tim)
 ! Adding double couple sources 
  use grid_node_comm
  use wave_field_comm
  use source_parm_comm
- use iso_c_binding
+ use :: iso_c_binding
+! use logging
+ use metadata
  use ctimer
+ !use iso_c_binding
  implicit NONE
 
  interface
@@ -3665,6 +3697,7 @@ subroutine add_dcs(tim)
  total_gpu_marsh_time =0.0
  total_cpu_marsh_time =0.0
  
+ if(DETAILED_TIMING .eq. 1) then; call log_timing ("GPU ADD_DCS NFADD ", DBLE(nfadd)); end if
  allocate(sutmArr(nfadd))
  if (nfadd .eq. 0) then
     return
@@ -3673,7 +3706,6 @@ subroutine add_dcs(tim)
  do  kap=1,nfadd
    sutmArr(kap)=-fsource(tim-ruptm(kap),riset(kap),sparam2(kap),id_sf_type)
  enddo
-
 #ifdef DISFD_GPU_MARSHALING
  if(DETAILED_TIMING .eq. 1) then;  call record_time(gpu_tstart) ; end if
  call add_dcs_vel(c_loc(sutmArr), nfadd, size(index_xyz_source,1),&
@@ -3685,7 +3717,8 @@ subroutine add_dcs(tim)
                 nxtop, nytop, nztop, nxbtm, nybtm , nzbtm)
  if(DETAILED_TIMING .eq. 1) then; call record_time(gpu_tend); call log_timing ("GPU add_dcs", gpu_tend-gpu_tstart); &
         total_gpu_marsh_time = total_gpu_marsh_time + (gpu_tend-gpu_tstart); end if
- 
+
+ if(DETAILED_TIMING .eq. 1) then; call log_timing ("GPU Marshaling add_dcs", total_gpu_marsh_time); end if
 #else
  call record_time(tstart)
 ! Mxx, Myy, Mzz:
@@ -6532,6 +6565,7 @@ end subroutine ISEND_IRECV_Stress
 subroutine ISEND_IRECV_Velocity(comm_worker)
  use mpi
  use grid_node_comm
+ use ctimer
  use wave_field_comm
  use, intrinsic :: iso_c_binding
  implicit NONE

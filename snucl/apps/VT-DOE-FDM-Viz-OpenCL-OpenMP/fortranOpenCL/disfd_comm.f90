@@ -235,12 +235,13 @@ MODULE grid_node_comm
 END MODULE grid_node_comm
 !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 MODULE source_parm_comm
+ use iso_c_binding
  implicit NONE
  save
  integer:: nfadd,id_sf_type
- integer, allocatable, dimension(:,:,:):: index_xyz_source
- real, allocatable, dimension(:,:):: famp
- real, allocatable, dimension(:):: ruptm,riset,sparam2
+ integer, target, allocatable, dimension(:,:,:):: index_xyz_source
+ real(c_float), target, allocatable, dimension(:,:):: famp
+ real(c_float), target, allocatable, dimension(:):: ruptm,riset,sparam2
 END MODULE source_parm_comm
 !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 MODULE wave_field_comm
@@ -591,9 +592,25 @@ end module metadata
 ! and stores current time (from epoch) in 'tim'
 module ctimer
   interface 
+    subroutine logger_log_timing(tag, tim) bind(C, name="logger_log_timing")
+      use iso_c_binding
+      character(kind=c_char), intent(in) :: tag(*)
+      real(c_double), intent(in), value :: tim
+    end subroutine logger_log_timing
+
     subroutine record_time (tim) bind(C, name="record_time")
       use iso_c_binding
       real(c_double), intent(out)::tim
     end subroutine
+    
   end interface
+    CONTAINS
+    subroutine log_timing (str, tim)
+      use iso_c_binding
+      character(kind=c_char, len=*), intent(in) :: str
+      real(c_double), intent(in), value :: tim
+      !write(*,*) trim(str)//C_NULL_CHAR
+      call logger_log_timing(trim(str)//C_NULL_CHAR, tim)
+    end subroutine log_timing
+
 end module ctimer

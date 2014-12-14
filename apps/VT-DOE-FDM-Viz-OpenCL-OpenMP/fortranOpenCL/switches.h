@@ -5,7 +5,7 @@
  * Use of MPIX calls makes GPUs 1st class citizens
  * with MPI communication happening directly from GPU buffers
  */
-#define USE_MPIX 1
+#define USE_MPIX 0
 #if USE_MPIX == 1
 #define DISFD_GPU_MARSHALING
 #endif
@@ -36,7 +36,7 @@
  * Logging in the node-{rank}.log file
  * Each node has its own .log file.
  */
-#define DETAILED_TIMING 0
+#define DETAILED_TIMING 1
 
 /*
  * If enabled to 1, the velocity and stress computation results

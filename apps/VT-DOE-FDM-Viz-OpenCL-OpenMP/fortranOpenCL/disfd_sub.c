@@ -385,7 +385,6 @@ void MPIX_Isend_C (int buff_id, int count, MPI_Fint *datatype, int dest, int
 tag, MPI_Fint *comm, MPI_Fint *request, MPI_Fint *ierr, const int cmdq_id) 
 {
     MPI_Request request_C = MPI_Request_f2c(*request);
-	printf("CMDQ ID: %d", cmdq_id);
 	int err;
 	MPI_Datatype new_type;
 	MPI_Datatype old_type = MPI_Type_f2c(*datatype);

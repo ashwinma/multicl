@@ -267,8 +267,9 @@ void MPI_Recv_C (void* buff, int count, MPI_Fint datatype, int src, int tag, MPI
 */
 
 void MPIX_Send_C (int buff_id, int count, MPI_Fint *datatype, int dest, int
-        tag, MPI_Fint *comm, MPI_Fint *ierr, const int cmdq_id) 
+        tag, MPI_Fint *comm, MPI_Fint *ierr, const int command_queue_id) 
 {
+	int cmdq_id = MARSHAL_CMDQ;//command_queue_id;
 	int err;
 	MPI_Datatype new_type;
 	MPI_Datatype old_type = MPI_Type_f2c(*datatype);
@@ -291,8 +292,9 @@ void MPIX_Send_C (int buff_id, int count, MPI_Fint *datatype, int dest, int
 }
 
 void MPIX_Recv_C (int buff_id, int count, MPI_Fint *datatype, int src, int
-tag, MPI_Fint *comm, MPI_Fint *f_status, MPI_Fint *ierr, const int cmdq_id) 
+tag, MPI_Fint *comm, MPI_Fint *f_status, MPI_Fint *ierr, const int command_queue_id) 
 {
+	int cmdq_id = MARSHAL_CMDQ;//command_queue_id;
     MPI_Status c_status;
     MPI_Status_f2c(f_status, &c_status);
 	int err;
@@ -328,8 +330,9 @@ tag, MPI_Fint *comm, MPI_Fint *f_status, MPI_Fint *ierr)
 */
 
 void MPIX_Send_offset_C (int buff_id, int offset, int count, MPI_Fint *datatype, int dest, int
-        tag, MPI_Fint *comm, MPI_Fint *ierr, const int cmdq_id) 
+        tag, MPI_Fint *comm, MPI_Fint *ierr, const int command_queue_id) 
 {
+	int cmdq_id = MARSHAL_CMDQ;//command_queue_id;
 	int err;
 	MPI_Datatype new_type;
 	MPI_Datatype old_type = MPI_Type_f2c(*datatype);
@@ -353,8 +356,9 @@ void MPIX_Send_offset_C (int buff_id, int offset, int count, MPI_Fint *datatype,
 }
 
 void MPIX_Recv_offset_C (int buff_id, int offset, int count, MPI_Fint *datatype, int src, int
-tag, MPI_Fint *comm, MPI_Fint *f_status, MPI_Fint *ierr, const int cmdq_id) 
+tag, MPI_Fint *comm, MPI_Fint *f_status, MPI_Fint *ierr, const int command_queue_id) 
 {
+	int cmdq_id = MARSHAL_CMDQ;//command_queue_id;
     MPI_Status c_status;
     MPI_Status_f2c(f_status, &c_status);
 	int err;
@@ -382,8 +386,9 @@ tag, MPI_Fint *comm, MPI_Fint *f_status, MPI_Fint *ierr, const int cmdq_id)
 
 
 void MPIX_Isend_C (int buff_id, int count, MPI_Fint *datatype, int dest, int
-tag, MPI_Fint *comm, MPI_Fint *request, MPI_Fint *ierr, const int cmdq_id) 
+tag, MPI_Fint *comm, MPI_Fint *request, MPI_Fint *ierr, const int command_queue_id) 
 {
+	int cmdq_id = MARSHAL_CMDQ;//command_queue_id;
     MPI_Request request_C = MPI_Request_f2c(*request);
 	int err;
 	MPI_Datatype new_type;
@@ -408,8 +413,9 @@ tag, MPI_Fint *comm, MPI_Fint *request, MPI_Fint *ierr, const int cmdq_id)
 
 
 void MPIX_Irecv_C (int buff_id, int count, MPI_Fint *datatype, int src, int
-tag, MPI_Fint *comm, MPI_Fint *request, MPI_Fint *ierr, const int cmdq_id) 
+tag, MPI_Fint *comm, MPI_Fint *request, MPI_Fint *ierr, const int command_queue_id) 
 {
+	int cmdq_id = MARSHAL_CMDQ;//command_queue_id;
     MPI_Request request_C = MPI_Request_f2c(*request);
 	int err;
 	MPI_Datatype new_type;

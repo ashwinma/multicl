@@ -194,7 +194,7 @@ map<cl_uint, CLKernelArg*>* CLKernel::DuplicateArgs(CLDevice* target_device) {
 	{
 	  // dont duplicate read only data
 	  CLMem *m = (CLMem *)new_arg->mem;
-	  if(m->flags() & CL_MEM_READ_ONLY)
+	  if(m->flags() == CL_MEM_READ_ONLY)
 	  {
 	  	m->Retain();
 	  }
@@ -232,8 +232,8 @@ map<cl_uint, CLKernelArg*>* CLKernel::DuplicateArgs(CLDevice* target_device) {
 				  {
 					  // clone mem from src_dev to all other
 					  // devices
-					  src_dev = *it;
-					  src_dev->ReadBuffer(NULL, m, 0, m->size(), tmp); 
+					  //src_dev = *it;
+					  (*it)->ReadBuffer(NULL, m, 0, m->size(), tmp); 
 					  break;
 				  }
 			  }
@@ -246,7 +246,8 @@ map<cl_uint, CLKernelArg*>* CLKernel::DuplicateArgs(CLDevice* target_device) {
 #if 0
 					  (*it)->WriteBuffer(NULL, new_arg->mem, 0, m->size(), tmp); 
 #else
-					  if((*it) != src_dev) 
+					  if(!m->HasLatest(*it)) 
+					  //if((*it) != src_dev) 
 						  // && ((*it)->context() != src_dev->context()))
 						  // We have to do D2H once anyway for *some* device...so why not use the same 
 						  // host buffer to transfer to all devices other than the source, although there 
@@ -257,14 +258,17 @@ map<cl_uint, CLKernelArg*>* CLKernel::DuplicateArgs(CLDevice* target_device) {
 					  }
 					  else {
 						  //SNUCL_INFO("%d->%d Clone mem\n", src_dev->type(), (*it)->type());
-						  cl_mem src_dev_specific_ptr = (cl_mem)m->GetDevSpecific(src_dev);
+						  cl_mem src_dev_specific_ptr = (cl_mem)m->GetDevSpecific(*it);
 						  cl_mem dest_dev_specific_ptr = (cl_mem)new_arg->mem->GetDevSpecific(*it);
 						  //src_dev->CopyBuffer(NULL, m, new_arg->mem, 
 						  (*it)->CopyBufferAsync(NULL, m, new_arg->mem, 
 								  src_dev_specific_ptr, dest_dev_specific_ptr, 
 								  0, 0, m->size()); 
+					  	  // since original mem has in its latest list, update cloned mem obj as well
+						  new_arg->mem->AddLatest(*it);
+					      //SNUCL_INFO("Adding Device %p (%x) to Mem %p (%p)\n", *it, (*it)->type(), new_arg->mem, m);
+						  //SNUCL_INFO("Cloning to Dest Device: %p, Mem: %p, dev specific: %p, size: %llu\n", (*it), new_arg->mem, new_arg->mem->GetDevSpecific(*it), new_arg->mem->size());
 					  } 
-					  //  SNUCL_INFO("Cloning to Dest Device: %p, Mem: %p, dev specific: %p, size: %llu\n", (*it), new_arg->mem, new_arg->mem->GetDevSpecific(*it), new_arg->mem->size());
 #endif
 					  //SNUCL_INFO("Test Kernel Clone Time (%p->%p): %llu bytes takes %g sec\n", src_dev, *it, m->size(), kernel_clone_timer.CurrentElapsed());
 				  }

@@ -122,6 +122,7 @@ class CLMem: public CLObject<struct _cl_mem, CLMem, struct _emu_cl_mem> {
   void AddLatest(CLDevice* device);
   void SetLatest(CLDevice* device);
   CLDevice* GetNearestLatest(CLDevice* device);
+  int GetNearestLatestId(std::vector<CLDevice*> devices, int target_dev_id);
 
   void* MapAsBuffer(cl_map_flags map_flags, size_t offset, size_t size, CLCommandQueue *q);
   void* MapAsImage(cl_map_flags map_flags, const size_t* origin,

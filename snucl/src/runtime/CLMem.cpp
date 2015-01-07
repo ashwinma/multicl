@@ -374,7 +374,7 @@ void CLMem::SetLatest(CLDevice* device) {
   pthread_mutex_lock(&mutex_dev_latest_);
   if (!dev_latest_.empty())
   	dev_latest_.clear();
-//  SNUCL_INFO("Associating CLMem %p with Dev %p\n", this, device);
+    //SNUCL_INFO("Associating CLMem %p with Dev %p (%x) \n", this, device, device->type());
   dev_latest_.insert(device);
   pthread_mutex_unlock(&mutex_dev_latest_);
 }
@@ -394,6 +394,36 @@ CLDevice* CLMem::GetNearestLatest(CLDevice* device) {
   }
   pthread_mutex_unlock(&mutex_dev_latest_);
   return nearest;
+}
+
+int CLMem::GetNearestLatestId(std::vector<CLDevice*> devices, int target_dev_id) {
+  CLDevice* nearest = NULL;
+  int nearest_dev_id = -1;
+  int min_distance = 10; // INF
+  SNUCL_INFO("Finding nearest device (of %d) to ID %d\n", devices.size(), target_dev_id);
+  pthread_mutex_lock(&mutex_dev_latest_);
+  CLDevice* device = devices[target_dev_id];
+  for (set<CLDevice*>::iterator it = dev_latest_.begin();
+       it != dev_latest_.end();
+       ++it) {
+	SNUCL_INFO("IsLatest Device %p\n", *it);
+    int distance = device->GetDistance(*it);
+    if (distance < min_distance) {
+      nearest = *it;
+      min_distance = distance;
+    } 
+  }
+  int i = 0;
+  for(i = 0; i < devices.size(); i++) {
+    SNUCL_INFO("Comparing device[%d] %p (%x) with nearest %p (%x)\n", i, devices[i], devices[i]->type(),
+					nearest, nearest->type());
+  	if(nearest == devices[i]) {
+		nearest_dev_id = i;
+		break;
+	}
+  }
+  pthread_mutex_unlock(&mutex_dev_latest_);
+  return nearest_dev_id;
 }
 
 void* CLMem::MapAsBuffer(cl_map_flags map_flags, size_t offset, size_t size, CLCommandQueue *q) {

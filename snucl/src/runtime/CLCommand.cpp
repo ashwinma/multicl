@@ -179,6 +179,7 @@ std::vector<double> CLCommand::EstimatedCost(std::vector<CLDevice *> &target_dev
 		// do the following if the Data Model flag is On
 		// If this is the first epoch, then we may want to do a H-D distance calculation
 		std::vector<CLContext::perf_order_vector> d2h_distances = context_->d2h_distances();
+		std::vector<CLContext::perf_order_vector> d2d_distances = context_->d2d_distances();
 		int cur_host_idx = GetCurrentHostIDx();
 		for (map<cl_uint, CLKernelArg*>::iterator it = kernel_args_->begin();
 				it != kernel_args_->end();
@@ -186,17 +187,41 @@ std::vector<double> CLCommand::EstimatedCost(std::vector<CLDevice *> &target_dev
 			CLKernelArg* arg = it->second;
 			if (arg->mem != NULL)
 			{
-				if(!(arg->mem->flags() & CL_MEM_READ_ONLY)) {
+				if(arg->mem->flags() == CL_MEM_READ_WRITE || arg->mem->flags() == CL_MEM_WRITE_ONLY) {
 					if(memObjCache.find(arg->mem) == memObjCache.end()) {
-						SNUCL_INFO("Data Movement for %lu bytes\n", arg->mem->size()); 
+						//SNUCL_INFO("Data Movement for %p : %lu bytes\n", arg->mem, arg->mem->size()); 
 						for(i = 0; i < target_device.size(); i++) {
 							//   find distance between host thread and devices for this data size
 							CLMem *param = arg->mem;
-							int cur_device = d2h_distances[cur_host_idx][i].second;
-							double h2d_cost = 2 * (d2h_distances[cur_host_idx][i].first * param->size() / (512 * 1024 * (10e6)));
-							//SNUCL_INFO("DM Cost for mem %p = %g for %lu bytes %g\n", arg->mem, 
-	//								d2h_distances[cur_host_idx][i].first, param->size(), h2d_cost);
-							est_costs[cur_device] += h2d_cost;
+							// we may need to keep a separate ds for this?
+							if(param->EmptyLatest()) {
+								int cur_device = d2h_distances[cur_host_idx][i].second;
+								double h2d_cost = 2 * (d2h_distances[cur_host_idx][i].first * param->size() / (512 * 1024 * (10e6)));
+								SNUCL_INFO("[%d->%d] H2D Cost for mem %p = %g for %lu bytes %g\n", cur_host_idx, i, arg->mem, 
+																d2h_distances[cur_host_idx][i].first, param->size(), h2d_cost);
+								est_costs[cur_device] += h2d_cost;
+							}
+							else {
+								int nearest_latest_device = param->GetNearestLatestId(target_device, i);
+								//SNUCL_INFO("Nearest Latest Dev to %d is %d %p\n", i, nearest_latest_device, target_device[nearest_latest_device]);
+								double d2d_cost = 0.0;
+								if(i != nearest_latest_device) {
+									int j = 0;
+									for(j = 0; j < target_device.size(); j++) {
+										//SNUCL_INFO("D2D_ID [%d, %d]: %d\n", i, j, d2d_distances[i][j].second);
+										//if(i != d2d_distances[i][j].second && d2d_distances[i][j].second == nearest_latest_device) {
+										if(d2d_distances[i][j].second == nearest_latest_device) {
+											// this check is needed because d2d_distances[i] will be ordered at this point
+
+											d2d_cost = 1 * (d2d_distances[i][j].first * param->size() / (512 * 1024 * (10e6)));
+											SNUCL_INFO("[%d->%d] D2D Cost for mem %p = %g for %lu bytes %g\n", 
+													i, j, arg->mem, d2d_distances[i][j].first, param->size(), d2d_cost);
+											break;
+										}
+									}
+								}
+								est_costs[i] += d2d_cost;
+							}
 						}
 					}
 					memObjCache.insert(arg->mem);
@@ -383,7 +408,7 @@ void CLCommand::Execute() {
       break;
     case CL_COMMAND_WRITE_BUFFER:
 	  // if read only buffer, copy buffer to all devices in the context
-	  if(mem_dst_->flags() & CL_MEM_READ_ONLY) 
+	  if(mem_dst_->flags() == CL_MEM_READ_ONLY) 
 	  {
 		  vector<CLDevice *> devices = context_->devices();
 		  for (vector<CLDevice*>::iterator it = devices.begin();
@@ -897,17 +922,27 @@ int CLCommand::ResolveDeviceOfWriteMem() {
 
 bool CLCommand::ResolveConsistencyOfLaunchKernel() {
   bool already_resolved = true;
+  bool synced = false;
   //SNUCL_INFO("Resolving consistency of kernel\n", 0);
+  if(!gCommandTimer.IsRunning()) gCommandTimer.Start();
   for (map<cl_uint, CLKernelArg*>::iterator it = kernel_args_->begin();
        it != kernel_args_->end();
        ++it) {
     CLKernelArg* arg = it->second;
     if (arg->mem != NULL)
 	{
+  	  CLDevice* before_device = arg->mem->GetNearestLatest(device_);
+  	  CLDevice* after_device = device_;
       already_resolved &= LocateMemOnDevice(arg->mem);
+	  if(before_device != after_device) {
+	  	SNUCL_INFO("Kernel Arg Memcpied from %p to %p\n", before_device, after_device);
+		synced = true;
+	  }
 	}
   }
   consistency_resolved_ = true;
+  if(gCommandTimer.IsRunning()) gCommandTimer.Stop();
+  if(synced == true) gCommandTimer.PrintCurrent("Resolve Kernel Launch");
   return already_resolved;
 }
 
@@ -1400,14 +1435,14 @@ CLEvent* CLCommand::CloneMem(CLDevice* dev_src, CLDevice* dev_dst,
 bool CLCommand::LocateMemOnDevice(CLMem* mem) {
   if (mem->HasLatest(device_) || mem->EmptyLatest())
     return true;
-	gCommandTimer.Start();
+//	gCommandTimer.Start();
   CLDevice* source = mem->GetNearestLatest(device_);
   CLEvent* last_event = CloneMem(source, device_, mem);
   AddWaitEvent(last_event);
   last_event->Release();
-	gCommandTimer.Stop();
-	SNUCL_INFO("Mem moved from %p->%p Time: %g sec\n", 
-		source, device_, gCommandTimer.CurrentElapsed());
+//	gCommandTimer.Stop();
+//	SNUCL_INFO("Mem moved from %p->%p Time: %g sec\n", 
+//		source, device_, gCommandTimer.CurrentElapsed());
 	//gCommandTimer.PrintCurrent("Resolve Mem Location Overhead");
   return false;
 }

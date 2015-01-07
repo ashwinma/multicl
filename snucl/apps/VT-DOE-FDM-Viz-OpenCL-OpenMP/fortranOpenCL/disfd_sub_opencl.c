@@ -38,11 +38,12 @@
 //#define DISFD_PAPI
 #define DISFD_USE_ROW_MAJOR_DATA
 #if 1
-//#define DISFD_H2D_SYNC_KERNEL
+#define DISFD_H2D_SYNC_KERNEL
 #else
 #define DISFD_EAGER_DATA_TRANSFER
 #endif
 #define SNUCL_PERF_MODEL_OPTIMIZATION
+//#define DISFD_SINGLE_COMMANDQ
 /***********************************************/
 /* for debug: check the output                 */
 /***********************************************/
@@ -669,9 +670,9 @@ void init_cl(int *deviceID)
 		CL_CONTEXT_PLATFORM,
 		(cl_context_properties) _cl_firstPlatform,
 		CL_CONTEXT_SCHEDULER,
-		//CL_CONTEXT_SCHEDULER_CODE_SEGMENTED_PERF_MODEL,
+		CL_CONTEXT_SCHEDULER_CODE_SEGMENTED_PERF_MODEL,
 		//CL_CONTEXT_SCHEDULER_PERF_MODEL,
-		CL_CONTEXT_SCHEDULER_FIRST_EPOCH_BASED_PERF_MODEL,
+		//CL_CONTEXT_SCHEDULER_FIRST_EPOCH_BASED_PERF_MODEL,
 		//CL_CONTEXT_SCHEDULER_ALL_EPOCH_BASED_PERF_MODEL,
 		0 };
 	_cl_context = clCreateContext(props, num_devices, _cl_devices, NULL, NULL, &errNum);
@@ -684,7 +685,7 @@ void init_cl(int *deviceID)
 	}
 
 	//_cl_commandQueue = clCreateCommandQueue(_cl_context, _cl_firstDevice, CL_QUEUE_PROFILING_ENABLE, NULL);
-#if 1
+#ifndef DISFD_SINGLE_COMMANDQ
 	for(i = 0; i < NUM_COMMAND_QUEUES; i++)
 	{
 		int chosen_dev_id = 0; 
@@ -705,8 +706,8 @@ void init_cl(int *deviceID)
 		_cl_commandQueues[i] = clCreateCommandQueue(_cl_context, 
 				_cl_devices[chosen_dev_id], 
 #ifdef SNUCL_PERF_MODEL_OPTIMIZATION
-				CL_QUEUE_AUTO_DEVICE_SELECTION | 
-				CL_QUEUE_ITERATIVE | 
+				//CL_QUEUE_AUTO_DEVICE_SELECTION | 
+				//CL_QUEUE_ITERATIVE | 
 				//CL_QUEUE_IO_INTENSIVE | 
 				//CL_QUEUE_COMPUTE_INTENSIVE | 
 #endif
@@ -718,10 +719,14 @@ void init_cl(int *deviceID)
 	}
 #else
 	int chosen_dev_id = 0;
+	char *foo = getenv("SNUCL_DEV_0");
+	if(foo != NULL)
+		chosen_dev_id = atoi(foo);
+	printf("[OpenCL] All command queue uses Dev ID %d\n", chosen_dev_id);
 	_cl_commandQueues[0] = clCreateCommandQueue(_cl_context, _cl_devices[chosen_dev_id], 
 #ifdef SNUCL_PERF_MODEL_OPTIMIZATION
-			CL_QUEUE_AUTO_DEVICE_SELECTION | 
-			CL_QUEUE_ITERATIVE | 
+			//CL_QUEUE_AUTO_DEVICE_SELECTION | 
+			//CL_QUEUE_ITERATIVE | 
 			//CL_QUEUE_IO_INTENSIVE | 
 			//CL_QUEUE_COMPUTE_INTENSIVE | 
 #endif
@@ -2811,6 +2816,7 @@ void compute_velocityC_opencl(int *nztop, int *nztm1, float *ca, int *lbx,
 		int *nxtop, int *nytop, int *mw1_pml, int *mw2_pml,
 		int *nxbtm, int *nybtm, int *nzbtm, int *myid)
 {
+	static int counter = 0;
 	int i;
 	//printf("[OpenCL] velocity computation:\n"); 
 	cl_int errNum;
@@ -2845,6 +2851,19 @@ void compute_velocityC_opencl(int *nztop, int *nztm1, float *ca, int *lbx,
 	gettimeofday(&t1, NULL);
 	for(i = 0; i < NUM_COMMAND_QUEUES; i++) {
 		Start(&kernelTimerVelocity[i]);
+		printf("DISFD Q%d Velocity Set Kernel Args\n", i);
+		if(counter < 1) {
+			clSetCommandQueueProperty(_cl_commandQueues[i], 
+#ifdef SNUCL_PERF_MODEL_OPTIMIZATION
+					CL_QUEUE_AUTO_DEVICE_SELECTION | 
+					CL_QUEUE_ITERATIVE | 
+					CL_QUEUE_IO_INTENSIVE | 
+					//CL_QUEUE_COMPUTE_INTENSIVE |
+#endif
+					CL_QUEUE_PROFILING_ENABLE, 
+					true,
+					NULL);
+		}
 	}
 #ifdef DISFD_PAPI
 	papi_start_all_events();
@@ -3247,13 +3266,23 @@ void compute_velocityC_opencl(int *nztop, int *nztm1, float *ca, int *lbx,
 	}
 
 	for(i = 0; i < NUM_COMMAND_QUEUES; i++) {
-		errNum = clFinish(_cl_commandQueues[i]);
+	//	errNum = clFinish(_cl_commandQueues[i]);
 		if(errNum != CL_SUCCESS)
 		{
 			fprintf(stderr, "Error: finishing stress velocity for execution!\n");
 		}
+		if(counter < 1) {
+			clSetCommandQueueProperty(_cl_commandQueues[i], 
+#ifdef SNUCL_PERF_MODEL_OPTIMIZATION
+#endif
+					CL_QUEUE_PROFILING_ENABLE, 
+					true,
+					NULL);
+		}
+		printf("DISFD Q%d Velocity ReSet Kernel Args\n", i);
 		Stop(&kernelTimerVelocity[i]);
 	}
+	counter++;
 #ifdef DISFD_PAPI
 	papi_accum_all_events();
 	//papi_stop_all_events();
@@ -3587,6 +3616,7 @@ void compute_stressC_opencl(int *nxb1, int *nyb1, int *nx1p1, int *ny1p1, int *n
 		void **v2xMp, void **v2yMp, void **v2zMp, int *myid)
 {
 	//printf("[OpenCL] stress computation:\n"); 
+	static int counter = 0;
 	int i;
 	cl_int errNum;
 
@@ -3616,6 +3646,19 @@ void compute_stressC_opencl(int *nxb1, int *nyb1, int *nx1p1, int *ny1p1, int *n
 	gettimeofday(&t1, NULL);
 	for(i = 0; i < NUM_COMMAND_QUEUES; i++) {
 		Start(&kernelTimerStress[i]);
+		printf("DISFD Q%d Stress Set Kernel Args\n", i);
+		if(counter < 1) {
+			clSetCommandQueueProperty(_cl_commandQueues[i], 
+#ifdef SNUCL_PERF_MODEL_OPTIMIZATION
+					CL_QUEUE_AUTO_DEVICE_SELECTION | 
+					CL_QUEUE_ITERATIVE | 
+					CL_QUEUE_IO_INTENSIVE | 
+					//CL_QUEUE_COMPUTE_INTENSIVE |
+#endif
+					CL_QUEUE_PROFILING_ENABLE, 
+					true,
+					NULL);
+		}
 	}
 #ifdef DISFD_USE_ROW_MAJOR_DATA
 	int gridSizeX1 = (nd1_tyy[17] - nd1_tyy[12])/blockSizeX + 1;
@@ -4937,14 +4980,23 @@ void compute_stressC_opencl(int *nxb1, int *nyb1, int *nx1p1, int *ny1p1, int *n
 	}
 
 	for(i = 0; i < NUM_COMMAND_QUEUES; i++) {
-		errNum = clFinish(_cl_commandQueues[i]);
+		//errNum = clFinish(_cl_commandQueues[i]);
 		if(errNum != CL_SUCCESS)
 		{
 			fprintf(stderr, "Error: finishing stress kernel for execution!\n");
 		}
+		if(counter < 1) {
+			clSetCommandQueueProperty(_cl_commandQueues[i], 
+#ifdef SNUCL_PERF_MODEL_OPTIMIZATION
+#endif
+					CL_QUEUE_PROFILING_ENABLE, 
+					true,
+					NULL);
+		}
+		printf("DISFD Q%d Stress ReSet Kernel Args\n", i);
 		Stop(&kernelTimerStress[i]);
 	}
-
+	counter++;
 	// printf("[OpenCL] computating finished!\n");
 
 	gettimeofday(&t2, NULL);
@@ -6460,7 +6512,7 @@ void interpl_3vbtm_vel1(int* ny1p2, int* ny2p2, int* nz1p1, int* nyvx,
 	{
 		fprintf(stderr, "Error: setting kernel _cl_kernel_vel1_interpl_3vbtm arguments!\n");
 	}
-	int which_qid = 0;
+	int which_qid = MARSHAL_CMDQ;
 	errNum = clEnqueueNDRangeKernel(_cl_commandQueues[which_qid], _cl_kernel_vel1_interpl_3vbtm, 3, NULL, globalWorkSize, localWorkSize, 0, NULL, &_cl_events[which_qid]);
 	if(errNum != CL_SUCCESS)
 	{
@@ -6517,7 +6569,7 @@ void interpl_3vbtm_vel3(int* ny1p2, int* nz1p1, int* nyvx1, int* nxbm1,
 	{
 		fprintf(stderr, "Error: setting kernel _cl_kernel_vel3_interpl_3vbtm arguments!\n");
 	}
-	int which_qid = 0;
+	int which_qid = MARSHAL_CMDQ;
 	errNum = clEnqueueNDRangeKernel(_cl_commandQueues[which_qid], _cl_kernel_vel3_interpl_3vbtm, 3, NULL, globalWorkSize, localWorkSize, 0, NULL, &_cl_events[which_qid]);
 	if(errNum != CL_SUCCESS)
 	{
@@ -6578,7 +6630,7 @@ void interpl_3vbtm_vel4(int* nx1p2, int* ny2p2, int* nz1p1, int* nxvy, int* nybm
 	localWorkSize[0] = threadsPerBlock.x;
 	localWorkSize[1] = threadsPerBlock.y;
 	localWorkSize[2] = threadsPerBlock.z;
-	int which_qid = 0;
+	int which_qid = MARSHAL_CMDQ;
 	errNum = clEnqueueNDRangeKernel(_cl_commandQueues[which_qid], _cl_kernel_vel4_interpl_3vbtm, 3, NULL, globalWorkSize, localWorkSize, 0, NULL, &_cl_events[which_qid]);
 	if(errNum != CL_SUCCESS)
 	{
@@ -6641,7 +6693,7 @@ void interpl_3vbtm_vel5(int* nx1p2, int* nx2p2, int* nz1p1, int* nxvy, int* nybm
 	localWorkSize[0] = threadsPerBlock.x;
 	localWorkSize[1] = threadsPerBlock.y;
 	localWorkSize[2] = threadsPerBlock.z;
-	int which_qid = 0;
+	int which_qid = MARSHAL_CMDQ;
 	errNum = clEnqueueNDRangeKernel(_cl_commandQueues[which_qid], _cl_kernel_vel5_interpl_3vbtm, 3, NULL, globalWorkSize, localWorkSize, 0, NULL, &_cl_events[which_qid]);
 	if(errNum != CL_SUCCESS)
 	{
@@ -6701,7 +6753,7 @@ void interpl_3vbtm_vel6(int* nx1p2,  int* nz1p1, int* nxvy1, int* nybm1,
 	localWorkSize[0] = threadsPerBlock.x;
 	localWorkSize[1] = threadsPerBlock.y;
 	localWorkSize[2] = threadsPerBlock.z;
-	int which_qid = 0;
+	int which_qid = MARSHAL_CMDQ;
 	errNum = clEnqueueNDRangeKernel(_cl_commandQueues[which_qid], _cl_kernel_vel6_interpl_3vbtm, 3, NULL, globalWorkSize, localWorkSize, 0, NULL, &_cl_events[which_qid]);
 	if(errNum != CL_SUCCESS)
 	{
@@ -6757,7 +6809,7 @@ void interpl_3vbtm_vel7 (int* nxbtm, int* nybtm, int* nzbtm, int* nxtop, int* ny
 	localWorkSize[0] = threadsPerBlock.x;
 	localWorkSize[1] = threadsPerBlock.y;
 	localWorkSize[2] = threadsPerBlock.z;
-	int which_qid = 0;
+	int which_qid = MARSHAL_CMDQ;
 	errNum = clEnqueueNDRangeKernel(_cl_commandQueues[which_qid], _cl_kernel_vel7_interpl_3vbtm, 3, NULL, globalWorkSize, localWorkSize, 0, NULL, &_cl_events[which_qid]);
 	if(errNum != CL_SUCCESS)
 	{
@@ -6820,7 +6872,7 @@ void interpl_3vbtm_vel8 (int* nxbtm, int* nybtm, int* nzbtm, int* nxtop, int* ny
 	localWorkSize[0] = threadsPerBlock.x;
 	localWorkSize[1] = threadsPerBlock.y;
 	localWorkSize[2] = threadsPerBlock.z;
-	int which_qid = 1;
+	int which_qid = MARSHAL_CMDQ;
 	errNum = clEnqueueNDRangeKernel(_cl_commandQueues[which_qid], _cl_kernel_vel8_interpl_3vbtm, 3, NULL, globalWorkSize, localWorkSize, 0, NULL, &_cl_events[which_qid]);
 	if(errNum != CL_SUCCESS)
 	{
@@ -6893,7 +6945,7 @@ void interpl_3vbtm_vel9(int* nx1p2, int* ny2p1, int* nz1p1, int* nxvy, int* nybm
 	localWorkSize[0] = threadsPerBlock.x;
 	localWorkSize[1] = threadsPerBlock.y;
 	localWorkSize[2] = threadsPerBlock.z;
-	int which_qid = 0;
+	int which_qid = MARSHAL_CMDQ;
 	errNum = clEnqueueNDRangeKernel(_cl_commandQueues[which_qid], _cl_kernel_vel9_interpl_3vbtm, 3, NULL, globalWorkSize, localWorkSize, 0, NULL, &_cl_events[which_qid]);
 	if(errNum != CL_SUCCESS)
 	{
@@ -6955,7 +7007,7 @@ void interpl_3vbtm_vel11(int* nx1p2, int* nx2p1, int* ny1p1, int* nz1p1, int* nx
 	localWorkSize[0] = threadsPerBlock.x;
 	localWorkSize[1] = threadsPerBlock.y;
 	localWorkSize[2] = threadsPerBlock.z;
-	int which_qid = 0;
+	int which_qid = MARSHAL_CMDQ;
 	errNum = clEnqueueNDRangeKernel(_cl_commandQueues[which_qid], _cl_kernel_vel11_interpl_3vbtm, 3, NULL, globalWorkSize, localWorkSize, 0, NULL, &_cl_events[which_qid]);
 	if(errNum != CL_SUCCESS)
 	{
@@ -7009,7 +7061,7 @@ void interpl_3vbtm_vel13(int* nxbtm, int* nybtm, int* nzbtm, int* nxtop, int* ny
 	localWorkSize[1] = threadsPerBlock.y;
 	localWorkSize[2] = threadsPerBlock.z;
 	record_time(&tstart);
-	int which_qid = 1;
+	int which_qid = MARSHAL_CMDQ;
 	errNum = clEnqueueNDRangeKernel(_cl_commandQueues[which_qid], _cl_kernel_vel13_interpl_3vbtm, 3, NULL, globalWorkSize, localWorkSize, 0, NULL, &_cl_events[which_qid]);
 	if(errNum != CL_SUCCESS)
 	{
@@ -7063,7 +7115,7 @@ void interpl_3vbtm_vel14(int* nxbtm, int* nybtm, int* nzbtm, int* nxtop, int* ny
 	localWorkSize[0] = threadsPerBlock.x;
 	localWorkSize[1] = threadsPerBlock.y;
 	localWorkSize[2] = threadsPerBlock.z;
-	int which_qid = 1;
+	int which_qid = MARSHAL_CMDQ;
 	errNum = clEnqueueNDRangeKernel(_cl_commandQueues[which_qid], _cl_kernel_vel14_interpl_3vbtm, 3, NULL, globalWorkSize, localWorkSize, 0, NULL, &_cl_events[which_qid]);
 	if(errNum != CL_SUCCESS)
 	{
@@ -7117,7 +7169,7 @@ void interpl_3vbtm_vel15(int* nxbtm, int* nybtm, int* nzbtm, int* nxtop, int* ny
 	localWorkSize[0] = threadsPerBlock.x;
 	localWorkSize[1] = threadsPerBlock.y;
 	localWorkSize[2] = threadsPerBlock.z;
-	int which_qid = 1;
+	int which_qid = MARSHAL_CMDQ;
 	errNum = clEnqueueNDRangeKernel(_cl_commandQueues[which_qid], _cl_kernel_vel15_interpl_3vbtm, 3, NULL, globalWorkSize, localWorkSize, 0, NULL, &_cl_events[which_qid]);
 	if(errNum != CL_SUCCESS)
 	{
@@ -7214,7 +7266,7 @@ void vxy_image_layer_vel1(int* nd1_vel, int i, float dzdx, int nxbtm, int nybtm,
 	localWorkSize[0] = threadsPerBlock.x;
 	localWorkSize[1] = threadsPerBlock.y;
 	localWorkSize[2] = threadsPerBlock.z;
-	int which_qid = 0;
+	int which_qid = MARSHAL_CMDQ;
 	errNum = clEnqueueNDRangeKernel(_cl_commandQueues[which_qid], _cl_kernel_vel1_vxy_image_layer, 3, NULL, globalWorkSize, localWorkSize, 0, NULL, &_cl_events[which_qid]);
 	if(errNum != CL_SUCCESS)
 	{
@@ -7277,7 +7329,7 @@ void vxy_image_layer_vel2(int* nd1_vel, float* v1x, int* iix, float* dzdt, int* 
 	localWorkSize[0] = threadsPerBlock.x;
 	localWorkSize[1] = threadsPerBlock.y;
 	localWorkSize[2] = threadsPerBlock.z;
-	int which_qid = 0;
+	int which_qid = MARSHAL_CMDQ;
 	errNum = clEnqueueNDRangeKernel(_cl_commandQueues[which_qid], _cl_kernel_vel2_vxy_image_layer, 3, NULL, globalWorkSize, localWorkSize, 0, NULL, &_cl_events[which_qid]);
 	if(errNum != CL_SUCCESS)
 	{
@@ -7346,7 +7398,7 @@ void vxy_image_layer_vel3(int* nd1_vel, int* j, float* dzdy, int* nxbtm, int* ny
 	localWorkSize[0] = threadsPerBlock.x;
 	localWorkSize[1] = threadsPerBlock.y;
 	localWorkSize[2] = threadsPerBlock.z;
-	int which_qid = 0;
+	int which_qid = MARSHAL_CMDQ;
 	errNum = clEnqueueNDRangeKernel(_cl_commandQueues[which_qid], _cl_kernel_vel3_vxy_image_layer, 3, NULL, globalWorkSize, localWorkSize, 0, NULL, &_cl_events[which_qid]);
 	if(errNum != CL_SUCCESS)
 	{
@@ -7408,7 +7460,7 @@ void vxy_image_layer_vel4(int* nd1_vel, float* v1y, int* jjy, float* dzdt, int* 
 	localWorkSize[0] = threadsPerBlock.x;
 	localWorkSize[1] = threadsPerBlock.y;
 	localWorkSize[2] = threadsPerBlock.z;
-	int which_qid = 0;
+	int which_qid = MARSHAL_CMDQ;
 	errNum = clEnqueueNDRangeKernel(_cl_commandQueues[which_qid], _cl_kernel_vel4_vxy_image_layer, 3, NULL, globalWorkSize, localWorkSize, 0, NULL, &_cl_events[which_qid]);
 	if(errNum != CL_SUCCESS)
 	{
@@ -7472,7 +7524,7 @@ if(errNum != CL_SUCCESS)
 {
 fprintf(stderr, "Error: setting kernel _cl_kernel_vel_vxy_image_layer1 arguments!\n");
 }
-int which_qid = 0;
+int which_qid = MARSHAL_CMDQ;
 errNum = clEnqueueNDRangeKernel(_cl_commandQueues[which_qid], _cl_kernel_vel_vxy_image_layer1, 3, NULL, globalWorkSize, localWorkSize, 0, NULL, &_cl_events[which_qid]);
 if(errNum != CL_SUCCESS)
 {
@@ -7540,7 +7592,7 @@ void vxy_image_layer_sdx_vel(float* sdx1, float* sdx2, int* nxtop, int* nytop, i
 	localWorkSize[0] = threadsPerBlock.x;
 	localWorkSize[1] = threadsPerBlock.y;
 	localWorkSize[2] = threadsPerBlock.z;
-	int which_qid = 0;
+	int which_qid = MARSHAL_CMDQ;
 	errNum = clEnqueueNDRangeKernel(_cl_commandQueues[which_qid], _cl_kernel_vel_vxy_image_layer_sdx, 3, NULL, globalWorkSize, localWorkSize, 0, NULL, &_cl_events[which_qid]);
 	if(errNum != CL_SUCCESS)
 	{
@@ -7600,7 +7652,7 @@ void vxy_image_layer_sdy_vel(float* sdy1, float* sdy2, int* nxtop, int* nytop,in
 	localWorkSize[0] = threadsPerBlock.x;
 	localWorkSize[1] = threadsPerBlock.y;
 	localWorkSize[2] = threadsPerBlock.z;
-	int which_qid = 0;
+	int which_qid = MARSHAL_CMDQ;
 	errNum = clEnqueueNDRangeKernel(_cl_commandQueues[which_qid], _cl_kernel_vel_vxy_image_layer_sdy, 3, NULL, globalWorkSize, localWorkSize, 0, NULL, &_cl_events[which_qid]);
 	if(errNum != CL_SUCCESS)
 	{
@@ -7672,7 +7724,7 @@ void vxy_image_layer_rcx_vel(float* rcx1, float* rcx2, int* nxtop, int* nytop, i
 	localWorkSize[0] = threadsPerBlock.x;
 	localWorkSize[1] = threadsPerBlock.y;
 	localWorkSize[2] = threadsPerBlock.z;
-	int which_qid = 0;
+	int which_qid = MARSHAL_CMDQ;
 	errNum = clEnqueueNDRangeKernel(_cl_commandQueues[which_qid], _cl_kernel_vel_vxy_image_layer_rcx, 3, NULL, globalWorkSize, localWorkSize, 0, NULL, &_cl_events[which_qid]);
 	if(errNum != CL_SUCCESS)
 	{
@@ -7735,7 +7787,7 @@ void vxy_image_layer_rcx2_vel(float* rcx1, float* rcx2, int* nxtop, int* nytop, 
 	localWorkSize[0] = threadsPerBlock.x;
 	localWorkSize[1] = threadsPerBlock.y;
 	localWorkSize[2] = threadsPerBlock.z;
-	int which_qid = 0;
+	int which_qid = MARSHAL_CMDQ;
 	errNum = clEnqueueNDRangeKernel(_cl_commandQueues[which_qid], _cl_kernel_vel_vxy_image_layer_rcy, 3, NULL, globalWorkSize, localWorkSize, 0, NULL, &_cl_events[which_qid]);
 	if(errNum != CL_SUCCESS)
 	{
@@ -7763,7 +7815,7 @@ void add_dcs_vel(float* sutmArr, int nfadd, int ixsX, int ixsY, int ixsZ,
 	double cpy_time=0, kernel_time=0;
 
 	cl_int errNum;
-	int which_qid = 0;
+	int which_qid = MARSHAL_CMDQ;
 	// TODO: change the below to OpenCL
 	if(sutmArrD) clReleaseMemObject(sutmArrD);
 	//cudaFree(sutmArrD);
@@ -7895,7 +7947,7 @@ void sdx41_stress (float** sdx41, int* nxtop, int* nytop, int* nztop) {
 	{
 		fprintf(stderr, "Error: setting kernel _cl_kernel_stress_sdx41 arguments!\n");
 	}
-	int which_qid = 0;
+	int which_qid = MARSHAL_CMDQ;
 	errNum = clEnqueueNDRangeKernel(_cl_commandQueues[which_qid], _cl_kernel_stress_sdx41, 3, NULL, globalWorkSize, localWorkSize, 0, NULL, &_cl_events[which_qid]);
 	if(errNum != CL_SUCCESS)
 	{
@@ -7955,7 +8007,7 @@ void sdx42_stress (float** sdx42, int* nxbtm, int* nybtm, int* nzbtm) {
 	{
 		fprintf(stderr, "Error: setting kernel _cl_kernel_stress_sdx42 arguments!\n");
 	}
-	int which_qid = 1;
+	int which_qid = MARSHAL_CMDQ;
 	errNum = clEnqueueNDRangeKernel(_cl_commandQueues[which_qid], _cl_kernel_stress_sdx42, 3, NULL, globalWorkSize, localWorkSize, 0, NULL, &_cl_events[which_qid]);
 	if(errNum != CL_SUCCESS)
 	{
@@ -8015,7 +8067,7 @@ void sdx51_stress (float** sdx51, int* nxtop, int* nytop, int* nztop, int* nxtm1
 	{
 		fprintf(stderr, "Error: setting kernel _cl_kernel_stress_sdx51 arguments!\n");
 	}
-	int which_qid = 0;
+	int which_qid = MARSHAL_CMDQ;
 	errNum = clEnqueueNDRangeKernel(_cl_commandQueues[which_qid], _cl_kernel_stress_sdx51, 3, NULL, globalWorkSize, localWorkSize, 0, NULL, &_cl_events[which_qid]);
 	if(errNum != CL_SUCCESS)
 	{
@@ -8076,7 +8128,7 @@ void sdx52_stress (float** sdx52, int* nxbtm, int* nybtm, int* nzbtm, int* nxbm1
 	{
 		fprintf(stderr, "Error: setting kernel _cl_kernel_stress_sdx52 arguments!\n");
 	}
-	int which_qid = 1;
+	int which_qid = MARSHAL_CMDQ;
 	errNum = clEnqueueNDRangeKernel(_cl_commandQueues[which_qid], _cl_kernel_stress_sdx52, 3, NULL, globalWorkSize, localWorkSize, 0, NULL, &_cl_events[which_qid]);
 	if(errNum != CL_SUCCESS)
 	{
@@ -8135,7 +8187,7 @@ void sdy41_stress (float** sdy41, int* nxtop, int* nytop, int* nztop) {
 	{
 		fprintf(stderr, "Error: setting kernel _cl_kernel_stress_sdy41 arguments!\n");
 	}
-	int which_qid = 0;
+	int which_qid = MARSHAL_CMDQ;
 	errNum = clEnqueueNDRangeKernel(_cl_commandQueues[which_qid], _cl_kernel_stress_sdy41, 3, NULL, globalWorkSize, localWorkSize, 0, NULL, &_cl_events[which_qid]);
 	if(errNum != CL_SUCCESS)
 	{
@@ -8195,7 +8247,7 @@ void sdy42_stress (float** sdy42, int* nxbtm, int* nybtm, int* nzbtm) {
 	{
 		fprintf(stderr, "Error: setting kernel _cl_kernel_stress_sdy42 arguments!\n");
 	}
-	int which_qid = 1;
+	int which_qid = MARSHAL_CMDQ;
 	errNum = clEnqueueNDRangeKernel(_cl_commandQueues[which_qid], _cl_kernel_stress_sdy42, 3, NULL, globalWorkSize, localWorkSize, 0, NULL, &_cl_events[which_qid]);
 	if(errNum != CL_SUCCESS)
 	{
@@ -8255,7 +8307,7 @@ void sdy51_stress (float** sdy51, int* nxtop, int* nytop, int* nztop, int* nytm1
 	{
 		fprintf(stderr, "Error: setting kernel _cl_kernel_stress_sdy51 arguments!\n");
 	}
-	int which_qid = 0;
+	int which_qid = MARSHAL_CMDQ;
 	errNum = clEnqueueNDRangeKernel(_cl_commandQueues[which_qid], _cl_kernel_stress_sdy51, 3, NULL, globalWorkSize, localWorkSize, 0, NULL, &_cl_events[which_qid]);
 	if(errNum != CL_SUCCESS)
 	{
@@ -8316,7 +8368,7 @@ void sdy52_stress (float** sdy52, int* nxbtm, int* nybtm, int* nzbtm, int* nybm1
 	{
 		fprintf(stderr, "Error: setting kernel _cl_kernel_stress_sdy52 arguments!\n");
 	}
-	int which_qid = 1;
+	int which_qid = MARSHAL_CMDQ;
 	errNum = clEnqueueNDRangeKernel(_cl_commandQueues[which_qid], _cl_kernel_stress_sdy52, 3, NULL, globalWorkSize, localWorkSize, 0, NULL, &_cl_events[which_qid]);
 	if(errNum != CL_SUCCESS)
 	{
@@ -8386,7 +8438,7 @@ void rcx41_stress (float** rcx41, int* nxtop, int* nytop, int* nztop, int* nx1p1
 	{
 		fprintf(stderr, "Error: setting kernel _cl_kernel_stress_rcx41 arguments!\n");
 	}
-	int which_qid = 0;
+	int which_qid = MARSHAL_CMDQ;
 	errNum = clEnqueueNDRangeKernel(_cl_commandQueues[which_qid], _cl_kernel_stress_rcx41, 3, NULL, globalWorkSize, localWorkSize, 0, NULL, &_cl_events[which_qid]);
 	if(errNum != CL_SUCCESS)
 	{
@@ -8448,7 +8500,7 @@ void rcx42_stress (float** rcx42, int* nxbtm, int* nybtm, int* nzbtm, int* nx2p1
 	{
 		fprintf(stderr, "Error: setting kernel _cl_kernel_stress_rcx42 arguments!\n");
 	}
-	int which_qid = 1;
+	int which_qid = MARSHAL_CMDQ;
 	errNum = clEnqueueNDRangeKernel(_cl_commandQueues[which_qid], _cl_kernel_stress_rcx42, 3, NULL, globalWorkSize, localWorkSize, 0, NULL, &_cl_events[which_qid]);
 	if(errNum != CL_SUCCESS)
 	{
@@ -8507,7 +8559,7 @@ void rcx51_stress (float** rcx51, int* nxtop, int* nytop, int* nztop) {
 	{
 		fprintf(stderr, "Error: setting kernel _cl_kernel_stress_rcx51 arguments!\n");
 	}
-	int which_qid = 0;
+	int which_qid = MARSHAL_CMDQ;
 	errNum = clEnqueueNDRangeKernel(_cl_commandQueues[which_qid], _cl_kernel_stress_rcx51, 3, NULL, globalWorkSize, localWorkSize, 0, NULL, &_cl_events[which_qid]);
 	if(errNum != CL_SUCCESS)
 	{
@@ -8567,7 +8619,7 @@ void rcx52_stress (float** rcx52, int* nxbtm, int* nybtm, int* nzbtm) {
 	{
 		fprintf(stderr, "Error: setting kernel _cl_kernel_stress_rcx52 arguments!\n");
 	}
-	int which_qid = 1;
+	int which_qid = MARSHAL_CMDQ;
 	errNum = clEnqueueNDRangeKernel(_cl_commandQueues[which_qid], _cl_kernel_stress_rcx52, 3, NULL, globalWorkSize, localWorkSize, 0, NULL, &_cl_events[which_qid]);
 	if(errNum != CL_SUCCESS)
 	{
@@ -8629,7 +8681,7 @@ void rcy41_stress (float** rcy41, int* nxtop, int* nytop, int* nztop, int* ny1p1
 	{
 		fprintf(stderr, "Error: setting kernel _cl_kernel_stress_rcy41 arguments!\n");
 	}
-	int which_qid = 0;
+	int which_qid = MARSHAL_CMDQ;
 	errNum = clEnqueueNDRangeKernel(_cl_commandQueues[which_qid], _cl_kernel_stress_rcy41, 3, NULL, globalWorkSize, localWorkSize, 0, NULL, &_cl_events[which_qid]);
 	if(errNum != CL_SUCCESS)
 	{
@@ -8692,7 +8744,7 @@ void rcy42_stress (float** rcy42, int* nxbtm, int* nybtm, int* nzbtm, int* ny2p1
 	{
 		fprintf(stderr, "Error: setting kernel _cl_kernel_stress_rcy42 arguments!\n");
 	}
-	int which_qid = 1;
+	int which_qid = MARSHAL_CMDQ;
 	errNum = clEnqueueNDRangeKernel(_cl_commandQueues[which_qid], _cl_kernel_stress_rcy42, 3, NULL, globalWorkSize, localWorkSize, 0, NULL, &_cl_events[which_qid]);
 	if(errNum != CL_SUCCESS)
 	{
@@ -8751,7 +8803,7 @@ void rcy51_stress (float** rcy51, int* nxtop, int* nytop, int* nztop) {
 	{
 		fprintf(stderr, "Error: setting kernel _cl_kernel_stress_rcy51 arguments!\n");
 	}
-	int which_qid = 0;
+	int which_qid = MARSHAL_CMDQ;
 	errNum = clEnqueueNDRangeKernel(_cl_commandQueues[which_qid], _cl_kernel_stress_rcy51, 3, NULL, globalWorkSize, localWorkSize, 0, NULL, &_cl_events[which_qid]);
 	if(errNum != CL_SUCCESS)
 	{
@@ -8811,7 +8863,7 @@ void rcy52_stress (float** rcy52, int* nxbtm, int* nybtm, int* nzbtm) {
 	{
 		fprintf(stderr, "Error: setting kernel _cl_kernel_stress_rcy52 arguments!\n");
 	}
-	int which_qid = 1;
+	int which_qid = MARSHAL_CMDQ;
 	errNum = clEnqueueNDRangeKernel(_cl_commandQueues[which_qid], _cl_kernel_stress_rcy52, 3, NULL, globalWorkSize, localWorkSize, 0, NULL, &_cl_events[which_qid]);
 	if(errNum != CL_SUCCESS)
 	{
@@ -8869,7 +8921,7 @@ void interp_stress (int neighb1, int neighb2, int neighb3, int neighb4,
 	globalWorkSize[0] = 1;
 	globalWorkSize[1] = 1;
 	globalWorkSize[2] = 1;
-	int which_qid = 1;
+	int which_qid = MARSHAL_CMDQ;
 	errNum = clEnqueueNDRangeKernel(_cl_commandQueues[which_qid], _cl_kernel_stress_interp_stress, 3, NULL, globalWorkSize, localWorkSize, 0, NULL, &_cl_events[which_qid]);
 	if(errNum != CL_SUCCESS)
 	{
@@ -8927,7 +8979,7 @@ void interp_stress1 ( int ntx1, int nz1p1, int nxbtm , int nybtm , int nzbtm,
 	localWorkSize[0] = threads.x;
 	localWorkSize[1] = threads.y;
 	localWorkSize[2] = threads.z;
-	int which_qid = 1;
+	int which_qid = MARSHAL_CMDQ;
 	errNum = clEnqueueNDRangeKernel(_cl_commandQueues[which_qid], _cl_kernel_stress_interp1, 3, NULL, globalWorkSize, localWorkSize, 0, NULL, &_cl_events[which_qid]);
 	if(errNum != CL_SUCCESS)
 	{
@@ -8982,7 +9034,7 @@ void interp_stress2 ( int nty1, int nz1p1, int nxbtm , int nybtm , int nzbtm,
 	localWorkSize[0] = threads.x;
 	localWorkSize[1] = threads.y;
 	localWorkSize[2] = threads.z;
-	int which_qid = 1;
+	int which_qid = MARSHAL_CMDQ;
 	errNum = clEnqueueNDRangeKernel(_cl_commandQueues[which_qid], _cl_kernel_stress_interp2, 3, NULL, globalWorkSize, localWorkSize, 0, NULL, &_cl_events[which_qid]);
 	if(errNum != CL_SUCCESS)
 	{
@@ -9035,7 +9087,7 @@ void interp_stress3 ( int nxbtm , int nybtm , int nzbtm,
 	localWorkSize[0] = threads.x;
 	localWorkSize[1] = threads.y;
 	localWorkSize[2] = threads.z;
-	int which_qid = 1;
+	int which_qid = MARSHAL_CMDQ;
 	errNum = clEnqueueNDRangeKernel(_cl_commandQueues[which_qid], _cl_kernel_stress_interp3, 3, NULL, globalWorkSize, localWorkSize, 0, NULL, &_cl_events[which_qid]);
 	if(errNum != CL_SUCCESS)
 	{

@@ -214,7 +214,7 @@ void CLScheduler::Progress(bool explicit_synch_flag) {
 			}
 			if(!epochString.empty()) {
 			if(ctx->isEpochRecorded(epochString)) {
-				//SNUCL_INFO("Epoch cost already estimated: %s\n", epochString.c_str());
+				SNUCL_INFO("Epoch cost already estimated: %s\n", epochString.c_str());
 				est_epoch_times[q_id].resize(num_devices);
 				std::vector<double> tmp = ctx->getEpochCosts(epochString);
 				for(int i = 0; i < num_devices; i++) {
@@ -245,6 +245,7 @@ void CLScheduler::Progress(bool explicit_synch_flag) {
 						for(int device_id = 0; device_id < num_devices; device_id++) {
 							est_kernel_times[device_id] = tmp[device_id];
 						}
+						SNUCL_INFO("Epoch cost already estimated: %s\n", (*cmd_it)->kernel()->name());
 					//	est_kernel_times = ctx->getEpochCosts((*cmd_it)->kernel()->name());
 					} else {
 						//SNUCL_INFO("Cloning cmd (%p)\n", (*cmd_it));
@@ -256,6 +257,7 @@ void CLScheduler::Progress(bool explicit_synch_flag) {
 						q_cmd_clone_timer.Stop();
 						//SNUCL_INFO("Cloned cmd (%p->%p)\n", (*cmd_it), cmd);
 						// estimate cost of cmd on device_id
+						SNUCL_INFO("Epoch cost now estimating: %s\n", (*cmd_it)->kernel()->name());
 						std::vector<double> est_costs;
 						est_costs = cmd->EstimatedCost(devices,
 								(queue->get_properties() & CL_QUEUE_COMPUTE_INTENSIVE) ? true : false, 
@@ -331,7 +333,8 @@ void CLScheduler::Progress(bool explicit_synch_flag) {
 			    est_epoch_times[q_id] = queue->getAccumulatedEpochCosts();
 			    recorded_epoch_times[q_id] = queue->getAccumulatedEpochCosts();
 			}
-			for(int q_id = 0; q_id < queues_.size(); q_id++) {
+			for(int q_id = queues_.size() - 1; q_id >= 0; q_id--) {
+			//for(int q_id = 0; q_id < queues_.size(); q_id++) {
 			// choose queue->device mapping
 				CLCommandQueue *queue = queues_[q_id];
 				if(queue->IsAutoDeviceSelection() != true) continue;
@@ -375,7 +378,8 @@ void CLScheduler::Progress(bool explicit_synch_flag) {
 					queues_[q_id]->set_device(devices[chosen_dev_id]);
 				}
 				// update estimated times to include already chosen time
-				for(int q_idx = q_id; q_idx < queues_.size(); q_idx++)
+				for(int q_idx = q_id; q_idx >= 0; q_idx--)
+				//for(int q_idx = q_id; q_idx < queues_.size(); q_idx++)
 				{
 					if(est_epoch_times[q_idx].size() != 0) {
 					SNUCL_INFO("Before Updating Cost for Queue %p for device %d: %g\n", queues_[q_idx], 
@@ -394,6 +398,8 @@ void CLScheduler::Progress(bool explicit_synch_flag) {
 //				if(explicit_synch_flag == true && queues_[q_id]->getAccumulatedEpochCosts().size() != 0) 
 				queues_[q_id]->resetAccumulatedEpochCosts();
 			}
+			// this has to be reset because subsequent sched calls may cost different depending on data placement
+			ctx->resetEpochs();
 		}
 		// "best" device must have been selected by now. 
 		for(int q_id = 0; q_id < queues_.size(); q_id++) {
@@ -644,7 +650,7 @@ void CLScheduler::Progress(bool explicit_synch_flag) {
 	{
 //		SNUCL_INFO("No Context Scheduling Defined\n", 0);
 	}
-	SNUCL_INFO("Schedule Done\n", 0);
+//	SNUCL_INFO("Schedule Done\n", 0);
 }
 
 void CLScheduler::Run() {

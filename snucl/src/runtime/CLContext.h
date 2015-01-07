@@ -111,6 +111,7 @@ class CLContext: public CLObject<struct _cl_context, CLContext,
   void NotifyError(const char* errinfo, const void* private_info, size_t cb);
 
   int GetCurrentHostIDx();
+  void resetEpochs() { epochPerformances_.clear(); }
  private:
   typedef std::vector<double> devicePerfVector;
   std::map<std::string, devicePerfVector> epochPerformances_; 

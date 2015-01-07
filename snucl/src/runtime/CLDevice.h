@@ -244,6 +244,7 @@ class CLDevice: public CLObject<struct _cl_device_id, CLDevice,
 
  protected:
   Global::RealTimer gLegacyTimer;
+  Global::RealTimer gLegacyTestTimer;
   Global::RealTimer gLegacyReadTimer;
   Global::RealTimer gLegacyWriteTimer;
   CLScheduler* scheduler_;

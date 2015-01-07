@@ -112,6 +112,7 @@ LegacyDevice::LegacyDevice(void* library, struct _cl_icd_dispatch* dispatch,
                            cl_platform_id platform_id, cl_device_id device_id)
     : CLDevice(0) {
   gLegacyTimer.Init();
+  gLegacyTestTimer.Init();
   gLegacyReadTimer.Init();
   gLegacyWriteTimer.Init();
   library_ = library;
@@ -403,6 +404,8 @@ LegacyDevice::LegacyDevice(void* library, struct _cl_icd_dispatch* dispatch,
 }
 
 LegacyDevice::~LegacyDevice() {
+  if(gLegacyTestTimer.Count() > 0)
+	  std::cout << "[Device " << name_ << "] Dispatch test_timer: " << gLegacyTestTimer << std::endl;
   if(gLegacyTimer.Count() > 0)
 	  std::cout << "[Device " << name_ << "] Dispatch timer: " << gLegacyTimer << std::endl;
   if(gLegacyReadTimer.Count() > 0)
@@ -447,12 +450,12 @@ double LegacyDevice::WaitForKernel(CLCommand *command) {
     if(command)command->SetError(err);            
     SNUCL_ERROR("legacy vendor error with device %p : %d\n", device_id_, err);
   }
-  gLegacyTimer.Stop();
+  gLegacyTestTimer.Stop();
   //if(strcmp(kernel->name(), "cffts1") == 0)
-  SNUCL_INFO("[Device %p Type %d] Test_Kernel %s Time: %g sec\n", 
-  		device_id_, type_,
-		command->kernel()->name(), gLegacyTimer.CurrentElapsed());
-  SNUCL_INFO("Test_Kernel Event Profiled Time: %g sec\n", g_NDRangePureExecTimeMs/1000);
+//  SNUCL_INFO("[Device %p Type %d] Test_Kernel %s Time: %g sec\n", 
+  //		device_id_, type_,
+	//	command->kernel()->name(), gLegacyTestTimer.CurrentElapsed());
+//  SNUCL_INFO("Test_Kernel Event Profiled Time: %g sec\n", g_NDRangePureExecTimeMs/1000);
   return g_NDRangePureExecTimeMs/1000;
 }
 
@@ -514,14 +517,14 @@ void LegacyDevice::LaunchTestKernel(CLCommand* command, CLKernel* kernel,
 //		  SNUCL_INFO("NWG[%d]: %lu\n", i, nwg[i]);
 	  }
   }
-  gLegacyTimer.Start();
+  gLegacyTestTimer.Start();
   err = dispatch_->clEnqueueNDRangeKernel(kernel_queue_, legacy_kernel,
                                           work_dim, gwo, gws, lws, 0, NULL,
                                           &kernel_event_);
   UPDATE_ERROR(err);
   //err = dispatch_->clWaitForEvents(1, &event);
-  //gLegacyTimer.Stop();
-  //SNUCL_INFO("Test Kernel Launch Time: %g sec\n", gLegacyTimer.CurrentElapsed());
+  //gLegacyTestTimer.Stop();
+  //SNUCL_INFO("Test Kernel Launch Time: %g sec\n", gLegacyTestTimer.CurrentElapsed());
   UPDATE_ERROR(err);
 }
 
@@ -584,12 +587,14 @@ void LegacyDevice::LaunchKernel(CLCommand* command, CLKernel* kernel,
 	  }
   }
   cl_event event;
-  SNUCL_INFO("run kernel: %s Device Type: %d Ptr: %p\n", 
-  		kernel->name(), type_, device_id_);
+  //SNUCL_INFO("run kernel: %s Device Type: %d Ptr: %p\n", 
+  	//	kernel->name(), type_, device_id_);
   err = dispatch_->clEnqueueNDRangeKernel(kernel_queue_, legacy_kernel,
                                           work_dim, gwo, gws, lws, 0, NULL,
                                           &event);
+//  SNUCL_INFO("Before kernel %s err check\n", kernel->name());
   UPDATE_ERROR(err);
+//  err = dispatch_->clFinish(kernel_queue_);
   err = dispatch_->clWaitForEvents(1, &event);
   UPDATE_ERROR(err);
   gLegacyTimer.Stop();

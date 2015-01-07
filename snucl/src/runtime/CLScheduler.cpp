@@ -333,6 +333,7 @@ void CLScheduler::Progress(bool explicit_synch_flag) {
 			    est_epoch_times[q_id] = queue->getAccumulatedEpochCosts();
 			    recorded_epoch_times[q_id] = queue->getAccumulatedEpochCosts();
 			}
+			// Greedy method below. Dynamic programming perhaps? Overkill?
 			for(int q_id = queues_.size() - 1; q_id >= 0; q_id--) {
 			//for(int q_id = 0; q_id < queues_.size(); q_id++) {
 			// choose queue->device mapping

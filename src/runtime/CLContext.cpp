@@ -190,7 +190,7 @@ void CLContext::InitDeviceMetrics(const std::vector<perf_vector> &d2d_distances,
 			devices_devices_distances_[device_id][next_device_id].second = next_device_id;
 
 			devices_devices_distances_[next_device_id][device_id].first = d2d_distances[global_next_device_id][global_device_id];
-			devices_devices_distances_[next_device_id][device_id].second = next_device_id;
+			devices_devices_distances_[next_device_id][device_id].second = device_id;
 		}
 	}
 

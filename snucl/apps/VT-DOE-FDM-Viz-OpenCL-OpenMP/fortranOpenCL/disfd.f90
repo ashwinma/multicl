@@ -212,6 +212,25 @@ subroutine run_fd_simul(myid_world)
       integer(c_int), intent(in) :: deviceID
      end subroutine release_cl 
 
+     subroutine cpy_d2h_velocityOutputsC_Async ( cptr_v1x, cptr_v1y, cptr_v1z, &
+                   cptr_v2x, cptr_v2y, cptr_v2z, &
+                   nxtop, nytop, nztop, &
+                   nxbtm, nybtm, nzbtm) bind(c,name='cpy_d2h_velocityOutputsC_opencl')
+       use, intrinsic :: iso_c_binding, ONLY: C_INT, C_FLOAT, C_PTR
+       type (c_ptr), intent(in), value :: cptr_v1x
+       type (c_ptr), intent(in), value :: cptr_v1y
+       type (c_ptr), intent(in), value :: cptr_v1z
+       type (c_ptr), intent(in), value :: cptr_v2x
+       type (c_ptr), intent(in), value :: cptr_v2y
+       type (c_ptr), intent(in), value :: cptr_v2z
+       integer(c_int), intent(in) :: nxtop
+       integer(c_int), intent(in) :: nytop
+       integer(c_int), intent(in) :: nztop
+       integer(c_int), intent(in) :: nxbtm
+       integer(c_int), intent(in) :: nybtm
+       integer(c_int), intent(in) :: nzbtm
+     end subroutine cpy_d2h_velocityOutputsC_Async
+
      subroutine allocate_gpu_memC(lbx, lby, nmat, mw1_pml1, mw2_pml1, nxtop, &
                             nytop, nztop, mw1_pml, mw2_pml, nxbtm, nybtm, &
                             nzbtm, nzbm1, nll) bind(c, name='allocate_gpu_memC')
@@ -1597,15 +1616,24 @@ end interface
 
      call record_time(tstart)
      if(inne==1 .and. nrecs>0) then
-       if(recv_type ==1 ) then
-         call output_1(nrc3,syn_dti)
-       else
-         call output_2(nrc3,syn_dti)
-       endif
-       write(21) syn_dti
+        !if (ntprt /= 1) then
+           if(recv_type ==1 ) then
+                call output_1(nrc3,syn_dti)
+           else
+                call output_2(nrc3,syn_dti)
+           endif
+           write(21) syn_dti
+        !endif
+ 
+       !call cpy_d2h_velocityOutputsC_Async ( cptr_v1x_buff, cptr_v1y_buff, cptr_v1z_buff, &
+       !               cptr_v2x_buff, cptr_v2y_buff, cptr_v2z_buff, &
+       call cpy_d2h_velocityOutputsC_Async ( cptr_v1x, cptr_v1y, cptr_v1z, &
+                      cptr_v2x, cptr_v2y, cptr_v2z, &
+                      nxtop, nytop, nztop, &
+                      nxbtm, nybtm, nzbtm)
      endif
      call record_time(tend)
-     write(*,*) "TIME Stress Communication :", tend-tstart
+     write(*,*) "TIME Misc End of Loop Copies :", tend-tstart
 
      call record_time(itertend)
      write(*,*) "TIME Iteration :", itertend-itertstart

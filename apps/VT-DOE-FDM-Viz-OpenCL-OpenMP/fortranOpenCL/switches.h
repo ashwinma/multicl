@@ -5,7 +5,7 @@
  * Use of MPIX calls makes GPUs 1st class citizens
  * with MPI communication happening directly from GPU buffers
  */
-#define USE_MPIX 0
+#define USE_MPIX 1
 #if USE_MPIX == 1
 #define DISFD_GPU_MARSHALING
 #endif

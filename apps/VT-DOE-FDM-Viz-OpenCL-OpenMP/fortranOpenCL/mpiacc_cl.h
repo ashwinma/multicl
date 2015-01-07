@@ -6,6 +6,7 @@
 extern "C" {
 #endif
 #define NUM_COMMAND_QUEUES	2
+#define MARSHAL_CMDQ	0
 extern cl_platform_id     _cl_firstPlatform;
 extern cl_device_id       _cl_firstDevice;
 extern cl_device_id       *_cl_devices;

@@ -27,7 +27,7 @@
 {\
 	fprintf(stderr, "Error creating memory objects in \"%s\"\n", str); \
 }
-#define SNUCL_PERF_MODEL_OPTIMIZATION
+//#define SNUCL_PERF_MODEL_OPTIMIZATION
 
 struct __dim3 {
 	int x;
@@ -46,6 +46,7 @@ struct __dim3 {
 typedef struct __dim3 dim3;
 
 RealTimer kernelTimer[NUM_COMMAND_QUEUES];
+RealTimer marshalTimer[NUM_COMMAND_QUEUES];
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -93,7 +94,7 @@ size_t LoadProgramSource(const char *filename1, const char **progSrc)
 }
 
 // opencl initialization
-void init_cl(const size_t mem_size) 
+void init_cl() 
 {
 	int i;
 	cl_int errNum;
@@ -108,6 +109,7 @@ void init_cl(const size_t mem_size)
 	const char *PLATFORM_NAME = "SnuCL Single";
 	for(i = 0; i < NUM_COMMAND_QUEUES; i++) {
 		Init(&kernelTimer[i]);
+		Init(&marshalTimer[i]);
 	}
 	errNum = clGetPlatformIDs(0, NULL, &num_platforms);
 	CHECK_ERROR(errNum, "Platform Count");
@@ -266,6 +268,12 @@ void init_cl(const size_t mem_size)
 		fprintf(stderr, "Failed to create kernel marshal_kernel!\n");
 	if(_compute_kernel == NULL)
 		fprintf(stderr, "Failed to create kernel compute_kernel!\n");
+	printf("[OpenCL] device initialization success!\n");
+}
+
+void init_mem(const size_t mem_size) {
+	int i = 0;
+	cl_int errNum;
 	float *_buf_src = (float *)malloc(mem_size);
 	int j = 0;
 	for(i = 0; i < NUM_COMMAND_QUEUES; i++) {
@@ -280,7 +288,14 @@ void init_cl(const size_t mem_size)
 	}
 	free(_buf_src);
 
-	printf("[OpenCL] device initialization success!\n");
+}
+
+void release_mem() {
+	int i;
+	for(i = 0; i < NUM_COMMAND_QUEUES; i++) 
+	{
+		clReleaseMemObject(_bufs[i]);
+	}
 }
 
 // opencl release
@@ -289,9 +304,10 @@ void release_cl()
 	int i;
 	for(i = 0; i < NUM_COMMAND_QUEUES; i++) 
 	{
-		printf("Compute time for Q[%d]: %g\n", i, Elapsed(&kernelTimer[i]));
-		clReleaseMemObject(_bufs[i]);
+		printf("Compute time for Q[%d]: %g sec %d times\n", i, Elapsed(&kernelTimer[i]), Count(&kernelTimer[i]));
 	}
+	i = 0;
+	printf("Marshal time for Q[%d]: %g sec %d times\n", i, Elapsed(&marshalTimer[i]), Count(&marshalTimer[i]));
 	if(_compute_kernel)clReleaseKernel(_compute_kernel);
 	if(_marshal_kernel)clReleaseKernel(_marshal_kernel);
 	clReleaseProgram(_cl_program);
@@ -355,14 +371,63 @@ void compute(const int iter_scale, const size_t const_mem_size, const size_t mem
 	return;
 }
 
+void marshal(const int iter_scale, const size_t const_mem_size, const size_t mem_size)
+{
+	int blocks = 14 * 8;
+	int threads = 128;
+	size_t dimBlock[3] = {threads, 1, 1};
+	size_t dimGrid1[3] = {blocks, 1, 1};
+	cl_int errNum;
+	int nIters = iter_scale;
+	float v1 = 3.75;
+	float v2 = 0.355;
+	long int d_size = const_mem_size / sizeof(float);
+	//OpenCL code
+	int i = 0;
+	int arg_idx = 0;
+	errNum = clSetKernelArg(_marshal_kernel, arg_idx++, sizeof(cl_mem), &_bufs[0]);
+	errNum = clSetKernelArg(_marshal_kernel, arg_idx++, sizeof(cl_mem), &_bufs[1]);
+	errNum = clSetKernelArg(_marshal_kernel, arg_idx++, sizeof(int), &nIters);
+	errNum = clSetKernelArg(_marshal_kernel, arg_idx++, sizeof(float), &v1);
+	errNum = clSetKernelArg(_marshal_kernel, arg_idx++, sizeof(float), &v2);
+	errNum = clSetKernelArg(_marshal_kernel, arg_idx++, sizeof(long int), &d_size);
+	if(errNum != CL_SUCCESS)
+	{
+		fprintf(stderr, "Error: setting kernel _marshal_kernel arguments!\n");
+	}
+	localWorkSize[0] = dimBlock[0];
+	localWorkSize[1] = dimBlock[1];
+	localWorkSize[2] = dimBlock[2];
+	globalWorkSize[0] = dimGrid1[0]*localWorkSize[0];
+	globalWorkSize[1] = dimGrid1[1]*localWorkSize[1];
+	globalWorkSize[2] = dimGrid1[2]*localWorkSize[2];
+	errNum = clEnqueueNDRangeKernel(_cl_commandQueues[i], _marshal_kernel, 3, NULL, globalWorkSize, localWorkSize, 0, NULL, NULL);
+	if(errNum != CL_SUCCESS)
+	{
+		fprintf(stderr, "Error: queuing kernel _marshal_kernel for execution!\n");
+	}
+	Start(&marshalTimer[0]);
+	errNum = clFinish(_cl_commandQueues[0]);
+	if(errNum != CL_SUCCESS) 
+		fprintf(stderr, "Error: finishing velocity for execution!\n");
+	Stop(&marshalTimer[0]);
+	printf("[OpenCL] marshal success!\n");
+	return;
+}
+
 int main () {
 	int iter_scale = 16 * 1024;
 	const size_t const_mem_size = 32 * 1024 * 1024;
-	const size_t start_mem_size = 2 * 1024 * 1024;
-	init_cl(const_mem_size);
+	const size_t start_mem_size = 1 * 1024 * 1024;
+	init_cl();
+	size_t mem_size = start_mem_size;
 	//for(iter_scale = 512; iter_scale <= 2048; iter_scale *= 2) {
-	for(size_t mem_size = start_mem_size; mem_size <= 16 * start_mem_size; mem_size *= 2) {
+	for(size_t mem_size = start_mem_size; mem_size <= 64 * start_mem_size; mem_size *= 2) {
+	//for(int i = 0; i < 16; i++) {
+		init_mem(mem_size);
 		compute(iter_scale, start_mem_size, mem_size);
+		marshal(1, start_mem_size, mem_size);
+		release_mem();
 	}
 	release_cl();
 	return 0;

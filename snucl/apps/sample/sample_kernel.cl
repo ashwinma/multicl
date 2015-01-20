@@ -84,9 +84,44 @@
 #define MULMADD2_MOP1  \
      MULMADD2_OP 
 
-//__kernel void marshal_kernel() {
-//	return;
-//}
+__kernel void marshal_kernel(__global float *d_a, __global float* other_d_a, int nIters, float v1, float v2, long int d_size)
+{
+	int globalThreadId = (get_group_id(0) * get_local_size(0)) + get_local_id(0);
+	int localThreadId = get_local_id(0);
+	int blockId = get_group_id(0);
+	int globalThreadCount = get_num_groups(0) * get_local_size(0);
+	int localThreadCount = get_local_size(0);
+	int blockCount = get_num_groups(0);
+
+	for(int i = globalThreadId; i < d_size; i += globalThreadCount)
+	{
+		//register 
+		float s = d_a[i], s2=10.0f-s, s3=9.0f-s, s4=9.0f-s2, s5=8.0f-s, s6=8.0f-s2, s7=7.0f-s, s8=7.0f-s2;
+		MULMADD8_MOP1
+		MULMADD8_MOP1
+		MULMADD8_MOP1
+		MULMADD8_MOP1
+		MULMADD8_MOP1
+		MULMADD8_MOP1
+		MULMADD8_MOP1
+		MULMADD8_MOP1
+		MULMADD8_MOP1
+		MULMADD8_MOP1
+		MULMADD8_MOP1
+		MULMADD8_MOP1
+		MULMADD8_MOP1
+		MULMADD8_MOP1
+		MULMADD8_MOP1
+		MULMADD8_MOP1
+		for (int j=0 ; j<nIters ; ++j) {
+			/* Each macro op has 5 operations. 
+			   Unroll 4 more times for 20 operations total.
+			   */
+			MULMADD8_MOP1
+		}
+		d_a[i] = ((s+s2)+(s3+s4))+((s5+s6)+(s7+s8));
+	}
+}
 
 __kernel void compute_kernel(__global float *d_a, int nIters, float v1, float v2, long int d_size)
 {

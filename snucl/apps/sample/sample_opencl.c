@@ -27,7 +27,7 @@
 {\
 	fprintf(stderr, "Error creating memory objects in \"%s\"\n", str); \
 }
-//#define SNUCL_PERF_MODEL_OPTIMIZATION
+#define SNUCL_PERF_MODEL_OPTIMIZATION
 
 struct __dim3 {
 	int x;
@@ -160,9 +160,9 @@ void init_cl(const size_t mem_size)
 		CL_CONTEXT_PLATFORM,
 		(cl_context_properties) _cl_firstPlatform,
 		CL_CONTEXT_SCHEDULER,
-		CL_CONTEXT_SCHEDULER_CODE_SEGMENTED_PERF_MODEL,
+		//CL_CONTEXT_SCHEDULER_CODE_SEGMENTED_PERF_MODEL,
 		//CL_CONTEXT_SCHEDULER_PERF_MODEL,
-		//CL_CONTEXT_SCHEDULER_FIRST_EPOCH_BASED_PERF_MODEL,
+		CL_CONTEXT_SCHEDULER_FIRST_EPOCH_BASED_PERF_MODEL,
 		//CL_CONTEXT_SCHEDULER_ALL_EPOCH_BASED_PERF_MODEL,
 		0 };
 	_cl_context = clCreateContext(props, num_devices, _cl_devices, NULL, NULL, &errNum);
@@ -196,10 +196,10 @@ void init_cl(const size_t mem_size)
 		_cl_commandQueues[i] = clCreateCommandQueue(_cl_context, 
 				_cl_devices[chosen_dev_id], 
 #ifdef SNUCL_PERF_MODEL_OPTIMIZATION
-				//CL_QUEUE_AUTO_DEVICE_SELECTION | 
-				//CL_QUEUE_ITERATIVE | 
+				CL_QUEUE_AUTO_DEVICE_SELECTION | 
+				CL_QUEUE_ITERATIVE | 
 				//CL_QUEUE_IO_INTENSIVE | 
-				//CL_QUEUE_COMPUTE_INTENSIVE | 
+				CL_QUEUE_COMPUTE_INTENSIVE | 
 #endif
 				CL_QUEUE_PROFILING_ENABLE, NULL);
 		if(_cl_commandQueues[i] == NULL)
@@ -305,17 +305,17 @@ void release_cl()
 	printf("[OpenCL] context all released!\n");
 }
 
-void compute(const int iter_scale, const size_t mem_size)
+void compute(const int iter_scale, const size_t const_mem_size, const size_t mem_size)
 {
-	int blocks = 1 * 1;
-	int threads = 8;//128;
+	int blocks = 14 * 8;
+	int threads = 128;
 	size_t dimBlock[3] = {threads, 1, 1};
 	size_t dimGrid1[3] = {blocks, 1, 1};
 	cl_int errNum;
 	int nIters = iter_scale;
 	float v1 = 3.75;
 	float v2 = 0.355;
-	long int d_size = mem_size / sizeof(float);
+	long int d_size = const_mem_size / sizeof(float);
 	//OpenCL code
 	int i = 0;
 	for(i = 0; i < NUM_COMMAND_QUEUES; i++) {
@@ -343,6 +343,8 @@ void compute(const int iter_scale, const size_t mem_size)
 	}
 	for(i = 0; i < NUM_COMMAND_QUEUES; i++) {
 		Start(&kernelTimer[i]);
+	}
+	for(i = 0; i < NUM_COMMAND_QUEUES; i++) {
 		errNum = clFinish(_cl_commandQueues[i]);
 		if(errNum != CL_SUCCESS) {
 			fprintf(stderr, "Error: finishing velocity for execution!\n");
@@ -354,11 +356,13 @@ void compute(const int iter_scale, const size_t mem_size)
 }
 
 int main () {
-	size_t mem_size = 2 * 1024 * 1024;
-	init_cl(mem_size);
-	int iter_scale = 1;
-	for(iter_scale = 1; iter_scale <= 2048; iter_scale *= 2) {
-		compute(iter_scale, mem_size);
+	int iter_scale = 16 * 1024;
+	const size_t const_mem_size = 32 * 1024 * 1024;
+	const size_t start_mem_size = 2 * 1024 * 1024;
+	init_cl(const_mem_size);
+	//for(iter_scale = 512; iter_scale <= 2048; iter_scale *= 2) {
+	for(size_t mem_size = start_mem_size; mem_size <= 16 * start_mem_size; mem_size *= 2) {
+		compute(iter_scale, start_mem_size, mem_size);
 	}
 	release_cl();
 	return 0;

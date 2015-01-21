@@ -42,7 +42,7 @@
 #else
 #define DISFD_EAGER_DATA_TRANSFER
 #endif
-#define SNUCL_PERF_MODEL_OPTIMIZATION
+//#define SNUCL_PERF_MODEL_OPTIMIZATION
 //#define DISFD_SINGLE_COMMANDQ
 /***********************************************/
 /* for debug: check the output                 */
@@ -659,6 +659,7 @@ void init_cl(int *deviceID)
 	{
 		fprintf(stderr, "Failed to find any available OpenCL device!\n");
 	}
+//	num_devices = 2;
 	_cl_devices = (cl_device_id *)malloc(sizeof(cl_device_id) * num_devices);
 	errNum = clGetDeviceIDs(_cl_firstPlatform, CL_DEVICE_TYPE_ALL, num_devices, _cl_devices, NULL);
 	if(errNum != CL_SUCCESS)
@@ -2853,6 +2854,7 @@ void compute_velocityC_opencl(int *nztop, int *nztm1, float *ca, int *lbx,
 		Start(&kernelTimerVelocity[i]);
 		printf("DISFD Q%d Velocity Set Kernel Args\n", i);
 		if(counter < 1) {
+#ifdef SNUCL_PERF_MODEL_OPTIMIZATION
 			clSetCommandQueueProperty(_cl_commandQueues[i], 
 #ifdef SNUCL_PERF_MODEL_OPTIMIZATION
 					CL_QUEUE_AUTO_DEVICE_SELECTION | 
@@ -2863,6 +2865,7 @@ void compute_velocityC_opencl(int *nztop, int *nztm1, float *ca, int *lbx,
 					CL_QUEUE_PROFILING_ENABLE, 
 					true,
 					NULL);
+#endif
 		}
 	}
 #ifdef DISFD_PAPI
@@ -3266,11 +3269,7 @@ void compute_velocityC_opencl(int *nztop, int *nztm1, float *ca, int *lbx,
 	}
 
 	for(i = 0; i < NUM_COMMAND_QUEUES; i++) {
-	//	errNum = clFinish(_cl_commandQueues[i]);
-		if(errNum != CL_SUCCESS)
-		{
-			fprintf(stderr, "Error: finishing stress velocity for execution!\n");
-		}
+#ifdef SNUCL_PERF_MODEL_OPTIMIZATION
 		if(counter < 1) {
 			clSetCommandQueueProperty(_cl_commandQueues[i], 
 #ifdef SNUCL_PERF_MODEL_OPTIMIZATION
@@ -3278,6 +3277,15 @@ void compute_velocityC_opencl(int *nztop, int *nztm1, float *ca, int *lbx,
 					CL_QUEUE_PROFILING_ENABLE, 
 					true,
 					NULL);
+		}
+		else 
+#endif
+		{
+			errNum = clFinish(_cl_commandQueues[i]);
+			if(errNum != CL_SUCCESS)
+			{
+				fprintf(stderr, "Error: finishing stress velocity for execution!\n");
+			}
 		}
 		printf("DISFD Q%d Velocity ReSet Kernel Args\n", i);
 		Stop(&kernelTimerVelocity[i]);
@@ -3648,6 +3656,7 @@ void compute_stressC_opencl(int *nxb1, int *nyb1, int *nx1p1, int *ny1p1, int *n
 		Start(&kernelTimerStress[i]);
 		printf("DISFD Q%d Stress Set Kernel Args\n", i);
 		if(counter < 1) {
+#ifdef SNUCL_PERF_MODEL_OPTIMIZATION
 			clSetCommandQueueProperty(_cl_commandQueues[i], 
 #ifdef SNUCL_PERF_MODEL_OPTIMIZATION
 					CL_QUEUE_AUTO_DEVICE_SELECTION | 
@@ -3658,6 +3667,7 @@ void compute_stressC_opencl(int *nxb1, int *nyb1, int *nx1p1, int *ny1p1, int *n
 					CL_QUEUE_PROFILING_ENABLE, 
 					true,
 					NULL);
+#endif
 		}
 	}
 #ifdef DISFD_USE_ROW_MAJOR_DATA
@@ -4980,11 +4990,7 @@ void compute_stressC_opencl(int *nxb1, int *nyb1, int *nx1p1, int *ny1p1, int *n
 	}
 
 	for(i = 0; i < NUM_COMMAND_QUEUES; i++) {
-		//errNum = clFinish(_cl_commandQueues[i]);
-		if(errNum != CL_SUCCESS)
-		{
-			fprintf(stderr, "Error: finishing stress kernel for execution!\n");
-		}
+#ifdef SNUCL_PERF_MODEL_OPTIMIZATION
 		if(counter < 1) {
 			clSetCommandQueueProperty(_cl_commandQueues[i], 
 #ifdef SNUCL_PERF_MODEL_OPTIMIZATION
@@ -4992,6 +4998,15 @@ void compute_stressC_opencl(int *nxb1, int *nyb1, int *nx1p1, int *ny1p1, int *n
 					CL_QUEUE_PROFILING_ENABLE, 
 					true,
 					NULL);
+		}
+		else 
+#endif
+		{
+			errNum = clFinish(_cl_commandQueues[i]);
+			if(errNum != CL_SUCCESS)
+			{
+				fprintf(stderr, "Error: finishing stress kernel for execution!\n");
+			}
 		}
 		printf("DISFD Q%d Stress ReSet Kernel Args\n", i);
 		Stop(&kernelTimerStress[i]);
@@ -5121,6 +5136,7 @@ void compute_stressC_opencl(int *nxb1, int *nyb1, int *nx1p1, int *ny1p1, int *n
    back to CPU for MPI communication.
    */
 void sdx51_vel (float** sdx51, int* nytop, int* nztop, int* nxtop) {
+	int which_qid = MARSHAL_CMDQ;
 	double tstart, tend;
 	double cpy_time=0, kernel_time=0;
 	cl_int errNum;
@@ -5152,13 +5168,13 @@ void sdx51_vel (float** sdx51, int* nytop, int* nztop, int* nxtop) {
 	{
 		fprintf(stderr, "Error: setting kernel _cl_kernel_vel_sdx51 arguments!\n");
 	}
-	errNum = clEnqueueNDRangeKernel(_cl_commandQueues[0], _cl_kernel_vel_sdx51, 3, NULL, globalWorkSize, localWorkSize, 0, NULL, &_cl_events[0]);
+	errNum = clEnqueueNDRangeKernel(_cl_commandQueues[which_qid], _cl_kernel_vel_sdx51, 3, NULL, globalWorkSize, localWorkSize, 0, NULL, &_cl_events[which_qid]);
 	if(errNum != CL_SUCCESS)
 	{
 		fprintf(stderr, "Error: queuing kernel _cl_kernel_stress_yz_PmlZ_IIC for execution!\n");
 	}
 	//vel_sdx51 <<< dimGrid, dimBlock >>> (sdx51D, v1xD, v1yD, v1zD, *nytop, *nztop, *nxtop);
-	errNum = clWaitForEvents(1, &_cl_events[0]);
+	errNum = clWaitForEvents(1, &_cl_events[which_qid]);
 	CHECK_ERROR(errNum, "Kernel Launch, sdx51_vel");
 	record_time(&tend);
 	kernel_time = tend-tstart;
@@ -5205,13 +5221,14 @@ void sdx52_vel (float** sdx52, int* nybtm, int* nzbtm, int* nxbtm) {
 	{
 		fprintf(stderr, "Error: setting kernel _cl_kernel_vel_sdx52 arguments!\n");
 	}
-	errNum = clEnqueueNDRangeKernel(_cl_commandQueues[1], _cl_kernel_vel_sdx52, 3, NULL, globalWorkSize, localWorkSize, 0, NULL, &_cl_events[1]);
+	int which_qid = MARSHAL_CMDQ;
+	errNum = clEnqueueNDRangeKernel(_cl_commandQueues[which_qid], _cl_kernel_vel_sdx52, 3, NULL, globalWorkSize, localWorkSize, 0, NULL, &_cl_events[which_qid]);
 	if(errNum != CL_SUCCESS)
 	{
 		fprintf(stderr, "Error: queuing kernel _cl_kernel_stress_yz_PmlZ_IIC for execution!\n");
 	}
 	//vel_sdbtm <<< dimGrid, dimBlock >>> (sdx52D, v2xD, v2yD, v2zD,  *nybtm, *nzbtm, *nxbtm);
-	errNum = clWaitForEvents(1, &_cl_events[1]);
+	errNum = clWaitForEvents(1, &_cl_events[which_qid]);
 	CHECK_ERROR(errNum, "Kernel Launch, sdy52_vel");
 	record_time(&tend);
 	kernel_time = tend-tstart;
@@ -5261,13 +5278,14 @@ void sdx41_vel (float** sdx41, int* nxtop, int* nytop, int* nztop, int* nxtm1) {
 	{
 		fprintf(stderr, "Error: setting kernel _cl_kernel_vel_sdx41 arguments!\n");
 	}
-	errNum = clEnqueueNDRangeKernel(_cl_commandQueues[0], _cl_kernel_vel_sdx41, 3, NULL, globalWorkSize, localWorkSize, 0, NULL, &_cl_events[0]);
+	int which_qid = MARSHAL_CMDQ;
+	errNum = clEnqueueNDRangeKernel(_cl_commandQueues[which_qid], _cl_kernel_vel_sdx41, 3, NULL, globalWorkSize, localWorkSize, 0, NULL, &_cl_events[which_qid]);
 	if(errNum != CL_SUCCESS)
 	{
 		fprintf(stderr, "Error: queuing kernel _cl_kernel_vel_sdx41 for execution!\n");
 	}
 	//vel_sdx41 <<< dimGrid, dimBlock >>> (sdx41D, v1xD, v1yD, v1zD, *nytop, *nztop, *nxtop, *nxtm1);
-	errNum = clWaitForEvents(1, &_cl_events[0]);
+	errNum = clWaitForEvents(1, &_cl_events[which_qid]);
 	CHECK_ERROR(errNum, "Kernel Launch, sdx41_vel");
 	record_time(&tend);
 	kernel_time = tend-tstart;
@@ -5317,14 +5335,15 @@ void sdx42_vel (float** sdx42, int* nxbtm, int* nybtm, int* nzbtm, int* nxbm1){
 	{
 		fprintf(stderr, "Error: setting kernel _cl_kernel_vel_sdx42 arguments!\n");
 	}
-	errNum = clEnqueueNDRangeKernel(_cl_commandQueues[1], _cl_kernel_vel_sdx42, 3, NULL, globalWorkSize, localWorkSize, 0, NULL, &_cl_events[1]);
+	int which_qid = MARSHAL_CMDQ;
+	errNum = clEnqueueNDRangeKernel(_cl_commandQueues[which_qid], _cl_kernel_vel_sdx42, 3, NULL, globalWorkSize, localWorkSize, 0, NULL, &_cl_events[which_qid]);
 	if(errNum != CL_SUCCESS)
 	{
 		fprintf(stderr, "Error: queuing kernel _cl_kernel_vel_sdx42 for execution!\n");
 	}
 
 	//vel_sdx42 <<< dimGrid, dimBlock >>> (sdx42D, v2xD, v2yD, v2zD, *nybtm, *nzbtm, *nxbtm, *nxbm1);
-	errNum = clWaitForEvents(1, &_cl_events[1]);
+	errNum = clWaitForEvents(1, &_cl_events[which_qid]);
 	CHECK_ERROR(errNum, "Kernel Launch, sdx42_vel");
 	record_time(&tend);
 	kernel_time = tend-tstart;
@@ -5375,13 +5394,14 @@ void sdy51_vel (float** sdy51, int* nxtop, int* nytop, int* nztop) {
 	{
 		fprintf(stderr, "Error: setting kernel _cl_kernel_vel_sdy51 arguments!\n");
 	}
-	errNum = clEnqueueNDRangeKernel(_cl_commandQueues[0], _cl_kernel_vel_sdy51, 3, NULL, globalWorkSize, localWorkSize, 0, NULL, &_cl_events[0]);
+	int which_qid = MARSHAL_CMDQ;
+	errNum = clEnqueueNDRangeKernel(_cl_commandQueues[which_qid], _cl_kernel_vel_sdy51, 3, NULL, globalWorkSize, localWorkSize, 0, NULL, &_cl_events[which_qid]);
 	if(errNum != CL_SUCCESS)
 	{
 		fprintf(stderr, "Error: queuing kernel _cl_kernel_vel_sdy51 for execution!\n");
 	}
 	//vel_sdy51 <<< dimGrid, dimBlock >>> (sdy51D, v1xD, v1yD, v1zD, *nytop, *nztop, *nxtop);
-	errNum=clWaitForEvents(1, &_cl_events[0]);
+	errNum=clWaitForEvents(1, &_cl_events[which_qid]);
 	CHECK_ERROR(errNum, "Kernel failed sdy51_vel");
 	record_time(&tend);
 	kernel_time = tend-tstart;
@@ -5431,13 +5451,14 @@ void sdy52_vel (float** sdy52, int* nxbtm, int* nybtm, int* nzbtm) {
 	{
 		fprintf(stderr, "Error: setting kernel _cl_kernel_vel_sdy52 arguments!\n");
 	}
-	errNum = clEnqueueNDRangeKernel(_cl_commandQueues[1], _cl_kernel_vel_sdy52, 3, NULL, globalWorkSize, localWorkSize, 0, NULL, &_cl_events[1]);
+	int which_qid = MARSHAL_CMDQ;
+	errNum = clEnqueueNDRangeKernel(_cl_commandQueues[which_qid], _cl_kernel_vel_sdy52, 3, NULL, globalWorkSize, localWorkSize, 0, NULL, &_cl_events[which_qid]);
 	if(errNum != CL_SUCCESS)
 	{
 		fprintf(stderr, "Error: queuing kernel _cl_kernel_vel_sdy52 for execution!\n");
 	}
 	//vel_sdy52 <<< dimGrid, dimBlock >>> (sdy52D, v2xD, v2yD, v2zD,  *nybtm, *nzbtm, *nxbtm);
-	errNum = clWaitForEvents(1, &_cl_events[1]);
+	errNum = clWaitForEvents(1, &_cl_events[which_qid]);
 	CHECK_ERROR(errNum, "Kernel Launch, sdy52_vel");
 	record_time(&tend);
 	kernel_time = tend-tstart;
@@ -5488,13 +5509,14 @@ void sdy41_vel (float** sdy41, int* nxtop, int* nytop, int* nztop, int* nytm1) {
 	{
 		fprintf(stderr, "Error: setting kernel _cl_kernel_vel_sdy41 arguments!\n");
 	}
-	errNum = clEnqueueNDRangeKernel(_cl_commandQueues[0], _cl_kernel_vel_sdy41, 3, NULL, globalWorkSize, localWorkSize, 0, NULL, &_cl_events[0]);
+	int which_qid = MARSHAL_CMDQ;
+	errNum = clEnqueueNDRangeKernel(_cl_commandQueues[which_qid], _cl_kernel_vel_sdy41, 3, NULL, globalWorkSize, localWorkSize, 0, NULL, &_cl_events[which_qid]);
 	if(errNum != CL_SUCCESS)
 	{
 		fprintf(stderr, "Error: queuing kernel _cl_kernel_vel_sdy41 for execution!\n");
 	}
 	//vel_sdy41 <<< dimGrid, dimBlock >>> (sdy41D, v1xD, v1yD, v1zD, *nytop, *nztop, *nxtop, *nytm1);
-	errNum = clWaitForEvents(1, &_cl_events[0]);
+	errNum = clWaitForEvents(1, &_cl_events[which_qid]);
 	CHECK_ERROR(errNum, "Kernel Launch, sdy41_vel");
 	record_time(&tend);
 	kernel_time = tend-tstart;
@@ -5547,13 +5569,14 @@ void sdy42_vel (float** sdy42, int* nxbtm, int* nybtm, int* nzbtm, int* nybm1)
 	{
 		fprintf(stderr, "Error: setting kernel _cl_kernel_vel_sdy42 arguments!\n");
 	}
-	errNum = clEnqueueNDRangeKernel(_cl_commandQueues[1], _cl_kernel_vel_sdy42, 3, NULL, globalWorkSize, localWorkSize, 0, NULL, &_cl_events[1]);
+	int which_qid = MARSHAL_CMDQ;
+	errNum = clEnqueueNDRangeKernel(_cl_commandQueues[which_qid], _cl_kernel_vel_sdy42, 3, NULL, globalWorkSize, localWorkSize, 0, NULL, &_cl_events[which_qid]);
 	if(errNum != CL_SUCCESS)
 	{
 		fprintf(stderr, "Error: queuing kernel _cl_kernel_vel_sdy42 for execution!\n");
 	}
 	//vel_sdy42 <<< dimGrid, dimBlock >>> (sdy42D, v2xD, v2yD, v2zD, *nybtm, *nzbtm, *nxbtm, *nybm1);
-	errNum = clWaitForEvents(1, &_cl_events[1]);
+	errNum = clWaitForEvents(1, &_cl_events[which_qid]);
 	CHECK_ERROR(errNum, "Kernel Launch, sdy42_vel");
 	record_time(&tend);
 	kernel_time = tend-tstart;
@@ -5617,13 +5640,14 @@ void rcx51_vel (float** rcx51, int* nxtop, int* nytop, int* nztop, int* nx1p1, i
 	{
 		fprintf(stderr, "Error: setting kernel _cl_kernel_vel_rcx51 arguments!\n");
 	}
-	errNum = clEnqueueNDRangeKernel(_cl_commandQueues[0], _cl_kernel_vel_rcx51, 3, NULL, globalWorkSize, localWorkSize, 0, NULL, &_cl_events[0]);
+	int which_qid = MARSHAL_CMDQ;
+	errNum = clEnqueueNDRangeKernel(_cl_commandQueues[which_qid], _cl_kernel_vel_rcx51, 3, NULL, globalWorkSize, localWorkSize, 0, NULL, &_cl_events[which_qid]);
 	if(errNum != CL_SUCCESS)
 	{
 		fprintf(stderr, "Error: queuing kernel _cl_kernel_vel_rcx51 for execution!\n");
 	}
 	//vel_rcx51 <<< dimGrid, dimBlock >>> (rcx51D, v1xD, v1yD, v1zD, *nytop, *nztop, *nxtop, *nx1p1, *nx1p2);
-	errNum = clWaitForEvents(1, &_cl_events[0]);
+	errNum = clWaitForEvents(1, &_cl_events[which_qid]);
 	CHECK_ERROR(errNum, "Kernel Launch, rcx51_vel");
 	record_time(&tend);
 	kernel_time = tend-tstart;
@@ -5676,13 +5700,14 @@ void rcx52_vel (float** rcx52, int* nxbtm, int* nybtm, int* nzbtm, int* nx2p1, i
 	{
 		fprintf(stderr, "Error: setting kernel _cl_kernel_vel_rcx52 arguments!\n");
 	}
-	errNum = clEnqueueNDRangeKernel(_cl_commandQueues[1], _cl_kernel_vel_rcx52, 3, NULL, globalWorkSize, localWorkSize, 0, NULL, &_cl_events[1]);
+	int which_qid = MARSHAL_CMDQ;
+	errNum = clEnqueueNDRangeKernel(_cl_commandQueues[which_qid], _cl_kernel_vel_rcx52, 3, NULL, globalWorkSize, localWorkSize, 0, NULL, &_cl_events[which_qid]);
 	if(errNum != CL_SUCCESS)
 	{
 		fprintf(stderr, "Error: queuing kernel _cl_kernel_vel_rcx52 for execution!\n");
 	}
 	//vel_rcx52 <<< dimGrid, dimBlock >>> (rcx52D, v2xD, v2yD, v2zD,  *nybtm, *nzbtm, *nxbtm, *nx2p1, *nx2p2);
-	errNum = clWaitForEvents(1, &_cl_events[1]);
+	errNum = clWaitForEvents(1, &_cl_events[which_qid]);
 	CHECK_ERROR(errNum, "Kernel Launch, rcx52_vel");
 	record_time(&tend);
 	kernel_time = tend-tstart;
@@ -5733,13 +5758,14 @@ void rcx41_vel (float** rcx41, int* nxtop, int* nytop, int* nztop) {
 	{
 		fprintf(stderr, "Error: setting kernel _cl_kernel_vel_rcx41 arguments!\n");
 	}
-	errNum = clEnqueueNDRangeKernel(_cl_commandQueues[0], _cl_kernel_vel_rcx41, 3, NULL, globalWorkSize, localWorkSize, 0, NULL, &_cl_events[0]);
+	int which_qid = MARSHAL_CMDQ;
+	errNum = clEnqueueNDRangeKernel(_cl_commandQueues[which_qid], _cl_kernel_vel_rcx41, 3, NULL, globalWorkSize, localWorkSize, 0, NULL, &_cl_events[which_qid]);
 	if(errNum != CL_SUCCESS)
 	{
 		fprintf(stderr, "Error: queuing kernel _cl_kernel_vel_rcx41 for execution!\n");
 	}
 	//vel_rcx41 <<< dimGrid, dimBlock >>> (rcx41D, v1xD, v1yD, v1zD, *nytop, *nztop, *nxtop);
-	errNum = clWaitForEvents(1, &_cl_events[0]);
+	errNum = clWaitForEvents(1, &_cl_events[which_qid]);
 	CHECK_ERROR(errNum, "Kernel Launch, rcx41_vel");
 	record_time(&tend);
 	kernel_time = tend-tstart;
@@ -5790,13 +5816,14 @@ void rcx42_vel (float** rcx42, int* nxbtm, int* nybtm, int* nzbtm) {
 	{
 		fprintf(stderr, "Error: setting kernel _cl_kernel_vel_rcx42 arguments!\n");
 	}
-	errNum = clEnqueueNDRangeKernel(_cl_commandQueues[1], _cl_kernel_vel_rcx42, 3, NULL, globalWorkSize, localWorkSize, 0, NULL, &_cl_events[1]);
+	int which_qid = MARSHAL_CMDQ;
+	errNum = clEnqueueNDRangeKernel(_cl_commandQueues[which_qid], _cl_kernel_vel_rcx42, 3, NULL, globalWorkSize, localWorkSize, 0, NULL, &_cl_events[which_qid]);
 	if(errNum != CL_SUCCESS)
 	{
 		fprintf(stderr, "Error: queuing kernel _cl_kernel_vel_rcx42 for execution!\n");
 	}
 	//  vel_rcx42 <<< dimGrid, dimBlock >>> (rcx42D, v2xD, v2yD, v2zD, *nybtm, *nzbtm, *nxbtm);
-	errNum = clWaitForEvents(1, &_cl_events[1]);
+	errNum = clWaitForEvents(1, &_cl_events[which_qid]);
 	CHECK_ERROR(errNum, "Kernel Launch, rcx42_vel");
 	record_time(&tend);
 	kernel_time = tend-tstart;
@@ -5850,13 +5877,14 @@ void rcy51_vel (float** rcy51, int* nxtop, int* nytop, int* nztop, int* ny1p1,in
 	{
 		fprintf(stderr, "Error: setting kernel _cl_kernel_vel_rcy51 arguments!\n");
 	}
-	errNum = clEnqueueNDRangeKernel(_cl_commandQueues[0], _cl_kernel_vel_rcy51, 3, NULL, globalWorkSize, localWorkSize, 0, NULL, &_cl_events[0]);
+	int which_qid = MARSHAL_CMDQ;
+	errNum = clEnqueueNDRangeKernel(_cl_commandQueues[which_qid], _cl_kernel_vel_rcy51, 3, NULL, globalWorkSize, localWorkSize, 0, NULL, &_cl_events[which_qid]);
 	if(errNum != CL_SUCCESS)
 	{
 		fprintf(stderr, "Error: queuing kernel _cl_kernel_vel_rcy51 for execution!\n");
 	}
 	//vel_rcy51 <<< dimGrid, dimBlock >>> (rcy51D, v1xD, v1yD, v1zD, *nytop, *nztop, *nxtop, *ny1p1, *ny1p2);
-	errNum = clWaitForEvents(1, &_cl_events[0]);
+	errNum = clWaitForEvents(1, &_cl_events[which_qid]);
 	CHECK_ERROR(errNum, "Kernel Launch, rcy51_vel");
 	record_time(&tend);
 	kernel_time = tend-tstart;
@@ -5909,13 +5937,14 @@ void rcy52_vel (float** rcy52, int* nxbtm, int* nybtm, int* nzbtm, int* ny2p1, i
 	{
 		fprintf(stderr, "Error: setting kernel _cl_kernel_vel_rcy52 arguments!\n");
 	}
-	errNum = clEnqueueNDRangeKernel(_cl_commandQueues[1], _cl_kernel_vel_rcy52, 3, NULL, globalWorkSize, localWorkSize, 0, NULL, &_cl_events[1]);
+	int which_qid = MARSHAL_CMDQ;
+	errNum = clEnqueueNDRangeKernel(_cl_commandQueues[which_qid], _cl_kernel_vel_rcy52, 3, NULL, globalWorkSize, localWorkSize, 0, NULL, &_cl_events[which_qid]);
 	if(errNum != CL_SUCCESS)
 	{
 		fprintf(stderr, "Error: queuing kernel _cl_kernel_vel_rcy52 for execution!\n");
 	}
 	// vel_rcy52 <<< dimGrid, dimBlock >>> (rcy52D, v2xD, v2yD, v2zD,  *nybtm, *nzbtm, *nxbtm, *ny2p1, *ny2p2);
-	errNum = clWaitForEvents(1, &_cl_events[1]);
+	errNum = clWaitForEvents(1, &_cl_events[which_qid]);
 	CHECK_ERROR(errNum, "Kernel Launch, rcy52_vel");
 	record_time(&tend);
 	kernel_time = tend-tstart;
@@ -5965,13 +5994,14 @@ void rcy41_vel (float** rcy41, int* nxtop, int* nytop, int* nztop) {
 	{
 		fprintf(stderr, "Error: setting kernel _cl_kernel_vel_rcy41 arguments!\n");
 	}
-	errNum = clEnqueueNDRangeKernel(_cl_commandQueues[0], _cl_kernel_vel_rcy41, 3, NULL, globalWorkSize, localWorkSize, 0, NULL, &_cl_events[0]);
+	int which_qid = MARSHAL_CMDQ;
+	errNum = clEnqueueNDRangeKernel(_cl_commandQueues[which_qid], _cl_kernel_vel_rcy41, 3, NULL, globalWorkSize, localWorkSize, 0, NULL, &_cl_events[which_qid]);
 	if(errNum != CL_SUCCESS)
 	{
 		fprintf(stderr, "Error: queuing kernel _cl_kernel_vel_rcy41 for execution!\n");
 	}
 	//vel_rcy41 <<< dimGrid, dimBlock >>> (rcy41D, v1xD, v1yD, v1zD, *nytop, *nztop, *nxtop);
-	errNum = clWaitForEvents(1, &_cl_events[0]);
+	errNum = clWaitForEvents(1, &_cl_events[which_qid]);
 	CHECK_ERROR(errNum, "Kernel Launch, rcy41_vel");
 	record_time(&tend);
 	kernel_time = tend-tstart;
@@ -6021,13 +6051,14 @@ void rcy42_vel (float** rcy42, int* nxbtm, int* nybtm, int* nzbtm) {
 	{
 		fprintf(stderr, "Error: setting kernel _cl_kernel_vel_rcy42 arguments!\n");
 	}
-	errNum = clEnqueueNDRangeKernel(_cl_commandQueues[1], _cl_kernel_vel_rcy42, 3, NULL, globalWorkSize, localWorkSize, 0, NULL, &_cl_events[1]);
+	int which_qid = MARSHAL_CMDQ;
+	errNum = clEnqueueNDRangeKernel(_cl_commandQueues[which_qid], _cl_kernel_vel_rcy42, 3, NULL, globalWorkSize, localWorkSize, 0, NULL, &_cl_events[which_qid]);
 	if(errNum != CL_SUCCESS)
 	{
 		fprintf(stderr, "Error: queuing kernel _cl_kernel_vel_rcy42 for execution!\n");
 	}
 	//vel_rcy42 <<< dimGrid, dimBlock >>> (rcy42D, v2xD, v2yD, v2zD, *nybtm, *nzbtm, *nxbtm);
-	errNum = clWaitForEvents(1, &_cl_events[1]);
+	errNum = clWaitForEvents(1, &_cl_events[which_qid]);
 	CHECK_ERROR(errNum, "Kernel Launch, rcy42_vel");
 	record_time(&tend);
 	kernel_time = tend-tstart;
@@ -6067,13 +6098,14 @@ void sdx1_vel(float* sdx1, int* nxtop, int* nytop, int* nxbtm, int* nzbtm, int* 
 	{
 		fprintf(stderr, "Error: setting kernel _cl_kernel_vel_sdx1 arguments!\n");
 	}
-	errNum = clEnqueueNDRangeKernel(_cl_commandQueues[1], _cl_kernel_vel_sdx1, 3, NULL, globalWorkSize, localWorkSize, 0, NULL, &_cl_events[1]);
+	int which_qid = MARSHAL_CMDQ;
+	errNum = clEnqueueNDRangeKernel(_cl_commandQueues[which_qid], _cl_kernel_vel_sdx1, 3, NULL, globalWorkSize, localWorkSize, 0, NULL, &_cl_events[which_qid]);
 	if(errNum != CL_SUCCESS)
 	{
 		fprintf(stderr, "Error: queuing kernel _cl_kernel_vel_sdx1 for execution!\n");
 	}
 	//vel_sdx1 <<< 1, 1>>> (sdx1D, v2xD, v2yD, v2zD, *nxbtm, *nzbtm, *ny2p1, *ny2p2);
-	errNum = clWaitForEvents(1, &_cl_events[1]);
+	errNum = clWaitForEvents(1, &_cl_events[which_qid]);
 	CHECK_ERROR(errNum, "Kernel Launch, sdx1_vel");
 	record_time(&tend);
 	kernel_time = tend-tstart;
@@ -6120,13 +6152,14 @@ void sdy1_vel(float* sdy1, int* nxtop, int* nytop, int* nxbtm, int* nzbtm, int* 
 	globalWorkSize[0] = 1;
 	globalWorkSize[1] = 1;
 	globalWorkSize[2] = 1;
-	errNum = clEnqueueNDRangeKernel(_cl_commandQueues[1], _cl_kernel_vel_sdy1, 3, NULL, globalWorkSize, localWorkSize, 0, NULL, &_cl_events[1]);
+	int which_qid = MARSHAL_CMDQ;
+	errNum = clEnqueueNDRangeKernel(_cl_commandQueues[which_qid], _cl_kernel_vel_sdy1, 3, NULL, globalWorkSize, localWorkSize, 0, NULL, &_cl_events[which_qid]);
 	if(errNum != CL_SUCCESS)
 	{
 		fprintf(stderr, "Error: queuing kernel _cl_kernel_vel_sdy1 for execution!\n");
 	}
 	//vel_sdy1 <<< 1, 1>>> (sdy1D, v2xD, v2yD, v2zD, *nxbtm, *nzbtm, *nx2p1, *nx2p2);
-	errNum = clWaitForEvents(1, &_cl_events[1]);
+	errNum = clWaitForEvents(1, &_cl_events[which_qid]);
 	CHECK_ERROR(errNum, "Kernel Launch, sdy1_vel");
 	record_time(&tend);
 	kernel_time = tend-tstart;
@@ -6174,13 +6207,14 @@ void sdx2_vel(float* sdx2, int* nxtop, int* nytop, int* nxbm1, int* nxbtm, int* 
 	globalWorkSize[0] = 1;
 	globalWorkSize[1] = 1;
 	globalWorkSize[2] = 1;
-	errNum = clEnqueueNDRangeKernel(_cl_commandQueues[1], _cl_kernel_vel_sdx2, 3, NULL, globalWorkSize, localWorkSize, 0, NULL, &_cl_events[1]);
+	int which_qid = MARSHAL_CMDQ;
+	errNum = clEnqueueNDRangeKernel(_cl_commandQueues[which_qid], _cl_kernel_vel_sdx2, 3, NULL, globalWorkSize, localWorkSize, 0, NULL, &_cl_events[which_qid]);
 	if(errNum != CL_SUCCESS)
 	{
 		fprintf(stderr, "Error: queuing kernel _cl_kernel_vel_sdx2 for execution!\n");
 	}
 	//vel_sdx2 <<< 1, 1>>> (sdx2D, v2xD, v2yD, v2zD, *nxbm1, *nxbtm, *nzbtm, *ny2p1, *ny2p2);
-	errNum = clWaitForEvents(1, &_cl_events[1]);
+	errNum = clWaitForEvents(1, &_cl_events[which_qid]);
 	CHECK_ERROR(errNum, "Kernel Launch, sdx2_vel");
 	record_time(&tend);
 	kernel_time = tend-tstart;
@@ -6229,13 +6263,14 @@ void sdy2_vel(float* sdy2, int* nxtop, int* nytop, int* nybm1, int* nybtm, int* 
 	globalWorkSize[0] = 1;
 	globalWorkSize[1] = 1;
 	globalWorkSize[2] = 1;
-	errNum = clEnqueueNDRangeKernel(_cl_commandQueues[1], _cl_kernel_vel_sdy2, 3, NULL, globalWorkSize, localWorkSize, 0, NULL, &_cl_events[1]);
+	int which_qid = MARSHAL_CMDQ;
+	errNum = clEnqueueNDRangeKernel(_cl_commandQueues[which_qid], _cl_kernel_vel_sdy2, 3, NULL, globalWorkSize, localWorkSize, 0, NULL, &_cl_events[which_qid]);
 	if(errNum != CL_SUCCESS)
 	{
 		fprintf(stderr, "Error: queuing kernel _cl_kernel_vel_sdy2 for execution!\n");
 	}
 	//    vel_sdy2 <<< 1, 1>>> (sdy2D, v2xD, v2yD, v2zD, *nybm1, *nybtm, *nxbtm, *nzbtm, *nx2p1, *nx2p2);
-	errNum = clWaitForEvents(1, &_cl_events[1]);
+	errNum = clWaitForEvents(1, &_cl_events[which_qid]);
 	CHECK_ERROR(errNum, "Kernel Launch, sdy2_vel");
 	record_time(&tend);
 	kernel_time = tend-tstart;
@@ -6290,13 +6325,14 @@ void rcx1_vel(float* rcx1, int* nxtop, int* nytop, int* nxbtm, int* nzbtm, int* 
 	globalWorkSize[0] = 1;
 	globalWorkSize[1] = 1;
 	globalWorkSize[2] = 1;
-	errNum = clEnqueueNDRangeKernel(_cl_commandQueues[1], _cl_kernel_vel_rcx1, 3, NULL, globalWorkSize, localWorkSize, 0, NULL, &_cl_events[1]);
+	int which_qid = MARSHAL_CMDQ;
+	errNum = clEnqueueNDRangeKernel(_cl_commandQueues[which_qid], _cl_kernel_vel_rcx1, 3, NULL, globalWorkSize, localWorkSize, 0, NULL, &_cl_events[which_qid]);
 	if(errNum != CL_SUCCESS)
 	{
 		fprintf(stderr, "Error: queuing kernel _cl_kernel_vel_rcx1 for execution!\n");
 	}
 	//    vel_rcx1 <<< 1, 1>>> (rcx1D, v2xD, v2yD, v2zD, *nxbtm, *nzbtm, *ny2p1, *ny2p2);
-	errNum = clWaitForEvents(1, &_cl_events[1]);
+	errNum = clWaitForEvents(1, &_cl_events[which_qid]);
 	CHECK_ERROR(errNum, "Kernel Launch, rcx1_vel");
 	record_time(&tend);
 	kernel_time = tend-tstart;
@@ -6343,13 +6379,14 @@ void rcy1_vel(float* rcy1, int* nxtop, int* nytop, int*nxbtm, int* nzbtm,  int* 
 	globalWorkSize[0] = 1;
 	globalWorkSize[1] = 1;
 	globalWorkSize[2] = 1;
-	errNum = clEnqueueNDRangeKernel(_cl_commandQueues[1], _cl_kernel_vel_rcy1, 3, NULL, globalWorkSize, localWorkSize, 0, NULL, &_cl_events[1]);
+	int which_qid = MARSHAL_CMDQ;
+	errNum = clEnqueueNDRangeKernel(_cl_commandQueues[which_qid], _cl_kernel_vel_rcy1, 3, NULL, globalWorkSize, localWorkSize, 0, NULL, &_cl_events[which_qid]);
 	if(errNum != CL_SUCCESS)
 	{
 		fprintf(stderr, "Error: queuing kernel _cl_kernel_vel_rcy1 for execution!\n");
 	}
 	//    vel_rcy1 <<< 1, 1>>> (rcy1D, v2xD, v2yD, v2zD, *nxbtm, *nzbtm, *nx2p1, *nx2p2);
-	errNum = clWaitForEvents(1, &_cl_events[1]);
+	errNum = clWaitForEvents(1, &_cl_events[which_qid]);
 	CHECK_ERROR(errNum, "Kernel Launch, rcy1_vel");
 	record_time(&tend);
 	kernel_time = tend-tstart;
@@ -6398,13 +6435,14 @@ void rcx2_vel(float* rcx2, int* nxtop, int* nytop, int* nxbtm, int* nzbtm, int* 
 	globalWorkSize[0] = 1;
 	globalWorkSize[1] = 1;
 	globalWorkSize[2] = 1;
-	errNum = clEnqueueNDRangeKernel(_cl_commandQueues[1], _cl_kernel_vel_rcx2, 3, NULL, globalWorkSize, localWorkSize, 0, NULL, &_cl_events[1]);
+	int which_qid = MARSHAL_CMDQ;
+	errNum = clEnqueueNDRangeKernel(_cl_commandQueues[which_qid], _cl_kernel_vel_rcx2, 3, NULL, globalWorkSize, localWorkSize, 0, NULL, &_cl_events[which_qid]);
 	if(errNum != CL_SUCCESS)
 	{
 		fprintf(stderr, "Error: queuing kernel _cl_kernel_vel_rcx2 for execution!\n");
 	}
 	//    vel_rcx2 <<< 1, 1>>> (rcx2D, v2xD, v2yD, v2zD, *nxbtm, *nzbtm, *nx2p1, *nx2p2, *ny2p1, *ny2p2);
-	errNum = clWaitForEvents(1, &_cl_events[1]);
+	errNum = clWaitForEvents(1, &_cl_events[which_qid]);
 	CHECK_ERROR(errNum, "Kernel Launch, rcx2_vel");
 	record_time(&tend);
 	kernel_time = tend-tstart;
@@ -6453,13 +6491,14 @@ void rcy2_vel(float* rcy2, int* nxtop, int* nytop, int* nxbtm, int*  nzbtm, int*
 	globalWorkSize[0] = 1;
 	globalWorkSize[1] = 1;
 	globalWorkSize[2] = 1;
-	errNum = clEnqueueNDRangeKernel(_cl_commandQueues[1], _cl_kernel_vel_rcy2, 3, NULL, globalWorkSize, localWorkSize, 0, NULL, &_cl_events[1]);
+	int which_qid = MARSHAL_CMDQ;
+	errNum = clEnqueueNDRangeKernel(_cl_commandQueues[which_qid], _cl_kernel_vel_rcy2, 3, NULL, globalWorkSize, localWorkSize, 0, NULL, &_cl_events[which_qid]);
 	if(errNum != CL_SUCCESS)
 	{
 		fprintf(stderr, "Error: queuing kernel _cl_kernel_vel_rcy2 for execution!\n");
 	}
 	//vel_rcy2 <<< 1, 1>>> (rcy2D, v2xD, v2yD, v2zD, *nxbtm, *nzbtm,  *nx2p1, *nx2p2, *ny2p1, *ny2p2);
-	errNum = clWaitForEvents(1, &_cl_events[1]);
+	errNum = clWaitForEvents(1, &_cl_events[which_qid]);
 	CHECK_ERROR(errNum, "Kernel Launch, rcy2_vel");
 	record_time(&tend);
 	kernel_time = tend-tstart;

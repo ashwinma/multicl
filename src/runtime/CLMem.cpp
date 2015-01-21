@@ -57,7 +57,7 @@ using namespace std;
 
 #define UPDATE_ERROR(err)                         \
   if (err != CL_SUCCESS) {                        \
-    SNUCL_ERROR("legacy vendor error %d\n", err); \
+    SNUCL_ERROR("legacy vendor error %d %s\n", err, clCheckErrorString(err)); \
     return;                                       \
   }
 

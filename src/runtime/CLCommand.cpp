@@ -935,7 +935,7 @@ bool CLCommand::ResolveConsistencyOfLaunchKernel() {
   	  CLDevice* after_device = device_;
       already_resolved &= LocateMemOnDevice(arg->mem);
 	  if(before_device != after_device) {
-	  	SNUCL_INFO("Kernel Arg Memcpied from %p to %p\n", before_device, after_device);
+	  	SNUCL_INFO("Kernel Arg Memcpied from %p to %p %lu bytes\n", before_device, after_device, arg->mem->size());
 		synced = true;
 	  }
 	}

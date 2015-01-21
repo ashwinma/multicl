@@ -91,25 +91,26 @@ typedef CL_API_ENTRY cl_int (CL_API_CALL *pfn_clIcdGetPlatformIDs)(
 #define CHECK_ERROR(cond, err)                    \
   if (cond) {                                     \
     if(command) command->SetError(err);                       \
-    SNUCL_ERROR("legacy vendor error %d\n", err); \
+    SNUCL_ERROR("legacy vendor error with device %p : %d %s\n", device_id_, err, clCheckErrorString(err)); \
     return;                                       \
   }
 
 #define UPDATE_ERROR(err)                         \
   if (err != CL_SUCCESS) {                        \
     if(command)command->SetError(err);            \
-    SNUCL_ERROR("legacy vendor error with device %p : %d\n", device_id_, err); \
+    SNUCL_ERROR("legacy vendor error with device %p : %d %s\n", device_id_, err, clCheckErrorString(err)); \
     return;                                       \
   }
 
 #define VERIFY_ERROR(err)                         \
   if (err != CL_SUCCESS) {                        \
-    SNUCL_ERROR("legacy vendor error %d\n", err); \
+    SNUCL_ERROR("legacy vendor error %d %s\n", err, clCheckErrorString(err)); \
   }
 
 LegacyDevice::LegacyDevice(void* library, struct _cl_icd_dispatch* dispatch, 
 						   cl_context context,
-                           cl_platform_id platform_id, cl_device_id device_id)
+                           cl_platform_id platform_id, cl_device_id device_id,
+						   const int device_index)
     : CLDevice(0) {
   gLegacyTimer.Init();
   gLegacyTestTimer.Init();
@@ -119,6 +120,7 @@ LegacyDevice::LegacyDevice(void* library, struct _cl_icd_dispatch* dispatch,
   dispatch_ = dispatch;
   platform_id_ = platform_id;
   device_id_ = device_id;
+  device_index_ = device_index;
 
   context_ = context;
   //context_ = NULL;
@@ -534,7 +536,6 @@ void LegacyDevice::LaunchKernel(CLCommand* command, CLKernel* kernel,
                                 map<cl_uint, CLKernelArg*>* kernel_args) {
   //SNUCL_INFO("run kernel: %s Device Type: %d Ptr: %p\n", 
   //		kernel->name(), type_, device_id_);
-  gLegacyTimer.Start();
   CHECK_ERROR(available_ == CL_FALSE, CL_DEVICE_NOT_AVAILABLE);
   cl_kernel legacy_kernel = (cl_kernel)kernel->GetDevSpecific(this);
   CHECK_ERROR(legacy_kernel == NULL, CL_INVALID_PROGRAM_EXECUTABLE);
@@ -551,17 +552,21 @@ void LegacyDevice::LaunchKernel(CLCommand* command, CLKernel* kernel,
       CHECK_ERROR(mem_dev == NULL, CL_INVALID_MEM_OBJECT);
       err = dispatch_->clSetKernelArg(legacy_kernel, index, sizeof(cl_mem),
                                       &mem_dev);
+    UPDATE_ERROR(err);
     } else if (sampler != NULL) {
       cl_sampler sampler_dev = (cl_sampler)sampler->GetDevSpecific(this);
       CHECK_ERROR(sampler_dev == NULL, CL_INVALID_SAMPLER);
       err = dispatch_->clSetKernelArg(legacy_kernel, index, sizeof(cl_sampler),
                                       &sampler_dev);
+    UPDATE_ERROR(err);
     } else if (it->second->local) {
       err = dispatch_->clSetKernelArg(legacy_kernel, index, it->second->size,
                                       NULL);
+    UPDATE_ERROR(err);
     } else {
       err = dispatch_->clSetKernelArg(legacy_kernel, index, it->second->size,
                                       it->second->value);
+    UPDATE_ERROR(err);
     }
     UPDATE_ERROR(err);
   }
@@ -589,6 +594,7 @@ void LegacyDevice::LaunchKernel(CLCommand* command, CLKernel* kernel,
   cl_event event;
   //SNUCL_INFO("run kernel: %s Device Type: %d Ptr: %p\n", 
   	//	kernel->name(), type_, device_id_);
+  gLegacyTimer.Start();
   err = dispatch_->clEnqueueNDRangeKernel(kernel_queue_, legacy_kernel,
                                           work_dim, gwo, gws, lws, 0, NULL,
                                           &event);
@@ -597,11 +603,19 @@ void LegacyDevice::LaunchKernel(CLCommand* command, CLKernel* kernel,
 //  err = dispatch_->clFinish(kernel_queue_);
   err = dispatch_->clWaitForEvents(1, &event);
   UPDATE_ERROR(err);
+  cl_ulong start = 0, end = 0;
+  dispatch_->clGetEventProfilingInfo(event, CL_PROFILING_COMMAND_START, sizeof(cl_ulong), &start, NULL);
+  dispatch_->clGetEventProfilingInfo(event, CL_PROFILING_COMMAND_END, sizeof(cl_ulong), &end, NULL);
+  //END-START gives you hints on kind of “pure HW execution time”
+  ////the resolution of the events is 1e-09 sec
+  double g_NDRangePureExecTimeSec = (double)(end - start)*(double)(1e-09); 
   gLegacyTimer.Stop();
   //if(strcmp(kernel->name(), "cffts1") == 0)
-  SNUCL_INFO("[Device %p Type %d] Kernel %s Time: %g sec\n", 
+  SNUCL_INFO("[Device Index %d Ptr %p Type %d] Kernel %s Time: %g sec\n", 
+  		device_index_,
   		device_id_, type_,
-		kernel->name(), gLegacyTimer.CurrentElapsed());
+		kernel->name(), g_NDRangePureExecTimeSec);
+		//kernel->name(), gLegacyTimer.CurrentElapsed());
 }
 
 void LegacyDevice::LaunchNativeKernel(CLCommand* command,
@@ -1112,7 +1126,8 @@ void* LegacyDevice::AllocMem(CLMem* mem) {
     }
   } else {
     m = dispatch_->clCreateBuffer(context_, flags, mem->size(), NULL, &err);
-  	//SNUCL_INFO("Mem: %p --> Dev Specific Mem: %p\n", mem, m);
+  	SNUCL_INFO("Mem: %p --> Dev %p Specific Mem: %p\n", mem, device_id_, m);
+	VERIFY_ERROR(err);
   }
   if (err != CL_SUCCESS)
     m = NULL;
@@ -1130,7 +1145,7 @@ void *LegacyDevice::AllocHostMem(CLMem *mem)
 								(cl_mem)m, CL_TRUE, 
 								CL_MAP_READ|CL_MAP_WRITE, 0, mem->size(), 0, NULL, NULL,
 								&err);
-  		//SNUCL_INFO("[Queue: %p] Mapping CLMem %p, dev specific obj %p and host ptr: %p\n", mem_queue_, mem, m, ptr);
+  		SNUCL_INFO("[Queue: %p] Mapping CLMem %p, dev specific obj %p and host ptr: %p\n", mem_queue_, mem, m, ptr);
 		VERIFY_ERROR(err);
 	}
 	return ptr;
@@ -1505,6 +1520,7 @@ void LegacyDevice::IcdVendorAdd(const char* library_name) {
 
 void LegacyDevice::IcdPlatformAdd(const char* library_name,
                                   cl_platform_id platform) {
+  static int device_index = 0;
   cl_uint num_devices;
   fprintf(stderr, "[Device] 2\n");
   cl_device_id* devices = IcdGetDevices(platform, &num_devices);
@@ -1529,7 +1545,8 @@ void LegacyDevice::IcdPlatformAdd(const char* library_name,
 	  // Create a common context and pass it to the devices from same platform?
       LegacyDevice* device = new LegacyDevice(library, platform->dispatch,
 											  context,
-                                              platform, devices[i]);
+                                              platform, devices[i],
+											  device_index++);
   	  fprintf(stderr, "[Device] 3\n");
     }
     free(devices);

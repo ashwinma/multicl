@@ -1627,10 +1627,12 @@ end interface
  
        !call cpy_d2h_velocityOutputsC_Async ( cptr_v1x_buff, cptr_v1y_buff, cptr_v1z_buff, &
        !               cptr_v2x_buff, cptr_v2y_buff, cptr_v2z_buff, &
+#if USE_MPIX == 1
        call cpy_d2h_velocityOutputsC_Async ( cptr_v1x, cptr_v1y, cptr_v1z, &
                       cptr_v2x, cptr_v2y, cptr_v2z, &
                       nxtop, nytop, nztop, &
                       nxbtm, nybtm, nzbtm)
+#endif
      endif
      call record_time(tend)
      write(*,*) "TIME Misc End of Loop Copies :", tend-tstart

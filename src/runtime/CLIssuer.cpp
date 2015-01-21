@@ -61,7 +61,7 @@ CLIssuer::CLIssuer(CLDevice* device, bool blocking) {
   thread_running_ = false;
 
   thisIndex = g_curIssuer++;
-  SNUCL_INFO("CLIssuer has thisIndex %d", thisIndex);
+  SNUCL_INFO("CLIssuer adding %p has thisIndex %d", device, thisIndex);
   pthread_mutex_init(&mutex_devices_, NULL);
   pthread_cond_init(&cond_devices_remove_, NULL);
 }
@@ -209,8 +209,8 @@ void* CLIssuer::ThreadFunc(void *argp) {
   int n_pus = hwloc_get_nbobjs_by_type(topology, HWLOC_OBJ_PU);
   int n_cores = hwloc_get_nbobjs_by_type(topology, HWLOC_OBJ_CORE);
   int n_sockets = hwloc_get_nbobjs_by_type(topology, HWLOC_OBJ_NODE);
-  SNUCL_INFO("Available Cores: %d, Available PUs: %d, Available sockets: %d\n", n_cores, n_pus, n_sockets);
   int idx = ((CLIssuer *)argp)->Index();
+  SNUCL_INFO("Available Cores: %d, Available PUs: %d, Available sockets: %d Idx: %d\n", n_cores, n_pus, n_sockets, idx);
   cpu_set_t cpuset;
   CPU_ZERO(&cpuset);
   const char *snuclIssuerAffinityMapping = getenv("SNUCL_ISSUER_AFFINITY_MAPPING");
@@ -231,7 +231,8 @@ void* CLIssuer::ThreadFunc(void *argp) {
 		  idx = (idx + base_core + 1) % n_pus;
 	  }
   }
-  SNUCL_INFO("Selected core: (%d/%d)\n", idx, n_pus);
+  //idx = 0;
+  SNUCL_INFO("Device %p Selected core: (%d/%d)\n", ((CLIssuer *)argp)->GetFirstDevice(), idx, n_pus);
   CPU_SET(idx, &cpuset);
   pthread_setaffinity_np(thread, sizeof(cpu_set_t), &cpuset);
 #endif

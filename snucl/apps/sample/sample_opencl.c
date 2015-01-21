@@ -416,14 +416,17 @@ void marshal(const int iter_scale, const size_t const_mem_size, const size_t mem
 }
 
 int main () {
-	int iter_scale = 16 * 1024;
-	const size_t const_mem_size = 32 * 1024 * 1024;
-	const size_t start_mem_size = 1 * 1024 * 1024;
+	int iter_scale = 1 * 1024;
+	const size_t start_mem_size = sizeof(float) * 256 * 1024;
 	init_cl();
-	size_t mem_size = start_mem_size;
+	size_t mem_size = sizeof(float) * 256 * 1024;
+	char *foo = getenv("TOTAL_FLOAT_ELEMENTS");
+	if(foo != NULL)
+		mem_size = atoi(foo) * sizeof(float);
+ 	printf("Total mem size: %lu\n", mem_size);	
 	//for(iter_scale = 512; iter_scale <= 2048; iter_scale *= 2) {
-	for(size_t mem_size = start_mem_size; mem_size <= 64 * start_mem_size; mem_size *= 2) {
-	//for(int i = 0; i < 16; i++) {
+	//for(size_t mem_size = start_mem_size; mem_size <= 64 * start_mem_size; mem_size *= 2) {
+	for(int i = 0; i < 16; i++) {
 		init_mem(mem_size);
 		compute(iter_scale, start_mem_size, mem_size);
 		marshal(1, start_mem_size, mem_size);

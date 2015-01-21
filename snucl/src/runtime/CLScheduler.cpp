@@ -726,10 +726,13 @@ void* CLScheduler::ThreadFunc(void* argp) {
 	  if(node_obj == cpuset_obj)
 	  	break;
 	}
-	SNUCL_INFO("Setting Scheduler Thread to Core: %d\n", socket_id * n_pus_per_socket + n_pus_per_socket - 1);
+	//int target_core = 0;//socket_id * n_pus_per_socket;
+	int target_core = socket_id * n_pus_per_socket + n_pus_per_socket - 1;
+	//int target_core = ((socket_id + (n_cpu_sockets/4)) % n_cpu_sockets) * n_pus_per_socket + n_pus_per_socket - 1;
+	SNUCL_INFO("Setting Scheduler Thread to Core: %d\n", target_core);
 	cpu_set_t c_set;
 	CPU_ZERO(&c_set);
-	CPU_SET(socket_id * n_pus_per_socket + n_pus_per_socket - 1, &c_set);
+	CPU_SET(target_core, &c_set);
 	pthread_setaffinity_np(thread, sizeof(cpu_set_t), &c_set);
 	//cpuset_obj = hwloc_get_next_obj_by_type(topology, HWLOC_OBJ_NODE, cpuset_obj);
 	//hwloc_set_thread_cpubind(topology, thread, cpuset_obj->cpuset, HWLOC_CPUBIND_THREAD); 

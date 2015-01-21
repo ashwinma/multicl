@@ -225,6 +225,38 @@ map<cl_uint, CLKernelArg*>* CLKernel::DuplicateArgs(CLDevice* target_device) {
 			  }
 		  }
 		  else {
+#if 0
+			  CLDevice *src_dev = NULL;
+			  for (vector<CLDevice*>::iterator it = devices.begin();
+					  it != devices.end(); ++it) {
+				  if(m->HasLatest(*it))
+				  {
+					  // clone mem from src_dev to all other
+					  // devices
+					  src_dev = *it;
+					  break;
+				  }
+			  }
+			  for (vector<CLDevice*>::iterator it = devices.begin();
+					  it != devices.end(); ++it) {
+					  src_dev->ReadBuffer(NULL, m, 0, m->size(), tmp); 
+				  if((*it) != src_dev) 
+					  (*it)->WriteBuffer(NULL, new_arg->mem, 0, m->size(), tmp); 
+				  else {
+					  //SNUCL_INFO("%d->%d Clone mem\n", src_dev->type(), (*it)->type());
+					  cl_mem src_dev_specific_ptr = (cl_mem)m->GetDevSpecific(*it);
+					  cl_mem dest_dev_specific_ptr = (cl_mem)new_arg->mem->GetDevSpecific(*it);
+					  //src_dev->CopyBuffer(NULL, m, new_arg->mem, 
+					  (*it)->CopyBuffer(NULL, m, new_arg->mem, 
+							  src_dev_specific_ptr, dest_dev_specific_ptr, 
+							  0, 0, m->size()); 
+					  // since original mem has in its latest list, update cloned mem obj as well
+					  new_arg->mem->AddLatest(*it);
+					  //SNUCL_INFO("Adding Device %p (%x) to Mem %p (%p)\n", *it, (*it)->type(), new_arg->mem, m);
+					  //SNUCL_INFO("Cloning to Dest Device: %p, Mem: %p, dev specific: %p, size: %llu\n", (*it), new_arg->mem, new_arg->mem->GetDevSpecific(*it), new_arg->mem->size());
+				  } 
+			  }
+#else
 			  CLDevice *src_dev = NULL;
 			  for (vector<CLDevice*>::iterator it = devices.begin();
 					  it != devices.end(); ++it) {
@@ -244,7 +276,7 @@ map<cl_uint, CLKernelArg*>* CLKernel::DuplicateArgs(CLDevice* target_device) {
 				  for (vector<CLDevice*>::iterator it = devices.begin();
 						  it != devices.end(); ++it) {
 #if 0
-					  (*it)->WriteBuffer(NULL, new_arg->mem, 0, m->size(), tmp); 
+					  (*it)->WriteBufferAsync(NULL, new_arg->mem, 0, m->size(), tmp); 
 #else
 					  if(!m->HasLatest(*it)) 
 					  //if((*it) != src_dev) 
@@ -280,6 +312,7 @@ map<cl_uint, CLKernelArg*>* CLKernel::DuplicateArgs(CLDevice* target_device) {
 					  SNUCL_INFO("Test Kernel Clone Time (%p->%p): %g sec\n", src_dev, *it, kernel_clone_timer.CurrentElapsed());
 				  }
 			  }
+#endif
 		  }
 		  // copy D2D between new_args and old_args in the
 		  // devices other than src_dev. This will avoid

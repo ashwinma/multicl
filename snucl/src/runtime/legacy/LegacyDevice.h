@@ -62,7 +62,8 @@ class LegacyDevice: public CLDevice {
  public:
   LegacyDevice(void* library, struct _cl_icd_dispatch* dispatch,
 						   cl_context context,
-               cl_platform_id platform_id, cl_device_id device_id);
+               cl_platform_id platform_id, cl_device_id device_id,
+			   const int device_index);
   ~LegacyDevice();
 
   virtual double WaitForKernel(CLCommand *command);
@@ -171,6 +172,7 @@ class LegacyDevice: public CLDevice {
   cl_command_queue misc_queue_;
   int version_;
 
+  int device_index_;
  public:
   static void CreateDevices();
 

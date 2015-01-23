@@ -91,20 +91,20 @@ typedef CL_API_ENTRY cl_int (CL_API_CALL *pfn_clIcdGetPlatformIDs)(
 #define CHECK_ERROR(cond, err)                    \
   if (cond) {                                     \
     if(command) command->SetError(err);                       \
-    SNUCL_ERROR("legacy vendor error with device %p : %d %s\n", device_id_, err, clCheckErrorString(err)); \
+    SNUCL_ERROR("legacy vendor error with device %p (Type: %d) : %d %s\n", device_id_, type_, err, clCheckErrorString(err)); \
     return;                                       \
   }
 
 #define UPDATE_ERROR(err)                         \
   if (err != CL_SUCCESS) {                        \
     if(command)command->SetError(err);            \
-    SNUCL_ERROR("legacy vendor error with device %p : %d %s\n", device_id_, err, clCheckErrorString(err)); \
+    SNUCL_ERROR("legacy vendor error with device %p (Type: %d) : %d %s\n", device_id_, type_, err, clCheckErrorString(err)); \
     return;                                       \
   }
 
 #define VERIFY_ERROR(err)                         \
   if (err != CL_SUCCESS) {                        \
-    SNUCL_ERROR("legacy vendor error %d %s\n", err, clCheckErrorString(err)); \
+    SNUCL_ERROR("legacy vendor error with device %p (Type: %d) : %d %s\n", device_id_, type_, err, clCheckErrorString(err)); \
   }
 
 LegacyDevice::LegacyDevice(void* library, struct _cl_icd_dispatch* dispatch, 
@@ -377,7 +377,7 @@ LegacyDevice::LegacyDevice(void* library, struct _cl_icd_dispatch* dispatch,
 #undef GET_LEGACY_DEVICE_INFO_A
 #undef GET_LEGACY_DEVICE_INFO_S
 
-#if 0
+#if 1
   cl_context_properties properties[3] = {CL_CONTEXT_PLATFORM,
                                          (cl_context_properties)platform_id_,
                                          0};
@@ -982,19 +982,26 @@ void LegacyDevice::BuildProgram(CLCommand* command, CLProgram* program,
   }
   if (legacy_program != NULL && err == CL_SUCCESS) {
     CLProgramBinary* result = ReadBinary(legacy_program);
+	if(!result) command->SetError(CL_INVALID_VALUE);
     char* build_log = ReadBuildLog(legacy_program);
+	SNUCL_INFO("Build Log: %s\n", build_log);
     CLProgramBinary* training_result = NULL;
 	char* training_build_log = NULL;
 	if(legacy_training_program) {
 		training_result = ReadBinary(legacy_training_program);
-    	//training_build_log = ReadBuildLog(legacy_training_program);
+		if(!training_result) command->SetError(CL_INVALID_VALUE);
+    	training_build_log = ReadBuildLog(legacy_training_program);
+		SNUCL_INFO("Training Build Log: %s\n", training_build_log);
 	}
+	SNUCL_INFO("Done Build\n", 0);
     program->CompleteBuild(this, CL_BUILD_SUCCESS, build_log, result,
                            (void*)legacy_program, 
 						   training_result,
 						   (void*)legacy_training_program
 						   );
+	SNUCL_INFO("Completer Build\n", 0);
     ReadKernelInfo(legacy_program, program);
+	SNUCL_INFO("Read Kernel Info\n", 0);
   } else {
     char* build_log = ReadBuildLog(legacy_program);
 	SNUCL_ERROR("Build Log: %s\n", build_log);
@@ -1230,9 +1237,11 @@ cl_program LegacyDevice::CreateTrainingProgram(CLProgramSource* source) {
   cl_int err;
   cl_program program;
   const char* concat_source = source->concat_training_source();
+  SNUCL_INFO("Program Training Source: \n%s\n", concat_source);
   size_t concat_source_length = source->concat_training_source_length();
   program = dispatch_->clCreateProgramWithSource(context_, 1, &concat_source,
                                                  &concat_source_length, &err);
+  VERIFY_ERROR(err);
   if (err != CL_SUCCESS)
     return NULL;
   return program;
@@ -1243,8 +1252,10 @@ cl_program LegacyDevice::CreateProgram(CLProgramSource* source) {
   cl_program program;
   const char* concat_source = source->concat_source();
   size_t concat_source_length = source->concat_source_length();
+  SNUCL_INFO("Program Source: \n%s\n", concat_source);
   program = dispatch_->clCreateProgramWithSource(context_, 1, &concat_source,
                                                  &concat_source_length, &err);
+  VERIFY_ERROR(err);
   if (err != CL_SUCCESS)
     return NULL;
   return program;
@@ -1258,6 +1269,7 @@ cl_program LegacyDevice::CreateProgram(CLProgramBinary* binary) {
   program = dispatch_->clCreateProgramWithBinary(context_, 1, &device_id_,
                                                  &size, &core_binary, NULL,
                                                  &err);
+  VERIFY_ERROR(err);
   if (err != CL_SUCCESS)
     return NULL;
   return program;
@@ -1266,21 +1278,23 @@ cl_program LegacyDevice::CreateProgram(CLProgramBinary* binary) {
 CLProgramBinary* LegacyDevice::ReadBinary(cl_program program) {
   cl_int err;
   unsigned char* core_binary;
-  size_t size;
+  size_t sz;
   err = dispatch_->clGetProgramInfo(program, CL_PROGRAM_BINARY_SIZES,
-                                    sizeof(size_t), &size, NULL);
-  if (err != CL_SUCCESS || size == 0)
+                                    sizeof(cl_uint), &sz, NULL);
+  VERIFY_ERROR(err);
+  if (err != CL_SUCCESS || sz == 0)
     return NULL;
-  core_binary = (unsigned char*)malloc(size);
+  core_binary = (unsigned char*)malloc(sz);
   err = dispatch_->clGetProgramInfo(program, CL_PROGRAM_BINARIES,
                                     sizeof(unsigned char*), &core_binary,
                                     NULL);
+  VERIFY_ERROR(err);
   if (err != CL_SUCCESS) {
     free(core_binary);
     return NULL;
   }
   CLProgramBinary* binary = new CLProgramBinary(
-      this, CL_PROGRAM_BINARY_TYPE_COMPILED_OBJECT, core_binary, size);
+      this, CL_PROGRAM_BINARY_TYPE_COMPILED_OBJECT, core_binary, sz);
   free(core_binary);
   return binary;
 }
@@ -1291,12 +1305,14 @@ char* LegacyDevice::ReadBuildLog(cl_program program) {
   size_t size;
   err = dispatch_->clGetProgramBuildInfo(program, device_id_,
                                          CL_PROGRAM_BUILD_LOG, 0, NULL, &size);
+  VERIFY_ERROR(err);
   if (err != CL_SUCCESS || size == 0)
     return NULL;
   build_log = (char*)malloc(size);
   err = dispatch_->clGetProgramBuildInfo(program, device_id_,
                                          CL_PROGRAM_BUILD_LOG, size, build_log,
                                          NULL);
+  VERIFY_ERROR(err);
   if (err != CL_SUCCESS) {
     free(build_log);
     return NULL;
@@ -1314,6 +1330,7 @@ void LegacyDevice::ReadKernelInfo(cl_program legacy_program,
   cl_uint num_kernels;
   err = dispatch_->clCreateKernelsInProgram(legacy_program, 0, NULL,
                                             &num_kernels);
+  VERIFY_ERROR(err);
   if (err != CL_SUCCESS || num_kernels == 0) {
     program->FinishRegisterKernelInfo();
     return;
@@ -1321,6 +1338,7 @@ void LegacyDevice::ReadKernelInfo(cl_program legacy_program,
   kernels = (cl_kernel*)malloc(sizeof(cl_kernel) * num_kernels);
   err = dispatch_->clCreateKernelsInProgram(legacy_program, num_kernels,
                                             kernels, NULL);
+  VERIFY_ERROR(err);
   if (err != CL_SUCCESS) {
     free(kernels);
     program->FinishRegisterKernelInfo();
@@ -1339,11 +1357,13 @@ void LegacyDevice::ReadKernelInfo(cl_program legacy_program,
     cl_ulong private_mem_size;
     err = dispatch_->clGetKernelInfo(kernels[i], CL_KERNEL_FUNCTION_NAME, 0,
                                      NULL, &size);
+  VERIFY_ERROR(err);
     if (err != CL_SUCCESS || size == 0)
       continue;
     function_name = (char*)malloc(size);
     err = dispatch_->clGetKernelInfo(kernels[i], CL_KERNEL_FUNCTION_NAME,
                                        size, function_name, NULL);
+  VERIFY_ERROR(err);
     if (err != CL_SUCCESS) {
       free(function_name);
       continue;
@@ -1354,6 +1374,7 @@ void LegacyDevice::ReadKernelInfo(cl_program legacy_program,
       num_args = 0;
     err = dispatch_->clGetKernelInfo(kernels[i], CL_KERNEL_ATTRIBUTES, 0, NULL,
                                      &size);
+  VERIFY_ERROR(err);
     if (err != CL_SUCCESS || size == 0) {
       attributes = (char*)malloc(sizeof(char));
       attributes[0] = '\0';
@@ -1368,6 +1389,7 @@ void LegacyDevice::ReadKernelInfo(cl_program legacy_program,
                                               CL_KERNEL_WORK_GROUP_SIZE,
                                               sizeof(size_t), &work_group_size,
                                               NULL);
+  VERIFY_ERROR(err);
     if (err != CL_SUCCESS)
       work_group_size = max_work_group_size_;
     err = dispatch_->clGetKernelWorkGroupInfo(
@@ -1382,6 +1404,7 @@ void LegacyDevice::ReadKernelInfo(cl_program legacy_program,
                                               CL_KERNEL_LOCAL_MEM_SIZE,
                                               sizeof(cl_ulong),
                                               &local_mem_size, NULL);
+  VERIFY_ERROR(err);
     if (err != CL_SUCCESS)
       local_mem_size = 0;
     if (version_ >= LEGACY_VERSION_1_1) {
@@ -1416,17 +1439,20 @@ void LegacyDevice::ReadKernelInfo(cl_program legacy_program,
             kernels[i], j, CL_KERNEL_ARG_ADDRESS_QUALIFIER,
             sizeof(cl_kernel_arg_address_qualifier), &arg_address_qualifier,
             NULL);
+  VERIFY_ERROR(err);
         if (err != CL_SUCCESS)
           arg_address_qualifier = CL_KERNEL_ARG_ADDRESS_PRIVATE;
         err = dispatch_->clGetKernelArgInfo(
             kernels[i], j, CL_KERNEL_ARG_ACCESS_QUALIFIER,
             sizeof(cl_kernel_arg_access_qualifier), &arg_access_qualifier,
             NULL);
+  VERIFY_ERROR(err);
         if (err != CL_SUCCESS)
           arg_access_qualifier = CL_KERNEL_ARG_ACCESS_NONE;
         err = dispatch_->clGetKernelArgInfo(kernels[i], j,
                                             CL_KERNEL_ARG_TYPE_NAME, 0, NULL,
                                             &size);
+  VERIFY_ERROR(err);
         if (err != CL_SUCCESS || size == 0) {
           arg_type_name = (char*)malloc(sizeof(char));
           arg_type_name[0] = '\0';
@@ -1435,16 +1461,19 @@ void LegacyDevice::ReadKernelInfo(cl_program legacy_program,
           err = dispatch_->clGetKernelArgInfo(kernels[i], j,
                                               CL_KERNEL_ARG_TYPE_NAME, size,
                                               arg_type_name, NULL);
+  VERIFY_ERROR(err);
           if (err != CL_SUCCESS)
             arg_type_name[0] = '\0';
         }
         err = dispatch_->clGetKernelArgInfo(
             kernels[i], j, CL_KERNEL_ARG_TYPE_QUALIFIER,
             sizeof(cl_kernel_arg_type_qualifier), &arg_type_qualifier, NULL);
+  VERIFY_ERROR(err);
         if (err != CL_SUCCESS)
           arg_type_qualifier = CL_KERNEL_ARG_TYPE_NONE;
         err = dispatch_->clGetKernelArgInfo(kernels[i], j, CL_KERNEL_ARG_NAME,
                                             0, NULL, &size);
+  VERIFY_ERROR(err);
         if (err != CL_SUCCESS || size == 0) {
           arg_name = (char*)malloc(sizeof(char));
           arg_name[0] = '\0';
@@ -1453,6 +1482,7 @@ void LegacyDevice::ReadKernelInfo(cl_program legacy_program,
           err = dispatch_->clGetKernelArgInfo(kernels[i], j,
                                               CL_KERNEL_ARG_NAME, size,
                                               arg_name, NULL);
+  VERIFY_ERROR(err);
           if (err != CL_SUCCESS)
             arg_name[0] = '\0';
         }
@@ -1530,9 +1560,9 @@ void LegacyDevice::IcdPlatformAdd(const char* library_name,
   cl_context_properties properties[3] = {CL_CONTEXT_PLATFORM,
                                          (cl_context_properties)platform,
                                          0};
-  context = platform->dispatch->clCreateContext(properties, num_devices, 
-  				devices, NULL, NULL, &err);
-	//context = NULL;
+//  context = platform->dispatch->clCreateContext(properties, num_devices, 
+  //				devices, NULL, NULL, &err);
+	context = NULL;
 	if(err != CL_SUCCESS) 
 	{
 		context = NULL;

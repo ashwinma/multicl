@@ -1349,7 +1349,9 @@ void LegacyDevice::ReadKernelInfo(cl_program legacy_program,
   for (cl_uint i = 0; i < num_kernels; i++) {
     char* function_name;
     cl_uint num_args;
-    char* attributes;
+    char* attributes = NULL;
+      attributes = (char*)malloc(sizeof(char));
+      attributes[0] = '\0';
     size_t work_group_size;
     size_t compile_work_group_size[3];
     cl_ulong local_mem_size;
@@ -1372,19 +1374,22 @@ void LegacyDevice::ReadKernelInfo(cl_program legacy_program,
                                      sizeof(cl_uint), &num_args, NULL);
     if (err != CL_SUCCESS)
       num_args = 0;
+    if (version_ >= LEGACY_VERSION_1_2) {
     err = dispatch_->clGetKernelInfo(kernels[i], CL_KERNEL_ATTRIBUTES, 0, NULL,
                                      &size);
   VERIFY_ERROR(err);
     if (err != CL_SUCCESS || size == 0) {
-      attributes = (char*)malloc(sizeof(char));
-      attributes[0] = '\0';
+    //  attributes = (char*)malloc(sizeof(char));
+    //  attributes[0] = '\0';
     } else {
+	  if(attributes) free(attributes);
       attributes = (char*)malloc(size);
       err = dispatch_->clGetKernelInfo(kernels[i], CL_KERNEL_ATTRIBUTES, size,
                                        attributes, NULL);
       if (err != CL_SUCCESS)
         attributes[0] = '\0';
     }
+	}
     err = dispatch_->clGetKernelWorkGroupInfo(kernels[i], device_id_,
                                               CL_KERNEL_WORK_GROUP_SIZE,
                                               sizeof(size_t), &work_group_size,
@@ -1494,7 +1499,8 @@ void LegacyDevice::ReadKernelInfo(cl_program legacy_program,
       }
     }
     free(function_name);
-    free(attributes);
+    //free(attributes);
+	if(attributes) free(attributes);
   }
 
   for (cl_uint i = 0; i < num_kernels; i++)

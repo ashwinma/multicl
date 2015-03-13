@@ -1188,7 +1188,7 @@ clReleaseMemObject(fampD);
 clReleaseMemObject(sparam2D);
 clReleaseMemObject(risetD);
 clReleaseMemObject(ruptmD);
-clReleaseMemObject(sutmArrD);
+if(sutmArrD) clReleaseMemObject(sutmArrD);
 //cl_mem sutmArrD;
 #endif
 
@@ -3282,6 +3282,7 @@ void compute_velocityC_opencl(int *nztop, int *nztm1, float *ca, int *lbx,
 #endif
 		{
 			errNum = clFinish(_cl_commandQueues[i]);
+		printf("DISFD Q%d Velocity Set Kernel Args\n", i);
 			if(errNum != CL_SUCCESS)
 			{
 				fprintf(stderr, "Error: finishing stress velocity for execution!\n");
@@ -3303,7 +3304,7 @@ void compute_velocityC_opencl(int *nztop, int *nztm1, float *ca, int *lbx,
 
 	gettimeofday(&t1, NULL);
 	//Start(&d2hTimerVelocity);
-#ifndef DISFD_GPU_MARSHALING
+#if !defined(DISFD_GPU_MARSHALING) || defined(DISFD_DEBUG)
 	cpy_d2h_velocityOutputsC_opencl(v1xM, v1yM, v1zM, v2xM, v2yM, v2zM, nxtop,	nytop, nztop, nxbtm, nybtm, nzbtm);
 #endif
 	//Stop(&d2hTimerVelocity);
@@ -3312,6 +3313,7 @@ void compute_velocityC_opencl(int *nztop, int *nztm1, float *ca, int *lbx,
 	totalTimeD2HV += tmpTime;
 
 #ifdef DISFD_DEBUG
+	if(counter == 10) {
 	int size = (*nztop + 2) * (*nxtop + 3) * (*nytop + 3); 
 	write_output(v1xM, size, "OUTPUT_ARRAYS/v1xM.txt");
 	write_output(v1yM, size, "OUTPUT_ARRAYS/v1yM.txt");
@@ -3320,6 +3322,7 @@ void compute_velocityC_opencl(int *nztop, int *nztm1, float *ca, int *lbx,
 	write_output(v2xM, size, "OUTPUT_ARRAYS/v2xM.txt");
 	write_output(v2yM, size, "OUTPUT_ARRAYS/v2yM.txt");
 	write_output(v2zM, size, "OUTPUT_ARRAYS/v2zM.txt");
+	}
 #endif
 	return;
 }
@@ -5020,7 +5023,7 @@ void compute_stressC_opencl(int *nxb1, int *nyb1, int *nx1p1, int *ny1p1, int *n
 
 	gettimeofday(&t1, NULL);
 	//Start(&d2hTimerStress);
-#ifndef DISFD_GPU_MARSHALING
+#if !defined(DISFD_GPU_MARSHALING) || defined(DISFD_DEBUG)
 	cpy_d2h_stressOutputsC_opencl(t1xxM, t1xyM, t1xzM, t1yyM, t1yzM, t1zzM, t2xxM, t2xyM, t2xzM, t2yyM, t2yzM, t2zzM, nxtop, nytop, nztop, nxbtm, nybtm, nzbtm);
 #endif
 	//Stop(&d2hTimerStress);
@@ -5030,6 +5033,7 @@ void compute_stressC_opencl(int *nxb1, int *nyb1, int *nx1p1, int *ny1p1, int *n
 	totalTimeD2HS += tmpTime;
 
 #ifdef DISFD_DEBUG
+	if(counter == 10) {
 	int size = (*nztop) * (*nxtop + 3) * (*nytop);
 	write_output(t1xxM, size, "OUTPUT_ARRAYS/t1xxM.txt");
 	size = (*nztop) * (*nxtop + 3) * (*nytop + 3);
@@ -5054,6 +5058,7 @@ void compute_stressC_opencl(int *nxb1, int *nyb1, int *nx1p1, int *ny1p1, int *n
 	write_output(t2yzM, size, "OUTPUT_ARRAYS/t2yzM.txt");
 	size = (*nzbtm + 1) * (*nxbtm) * (*nybtm);
 	write_output(t2zzM, size, "OUTPUT_ARRAYS/t2zzM.txt");
+	}
 #endif
 	/************** correctness *********************/
 	/*   
@@ -6557,7 +6562,7 @@ void interpl_3vbtm_vel1(int* ny1p2, int* ny2p2, int* nz1p1, int* nyvx,
 	{
 		fprintf(stderr, "Error: queuing kernel _cl_kernel_vel1_interpl_3vbtm for execution!\n");
 	}
-	errNum = clWaitForEvents(1, &_cl_events[which_qid]);
+//	errNum = clWaitForEvents(1, &_cl_events[which_qid]);
 	CHECK_ERROR(errNum, "Kernel Launch, _cl_kernel_vel1_interpl_3vbtm");
 
 	//vel1_interpl_3vbtm <<<blocks,threadsPerBlock>>> (*ny1p2, *ny2p2, *nz1p1, *nyvx,
@@ -6614,7 +6619,7 @@ void interpl_3vbtm_vel3(int* ny1p2, int* nz1p1, int* nyvx1, int* nxbm1,
 	{
 		fprintf(stderr, "Error: queuing kernel _cl_kernel_vel3_interpl_3vbtm for execution!\n");
 	}
-	errNum = clWaitForEvents(1, &_cl_events[which_qid]);
+//	errNum = clWaitForEvents(1, &_cl_events[which_qid]);
 	CHECK_ERROR(errNum, "Kernel Launch, _cl_kernel_vel3_interpl_3vbtm");
 
 	//   vel3_interpl_3vbtm <<<blocks,threadsPerBlock>>> ( *ny1p2, *nz1p1, *nyvx1, 
@@ -6675,7 +6680,7 @@ void interpl_3vbtm_vel4(int* nx1p2, int* ny2p2, int* nz1p1, int* nxvy, int* nybm
 	{
 		fprintf(stderr, "Error: queuing kernel _cl_kernel_vel4_interpl_3vbtm for execution!\n");
 	}
-	errNum = clWaitForEvents(1, &_cl_events[which_qid]);
+//	errNum = clWaitForEvents(1, &_cl_events[which_qid]);
 	CHECK_ERROR(errNum, "Kernel Launch, _cl_kernel_vel4_interpl_3vbtm");
 
 	//vel4_interpl_3vbtm <<<blocks,threadsPerBlock>>> ( *nx1p2, *ny2p2, *nz1p1, *nxvy, 
@@ -6738,7 +6743,7 @@ void interpl_3vbtm_vel5(int* nx1p2, int* nx2p2, int* nz1p1, int* nxvy, int* nybm
 	{
 		fprintf(stderr, "Error: queuing kernel _cl_kernel_vel5_interpl_3vbtm for execution!\n");
 	}
-	errNum = clWaitForEvents(1, &_cl_events[which_qid]);
+//	errNum = clWaitForEvents(1, &_cl_events[which_qid]);
 	CHECK_ERROR(errNum, "Kernel Launch, _cl_kernel_vel5_interpl_3vbtm");
 
 	//vel5_interpl_3vbtm <<<blocks,threadsPerBlock>>> ( *nx1p2, *nx2p2, *nz1p1, *nxvy, 
@@ -6798,7 +6803,7 @@ void interpl_3vbtm_vel6(int* nx1p2,  int* nz1p1, int* nxvy1, int* nybm1,
 	{
 		fprintf(stderr, "Error: queuing kernel _cl_kernel_vel6_interpl_3vbtm for execution!\n");
 	}
-	errNum = clWaitForEvents(1, &_cl_events[which_qid]);
+//	errNum = clWaitForEvents(1, &_cl_events[which_qid]);
 	CHECK_ERROR(errNum, "Kernel Launch, _cl_kernel_vel6_interpl_3vbtm");
 
 	//vel6_interpl_3vbtm <<<blocks,threadsPerBlock>>>( *nx1p2, *nz1p1, *nxvy1, 
@@ -6854,7 +6859,7 @@ void interpl_3vbtm_vel7 (int* nxbtm, int* nybtm, int* nzbtm, int* nxtop, int* ny
 	{
 		fprintf(stderr, "Error: queuing kernel _cl_kernel_vel7_interpl_3vbtm for execution!\n");
 	}
-	errNum = clWaitForEvents(1, &_cl_events[which_qid]);
+//	errNum = clWaitForEvents(1, &_cl_events[which_qid]);
 	CHECK_ERROR(errNum, "Kernel Launch, _cl_kernel_vel7_interpl_3vbtm");
 
 	//vel7_interpl_3vbtm <<<blocks,threadsPerBlock>>>( *nxbtm, *nybtm, *nzbtm, *nxtop, *nytop, *nztop, 
@@ -6917,7 +6922,7 @@ void interpl_3vbtm_vel8 (int* nxbtm, int* nybtm, int* nzbtm, int* nxtop, int* ny
 	{
 		fprintf(stderr, "Error: queuing kernel _cl_kernel_vel8_interpl_3vbtm for execution!\n");
 	}
-	errNum = clWaitForEvents(1, &_cl_events[which_qid]);
+//	errNum = clWaitForEvents(1, &_cl_events[which_qid]);
 	CHECK_ERROR(errNum, "Kernel Launch, _cl_kernel_vel8_interpl_3vbtm");
 
 	//vel8_interpl_3vbtm <<<blocks,threadsPerBlock>>> (*nxbtm, *nybtm, *nzbtm, 
@@ -6990,7 +6995,7 @@ void interpl_3vbtm_vel9(int* nx1p2, int* ny2p1, int* nz1p1, int* nxvy, int* nybm
 	{
 		fprintf(stderr, "Error: queuing kernel _cl_kernel_vel9_interpl_3vbtm for execution!\n");
 	}
-	errNum = clWaitForEvents(1, &_cl_events[which_qid]);
+//	errNum = clWaitForEvents(1, &_cl_events[which_qid]);
 	CHECK_ERROR(errNum, "Kernel Launch, _cl_kernel_vel9_interpl_3vbtm");
 
 	//vel9_interpl_3vbtm <<<blocks,threadsPerBlock>>> ( *nz1p1, *nx1p2, *ny2p1, *nxvy, 
@@ -7052,7 +7057,7 @@ void interpl_3vbtm_vel11(int* nx1p2, int* nx2p1, int* ny1p1, int* nz1p1, int* nx
 	{
 		fprintf(stderr, "Error: queuing kernel _cl_kernel_vel11_interpl_3vbtm for execution!\n");
 	}
-	errNum = clWaitForEvents(1, &_cl_events[which_qid]);
+//	errNum = clWaitForEvents(1, &_cl_events[which_qid]);
 	CHECK_ERROR(errNum, "Kernel Launch, _cl_kernel_vel11_interpl_3vbtm");
 
 	//  vel11_interpl_3vbtm <<<blocks,threadsPerBlock>>>  (*nx1p2, *nx2p1, *ny1p1, *nz1p1, *nxvy1,
@@ -7106,7 +7111,7 @@ void interpl_3vbtm_vel13(int* nxbtm, int* nybtm, int* nzbtm, int* nxtop, int* ny
 	{
 		fprintf(stderr, "Error: queuing kernel _cl_kernel_vel13_interpl_3vbtm for execution!\n");
 	}
-	errNum = clWaitForEvents(1, &_cl_events[which_qid]);
+//	errNum = clWaitForEvents(1, &_cl_events[which_qid]);
 	CHECK_ERROR(errNum, "Kernel Launch, _cl_kernel_vel13_interpl_3vbtm");
 
 	// vel13_interpl_3vbtm <<<blocks,threadsPerBlock>>> (v1xD, v2xD,
@@ -7160,7 +7165,7 @@ void interpl_3vbtm_vel14(int* nxbtm, int* nybtm, int* nzbtm, int* nxtop, int* ny
 	{
 		fprintf(stderr, "Error: queuing kernel _cl_kernel_vel14_interpl_3vbtm for execution!\n");
 	}
-	errNum = clWaitForEvents(1, &_cl_events[which_qid]);
+//	errNum = clWaitForEvents(1, &_cl_events[which_qid]);
 	CHECK_ERROR(errNum, "Kernel Launch, _cl_kernel_vel14_interpl_3vbtm");
 
 	//vel14_interpl_3vbtm <<<blocks,threadsPerBlock>>> (v1yD, v2yD,
@@ -7311,7 +7316,7 @@ void vxy_image_layer_vel1(int* nd1_vel, int i, float dzdx, int nxbtm, int nybtm,
 	{
 		fprintf(stderr, "Error: queuing kernel _cl_kernel_vel1_vxy_image_layer for execution!\n");
 	}
-	errNum = clWaitForEvents(1, &_cl_events[which_qid]);
+//	errNum = clWaitForEvents(1, &_cl_events[which_qid]);
 	CHECK_ERROR(errNum, "Kernel Launch, _cl_kernel_vel1_vxy_image_layer");
 
 	//vel1_vxy_image_layer <<<blocks,threadsPerBlock>>> (v1xD, v1zD,
@@ -7443,7 +7448,7 @@ void vxy_image_layer_vel3(int* nd1_vel, int* j, float* dzdy, int* nxbtm, int* ny
 	{
 		fprintf(stderr, "Error: queuing kernel _cl_kernel_vel3_vxy_image_layer for execution!\n");
 	}
-	errNum = clWaitForEvents(1, &_cl_events[which_qid]);
+//	errNum = clWaitForEvents(1, &_cl_events[which_qid]);
 	CHECK_ERROR(errNum, "Kernel Launch, _cl_kernel_vel3_vxy_image_layer");
 
 	// vel3_vxy_image_layer <<<blocks,threadsPerBlock>>> (v1yD, v1zD,
@@ -7857,6 +7862,7 @@ void add_dcs_vel(float* sutmArr, int nfadd, int ixsX, int ixsY, int ixsZ,
 	int which_qid = MARSHAL_CMDQ;
 	// TODO: change the below to OpenCL
 	if(sutmArrD) clReleaseMemObject(sutmArrD);
+	sutmArrD = NULL;
 	//cudaFree(sutmArrD);
 	sutmArrD = clCreateBuffer(_cl_context, CL_MEM_READ_WRITE, sizeof(float) * (nfadd), NULL, NULL);
 	CHECK_NULL_ERROR(sutmArrD, "sutmArrD");
@@ -7865,6 +7871,7 @@ void add_dcs_vel(float* sutmArr, int nfadd, int ixsX, int ixsY, int ixsZ,
 //	errNum = cudaMemcpy(sutmArrD, sutmArr, sizeof(float) * (nfadd), cudaMemcpyHostToDevice);
 	CHECK_ERROR(errNum, "InputDataCopyDeviceToHost, sutmArrD");
 
+	clRetainMemObject(sutmArrD);
 	dim3 threadsPerBlock(MaxThreadsPerBlock);
 	dim3 numblocks((nfadd/MaxThreadsPerBlock)+1);
 	globalWorkSize[0] = numblocks.x*threadsPerBlock.x;
@@ -9024,7 +9031,7 @@ void interp_stress1 ( int ntx1, int nz1p1, int nxbtm , int nybtm , int nzbtm,
 	{
 		fprintf(stderr, "Error: queuing kernel _cl_kernel_stress_interp1 for execution!\n");
 	}
-	errNum = clWaitForEvents(1, &_cl_events[which_qid]);
+//	errNum = clWaitForEvents(1, &_cl_events[which_qid]);
 	CHECK_ERROR(errNum, "Kernel Launch, _cl_kernel_stress_interp1");
 
 	//    stress_interp1 <<< blocks, threads>>>(ntx1, nz1p1, 
@@ -9079,7 +9086,7 @@ void interp_stress2 ( int nty1, int nz1p1, int nxbtm , int nybtm , int nzbtm,
 	{
 		fprintf(stderr, "Error: queuing kernel _cl_kernel_stress_interp2 for execution!\n");
 	}
-	errNum = clWaitForEvents(1, &_cl_events[which_qid]);
+	//errNum = clWaitForEvents(1, &_cl_events[which_qid]);
 	CHECK_ERROR(errNum, "Kernel Launch, _cl_kernel_stress_interp2");
 
 	//stress_interp2 <<< blocks, threads>>>(nty1, nz1p1, 
@@ -9132,7 +9139,7 @@ void interp_stress3 ( int nxbtm , int nybtm , int nzbtm,
 	{
 		fprintf(stderr, "Error: queuing kernel _cl_kernel_stress_interp3 for execution!\n");
 	}
-	errNum = clWaitForEvents(1, &_cl_events[which_qid]);
+	//errNum = clWaitForEvents(1, &_cl_events[which_qid]);
 	CHECK_ERROR(errNum, "Kernel Launch, _cl_kernel_stress_interp3");
 
 	//stress_interp3 <<< blocks, threads>>>(nxbtm, nybtm, nzbtm,

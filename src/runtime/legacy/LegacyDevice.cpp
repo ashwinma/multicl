@@ -584,16 +584,22 @@ void LegacyDevice::LaunchKernel(CLCommand* command, CLKernel* kernel,
 		  gws[i] = legacy_kernel_launch_params.gws_[i];
 		  lws[i] = legacy_kernel_launch_params.lws_[i];
 		  nwg[i] = legacy_kernel_launch_params.nwg_[i];
-/*		  SNUCL_INFO("GWO[%d]: %lu\n", i, gwo[i]);
+
+		  SNUCL_INFO("GWO[%d]: %lu\n", i, gwo[i]);
 		  SNUCL_INFO("GWS[%d]: %lu\n", i, gws[i]);
 		  SNUCL_INFO("LWS[%d]: %lu\n", i, lws[i]);
 		  SNUCL_INFO("NWG[%d]: %lu\n", i, nwg[i]);
-*/
 	  }
   }
   cl_event event;
   //SNUCL_INFO("run kernel: %s Device Type: %d Ptr: %p\n", 
   	//	kernel->name(), type_, device_id_);
+  /*for(int i = 0; i < 3; i++) {
+	  SNUCL_INFO("GWO: %lu\t",  gwo[i]);
+	  SNUCL_INFO("GWS: %lu\t",  gws[i]);
+	  SNUCL_INFO("LWS: %lu\t",  lws[i]);
+	  SNUCL_INFO("NWG: %lu\n",  nwg[i]);
+  }*/
   gLegacyTimer.Start();
   err = dispatch_->clEnqueueNDRangeKernel(kernel_queue_, legacy_kernel,
                                           work_dim, gwo, gws, lws, 0, NULL,
@@ -603,13 +609,13 @@ void LegacyDevice::LaunchKernel(CLCommand* command, CLKernel* kernel,
 //  err = dispatch_->clFinish(kernel_queue_);
   err = dispatch_->clWaitForEvents(1, &event);
   UPDATE_ERROR(err);
+  gLegacyTimer.Stop();
   cl_ulong start = 0, end = 0;
   dispatch_->clGetEventProfilingInfo(event, CL_PROFILING_COMMAND_START, sizeof(cl_ulong), &start, NULL);
   dispatch_->clGetEventProfilingInfo(event, CL_PROFILING_COMMAND_END, sizeof(cl_ulong), &end, NULL);
   //END-START gives you hints on kind of “pure HW execution time”
   ////the resolution of the events is 1e-09 sec
   double g_NDRangePureExecTimeSec = (double)(end - start)*(double)(1e-09); 
-  gLegacyTimer.Stop();
   //if(strcmp(kernel->name(), "cffts1") == 0)
   SNUCL_INFO("[Device Index %d Ptr %p Type %d] Kernel %s Time: %g sec\n", 
   		device_index_,
@@ -1237,7 +1243,7 @@ cl_program LegacyDevice::CreateTrainingProgram(CLProgramSource* source) {
   cl_int err;
   cl_program program;
   const char* concat_source = source->concat_training_source();
-  SNUCL_INFO("Program Training Source: \n%s\n", concat_source);
+//  SNUCL_INFO("Program Training Source: \n%s\n", concat_source);
   size_t concat_source_length = source->concat_training_source_length();
   program = dispatch_->clCreateProgramWithSource(context_, 1, &concat_source,
                                                  &concat_source_length, &err);
@@ -1252,7 +1258,7 @@ cl_program LegacyDevice::CreateProgram(CLProgramSource* source) {
   cl_program program;
   const char* concat_source = source->concat_source();
   size_t concat_source_length = source->concat_source_length();
-  SNUCL_INFO("Program Source: \n%s\n", concat_source);
+ // SNUCL_INFO("Program Source: \n%s\n", concat_source);
   program = dispatch_->clCreateProgramWithSource(context_, 1, &concat_source,
                                                  &concat_source_length, &err);
   VERIFY_ERROR(err);

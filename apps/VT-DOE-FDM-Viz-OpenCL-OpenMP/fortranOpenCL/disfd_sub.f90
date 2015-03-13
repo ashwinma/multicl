@@ -941,6 +941,14 @@ subroutine Type2_Recv_Int(nrcv,recev_tmp)
 !--z
      i3=max0(1, int(recev_tmp(9,kc)/dz2+0.5))
      i1=1;  i2=1;  xs=zbtm0
+     print *, 'the numbers are'
+     print *,dz_all
+     print *, 'xs is'
+     print *,xs
+     print *, 'i2 is'
+     print *,i2
+     print *, 'nztop is'
+     print *,nztop
      do
        xs=xs+dz_all(i2+nztop)
        if(xs >  recev_tmp(8,kc) .or. i2==nzbtm-10) exit
@@ -5178,15 +5186,15 @@ subroutine stress_interp
 #ifdef DISFD_GPU_MARSHALING
  if(DETAILED_TIMING .eq. 1) then;  call record_time(gpu_tstart) ; end if
  call interp_stress1(ntx1, nz1p1, nxbtm, nybtm, nzbtm, nxtop, nytop, nztop);
- if(DETAILED_TIMING .eq. 1) then; call record_time(gpu_tend); call log_timing ("GPU stress_interp1", gpu_tend-gpu_tstart); &
-        total_gpu_marsh_time = total_gpu_marsh_time + (gpu_tend-gpu_tstart); end if
+! if(DETAILED_TIMING .eq. 1) then; call record_time(gpu_tend); call log_timing ("GPU stress_interp1", gpu_tend-gpu_tstart); &
+!        total_gpu_marsh_time = total_gpu_marsh_time + (gpu_tend-gpu_tstart); end if
 
- if(DETAILED_TIMING .eq. 1) then;  call record_time(gpu_tstart) ; end if
+! if(DETAILED_TIMING .eq. 1) then;  call record_time(gpu_tstart) ; end if
  call interp_stress2(nty1, nz1p1, nxbtm, nybtm, nzbtm, nxtop, nytop, nztop);
- if(DETAILED_TIMING .eq. 1) then; call record_time(gpu_tend); call log_timing ("GPU stress_interp2", gpu_tend-gpu_tstart); &
-        total_gpu_marsh_time = total_gpu_marsh_time + (gpu_tend-gpu_tstart); end if
+! if(DETAILED_TIMING .eq. 1) then; call record_time(gpu_tend); call log_timing ("GPU stress_interp2", gpu_tend-gpu_tstart); &
+!        total_gpu_marsh_time = total_gpu_marsh_time + (gpu_tend-gpu_tstart); end if
  
- if(DETAILED_TIMING .eq. 1) then;  call record_time(gpu_tstart) ; end if
+! if(DETAILED_TIMING .eq. 1) then;  call record_time(gpu_tstart) ; end if
  call interp_stress3(nxbtm, nybtm, nzbtm, nxtop, nytop, nztop);
  if(DETAILED_TIMING .eq. 1) then; call record_time(gpu_tend); call log_timing ("GPU stress_interp3", gpu_tend-gpu_tstart); &
         total_gpu_marsh_time = total_gpu_marsh_time + (gpu_tend-gpu_tstart); end if
@@ -7602,70 +7610,70 @@ subroutine interpl_3vbtm
  if(DETAILED_TIMING .eq. 1) then;  call record_time(gpu_tstart) ; end if
   call interpl_3vbtm_vel1( ny1p2, ny2p2, nz1p1, nyvx, nxbm1, nxbtm, nzbtm, &
                           nxtop, nztop, neighb(2), c_loc(rcx2))
- if(DETAILED_TIMING .eq. 1) then; call record_time(gpu_tend); call log_timing ("GPU interpl_3vbtm_vel1", gpu_tend-gpu_tstart); &
-        total_gpu_marsh_time = total_gpu_marsh_time + (gpu_tend-gpu_tstart); end if
+! if(DETAILED_TIMING .eq. 1) then; call record_time(gpu_tend); call log_timing ("GPU interpl_3vbtm_vel1", gpu_tend-gpu_tstart); &
+!        total_gpu_marsh_time = total_gpu_marsh_time + (gpu_tend-gpu_tstart); end if
 
- if(DETAILED_TIMING .eq. 1) then;  call record_time(gpu_tstart) ; end if
+ ! if(DETAILED_TIMING .eq. 1) then;  call record_time(gpu_tstart) ; end if
   call interpl_3vbtm_vel3( ny1p2, nz1p1, nyvx1, nxbm1, nxbtm, nybtm, nzbtm, &
                           nxtop, nytop, nztop)
- if(DETAILED_TIMING .eq. 1) then; call record_time(gpu_tend); call log_timing ("GPU interpl_3vbtm_3", gpu_tend-gpu_tstart); &
-        total_gpu_marsh_time = total_gpu_marsh_time + (gpu_tend-gpu_tstart); end if
+ ! if(DETAILED_TIMING .eq. 1) then; call record_time(gpu_tend); call log_timing ("GPU interpl_3vbtm_3", gpu_tend-gpu_tstart); &
+  !       total_gpu_marsh_time = total_gpu_marsh_time + (gpu_tend-gpu_tstart); end if
  
- if(DETAILED_TIMING .eq. 1) then;  call record_time(gpu_tstart) ; end if
+ ! if(DETAILED_TIMING .eq. 1) then;  call record_time(gpu_tstart) ; end if
   call interpl_3vbtm_vel4( nx1p2, ny2p2, nz1p1, nxvy, nybm1, nxbtm, nybtm, nzbtm, &
                           nxtop, nytop, nztop)
   if (neighb(4) > -1 ) then
         call interpl_3vbtm_vel5 (nx1p2, nx2p2, nz1p1, nxvy, nybm1, nxbtm, nybtm, &
                                 nzbtm, nxtop, nytop, nztop)
   end if
- if(DETAILED_TIMING .eq. 1) then; call record_time(gpu_tend); call log_timing ("GPU interpl_3vbtm_4/5", gpu_tend-gpu_tstart); &
-        total_gpu_marsh_time = total_gpu_marsh_time + (gpu_tend-gpu_tstart); end if
+ ! if(DETAILED_TIMING .eq. 1) then; call record_time(gpu_tend); call log_timing ("GPU interpl_3vbtm_4/5", gpu_tend-gpu_tstart); &
+ !        total_gpu_marsh_time = total_gpu_marsh_time + (gpu_tend-gpu_tstart); end if
 
- if(DETAILED_TIMING .eq. 1) then;  call record_time(gpu_tstart) ; end if
+ ! if(DETAILED_TIMING .eq. 1) then;  call record_time(gpu_tstart) ; end if
   call interpl_3vbtm_vel6( nx1p2, nz1p1, nxvy1, nybm1, nxbtm, nybtm, nzbtm, &
                           nxtop, nytop, nztop)
- if(DETAILED_TIMING .eq. 1) then; call record_time(gpu_tend); call log_timing ("GPU interpl_3vbtm_6", gpu_tend-gpu_tstart); &
-        total_gpu_marsh_time = total_gpu_marsh_time + (gpu_tend-gpu_tstart); end if
+ ! if(DETAILED_TIMING .eq. 1) then; call record_time(gpu_tend); call log_timing ("GPU interpl_3vbtm_6", gpu_tend-gpu_tstart); &
+ !        total_gpu_marsh_time = total_gpu_marsh_time + (gpu_tend-gpu_tstart); end if
  
  if(neighb(1) > -1) then 
-  if(DETAILED_TIMING .eq. 1) then;  call record_time(gpu_tstart) ; end if
+ !  if(DETAILED_TIMING .eq. 1) then;  call record_time(gpu_tstart) ; end if
      call interpl_3vbtm_vel7( nxbtm, nybtm, nzbtm, nxtop, nytop, nztop,c_loc(sdx1))
-  if(DETAILED_TIMING .eq. 1) then; call record_time(gpu_tend); call log_timing ("GPU interpl_3vbtm_7", gpu_tend-gpu_tstart); &
-        total_gpu_marsh_time = total_gpu_marsh_time + (gpu_tend-gpu_tstart); end if
+ !  if(DETAILED_TIMING .eq. 1) then; call record_time(gpu_tend); call log_timing ("GPU interpl_3vbtm_7", gpu_tend-gpu_tstart); &
+ !        total_gpu_marsh_time = total_gpu_marsh_time + (gpu_tend-gpu_tstart); end if
  end if
 
  if(neighb(2) > -1) then 
-  if(DETAILED_TIMING .eq. 1) then;  call record_time(gpu_tstart) ; end if
+ !  if(DETAILED_TIMING .eq. 1) then;  call record_time(gpu_tstart) ; end if
      call interpl_3vbtm_vel8( nxbtm, nybtm, nzbtm, nxtop, nytop, nztop, c_loc(sdx2))
-  if(DETAILED_TIMING .eq. 1) then; call record_time(gpu_tend); call log_timing ("GPU interpl_3vbtm_8", gpu_tend-gpu_tstart); &
-        total_gpu_marsh_time = total_gpu_marsh_time + (gpu_tend-gpu_tstart); end if
+ !  if(DETAILED_TIMING .eq. 1) then; call record_time(gpu_tend); call log_timing ("GPU interpl_3vbtm_8", gpu_tend-gpu_tstart); &
+ !        total_gpu_marsh_time = total_gpu_marsh_time + (gpu_tend-gpu_tstart); end if
  end if
 
- if(DETAILED_TIMING .eq. 1) then;  call record_time(gpu_tstart) ; end if
+ ! if(DETAILED_TIMING .eq. 1) then;  call record_time(gpu_tstart) ; end if
   call interpl_3vbtm_vel9( nx1p2, ny2p1, nz1p1, nxvy, nybm1, nxbtm, nybtm, nzbtm, &
                           nxtop, nytop, nztop, neighb(4))
- if(DETAILED_TIMING .eq. 1) then; call record_time(gpu_tend); call log_timing ("GPU interpl_3vbtm_9", gpu_tend-gpu_tstart); &
-        total_gpu_marsh_time = total_gpu_marsh_time + (gpu_tend-gpu_tstart); end if
+ ! if(DETAILED_TIMING .eq. 1) then; call record_time(gpu_tend); call log_timing ("GPU interpl_3vbtm_9", gpu_tend-gpu_tstart); &
+ !        total_gpu_marsh_time = total_gpu_marsh_time + (gpu_tend-gpu_tstart); end if
 
- if(DETAILED_TIMING .eq. 1) then;  call record_time(gpu_tstart) ; end if
+ ! if(DETAILED_TIMING .eq. 1) then;  call record_time(gpu_tstart) ; end if
   call interpl_3vbtm_vel11( nx1p2, nx2p1, ny1p1, nz1p1, nxvy1, nxbtm, nybtm, nzbtm, &
                           nxtop, nytop, nztop)
- if(DETAILED_TIMING .eq. 1) then; call record_time(gpu_tend); call log_timing ("GPU interpl_3vbtm_11", gpu_tend-gpu_tstart); &
-        total_gpu_marsh_time = total_gpu_marsh_time + (gpu_tend-gpu_tstart); end if
+ ! if(DETAILED_TIMING .eq. 1) then; call record_time(gpu_tend); call log_timing ("GPU interpl_3vbtm_11", gpu_tend-gpu_tstart); &
+ !        total_gpu_marsh_time = total_gpu_marsh_time + (gpu_tend-gpu_tstart); end if
 
- if(DETAILED_TIMING .eq. 1) then;  call record_time(gpu_tstart) ; end if
+ ! if(DETAILED_TIMING .eq. 1) then;  call record_time(gpu_tstart) ; end if
   call interpl_3vbtm_vel13( nxbtm, nybtm, nzbtm, &
                           nxtop, nytop, nztop)
- if(DETAILED_TIMING .eq. 1) then; call record_time(gpu_tend); call log_timing ("GPU interpl_3vbtm_13", gpu_tend-gpu_tstart); &
-        total_gpu_marsh_time = total_gpu_marsh_time + (gpu_tend-gpu_tstart); end if
+ ! if(DETAILED_TIMING .eq. 1) then; call record_time(gpu_tend); call log_timing ("GPU interpl_3vbtm_13", gpu_tend-gpu_tstart); &
+ !        total_gpu_marsh_time = total_gpu_marsh_time + (gpu_tend-gpu_tstart); end if
 
- if(DETAILED_TIMING .eq. 1) then;  call record_time(gpu_tstart) ; end if
+ ! if(DETAILED_TIMING .eq. 1) then;  call record_time(gpu_tstart) ; end if
   call interpl_3vbtm_vel14( nxbtm, nybtm, nzbtm, &
                           nxtop, nytop, nztop)
- if(DETAILED_TIMING .eq. 1) then; call record_time(gpu_tend); call log_timing ("GPU interpl_3vbtm_14", gpu_tend-gpu_tstart); &
-        total_gpu_marsh_time = total_gpu_marsh_time + (gpu_tend-gpu_tstart); end if
+ ! if(DETAILED_TIMING .eq. 1) then; call record_time(gpu_tend); call log_timing ("GPU interpl_3vbtm_14", gpu_tend-gpu_tstart); &
+ !        total_gpu_marsh_time = total_gpu_marsh_time + (gpu_tend-gpu_tstart); end if
 
- if(DETAILED_TIMING .eq. 1) then;  call record_time(gpu_tstart) ; end if
+ ! if(DETAILED_TIMING .eq. 1) then;  call record_time(gpu_tstart) ; end if
   call interpl_3vbtm_vel15( nxbtm, nybtm, nzbtm, &
                           nxtop, nytop, nztop)
  if(DETAILED_TIMING .eq. 1) then; call record_time(gpu_tend); call log_timing ("GPU interpl_3vbtm_15", gpu_tend-gpu_tstart); &

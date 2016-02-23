@@ -459,6 +459,7 @@ static void z_solve_cell(int first, int last, int stage)
 			  z_sc_lws[0] = 1; //d0_size / max_compute_units;
 			  z_sc_gws[0] = clu_RoundWorkSize(d0_size, z_sc_lws[0]);
 		  }
+#ifdef MINIMD_SNUCL_OPTIMIZATIONS
 		  ecode = clSetKernelLaunchConfiguration(devices[i],
 				  k_z_sc[j],
 				  Z_SOLVE_DIM[i], NULL,
@@ -466,7 +467,7 @@ static void z_solve_cell(int first, int last, int stage)
 				  z_sc_lws
 				  );
 		  clu_CheckError(ecode, "clEnqueueNDRangeKernel()");
-
+#endif
 	  }
   }
   for (i = 0; i < num_devices; i++) {

@@ -1,0 +1,1950 @@
+!_TAG_FILE_FORMAT	2	/extended format; --format=1 will not append ;" to lines/
+!_TAG_FILE_SORTED	1	/0=unsorted, 1=sorted, 2=foldcase/
+!_TAG_PROGRAM_AUTHOR	Darren Hiebert	/dhiebert@users.sourceforge.net/
+!_TAG_PROGRAM_NAME	Exuberant Ctags	//
+!_TAG_PROGRAM_URL	http://ctags.sourceforge.net	/official site/
+!_TAG_PROGRAM_VERSION	5.8	//
+711	vm4dfd_v3.f90	/^ 711 format(3e14.5) $/;"	l	program:vm4dfd_v3	file:
+925	read_dfd.f90	/^   925  format(5e14.5)$/;"	l	subroutine:output3	file:
+APPLY	xapiir.f90	/^      SUBROUTINE APPLY(/;"	s
+Array_Info	disfd_comm.f90	/^    TYPE :: Array_Info$/;"	t	module:metadata
+Assign_Rev_2_Proc	disfd_sub.f90	/^subroutine Assign_Rev_2_Proc(/;"	s
+Assign_Type2_Rev_2_Proc	disfd_sub.f90	/^subroutine Assign_Type2_Rev_2_Proc(/;"	s
+BEROOTS	xapiir.f90	/^      SUBROUTINE BEROOTS(/;"	s
+BILIN2	xapiir.f90	/^      SUBROUTINE BILIN2(/;"	s
+BSL_interp	disfd_sub.f90	/^subroutine BSL_interp(/;"	s
+BUROOTS	xapiir.f90	/^      SUBROUTINE BUROOTS(/;"	s
+C1ROOTS	xapiir.f90	/^      SUBROUTINE C1ROOTS(/;"	s
+C2ROOTS	xapiir.f90	/^      SUBROUTINE C2ROOTS(/;"	s
+CC	Makefile	/^CC         = g++ -O3 -g $(MY_INCLUDES)$/;"	m
+CCS1	sac.h	260;"	d
+CCS2	sac.h	261;"	d
+CHEBPARM	xapiir.f90	/^      SUBROUTINE CHEBPARM(/;"	s
+CHECK_ERROR	disfd_sub_opencl.c	25;"	d	file:
+CHECK_NULL_ERROR	disfd_sub_opencl.c	31;"	d	file:
+COMPUTATION_CORRECTNESS_MODE	switches.h	43;"	d
+COUTIL_GLOBAL_REALTIMER	RealTimer.h	14;"	d
+CUDA_HOME	Makefile	/^CUDA_HOME  = ${CUDA_INSTALL_PATH}$/;"	m
+CUTOFFS	xapiir.f90	/^      SUBROUTINE CUTOFFS(/;"	s
+Count	RealTimer.h	/^inline int Count(RealTimer *rt) {return rt->count;}$/;"	f
+CurrentTime	RealTimer.h	/^inline double CurrentTime(RealTimer *rt)$/;"	f
+DESIGN	xapiir.f90	/^      SUBROUTINE DESIGN(/;"	s
+DETAILED_TIMING	switches.h	37;"	d
+DISFD_EAGER_DATA_TRANSFER	disfd_sub_opencl.c	42;"	d	file:
+DISFD_GPU_MARSHALING	switches.h	8;"	d
+Elapsed	RealTimer.h	/^inline double Elapsed(RealTimer *rt)$/;"	f
+FALSE	sac.h	253;"	d
+FCS	sac.h	258;"	d
+FF90	Makefile	/^FF90       = gfortran -ffree-line-length-none -ffixed-line-length-none -O3 -g $(MY_INCLUDES)$/;"	m
+GCC	Makefile	/^GCC        = g++ -O3 -g $(MY_INCLUDES)$/;"	m
+GPUArray_Metadata	disfd_sub_opencl.c	/^struct GPUArray_Metadata {$/;"	s	file:
+HD_SIZE	sac.h	305;"	d
+IA	sac.h	200;"	d
+IACC	sac.h	196;"	d
+IAMPH	sac.h	189;"	d
+IB	sac.h	197;"	d
+ICHEM	sac.h	231;"	d
+ICS	sac.h	259;"	d
+IDAY	sac.h	198;"	d
+IDISP	sac.h	194;"	d
+IDOWN	sac.h	218;"	d
+IDROP	sac.h	236;"	d
+IEAST	sac.h	216;"	d
+IGLCH	sac.h	235;"	d
+IGOOD	sac.h	234;"	d
+IHGLP	sac.h	223;"	d
+IHORZA	sac.h	217;"	d
+ILLLBB	sac.h	220;"	d
+ILOWSN	sac.h	237;"	d
+INIV51	sac.h	240;"	d
+INIV52	sac.h	241;"	d
+INIV53	sac.h	242;"	d
+INIV54	sac.h	243;"	d
+INIV55	sac.h	244;"	d
+INIV56	sac.h	245;"	d
+INIV57	sac.h	246;"	d
+INIV58	sac.h	247;"	d
+INIV59	sac.h	248;"	d
+INIV60	sac.h	249;"	d
+INORTH	sac.h	215;"	d
+INUCL	sac.h	225;"	d
+IO	sac.h	199;"	d
+IOTHER	sac.h	232;"	d
+IPOSTN	sac.h	227;"	d
+IPOSTQ	sac.h	230;"	d
+IPREN	sac.h	226;"	d
+IPREQ	sac.h	229;"	d
+IQUAKE	sac.h	228;"	d
+IRADEV	sac.h	213;"	d
+IRADNV	sac.h	211;"	d
+IREAL	sac.h	186;"	d
+IRLDTA	sac.h	238;"	d
+IRLIM	sac.h	188;"	d
+ISEND_IRECV_Stress	disfd_sub.f90	/^subroutine ISEND_IRECV_Stress(/;"	s
+ISEND_IRECV_Velocity	disfd_sub.f90	/^subroutine ISEND_IRECV_Velocity(/;"	s
+ISRO	sac.h	224;"	d
+IT0	sac.h	201;"	d
+IT1	sac.h	202;"	d
+IT2	sac.h	203;"	d
+IT3	sac.h	204;"	d
+IT4	sac.h	205;"	d
+IT5	sac.h	206;"	d
+IT6	sac.h	207;"	d
+IT7	sac.h	208;"	d
+IT8	sac.h	209;"	d
+IT9	sac.h	210;"	d
+ITANEV	sac.h	214;"	d
+ITANNV	sac.h	212;"	d
+ITIME	sac.h	187;"	d
+IUNKN	sac.h	191;"	d
+IUP	sac.h	219;"	d
+IVEL	sac.h	195;"	d
+IVOLTS	sac.h	239;"	d
+IWWSN1	sac.h	221;"	d
+IWWSN2	sac.h	222;"	d
+IXY	sac.h	190;"	d
+Init	RealTimer.h	/^inline void Init(RealTimer *rt)$/;"	f
+IsRunning	RealTimer.h	/^inline char IsRunning(RealTimer *rt)$/;"	f
+LINKF	Makefile	/^LINKF      = disfd_comm.o disfd_sub.o disfd_subc.o timer.o disfd_sub_opencl.o papi_interface.o #disfd_subcu.o$/;"	m
+LOGGING_ENABLED	switches.h	28;"	d
+LP	xapiir.f90	/^      SUBROUTINE LP(/;"	s
+LPTBP	xapiir.f90	/^      SUBROUTINE LPTBP(/;"	s
+LPTBR	xapiir.f90	/^      SUBROUTINE LPTBR(/;"	s
+LPTHP	xapiir.f90	/^      SUBROUTINE LPTHP(/;"	s
+LoadProgramSource	disfd_sub_opencl.c	/^size_t LoadProgramSource(const char *filename1, const char **progSrc) $/;"	f
+MAX_PAPI_EVENTS	papi_interface.c	5;"	d	file:
+MPICC	Makefile	/^MPICC      = mpicxx -O3 -g $(MY_INCLUDES)$/;"	m
+MPIF90	Makefile	/^MPIF90     = mpif90 -ffree-line-length-none -ffixed-line-length-none -O3 -g $(MY_INCLUDES)$/;"	m
+MPIX_Irecv_C	disfd_sub.c	/^void MPIX_Irecv_C (int buff_id, int count, MPI_Fint *datatype, int src, int$/;"	f
+MPIX_Isend_C	disfd_sub.c	/^void MPIX_Isend_C (int buff_id, int count, MPI_Fint *datatype, int dest, int$/;"	f
+MPIX_Recv_C	disfd_sub.c	/^void MPIX_Recv_C (int buff_id, int count, MPI_Fint *datatype, int src, int$/;"	f
+MPIX_Recv_offset_C	disfd_sub.c	/^void MPIX_Recv_offset_C (int buff_id, int offset, int count, MPI_Fint *datatype, int src, int$/;"	f
+MPIX_Send_C	disfd_sub.c	/^void MPIX_Send_C (int buff_id, int count, MPI_Fint *datatype, int dest, int$/;"	f
+MPIX_Send_offset_C	disfd_sub.c	/^void MPIX_Send_offset_C (int buff_id, int offset, int count, MPI_Fint *datatype, int dest, int$/;"	f
+MPI_BCAST_C	disfd_sub.c	/^void MPI_BCAST_C (void* buffer, int count, MPI_Fint datatype, int root, MPI_Fint comm, MPI_Fint *ierr) $/;"	f
+MPI_Barrier_C	disfd_sub.c	/^void MPI_Barrier_C (MPI_Fint comm, MPI_Fint *ierr) $/;"	f
+MPI_Comm_create_C	disfd_sub.c	/^void MPI_Comm_create_C(MPI_Fint comm, MPI_Fint group, MPI_Fint *newcomm, MPI_Fint *ierr) $/;"	f
+MPI_Comm_group_C	disfd_sub.c	/^void MPI_Comm_group_C (MPI_Fint comm, MPI_Fint *group, MPI_Fint *ierr) $/;"	f
+MPI_Comm_rank_C	disfd_sub.c	/^void MPI_Comm_rank_C ( MPI_Fint comm , int* rank , MPI_Fint *ierr) $/;"	f
+MPI_Comm_size_C	disfd_sub.c	/^void MPI_Comm_size_C (MPI_Fint comm, int* nprocs, MPI_Fint *ierr) $/;"	f
+MPI_DIR	Makefile	/^MPI_DIR    = ${MPICH_DIR}$/;"	m
+MPI_Finalize_C	disfd_sub.c	/^void MPI_Finalize_C(MPI_Fint *ierr) $/;"	f
+MPI_Group_excl_C	disfd_sub.c	/^void MPI_Group_excl_C (MPI_Fint group, int n, int *ranks, MPI_Fint *newgroup, MPI_Fint *ierr) $/;"	f
+MPI_Group_free_C	disfd_sub.c	/^void MPI_Group_free_C(MPI_Fint *group, MPI_Fint *ierr) $/;"	f
+MPI_Init_C	disfd_sub.c	/^void MPI_Init_C (MPI_Fint *ierr) $/;"	f
+MPI_Send_C	disfd_sub.c	/^void MPI_Send_C (void* buff, int count, MPI_Fint datatype, int dest, int$/;"	f
+MY_INCLUDES	Makefile	/^MY_INCLUDES=-I$(HOME)\/opt\/include -I\/usr\/include -I$(MPI_DIR)\/include -I. -I$(OPENCL_HOME)\/inc -I$(CUDA_HOME)\/include $/;"	m
+MaxThreadsPerBlock	disfd_sub_opencl.c	48;"	d	file:
+NTHREADS	disfd_sub_opencl.c	49;"	d	file:
+NUM_COMMAND_QUEUES	mpiacc_cl.h	8;"	d
+OPENCL_CHECK_ERR	disfd_sub.c	170;"	d	file:
+OPENCL_CHECK_ERR_AND_RETURN	disfd_sub.c	176;"	d	file:
+OPENCL_HOME	Makefile	/^OPENCL_HOME  = ${SNUCLROOT}$/;"	m
+PAPI_HOME	Makefile	/^PAPI_HOME = \/state\/partition1\/apps\/papi$/;"	m
+Pml_coef	disfd_sub.f90	/^subroutine Pml_coef(/;"	s
+Print	RealTimer.h	/^inline void Print(RealTimer *rt\/*std::ostream& o*\/, const char *desc) $/;"	f
+PrintIndividual	RealTimer.h	/^inline void PrintIndividual(RealTimer *rt, const char *desc)$/;"	f
+RF	disfd_comm.f90	/^ real:: RF$/;"	v	module:grid_node_comm
+RealTimer	RealTimer.h	/^struct RealTimer$/;"	s
+RealTimer	RealTimer.h	/^typedef struct RealTimer RealTimer;$/;"	t	typeref:struct:RealTimer
+Reset	RealTimer.h	/^inline void Reset(RealTimer *rt)$/;"	f
+SACHEAD	sac.h	/^} SACHEAD;$/;"	t	typeref:struct:sac_head
+SNUCL_PERF_MODEL_OPTIMIZATION	disfd_sub_opencl.c	44;"	d	file:
+Start	RealTimer.h	/^inline void Start(RealTimer *rt)$/;"	f
+Stop	RealTimer.h	/^inline void Stop(RealTimer *rt)$/;"	f
+TMARK	sac.h	307;"	d
+TRUE	sac.h	254;"	d
+Type2_Recv_Int	disfd_sub.f90	/^subroutine Type2_Recv_Int(/;"	s
+Type2_Rev_Location	disfd_sub.f90	/^subroutine Type2_Rev_Location(/;"	s
+USERN	sac.h	308;"	d
+USE_MPIX	switches.h	6;"	d
+VALIDATE_MODE	switches.h	18;"	d
+WARP	xapiir.f90	/^      REAL FUNCTION WARP(/;"	f
+XAPIIR	xapiir.f90	/^      SUBROUTINE XAPIIR(/;"	s
+__MPIACC_CLH__	mpiacc_cl.h	2;"	d
+__PAPI_FDM__	papi_interface.h	2;"	d
+__dim3	disfd_sub_opencl.c	/^	__dim3() {}$/;"	f	struct:__dim3
+__dim3	disfd_sub_opencl.c	/^	__dim3(int _x = 1, int _y = 1, int _z = 1) $/;"	f	struct:__dim3
+__dim3	disfd_sub_opencl.c	/^struct __dim3 {$/;"	s	file:
+_cl_commandQueues	disfd_sub_opencl.c	/^cl_command_queue _cl_commandQueues[NUM_COMMAND_QUEUES];$/;"	v
+_cl_context	disfd_sub_opencl.c	/^cl_context         _cl_context;$/;"	v
+_cl_devices	disfd_sub_opencl.c	/^cl_device_id       *_cl_devices;$/;"	v
+_cl_firstDevice	disfd_sub_opencl.c	/^cl_device_id       _cl_firstDevice;$/;"	v
+_cl_firstPlatform	disfd_sub_opencl.c	/^cl_platform_id     _cl_firstPlatform;$/;"	v
+_cl_kernel_stress_interp1	disfd_sub_opencl.c	/^cl_kernel _cl_kernel_stress_interp1;$/;"	v
+_cl_kernel_stress_interp2	disfd_sub_opencl.c	/^cl_kernel _cl_kernel_stress_interp2;$/;"	v
+_cl_kernel_stress_interp3	disfd_sub_opencl.c	/^cl_kernel _cl_kernel_stress_interp3;$/;"	v
+_cl_kernel_stress_interp_stress	disfd_sub_opencl.c	/^cl_kernel _cl_kernel_stress_interp_stress;$/;"	v
+_cl_kernel_stress_norm_PmlX_IC	disfd_sub_opencl.c	/^cl_kernel _cl_kernel_stress_norm_PmlX_IC;$/;"	v
+_cl_kernel_stress_norm_PmlX_IIC	disfd_sub_opencl.c	/^cl_kernel _cl_kernel_stress_norm_PmlX_IIC;$/;"	v
+_cl_kernel_stress_norm_PmlY_IC	disfd_sub_opencl.c	/^cl_kernel _cl_kernel_stress_norm_PmlY_IC;$/;"	v
+_cl_kernel_stress_norm_PmlY_II	disfd_sub_opencl.c	/^cl_kernel _cl_kernel_stress_norm_PmlY_II;$/;"	v
+_cl_kernel_stress_norm_PmlZ_IIC	disfd_sub_opencl.c	/^cl_kernel _cl_kernel_stress_norm_PmlZ_IIC;$/;"	v
+_cl_kernel_stress_norm_xy_IC	disfd_sub_opencl.c	/^cl_kernel _cl_kernel_stress_norm_xy_IC;$/;"	v
+_cl_kernel_stress_norm_xy_II	disfd_sub_opencl.c	/^cl_kernel _cl_kernel_stress_norm_xy_II;$/;"	v
+_cl_kernel_stress_rcx41	disfd_sub_opencl.c	/^cl_kernel _cl_kernel_stress_rcx41;$/;"	v
+_cl_kernel_stress_rcx42	disfd_sub_opencl.c	/^cl_kernel _cl_kernel_stress_rcx42;$/;"	v
+_cl_kernel_stress_rcx51	disfd_sub_opencl.c	/^cl_kernel _cl_kernel_stress_rcx51;$/;"	v
+_cl_kernel_stress_rcx52	disfd_sub_opencl.c	/^cl_kernel _cl_kernel_stress_rcx52;$/;"	v
+_cl_kernel_stress_rcy41	disfd_sub_opencl.c	/^cl_kernel _cl_kernel_stress_rcy41;$/;"	v
+_cl_kernel_stress_rcy42	disfd_sub_opencl.c	/^cl_kernel _cl_kernel_stress_rcy42;$/;"	v
+_cl_kernel_stress_rcy51	disfd_sub_opencl.c	/^cl_kernel _cl_kernel_stress_rcy51;$/;"	v
+_cl_kernel_stress_rcy52	disfd_sub_opencl.c	/^cl_kernel _cl_kernel_stress_rcy52;$/;"	v
+_cl_kernel_stress_resetVars	disfd_sub_opencl.c	/^cl_kernel _cl_kernel_stress_resetVars;$/;"	v
+_cl_kernel_stress_sdx41	disfd_sub_opencl.c	/^cl_kernel _cl_kernel_stress_sdx41;$/;"	v
+_cl_kernel_stress_sdx42	disfd_sub_opencl.c	/^cl_kernel _cl_kernel_stress_sdx42;$/;"	v
+_cl_kernel_stress_sdx51	disfd_sub_opencl.c	/^cl_kernel _cl_kernel_stress_sdx51;$/;"	v
+_cl_kernel_stress_sdx52	disfd_sub_opencl.c	/^cl_kernel _cl_kernel_stress_sdx52;$/;"	v
+_cl_kernel_stress_sdy41	disfd_sub_opencl.c	/^cl_kernel _cl_kernel_stress_sdy41;$/;"	v
+_cl_kernel_stress_sdy42	disfd_sub_opencl.c	/^cl_kernel _cl_kernel_stress_sdy42;$/;"	v
+_cl_kernel_stress_sdy51	disfd_sub_opencl.c	/^cl_kernel _cl_kernel_stress_sdy51;$/;"	v
+_cl_kernel_stress_sdy52	disfd_sub_opencl.c	/^cl_kernel _cl_kernel_stress_sdy52;$/;"	v
+_cl_kernel_stress_xy_PmlX_IC	disfd_sub_opencl.c	/^cl_kernel _cl_kernel_stress_xy_PmlX_IC;$/;"	v
+_cl_kernel_stress_xy_PmlX_IIC	disfd_sub_opencl.c	/^cl_kernel _cl_kernel_stress_xy_PmlX_IIC;$/;"	v
+_cl_kernel_stress_xy_PmlY_IC	disfd_sub_opencl.c	/^cl_kernel _cl_kernel_stress_xy_PmlY_IC;$/;"	v
+_cl_kernel_stress_xy_PmlY_IIC	disfd_sub_opencl.c	/^cl_kernel _cl_kernel_stress_xy_PmlY_IIC;$/;"	v
+_cl_kernel_stress_xy_PmlZ_II	disfd_sub_opencl.c	/^cl_kernel _cl_kernel_stress_xy_PmlZ_II;$/;"	v
+_cl_kernel_stress_xz_PmlX_IC	disfd_sub_opencl.c	/^cl_kernel _cl_kernel_stress_xz_PmlX_IC;$/;"	v
+_cl_kernel_stress_xz_PmlX_IIC	disfd_sub_opencl.c	/^cl_kernel _cl_kernel_stress_xz_PmlX_IIC;$/;"	v
+_cl_kernel_stress_xz_PmlY_IC	disfd_sub_opencl.c	/^cl_kernel _cl_kernel_stress_xz_PmlY_IC;$/;"	v
+_cl_kernel_stress_xz_PmlY_IIC	disfd_sub_opencl.c	/^cl_kernel _cl_kernel_stress_xz_PmlY_IIC;$/;"	v
+_cl_kernel_stress_xz_PmlZ_IIC	disfd_sub_opencl.c	/^cl_kernel _cl_kernel_stress_xz_PmlZ_IIC;$/;"	v
+_cl_kernel_stress_xz_yz_IC	disfd_sub_opencl.c	/^cl_kernel _cl_kernel_stress_xz_yz_IC;$/;"	v
+_cl_kernel_stress_xz_yz_IIC	disfd_sub_opencl.c	/^cl_kernel _cl_kernel_stress_xz_yz_IIC;$/;"	v
+_cl_kernel_stress_yz_PmlX_IC	disfd_sub_opencl.c	/^cl_kernel _cl_kernel_stress_yz_PmlX_IC;$/;"	v
+_cl_kernel_stress_yz_PmlX_IIC	disfd_sub_opencl.c	/^cl_kernel _cl_kernel_stress_yz_PmlX_IIC;$/;"	v
+_cl_kernel_stress_yz_PmlY_IC	disfd_sub_opencl.c	/^cl_kernel _cl_kernel_stress_yz_PmlY_IC;$/;"	v
+_cl_kernel_stress_yz_PmlY_IIC	disfd_sub_opencl.c	/^cl_kernel _cl_kernel_stress_yz_PmlY_IIC;$/;"	v
+_cl_kernel_stress_yz_PmlZ_IIC	disfd_sub_opencl.c	/^cl_kernel _cl_kernel_stress_yz_PmlZ_IIC;$/;"	v
+_cl_kernel_vel11_interpl_3vbtm	disfd_sub_opencl.c	/^cl_kernel _cl_kernel_vel11_interpl_3vbtm;$/;"	v
+_cl_kernel_vel13_interpl_3vbtm	disfd_sub_opencl.c	/^cl_kernel _cl_kernel_vel13_interpl_3vbtm;$/;"	v
+_cl_kernel_vel14_interpl_3vbtm	disfd_sub_opencl.c	/^cl_kernel _cl_kernel_vel14_interpl_3vbtm;$/;"	v
+_cl_kernel_vel15_interpl_3vbtm	disfd_sub_opencl.c	/^cl_kernel _cl_kernel_vel15_interpl_3vbtm;$/;"	v
+_cl_kernel_vel1_interpl_3vbtm	disfd_sub_opencl.c	/^cl_kernel _cl_kernel_vel1_interpl_3vbtm;$/;"	v
+_cl_kernel_vel1_vxy_image_layer	disfd_sub_opencl.c	/^cl_kernel _cl_kernel_vel1_vxy_image_layer;$/;"	v
+_cl_kernel_vel2_vxy_image_layer	disfd_sub_opencl.c	/^cl_kernel _cl_kernel_vel2_vxy_image_layer;$/;"	v
+_cl_kernel_vel3_interpl_3vbtm	disfd_sub_opencl.c	/^cl_kernel _cl_kernel_vel3_interpl_3vbtm;$/;"	v
+_cl_kernel_vel3_vxy_image_layer	disfd_sub_opencl.c	/^cl_kernel _cl_kernel_vel3_vxy_image_layer;$/;"	v
+_cl_kernel_vel4_interpl_3vbtm	disfd_sub_opencl.c	/^cl_kernel _cl_kernel_vel4_interpl_3vbtm;$/;"	v
+_cl_kernel_vel4_vxy_image_layer	disfd_sub_opencl.c	/^cl_kernel _cl_kernel_vel4_vxy_image_layer;$/;"	v
+_cl_kernel_vel5_interpl_3vbtm	disfd_sub_opencl.c	/^cl_kernel _cl_kernel_vel5_interpl_3vbtm;$/;"	v
+_cl_kernel_vel6_interpl_3vbtm	disfd_sub_opencl.c	/^cl_kernel _cl_kernel_vel6_interpl_3vbtm;$/;"	v
+_cl_kernel_vel7_interpl_3vbtm	disfd_sub_opencl.c	/^cl_kernel _cl_kernel_vel7_interpl_3vbtm;$/;"	v
+_cl_kernel_vel8_interpl_3vbtm	disfd_sub_opencl.c	/^cl_kernel _cl_kernel_vel8_interpl_3vbtm;$/;"	v
+_cl_kernel_vel9_interpl_3vbtm	disfd_sub_opencl.c	/^cl_kernel _cl_kernel_vel9_interpl_3vbtm;$/;"	v
+_cl_kernel_vel_PmlX_IC	disfd_sub_opencl.c	/^cl_kernel _cl_kernel_vel_PmlX_IC;$/;"	v
+_cl_kernel_vel_PmlX_IIC	disfd_sub_opencl.c	/^cl_kernel _cl_kernel_vel_PmlX_IIC;$/;"	v
+_cl_kernel_vel_PmlY_IC	disfd_sub_opencl.c	/^cl_kernel _cl_kernel_vel_PmlY_IC;$/;"	v
+_cl_kernel_vel_PmlY_IIC	disfd_sub_opencl.c	/^cl_kernel _cl_kernel_vel_PmlY_IIC;$/;"	v
+_cl_kernel_vel_PmlZ_IIC	disfd_sub_opencl.c	/^cl_kernel _cl_kernel_vel_PmlZ_IIC;$/;"	v
+_cl_kernel_vel_add_dcs	disfd_sub_opencl.c	/^cl_kernel _cl_kernel_vel_add_dcs;$/;"	v
+_cl_kernel_vel_rcx1	disfd_sub_opencl.c	/^cl_kernel _cl_kernel_vel_rcx1;$/;"	v
+_cl_kernel_vel_rcx2	disfd_sub_opencl.c	/^cl_kernel _cl_kernel_vel_rcx2;$/;"	v
+_cl_kernel_vel_rcx41	disfd_sub_opencl.c	/^cl_kernel _cl_kernel_vel_rcx41;$/;"	v
+_cl_kernel_vel_rcx42	disfd_sub_opencl.c	/^cl_kernel _cl_kernel_vel_rcx42;$/;"	v
+_cl_kernel_vel_rcx51	disfd_sub_opencl.c	/^cl_kernel _cl_kernel_vel_rcx51;$/;"	v
+_cl_kernel_vel_rcx52	disfd_sub_opencl.c	/^cl_kernel _cl_kernel_vel_rcx52;$/;"	v
+_cl_kernel_vel_rcy1	disfd_sub_opencl.c	/^cl_kernel _cl_kernel_vel_rcy1;$/;"	v
+_cl_kernel_vel_rcy2	disfd_sub_opencl.c	/^cl_kernel _cl_kernel_vel_rcy2;$/;"	v
+_cl_kernel_vel_rcy41	disfd_sub_opencl.c	/^cl_kernel _cl_kernel_vel_rcy41;$/;"	v
+_cl_kernel_vel_rcy42	disfd_sub_opencl.c	/^cl_kernel _cl_kernel_vel_rcy42;$/;"	v
+_cl_kernel_vel_rcy51	disfd_sub_opencl.c	/^cl_kernel _cl_kernel_vel_rcy51;$/;"	v
+_cl_kernel_vel_rcy52	disfd_sub_opencl.c	/^cl_kernel _cl_kernel_vel_rcy52;$/;"	v
+_cl_kernel_vel_sdx1	disfd_sub_opencl.c	/^cl_kernel _cl_kernel_vel_sdx1;$/;"	v
+_cl_kernel_vel_sdx2	disfd_sub_opencl.c	/^cl_kernel _cl_kernel_vel_sdx2;$/;"	v
+_cl_kernel_vel_sdx41	disfd_sub_opencl.c	/^cl_kernel _cl_kernel_vel_sdx41;$/;"	v
+_cl_kernel_vel_sdx42	disfd_sub_opencl.c	/^cl_kernel _cl_kernel_vel_sdx42;$/;"	v
+_cl_kernel_vel_sdx51	disfd_sub_opencl.c	/^cl_kernel _cl_kernel_vel_sdx51;$/;"	v
+_cl_kernel_vel_sdx52	disfd_sub_opencl.c	/^cl_kernel _cl_kernel_vel_sdx52;$/;"	v
+_cl_kernel_vel_sdy1	disfd_sub_opencl.c	/^cl_kernel _cl_kernel_vel_sdy1;$/;"	v
+_cl_kernel_vel_sdy2	disfd_sub_opencl.c	/^cl_kernel _cl_kernel_vel_sdy2;$/;"	v
+_cl_kernel_vel_sdy41	disfd_sub_opencl.c	/^cl_kernel _cl_kernel_vel_sdy41;$/;"	v
+_cl_kernel_vel_sdy42	disfd_sub_opencl.c	/^cl_kernel _cl_kernel_vel_sdy42;$/;"	v
+_cl_kernel_vel_sdy51	disfd_sub_opencl.c	/^cl_kernel _cl_kernel_vel_sdy51;$/;"	v
+_cl_kernel_vel_sdy52	disfd_sub_opencl.c	/^cl_kernel _cl_kernel_vel_sdy52;$/;"	v
+_cl_kernel_vel_vxy_image_layer1	disfd_sub_opencl.c	/^cl_kernel _cl_kernel_vel_vxy_image_layer1;$/;"	v
+_cl_kernel_vel_vxy_image_layer_rcx	disfd_sub_opencl.c	/^cl_kernel _cl_kernel_vel_vxy_image_layer_rcx;$/;"	v
+_cl_kernel_vel_vxy_image_layer_rcy	disfd_sub_opencl.c	/^cl_kernel _cl_kernel_vel_vxy_image_layer_rcy;$/;"	v
+_cl_kernel_vel_vxy_image_layer_sdx	disfd_sub_opencl.c	/^cl_kernel _cl_kernel_vel_vxy_image_layer_sdx;$/;"	v
+_cl_kernel_vel_vxy_image_layer_sdy	disfd_sub_opencl.c	/^cl_kernel _cl_kernel_vel_vxy_image_layer_sdy;$/;"	v
+_cl_kernel_velocity_inner_IC	disfd_sub_opencl.c	/^cl_kernel _cl_kernel_velocity_inner_IC;$/;"	v
+_cl_kernel_velocity_inner_IIC	disfd_sub_opencl.c	/^cl_kernel _cl_kernel_velocity_inner_IIC;$/;"	v
+_cl_program	disfd_sub_opencl.c	/^cl_program         _cl_program;$/;"	v
+_sachead_h	sac.h	43;"	d
+a	sac.h	/^  float	a;			\/*    1st arrival time       *\/$/;"	m	struct:sac_head
+abcx1	disfd_comm.f90	/^ real(c_float), pointer, dimension(:,:,:):: abcx1,/;"	v	module:grid_node_comm
+abcx1_init	disfd_comm.f90	/^ real(c_float), pointer, dimension(:,:,:):: abcx1_init,/;"	v	module:grid_node_comm
+abcx2	disfd_comm.f90	/^ real(c_float), pointer, dimension(:,:,:):: abcx1,abcy1,abcx2,/;"	v	module:grid_node_comm
+abcx2_init	disfd_comm.f90	/^ real(c_float), pointer, dimension(:,:,:):: abcx1_init,abcy1_init,abcx2_init,/;"	v	module:grid_node_comm
+abcy1	disfd_comm.f90	/^ real(c_float), pointer, dimension(:,:,:):: abcx1,abcy1,/;"	v	module:grid_node_comm
+abcy1_init	disfd_comm.f90	/^ real(c_float), pointer, dimension(:,:,:):: abcx1_init,abcy1_init,/;"	v	module:grid_node_comm
+abcy2	disfd_comm.f90	/^ real(c_float), pointer, dimension(:,:,:):: abcx1,abcy1,abcx2,abcy2,/;"	v	module:grid_node_comm
+abcy2_init	disfd_comm.f90	/^ real(c_float), pointer, dimension(:,:,:):: abcx1_init,abcy1_init,abcx2_init,abcy2_init$/;"	v	module:grid_node_comm
+abcz	disfd_comm.f90	/^ real(c_float), pointer, dimension(:,:,:):: abcx1,abcy1,abcx2,abcy2,abcz$/;"	v	module:grid_node_comm
+add_dcs	disfd_sub.f90	/^subroutine add_dcs(/;"	s
+add_dcs_vel	disfd_sub_opencl.c	/^void add_dcs_vel(float* sutmArr, int nfadd, int ixsX, int ixsY, int ixsZ, $/;"	f
+afa_src	disfd_comm.f90	/^         xref_src,yref_src,afa_src$/;"	v	module:comput_input_param
+alloc_memory	disfd_sub.f90	/^subroutine alloc_memory(/;"	s
+alloc_station	disfd_sub.f90	/^subroutine alloc_station(/;"	s
+allocate_gpu_memC_opencl	disfd_sub_opencl.c	/^void allocate_gpu_memC_opencl(int   *lbx,$/;"	f
+angle_north_to_x	disfd_comm.f90	/^ real :: dt_fd,dt_out,tdura,angle_north_to_x,/;"	v	module:comput_input_param
+anglex	vm4dfd_v3.f90	/^ real:: depth_I_II,fmax,freq_ref,anglex,/;"	v	program:vm4dfd_v3
+angley	vm4dfd_v3.f90	/^ real:: depth_I_II,fmax,freq_ref,anglex,angley,/;"	v	program:vm4dfd_v3
+ar_ha	vm4dfd_v3.f90	/^ real, parameter:: ar_ha=/;"	v	module:fd_model_comm
+arr_1d	disfd_comm.f90	/^        real(c_float), pointer, dimension(:):: arr_1d$/;"	k	type:Array_Info
+arr_2d	disfd_comm.f90	/^        real(c_float), pointer, dimension(:,:):: arr_2d$/;"	k	type:Array_Info
+arr_3d	disfd_comm.f90	/^        real(c_float), pointer, dimension(:,:,:):: arr_3d$/;"	k	type:Array_Info
+arr_id	disfd_comm.f90	/^        integer(c_int) :: arr_id$/;"	k	type:Array_Info
+arr_name	disfd_sub_opencl.c	/^	char* arr_name;$/;"	m	struct:GPUArray_Metadata	file:
+assign1d_integer	disfd_comm.f90	/^  subroutine assign1d_integer(/;"	s	module:pointer_remapping
+assign1d_real	disfd_comm.f90	/^  subroutine assign1d_real(/;"	s	module:pointer_remapping
+assign2d_integer	disfd_comm.f90	/^  subroutine assign2d_integer(/;"	s	module:pointer_remapping
+assign2d_real	disfd_comm.f90	/^  subroutine assign2d_real(/;"	s	module:pointer_remapping
+assign3d_integer	disfd_comm.f90	/^  subroutine assign3d_integer(/;"	s	module:pointer_remapping
+assign3d_real	disfd_comm.f90	/^  subroutine assign3d_real(/;"	s	module:pointer_remapping
+assign_rand_ini	disfd_comm.f90	/^  subroutine assign_rand_ini(/;"	s	module:random_initial
+assign_source	disfd_sub.f90	/^subroutine assign_source(/;"	s
+az	sac.h	/^  float	az;			\/*    event-stn azimuth      *\/$/;"	m	struct:sac_head
+b	sac.h	/^  float	b;			\/* RD initial time - wrt nz* *\/$/;"	m	struct:sac_head
+baz	sac.h	/^  float	baz;			\/*    stn-event azimuth      *\/$/;"	m	struct:sac_head
+boundMpi_comm	disfd_comm.f90	/^MODULE boundMpi_comm$/;"	m
+bound_x	disfd_comm.f90	/^ real, allocatable, dimension(:):: bound_x,/;"	v	module:boundMpi_comm
+bound_y	disfd_comm.f90	/^ real, allocatable, dimension(:):: bound_x,bound_y,/;"	v	module:boundMpi_comm
+c_rcx1_id	disfd_comm.f90	/^                c_sdy2_id = 13 , &$/;"	v	module:itface_comm
+c_rcx2_id	disfd_comm.f90	/^                c_rcy1_id = 15 , &$/;"	v	module:itface_comm
+c_rcx41_id	disfd_comm.f90	/^            c_rcy52_id = 91 , &$/;"	v	module:wave_field_comm
+c_rcx42_id	disfd_comm.f90	/^            c_rcy41_id = 93 , &$/;"	v	module:wave_field_comm
+c_rcx51_id	disfd_comm.f90	/^            c_sdy42_id = 87 , &$/;"	v	module:wave_field_comm
+c_rcx52_id	disfd_comm.f90	/^            c_rcy51_id = 89 , &$/;"	v	module:wave_field_comm
+c_rcy1_id	disfd_comm.f90	/^                c_rcx1_id = 14 , &$/;"	v	module:itface_comm
+c_rcy2_id	disfd_comm.f90	/^                c_rcx2_id = 16 , &$/;"	v	module:itface_comm
+c_rcy41_id	disfd_comm.f90	/^            c_rcx41_id = 92 , &$/;"	v	module:wave_field_comm
+c_rcy42_id	disfd_comm.f90	/^            c_rcx42_id = 94 , &$/;"	v	module:wave_field_comm
+c_rcy51_id	disfd_comm.f90	/^            c_rcx51_id = 88 , &$/;"	v	module:wave_field_comm
+c_rcy52_id	disfd_comm.f90	/^            c_rcx52_id = 90 , &$/;"	v	module:wave_field_comm
+c_sdx1_id	disfd_comm.f90	/^integer(c_int) :: c_sdx1_id /;"	v	module:itface_comm
+c_sdx2_id	disfd_comm.f90	/^                c_sdy1_id = 11 , &$/;"	v	module:itface_comm
+c_sdx41_id	disfd_comm.f90	/^            c_sdy52_id = 83 , &$/;"	v	module:wave_field_comm
+c_sdx42_id	disfd_comm.f90	/^            c_sdy41_id = 85 , &$/;"	v	module:wave_field_comm
+c_sdx51_id	disfd_comm.f90	/^integer(c_int) :: c_sdx51_id /;"	v	module:wave_field_comm
+c_sdx52_id	disfd_comm.f90	/^            c_sdy51_id = 81 , & $/;"	v	module:wave_field_comm
+c_sdy1_id	disfd_comm.f90	/^integer(c_int) :: c_sdx1_id = 10, &$/;"	v	module:itface_comm
+c_sdy2_id	disfd_comm.f90	/^                c_sdx2_id = 12 , &$/;"	v	module:itface_comm
+c_sdy41_id	disfd_comm.f90	/^            c_sdx41_id = 84 , &$/;"	v	module:wave_field_comm
+c_sdy42_id	disfd_comm.f90	/^            c_sdx42_id = 86 , &$/;"	v	module:wave_field_comm
+c_sdy51_id	disfd_comm.f90	/^integer(c_int) :: c_sdx51_id = 80, & $/;"	v	module:wave_field_comm
+c_sdy52_id	disfd_comm.f90	/^            c_sdx52_id = 82 , &$/;"	v	module:wave_field_comm
+c_t1xx_id	disfd_comm.f90	/^         c_v2z_id = 45, &$/;"	v	module:wave_field_comm
+c_t1xy_id	disfd_comm.f90	/^        c_t1xx_id = 46, &$/;"	v	module:wave_field_comm
+c_t1xz_id	disfd_comm.f90	/^        c_t1xy_id = 47, &$/;"	v	module:wave_field_comm
+c_t1yy_id	disfd_comm.f90	/^        c_t1xz_id = 48, &$/;"	v	module:wave_field_comm
+c_t1yz_id	disfd_comm.f90	/^        c_t1yy_id = 49, &$/;"	v	module:wave_field_comm
+c_t1zz_id	disfd_comm.f90	/^        c_t1yz_id = 50, &$/;"	v	module:wave_field_comm
+c_t2xx_id	disfd_comm.f90	/^        c_t1zz_id = 51, &$/;"	v	module:wave_field_comm
+c_t2xy_id	disfd_comm.f90	/^        c_t2xx_id = 52, &$/;"	v	module:wave_field_comm
+c_t2xz_id	disfd_comm.f90	/^        c_t2xy_id = 53, &$/;"	v	module:wave_field_comm
+c_t2yy_id	disfd_comm.f90	/^        c_t2xz_id = 54, &$/;"	v	module:wave_field_comm
+c_t2yz_id	disfd_comm.f90	/^        c_t2yy_id = 55, &$/;"	v	module:wave_field_comm
+c_t2zz_id	disfd_comm.f90	/^        c_t2yz_id = 56, &$/;"	v	module:wave_field_comm
+c_v1x_id	disfd_comm.f90	/^integer(c_int) :: c_v1x_id /;"	v	module:wave_field_comm
+c_v1y_id	disfd_comm.f90	/^integer(c_int) :: c_v1x_id = 40, &$/;"	v	module:wave_field_comm
+c_v1z_id	disfd_comm.f90	/^         c_v1y_id = 41, & $/;"	v	module:wave_field_comm
+c_v2x_id	disfd_comm.f90	/^         c_v1z_id = 42, &$/;"	v	module:wave_field_comm
+c_v2y_id	disfd_comm.f90	/^         c_v2x_id = 43, &$/;"	v	module:wave_field_comm
+c_v2z_id	disfd_comm.f90	/^         c_v2y_id = 44, &$/;"	v	module:wave_field_comm
+ca	disfd_comm.f90	/^ real(c_float), parameter :: ca=/;"	v	module:grid_node_comm
+cb	disfd_comm.f90	/^ real(c_float), parameter :: ca=9.0\/8.0, cb=/;"	v	module:grid_node_comm
+cefxy	vm4dfd_v3.f90	/^ real, allocatable, dimension(:,:,:):: cefxy,/;"	v	module:fd_model_comm
+ch1	read_dfd.f90	/^ character (len=70):: fd_out_list,fname_vel,fout,fblock,ch1,/;"	v	program:read_dfd
+ch3	read_dfd.f90	/^ character (len=70):: fd_out_list,fname_vel,fout,fblock,ch1,ch3$/;"	v	program:read_dfd
+chx	disfd_comm.f90	/^ real(c_float), allocatable, target, dimension(:,:):: chx,/;"	v	module:itface_comm
+chx	disfd_macros.h	179;"	d
+chxD	disfd_sub_opencl.c	/^static cl_mem  chxD;$/;"	v	file:
+chy	disfd_comm.f90	/^ real(c_float), allocatable, target, dimension(:,:):: chx,chy,/;"	v	module:itface_comm
+chy	disfd_macros.h	180;"	d
+chyD	disfd_sub_opencl.c	/^static cl_mem  chyD;$/;"	v	file:
+cix	disfd_comm.f90	/^ real(c_float), allocatable, target, dimension(:,:):: chx,chy,cix,/;"	v	module:itface_comm
+cix	disfd_macros.h	177;"	d
+cixD	disfd_sub_opencl.c	/^static cl_mem  cixD;$/;"	v	file:
+ciy	disfd_comm.f90	/^ real(c_float), allocatable, target, dimension(:,:):: chx,chy,cix,ciy$/;"	v	module:itface_comm
+ciy	disfd_macros.h	178;"	d
+ciyD	disfd_sub_opencl.c	/^static cl_mem  ciyD;$/;"	v	file:
+clamda	disfd_comm.f90	/^ real(c_float), pointer, dimension(:) :: rho,clamda,/;"	v	module:grid_node_comm
+clamda	disfd_macros.h	67;"	d
+clamda	disfd_sub.c	77;"	d	file:
+clamdaD	disfd_sub_opencl.c	/^static cl_mem clamdaD;$/;"	v	file:
+cmpaz	sac.h	/^  float	cmpaz;			\/*  T component azimuth     *\/$/;"	m	struct:sac_head
+cmpinc	sac.h	/^  float	cmpinc;			\/*  T component inclination *\/$/;"	m	struct:sac_head
+cmu	disfd_comm.f90	/^ real(c_float), pointer, dimension(:) :: rho,clamda,cmu,/;"	v	module:grid_node_comm
+cmu	disfd_macros.h	68;"	d
+cmu	disfd_sub.c	78;"	d	file:
+cmuD	disfd_sub_opencl.c	/^static cl_mem cmuD;$/;"	v	file:
+cmu_freq	vm4dfd_v3.f90	/^function cmu_freq(/;"	f
+coef_abc	disfd_sub.f90	/^subroutine coef_abc(/;"	s
+coef_interp	disfd_sub.f90	/^subroutine coef_interp$/;"	s
+coef_interp	vm4dfd_v3.f90	/^subroutine coef_interp(/;"	s
+comm_stress	disfd_sub.f90	/^subroutine comm_stress(/;"	s
+comm_velocity	disfd_sub.f90	/^subroutine comm_velocity(/;"	s
+comm_world	disfd.f90	/^ integer:: nproc_world,myid_world,comm_world,/;"	v	program:disfd
+comput_input_param	disfd_comm.f90	/^MODULE comput_input_param$/;"	m
+compute_stress	disfd_sub.f90	/^subroutine compute_stress(/;"	s
+compute_stressCDebug	disfd_sub.c	/^void compute_stressCDebug(int *nxb1, int *nyb1, int *nx1p1, int *ny1p1, int *nxtop, int *nytop, int *nztop, int *mw1_pml,$/;"	f
+compute_stressC_opencl	disfd_sub_opencl.c	/^void compute_stressC_opencl(int *nxb1, int *nyb1, int *nx1p1, int *ny1p1, int *nxtop, int *nytop, int *nztop, int *mw1_pml,$/;"	f
+compute_velocity	disfd_sub.f90	/^subroutine compute_velocity$/;"	s
+compute_velocityCDebug	disfd_sub.c	/^void compute_velocityCDebug( int *nztop,  int *nztm1,  float *ca, int *lbx,$/;"	f
+compute_velocityC_opencl	disfd_sub_opencl.c	/^void compute_velocityC_opencl(int *nztop, int *nztm1, float *ca, int *lbx,$/;"	f
+consts	disfd_sub.f90	/^subroutine consts$/;"	s
+coor	vm4dfd_v3.f90	/^   real:: coor /;"	k	type:xyz_list
+count	RealTimer.h	/^  int count;$/;"	m	struct:RealTimer
+cptr_abcx1	disfd_comm.f90	/^ type (c_ptr), target :: cptr_abcx1,/;"	v	module:grid_node_comm
+cptr_abcx2	disfd_comm.f90	/^ type (c_ptr), target :: cptr_abcx1,cptr_abcy1,cptr_abcx2,/;"	v	module:grid_node_comm
+cptr_abcy1	disfd_comm.f90	/^ type (c_ptr), target :: cptr_abcx1,cptr_abcy1,/;"	v	module:grid_node_comm
+cptr_abcy2	disfd_comm.f90	/^ type (c_ptr), target :: cptr_abcx1,cptr_abcy1,cptr_abcx2,cptr_abcy2,/;"	v	module:grid_node_comm
+cptr_abcz	disfd_comm.f90	/^ type (c_ptr), target :: cptr_abcx1,cptr_abcy1,cptr_abcx2,cptr_abcy2,cptr_abcz$/;"	v	module:grid_node_comm
+cptr_clamda	disfd_comm.f90	/^ type (c_ptr), target :: cptr_clamda,/;"	v	module:grid_node_comm
+cptr_cmu	disfd_comm.f90	/^ type (c_ptr), target :: cptr_clamda,cptr_cmu,/;"	v	module:grid_node_comm
+cptr_damp1_x	disfd_comm.f90	/^ type (c_ptr), target :: cptr_damp1_x,/;"	v	module:wave_field_comm
+cptr_damp1_y	disfd_comm.f90	/^ type (c_ptr), target :: cptr_damp1_x,cptr_damp1_y,/;"	v	module:wave_field_comm
+cptr_damp2_x	disfd_comm.f90	/^ type (c_ptr), target :: cptr_damp1_x,cptr_damp1_y,cptr_damp2_x,/;"	v	module:wave_field_comm
+cptr_damp2_y	disfd_comm.f90	/^ type (c_ptr), target :: cptr_damp1_x,cptr_damp1_y,cptr_damp2_x,cptr_damp2_y$/;"	v	module:wave_field_comm
+cptr_damp2_z	disfd_comm.f90	/^ type (c_ptr), target :: cptr_damp2_z$/;"	v	module:wave_field_comm
+cptr_drth1	disfd_comm.f90	/^ type (c_ptr), target :: cptr_drti1,cptr_drth1,/;"	v	module:wave_field_comm
+cptr_drth2	disfd_comm.f90	/^ type (c_ptr), target :: cptr_drti1,cptr_drth1,cptr_drti2,cptr_drth2,/;"	v	module:wave_field_comm
+cptr_drti1	disfd_comm.f90	/^ type (c_ptr), target :: cptr_drti1,/;"	v	module:wave_field_comm
+cptr_drti2	disfd_comm.f90	/^ type (c_ptr), target :: cptr_drti1,cptr_drth1,cptr_drti2,/;"	v	module:wave_field_comm
+cptr_drvh1	disfd_comm.f90	/^ type (c_ptr), target :: cptr_drti1,cptr_drth1,cptr_drti2,cptr_drth2,cptr_drvh1,/;"	v	module:wave_field_comm
+cptr_drvh2	disfd_comm.f90	/^ type (c_ptr), target :: cptr_drti1,cptr_drth1,cptr_drti2,cptr_drth2,cptr_drvh1,cptr_drvh2$/;"	v	module:wave_field_comm
+cptr_dxh1	disfd_comm.f90	/^ type (c_ptr), target :: cptr_dxh1,/;"	v	module:grid_node_comm
+cptr_dxh2	disfd_comm.f90	/^ type (c_ptr), target :: cptr_dxh2,/;"	v	module:grid_node_comm
+cptr_dxi1	disfd_comm.f90	/^ type (c_ptr), target :: cptr_dxh1,cptr_dxi1,/;"	v	module:grid_node_comm
+cptr_dxi2	disfd_comm.f90	/^ type (c_ptr), target :: cptr_dxh2,cptr_dxi2,/;"	v	module:grid_node_comm
+cptr_dyh1	disfd_comm.f90	/^ type (c_ptr), target :: cptr_dxh1,cptr_dxi1,cptr_dyh1,/;"	v	module:grid_node_comm
+cptr_dyh2	disfd_comm.f90	/^ type (c_ptr), target :: cptr_dxh2,cptr_dxi2,cptr_dyh2,/;"	v	module:grid_node_comm
+cptr_dyi1	disfd_comm.f90	/^ type (c_ptr), target :: cptr_dxh1,cptr_dxi1,cptr_dyh1,cptr_dyi1,/;"	v	module:grid_node_comm
+cptr_dyi2	disfd_comm.f90	/^ type (c_ptr), target :: cptr_dxh2,cptr_dxi2,cptr_dyh2,cptr_dyi2,/;"	v	module:grid_node_comm
+cptr_dzh1	disfd_comm.f90	/^ type (c_ptr), target :: cptr_dxh1,cptr_dxi1,cptr_dyh1,cptr_dyi1,cptr_dzh1,/;"	v	module:grid_node_comm
+cptr_dzh2	disfd_comm.f90	/^ type (c_ptr), target :: cptr_dxh2,cptr_dxi2,cptr_dyh2,cptr_dyi2,cptr_dzh2,/;"	v	module:grid_node_comm
+cptr_dzi1	disfd_comm.f90	/^ type (c_ptr), target :: cptr_dxh1,cptr_dxi1,cptr_dyh1,cptr_dyi1,cptr_dzh1,cptr_dzi1$/;"	v	module:grid_node_comm
+cptr_dzi2	disfd_comm.f90	/^ type (c_ptr), target :: cptr_dxh2,cptr_dxi2,cptr_dyh2,cptr_dyi2,cptr_dzh2,cptr_dzi2$/;"	v	module:grid_node_comm
+cptr_epdt	disfd_comm.f90	/^ type (c_ptr), target :: cptr_clamda,cptr_cmu,cptr_rho,cptr_qwp,cptr_qws,cptr_epdt,/;"	v	module:grid_node_comm
+cptr_gridx1	disfd_comm.f90	/^ type (c_ptr), target :: cptr_gridx1,/;"	v	module:grid_node_comm
+cptr_gridx2	disfd_comm.f90	/^ type (c_ptr), target :: cptr_gridx1,cptr_gridy1,cptr_gridx2,/;"	v	module:grid_node_comm
+cptr_gridy1	disfd_comm.f90	/^ type (c_ptr), target :: cptr_gridx1,cptr_gridy1,/;"	v	module:grid_node_comm
+cptr_gridy2	disfd_comm.f90	/^ type (c_ptr), target :: cptr_gridx1,cptr_gridy1,cptr_gridx2,cptr_gridy2,/;"	v	module:grid_node_comm
+cptr_gridz	disfd_comm.f90	/^ type (c_ptr), target :: cptr_gridx1,cptr_gridy1,cptr_gridx2,cptr_gridy2,cptr_gridz$/;"	v	module:grid_node_comm
+cptr_idmat1	disfd_comm.f90	/^ type (c_ptr), target :: cptr_idmat1,/;"	v	module:grid_node_comm
+cptr_idmat2	disfd_comm.f90	/^ type (c_ptr), target :: cptr_idmat1, cptr_idmat2$/;"	v	module:grid_node_comm
+cptr_nd1_txy	disfd_comm.f90	/^ type (c_ptr) :: cptr_nd1_vel,cptr_nd1_tyy,cptr_nd1_txy,/;"	v	module:grid_node_comm
+cptr_nd1_txz	disfd_comm.f90	/^ type (c_ptr) :: cptr_nd1_vel,cptr_nd1_tyy,cptr_nd1_txy,cptr_nd1_txz,/;"	v	module:grid_node_comm
+cptr_nd1_tyy	disfd_comm.f90	/^ type (c_ptr) :: cptr_nd1_vel,cptr_nd1_tyy,/;"	v	module:grid_node_comm
+cptr_nd1_tyz	disfd_comm.f90	/^ type (c_ptr) :: cptr_nd1_vel,cptr_nd1_tyy,cptr_nd1_txy,cptr_nd1_txz,cptr_nd1_tyz,/;"	v	module:grid_node_comm
+cptr_nd1_vel	disfd_comm.f90	/^ type (c_ptr) :: cptr_nd1_vel,/;"	v	module:grid_node_comm
+cptr_nd2_txy	disfd_comm.f90	/^                         cptr_nd2_vel,cptr_nd2_tyy,cptr_nd2_txy,/;"	v	module:grid_node_comm
+cptr_nd2_txz	disfd_comm.f90	/^                         cptr_nd2_vel,cptr_nd2_tyy,cptr_nd2_txy,cptr_nd2_txz,/;"	v	module:grid_node_comm
+cptr_nd2_tyy	disfd_comm.f90	/^                         cptr_nd2_vel,cptr_nd2_tyy,/;"	v	module:grid_node_comm
+cptr_nd2_tyz	disfd_comm.f90	/^                         cptr_nd2_vel,cptr_nd2_tyy,cptr_nd2_txy,cptr_nd2_txz,cptr_nd2_tyz$/;"	v	module:grid_node_comm
+cptr_nd2_vel	disfd_comm.f90	/^ type (c_ptr) :: cptr_nd1_vel,cptr_nd1_tyy,cptr_nd1_txy,cptr_nd1_txz,cptr_nd1_tyz, &$/;"	v	module:grid_node_comm
+cptr_qt1xx	disfd_comm.f90	/^ type (c_ptr), target :: cptr_qt1xx,/;"	v	module:wave_field_comm
+cptr_qt1xx_px	disfd_comm.f90	/^ type (c_ptr), target :: cptr_qt1xx_px,/;"	v	module:wave_field_comm
+cptr_qt1xx_py	disfd_comm.f90	/^ type (c_ptr), target :: cptr_qt1xx_py,/;"	v	module:wave_field_comm
+cptr_qt1xy	disfd_comm.f90	/^ type (c_ptr), target :: cptr_qt1xx,cptr_qt1xy,/;"	v	module:wave_field_comm
+cptr_qt1xy_px	disfd_comm.f90	/^ type (c_ptr), target :: cptr_qt1xx_px,cptr_qt1yy_px,cptr_qt1xy_px,/;"	v	module:wave_field_comm
+cptr_qt1xy_py	disfd_comm.f90	/^ type (c_ptr), target :: cptr_qt1xx_py,cptr_qt1yy_py,cptr_qt1xy_py,/;"	v	module:wave_field_comm
+cptr_qt1xz	disfd_comm.f90	/^ type (c_ptr), target :: cptr_qt1xx,cptr_qt1xy,cptr_qt1xz,/;"	v	module:wave_field_comm
+cptr_qt1xz_px	disfd_comm.f90	/^ type (c_ptr), target :: cptr_qt1xx_px,cptr_qt1yy_px,cptr_qt1xy_px,cptr_qt1xz_px,/;"	v	module:wave_field_comm
+cptr_qt1yy	disfd_comm.f90	/^ type (c_ptr), target :: cptr_qt1xx,cptr_qt1xy,cptr_qt1xz,cptr_qt1yy,/;"	v	module:wave_field_comm
+cptr_qt1yy_px	disfd_comm.f90	/^ type (c_ptr), target :: cptr_qt1xx_px,cptr_qt1yy_px,/;"	v	module:wave_field_comm
+cptr_qt1yy_py	disfd_comm.f90	/^ type (c_ptr), target :: cptr_qt1xx_py,cptr_qt1yy_py,/;"	v	module:wave_field_comm
+cptr_qt1yz	disfd_comm.f90	/^ type (c_ptr), target :: cptr_qt1xx,cptr_qt1xy,cptr_qt1xz,cptr_qt1yy,cptr_qt1yz,/;"	v	module:wave_field_comm
+cptr_qt1yz_py	disfd_comm.f90	/^ type (c_ptr), target :: cptr_qt1xx_py,cptr_qt1yy_py,cptr_qt1xy_py,cptr_qt1yz_py,/;"	v	module:wave_field_comm
+cptr_qt1zz	disfd_comm.f90	/^ type (c_ptr), target :: cptr_qt1xx,cptr_qt1xy,cptr_qt1xz,cptr_qt1yy,cptr_qt1yz,cptr_qt1zz$/;"	v	module:wave_field_comm
+cptr_qt2xx	disfd_comm.f90	/^ type (c_ptr), target :: cptr_qt2xx,/;"	v	module:wave_field_comm
+cptr_qt2xx_px	disfd_comm.f90	/^ type (c_ptr), target :: cptr_qt1xx_px,cptr_qt1yy_px,cptr_qt1xy_px,cptr_qt1xz_px, &$/;"	v	module:wave_field_comm
+cptr_qt2xx_py	disfd_comm.f90	/^ type (c_ptr), target :: cptr_qt1xx_py,cptr_qt1yy_py,cptr_qt1xy_py,cptr_qt1yz_py, &$/;"	v	module:wave_field_comm
+cptr_qt2xx_pz	disfd_comm.f90	/^ type (c_ptr), target :: cptr_qt2xx_pz,/;"	v	module:wave_field_comm
+cptr_qt2xy	disfd_comm.f90	/^ type (c_ptr), target :: cptr_qt2xx,cptr_qt2xy,/;"	v	module:wave_field_comm
+cptr_qt2xy_px	disfd_comm.f90	/^                         cptr_qt2xx_px,cptr_qt2yy_px,cptr_qt2xy_px,/;"	v	module:wave_field_comm
+cptr_qt2xy_py	disfd_comm.f90	/^      cptr_qt2xx_py,cptr_qt2yy_py,cptr_qt2xy_py,/;"	v	module:wave_field_comm
+cptr_qt2xz	disfd_comm.f90	/^ type (c_ptr), target :: cptr_qt2xx,cptr_qt2xy,cptr_qt2xz,/;"	v	module:wave_field_comm
+cptr_qt2xz_px	disfd_comm.f90	/^                         cptr_qt2xx_px,cptr_qt2yy_px,cptr_qt2xy_px,cptr_qt2xz_px$/;"	v	module:wave_field_comm
+cptr_qt2xz_pz	disfd_comm.f90	/^ type (c_ptr), target :: cptr_qt2xx_pz,cptr_qt2zz_pz,cptr_qt2xz_pz,/;"	v	module:wave_field_comm
+cptr_qt2yy	disfd_comm.f90	/^ type (c_ptr), target :: cptr_qt2xx,cptr_qt2xy,cptr_qt2xz,cptr_qt2yy,/;"	v	module:wave_field_comm
+cptr_qt2yy_px	disfd_comm.f90	/^                         cptr_qt2xx_px,cptr_qt2yy_px,/;"	v	module:wave_field_comm
+cptr_qt2yy_py	disfd_comm.f90	/^      cptr_qt2xx_py,cptr_qt2yy_py,/;"	v	module:wave_field_comm
+cptr_qt2yz	disfd_comm.f90	/^ type (c_ptr), target :: cptr_qt2xx,cptr_qt2xy,cptr_qt2xz,cptr_qt2yy,cptr_qt2yz,/;"	v	module:wave_field_comm
+cptr_qt2yz_py	disfd_comm.f90	/^      cptr_qt2xx_py,cptr_qt2yy_py,cptr_qt2xy_py,cptr_qt2yz_py$/;"	v	module:wave_field_comm
+cptr_qt2yz_pz	disfd_comm.f90	/^ type (c_ptr), target :: cptr_qt2xx_pz,cptr_qt2zz_pz,cptr_qt2xz_pz,cptr_qt2yz_pz$/;"	v	module:wave_field_comm
+cptr_qt2zz	disfd_comm.f90	/^ type (c_ptr), target :: cptr_qt2xx,cptr_qt2xy,cptr_qt2xz,cptr_qt2yy,cptr_qt2yz,cptr_qt2zz$/;"	v	module:wave_field_comm
+cptr_qt2zz_pz	disfd_comm.f90	/^ type (c_ptr), target :: cptr_qt2xx_pz,cptr_qt2zz_pz,/;"	v	module:wave_field_comm
+cptr_qwp	disfd_comm.f90	/^ type (c_ptr), target :: cptr_clamda,cptr_cmu,cptr_rho,cptr_qwp,/;"	v	module:grid_node_comm
+cptr_qws	disfd_comm.f90	/^ type (c_ptr), target :: cptr_clamda,cptr_cmu,cptr_rho,cptr_qwp,cptr_qws,/;"	v	module:grid_node_comm
+cptr_qwt1	disfd_comm.f90	/^ type (c_ptr), target :: cptr_clamda,cptr_cmu,cptr_rho,cptr_qwp,cptr_qws,cptr_epdt,cptr_qwt1,/;"	v	module:grid_node_comm
+cptr_qwt2	disfd_comm.f90	/^ type (c_ptr), target :: cptr_clamda,cptr_cmu,cptr_rho,cptr_qwp,cptr_qws,cptr_epdt,cptr_qwt1,cptr_qwt2$/;"	v	module:grid_node_comm
+cptr_rcx41	disfd_comm.f90	/^ type (c_ptr), target :: cptr_sdx51,cptr_sdx41,cptr_sdy51,cptr_sdy41,cptr_rcx51,cptr_rcx41,/;"	v	module:wave_field_comm
+cptr_rcx42	disfd_comm.f90	/^                                       cptr_sdy42,cptr_rcx52,cptr_rcx42,/;"	v	module:wave_field_comm
+cptr_rcx51	disfd_comm.f90	/^ type (c_ptr), target :: cptr_sdx51,cptr_sdx41,cptr_sdy51,cptr_sdy41,cptr_rcx51,/;"	v	module:wave_field_comm
+cptr_rcx52	disfd_comm.f90	/^                                       cptr_sdy42,cptr_rcx52,/;"	v	module:wave_field_comm
+cptr_rcy41	disfd_comm.f90	/^                                       cptr_rcy51,cptr_rcy41,/;"	v	module:wave_field_comm
+cptr_rcy42	disfd_comm.f90	/^                                       cptr_sdy42,cptr_rcx52,cptr_rcx42,cptr_rcy52,cptr_rcy42$/;"	v	module:wave_field_comm
+cptr_rcy51	disfd_comm.f90	/^ type (c_ptr), target :: cptr_sdx51,cptr_sdx41,cptr_sdy51,cptr_sdy41,cptr_rcx51,cptr_rcx41, &$/;"	v	module:wave_field_comm
+cptr_rcy52	disfd_comm.f90	/^                                       cptr_sdy42,cptr_rcx52,cptr_rcx42,cptr_rcy52,/;"	v	module:wave_field_comm
+cptr_rho	disfd_comm.f90	/^ type (c_ptr), target :: cptr_clamda,cptr_cmu,cptr_rho,/;"	v	module:grid_node_comm
+cptr_sdx41	disfd_comm.f90	/^ type (c_ptr), target :: cptr_sdx51,cptr_sdx41,/;"	v	module:wave_field_comm
+cptr_sdx42	disfd_comm.f90	/^                                       cptr_rcy51,cptr_rcy41,cptr_sdx52,cptr_sdx42,/;"	v	module:wave_field_comm
+cptr_sdx51	disfd_comm.f90	/^ type (c_ptr), target :: cptr_sdx51,/;"	v	module:wave_field_comm
+cptr_sdx52	disfd_comm.f90	/^                                       cptr_rcy51,cptr_rcy41,cptr_sdx52,/;"	v	module:wave_field_comm
+cptr_sdy41	disfd_comm.f90	/^ type (c_ptr), target :: cptr_sdx51,cptr_sdx41,cptr_sdy51,cptr_sdy41,/;"	v	module:wave_field_comm
+cptr_sdy42	disfd_comm.f90	/^                                       cptr_rcy51,cptr_rcy41,cptr_sdx52,cptr_sdx42,cptr_sdy52, &$/;"	v	module:wave_field_comm
+cptr_sdy51	disfd_comm.f90	/^ type (c_ptr), target :: cptr_sdx51,cptr_sdx41,cptr_sdy51,/;"	v	module:wave_field_comm
+cptr_sdy52	disfd_comm.f90	/^                                       cptr_rcy51,cptr_rcy41,cptr_sdx52,cptr_sdx42,cptr_sdy52,/;"	v	module:wave_field_comm
+cptr_t1xx	disfd_comm.f90	/^ type (c_ptr), target :: cptr_t1xx,/;"	v	module:wave_field_comm
+cptr_t1xx_px	disfd_comm.f90	/^ type (c_ptr), target :: cptr_t1xx_px,/;"	v	module:wave_field_comm
+cptr_t1xx_py	disfd_comm.f90	/^ type (c_ptr), target :: cptr_t1xx_py,/;"	v	module:wave_field_comm
+cptr_t1xy	disfd_comm.f90	/^ type (c_ptr), target :: cptr_t1xx,cptr_t1xy,/;"	v	module:wave_field_comm
+cptr_t1xy_px	disfd_comm.f90	/^ type (c_ptr), target :: cptr_t1xx_px,cptr_t1yy_px,cptr_t1xy_px,/;"	v	module:wave_field_comm
+cptr_t1xy_py	disfd_comm.f90	/^ type (c_ptr), target :: cptr_t1xx_py,cptr_t1yy_py,cptr_t1xy_py,/;"	v	module:wave_field_comm
+cptr_t1xz	disfd_comm.f90	/^ type (c_ptr), target :: cptr_t1xx,cptr_t1xy,cptr_t1xz,/;"	v	module:wave_field_comm
+cptr_t1xz_px	disfd_comm.f90	/^ type (c_ptr), target :: cptr_t1xx_px,cptr_t1yy_px,cptr_t1xy_px,cptr_t1xz_px,/;"	v	module:wave_field_comm
+cptr_t1yy	disfd_comm.f90	/^ type (c_ptr), target :: cptr_t1xx,cptr_t1xy,cptr_t1xz,cptr_t1yy,/;"	v	module:wave_field_comm
+cptr_t1yy_px	disfd_comm.f90	/^ type (c_ptr), target :: cptr_t1xx_px,cptr_t1yy_px,/;"	v	module:wave_field_comm
+cptr_t1yy_py	disfd_comm.f90	/^ type (c_ptr), target :: cptr_t1xx_py,cptr_t1yy_py,/;"	v	module:wave_field_comm
+cptr_t1yz	disfd_comm.f90	/^ type (c_ptr), target :: cptr_t1xx,cptr_t1xy,cptr_t1xz,cptr_t1yy,cptr_t1yz,/;"	v	module:wave_field_comm
+cptr_t1yz_py	disfd_comm.f90	/^ type (c_ptr), target :: cptr_t1xx_py,cptr_t1yy_py,cptr_t1xy_py,cptr_t1yz_py,/;"	v	module:wave_field_comm
+cptr_t1zz	disfd_comm.f90	/^ type (c_ptr), target :: cptr_t1xx,cptr_t1xy,cptr_t1xz,cptr_t1yy,cptr_t1yz,cptr_t1zz$/;"	v	module:wave_field_comm
+cptr_t2xx	disfd_comm.f90	/^ type (c_ptr), target :: cptr_t2xx,/;"	v	module:wave_field_comm
+cptr_t2xx_px	disfd_comm.f90	/^ type (c_ptr), target :: cptr_t1xx_px,cptr_t1yy_px,cptr_t1xy_px,cptr_t1xz_px, &$/;"	v	module:wave_field_comm
+cptr_t2xx_py	disfd_comm.f90	/^ type (c_ptr), target :: cptr_t1xx_py,cptr_t1yy_py,cptr_t1xy_py,cptr_t1yz_py, &$/;"	v	module:wave_field_comm
+cptr_t2xx_pz	disfd_comm.f90	/^ type (c_ptr), target :: cptr_t2xx_pz,/;"	v	module:wave_field_comm
+cptr_t2xy	disfd_comm.f90	/^ type (c_ptr), target :: cptr_t2xx,cptr_t2xy,/;"	v	module:wave_field_comm
+cptr_t2xy_px	disfd_comm.f90	/^      cptr_t2xx_px,cptr_t2yy_px,cptr_t2xy_px,/;"	v	module:wave_field_comm
+cptr_t2xy_py	disfd_comm.f90	/^      cptr_t2xx_py,cptr_t2yy_py,cptr_t2xy_py,/;"	v	module:wave_field_comm
+cptr_t2xz	disfd_comm.f90	/^ type (c_ptr), target :: cptr_t2xx,cptr_t2xy,cptr_t2xz,/;"	v	module:wave_field_comm
+cptr_t2xz_px	disfd_comm.f90	/^      cptr_t2xx_px,cptr_t2yy_px,cptr_t2xy_px,cptr_t2xz_px$/;"	v	module:wave_field_comm
+cptr_t2xz_pz	disfd_comm.f90	/^ type (c_ptr), target :: cptr_t2xx_pz,cptr_t2zz_pz,cptr_t2xz_pz,/;"	v	module:wave_field_comm
+cptr_t2yy	disfd_comm.f90	/^ type (c_ptr), target :: cptr_t2xx,cptr_t2xy,cptr_t2xz,cptr_t2yy,/;"	v	module:wave_field_comm
+cptr_t2yy_px	disfd_comm.f90	/^      cptr_t2xx_px,cptr_t2yy_px,/;"	v	module:wave_field_comm
+cptr_t2yy_py	disfd_comm.f90	/^      cptr_t2xx_py,cptr_t2yy_py,/;"	v	module:wave_field_comm
+cptr_t2yz	disfd_comm.f90	/^ type (c_ptr), target :: cptr_t2xx,cptr_t2xy,cptr_t2xz,cptr_t2yy,cptr_t2yz,/;"	v	module:wave_field_comm
+cptr_t2yz_py	disfd_comm.f90	/^      cptr_t2xx_py,cptr_t2yy_py,cptr_t2xy_py,cptr_t2yz_py$/;"	v	module:wave_field_comm
+cptr_t2yz_pz	disfd_comm.f90	/^ type (c_ptr), target :: cptr_t2xx_pz,cptr_t2zz_pz,cptr_t2xz_pz,cptr_t2yz_pz$/;"	v	module:wave_field_comm
+cptr_t2zz	disfd_comm.f90	/^ type (c_ptr), target :: cptr_t2xx,cptr_t2xy,cptr_t2xz,cptr_t2yy,cptr_t2yz,cptr_t2zz$/;"	v	module:wave_field_comm
+cptr_t2zz_pz	disfd_comm.f90	/^ type (c_ptr), target :: cptr_t2xx_pz,cptr_t2zz_pz,/;"	v	module:wave_field_comm
+cptr_v1x	disfd_comm.f90	/^ type (c_ptr), target :: cptr_v1x,/;"	v	module:wave_field_comm
+cptr_v1x_buff	disfd_comm.f90	/^ type (c_ptr), target :: cptr_v1x_buff,/;"	v	module:wave_field_comm
+cptr_v1x_px	disfd_comm.f90	/^ type (c_ptr), target :: cptr_v1x_px,/;"	v	module:wave_field_comm
+cptr_v1x_py	disfd_comm.f90	/^ type (c_ptr), target :: cptr_v1x_py,/;"	v	module:wave_field_comm
+cptr_v1y	disfd_comm.f90	/^ type (c_ptr), target :: cptr_v1x,cptr_v1y,/;"	v	module:wave_field_comm
+cptr_v1y_buff	disfd_comm.f90	/^ type (c_ptr), target :: cptr_v1x_buff, cptr_v1y_buff,/;"	v	module:wave_field_comm
+cptr_v1y_px	disfd_comm.f90	/^ type (c_ptr), target :: cptr_v1x_px,cptr_v1y_px,/;"	v	module:wave_field_comm
+cptr_v1y_py	disfd_comm.f90	/^ type (c_ptr), target :: cptr_v1x_py,cptr_v1y_py,/;"	v	module:wave_field_comm
+cptr_v1z	disfd_comm.f90	/^ type (c_ptr), target :: cptr_v1x,cptr_v1y,cptr_v1z$/;"	v	module:wave_field_comm
+cptr_v1z_buff	disfd_comm.f90	/^ type (c_ptr), target :: cptr_v1x_buff, cptr_v1y_buff, cptr_v1z_buff$/;"	v	module:wave_field_comm
+cptr_v1z_px	disfd_comm.f90	/^ type (c_ptr), target :: cptr_v1x_px,cptr_v1y_px,cptr_v1z_px,/;"	v	module:wave_field_comm
+cptr_v1z_py	disfd_comm.f90	/^ type (c_ptr), target :: cptr_v1x_py,cptr_v1y_py,cptr_v1z_py,/;"	v	module:wave_field_comm
+cptr_v2x	disfd_comm.f90	/^ type (c_ptr), target :: cptr_v2x,/;"	v	module:wave_field_comm
+cptr_v2x_buff	disfd_comm.f90	/^ type (c_ptr), target :: cptr_v2x_buff,/;"	v	module:wave_field_comm
+cptr_v2x_px	disfd_comm.f90	/^ type (c_ptr), target :: cptr_v1x_px,cptr_v1y_px,cptr_v1z_px, &$/;"	v	module:wave_field_comm
+cptr_v2x_py	disfd_comm.f90	/^ type (c_ptr), target :: cptr_v1x_py,cptr_v1y_py,cptr_v1z_py, &$/;"	v	module:wave_field_comm
+cptr_v2x_pz	disfd_comm.f90	/^ type (c_ptr), target :: cptr_v2x_pz,/;"	v	module:wave_field_comm
+cptr_v2y	disfd_comm.f90	/^ type (c_ptr), target :: cptr_v2x,cptr_v2y,/;"	v	module:wave_field_comm
+cptr_v2y_buff	disfd_comm.f90	/^ type (c_ptr), target :: cptr_v2x_buff, cptr_v2y_buff,/;"	v	module:wave_field_comm
+cptr_v2y_px	disfd_comm.f90	/^      cptr_v2x_px,cptr_v2y_px,/;"	v	module:wave_field_comm
+cptr_v2y_py	disfd_comm.f90	/^      cptr_v2x_py,cptr_v2y_py,/;"	v	module:wave_field_comm
+cptr_v2y_pz	disfd_comm.f90	/^ type (c_ptr), target :: cptr_v2x_pz,cptr_v2y_pz,/;"	v	module:wave_field_comm
+cptr_v2z	disfd_comm.f90	/^ type (c_ptr), target :: cptr_v2x,cptr_v2y,cptr_v2z$/;"	v	module:wave_field_comm
+cptr_v2z_buff	disfd_comm.f90	/^ type (c_ptr), target :: cptr_v2x_buff, cptr_v2y_buff, cptr_v2z_buff$/;"	v	module:wave_field_comm
+cptr_v2z_px	disfd_comm.f90	/^      cptr_v2x_px,cptr_v2y_px,cptr_v2z_px$/;"	v	module:wave_field_comm
+cptr_v2z_py	disfd_comm.f90	/^      cptr_v2x_py,cptr_v2y_py,cptr_v2z_py$/;"	v	module:wave_field_comm
+cptr_v2z_pz	disfd_comm.f90	/^ type (c_ptr), target :: cptr_v2x_pz,cptr_v2y_pz,cptr_v2z_pz$/;"	v	module:wave_field_comm
+cpy_d2h_stressOutputsC_opencl	disfd_sub_opencl.c	/^void cpy_d2h_stressOutputsC_opencl(float *t1xx,$/;"	f
+cpy_d2h_velocityOutputsC_opencl	disfd_sub_opencl.c	/^void cpy_d2h_velocityOutputsC_opencl(float *v1x, $/;"	f
+cpy_h2d_stressInputsCOneTimecl	disfd_sub_opencl.c	/^void cpy_h2d_stressInputsCOneTimecl(int   *lbx,$/;"	f
+cpy_h2d_stressInputsC_opencl	disfd_sub_opencl.c	/^void cpy_h2d_stressInputsC_opencl(float *v1x,$/;"	f
+cpy_h2d_stressOutputsC_opencl	disfd_sub_opencl.c	/^void cpy_h2d_stressOutputsC_opencl(float *t1xx,$/;"	f
+cpy_h2d_velocityInputsCOneTimecl	disfd_sub_opencl.c	/^void cpy_h2d_velocityInputsCOneTimecl(int   *lbx,$/;"	f
+cpy_h2d_velocityInputsC_opencl	disfd_sub_opencl.c	/^void cpy_h2d_velocityInputsC_opencl(float *t1xx,$/;"	f
+cpy_h2d_velocityOutputsC_opencl	disfd_sub_opencl.c	/^void cpy_h2d_velocityOutputsC_opencl(float *v1x,$/;"	f
+ctimer	disfd_comm.f90	/^module ctimer$/;"	m
+d2hTimerStress	disfd_sub_opencl.c	/^RealTimer d2hTimerStress[NUM_COMMAND_QUEUES];$/;"	v
+d2hTimerVelocity	disfd_sub_opencl.c	/^RealTimer d2hTimerVelocity[NUM_COMMAND_QUEUES];$/;"	v
+damp1_x	disfd_comm.f90	/^ real(c_float), pointer, dimension(:,:,:):: damp1_x,/;"	v	module:wave_field_comm
+damp1_x	disfd_macros.h	6;"	d
+damp1_x	disfd_sub.c	15;"	d	file:
+damp1_xD	disfd_sub_opencl.c	/^static cl_mem damp1_xD;$/;"	v	file:
+damp1_x_init	disfd_comm.f90	/^ real(c_float), pointer, dimension(:,:,:):: damp1_x_init,/;"	v	module:wave_field_comm
+damp1_y	disfd_comm.f90	/^ real(c_float), pointer, dimension(:,:,:):: damp1_x,damp1_y,/;"	v	module:wave_field_comm
+damp1_y	disfd_macros.h	7;"	d
+damp1_y	disfd_sub.c	16;"	d	file:
+damp1_yD	disfd_sub_opencl.c	/^static cl_mem damp1_yD;$/;"	v	file:
+damp1_y_init	disfd_comm.f90	/^ real(c_float), pointer, dimension(:,:,:):: damp1_x_init,damp1_y_init,/;"	v	module:wave_field_comm
+damp2_x	disfd_comm.f90	/^ real(c_float), pointer, dimension(:,:,:):: damp1_x,damp1_y,damp2_x,/;"	v	module:wave_field_comm
+damp2_x	disfd_macros.h	82;"	d
+damp2_x	disfd_sub.c	92;"	d	file:
+damp2_xD	disfd_sub_opencl.c	/^static cl_mem damp2_xD;$/;"	v	file:
+damp2_x_init	disfd_comm.f90	/^ real(c_float), pointer, dimension(:,:,:):: damp1_x_init,damp1_y_init, &$/;"	v	module:wave_field_comm
+damp2_y	disfd_comm.f90	/^ real(c_float), pointer, dimension(:,:,:):: damp1_x,damp1_y,damp2_x,damp2_y$/;"	v	module:wave_field_comm
+damp2_y	disfd_macros.h	83;"	d
+damp2_y	disfd_sub.c	93;"	d	file:
+damp2_yD	disfd_sub_opencl.c	/^static cl_mem damp2_yD;$/;"	v	file:
+damp2_y_init	disfd_comm.f90	/^      damp2_x_init,damp2_y_init$/;"	v	module:wave_field_comm
+damp2_z	disfd_comm.f90	/^ real(c_float), pointer,  dimension(:,:):: damp2_z$/;"	v	module:wave_field_comm
+damp2_z	disfd_macros.h	84;"	d
+damp2_z	disfd_sub.c	94;"	d	file:
+damp2_zD	disfd_sub_opencl.c	/^static cl_mem damp2_zD;$/;"	v	file:
+delta	sac.h	/^  float	delta;			\/* RF time increment, sec    *\/$/;"	m	struct:sac_head
+depmax	sac.h	/^  float	depmax;			\/*    maximum amplitude      *\/$/;"	m	struct:sac_head
+depmen	sac.h	/^  float	depmen;			\/*    mean value, amplitude  *\/$/;"	m	struct:sac_head
+depmin	sac.h	/^  float	depmin;			\/*    minimum amplitude      *\/$/;"	m	struct:sac_head
+depth_I_II	vm4dfd_v3.f90	/^ real:: depth_I_II,/;"	v	program:vm4dfd_v3
+depth_bm	vm4dfd_v3.f90	/^ real:: depth_bm,/;"	v	program:vm4dfd_v3
+depth_up	vm4dfd_v3.f90	/^ real:: depth_bm,depth_up,/;"	v	program:vm4dfd_v3
+dest	mpiacc_wrappers.h	/^        integer(c_int), intent(in), value :: n, dest, tag$/;"	v
+dest	mpiacc_wrappers.h	/^        integer(c_int), intent(in), value :: offset, n, dest, tag$/;"	v
+dig2ch	disfd_sub.f90	/^subroutine dig2ch(/;"	s
+dig2ch	read_dfd.f90	/^subroutine dig2ch(/;"	s
+dim3	disfd_sub_opencl.c	/^typedef struct __dim3 dim3;$/;"	t	typeref:struct:__dim3	file:
+dimensions	disfd_sub_opencl.c	/^	int dimensions;$/;"	m	struct:GPUArray_Metadata	file:
+disfd	disfd.f90	/^PROGRAM disfd /;"	p
+dist	sac.h	/^  float	dist;			\/*    stn-event distance, km *\/$/;"	m	struct:sac_head
+distrib	disfd_sub.f90	/^subroutine distrib(/;"	s
+distx	vm4dfd_v3.f90	/^ real, allocatable, dimension(:):: dxseg,distx,/;"	v	program:vm4dfd_v3
+disty	vm4dfd_v3.f90	/^ real, allocatable, dimension(:):: dxseg,distx,dyseg,disty,/;"	v	program:vm4dfd_v3
+distz	vm4dfd_v3.f90	/^ real, allocatable, dimension(:):: dxseg,distx,dyseg,disty,dzseg,distz$/;"	v	program:vm4dfd_v3
+dptr_1D	disfd_sub_opencl.c	/^	cl_mem dptr_1D;$/;"	m	struct:GPUArray_Metadata	file:
+dptr_2D	disfd_sub_opencl.c	/^	cl_mem dptr_2D;$/;"	m	struct:GPUArray_Metadata	file:
+dptr_3D	disfd_sub_opencl.c	/^	cl_mem dptr_3D;$/;"	m	struct:GPUArray_Metadata	file:
+drth1	disfd_comm.f90	/^ real(c_float), pointer,  dimension(:,:):: drti1,drth1,/;"	v	module:wave_field_comm
+drth1	disfd_macros.h	4;"	d
+drth1	disfd_sub.c	13;"	d	file:
+drth1D	disfd_sub_opencl.c	/^static cl_mem drth1D;$/;"	v	file:
+drth1_init	disfd_comm.f90	/^ real(c_float), pointer,  dimension(:,:):: drti1_init,drth1_init,/;"	v	module:wave_field_comm
+drth2	disfd_comm.f90	/^ real(c_float), pointer,  dimension(:,:):: drti1,drth1,drti2,drth2,/;"	v	module:wave_field_comm
+drth2	disfd_macros.h	78;"	d
+drth2	disfd_sub.c	88;"	d	file:
+drth2D	disfd_sub_opencl.c	/^static cl_mem drth2D; 	\/\/float[mw2_pml1,0:1]$/;"	v	file:
+drth2_init	disfd_comm.f90	/^ real(c_float), pointer,  dimension(:,:):: drti1_init,drth1_init,drti2_init, &$/;"	v	module:wave_field_comm
+drti1	disfd_comm.f90	/^ real(c_float), pointer,  dimension(:,:):: drti1,/;"	v	module:wave_field_comm
+drti1	disfd_macros.h	3;"	d
+drti1	disfd_sub.c	12;"	d	file:
+drti1D	disfd_sub_opencl.c	/^static cl_mem drti1D;$/;"	v	file:
+drti1_init	disfd_comm.f90	/^ real(c_float), pointer,  dimension(:,:):: drti1_init,/;"	v	module:wave_field_comm
+drti2	disfd_comm.f90	/^ real(c_float), pointer,  dimension(:,:):: drti1,drth1,drti2,/;"	v	module:wave_field_comm
+drti2	disfd_macros.h	77;"	d
+drti2	disfd_sub.c	87;"	d	file:
+drti2D	disfd_sub_opencl.c	/^static cl_mem drti2D;$/;"	v	file:
+drti2_init	disfd_comm.f90	/^ real(c_float), pointer,  dimension(:,:):: drti1_init,drth1_init,drti2_init,/;"	v	module:wave_field_comm
+drvh1	disfd_comm.f90	/^ real(c_float), pointer,  dimension(:,:):: drti1,drth1,drti2,drth2,drvh1,/;"	v	module:wave_field_comm
+drvh1	disfd_macros.h	2;"	d
+drvh1	disfd_sub.c	11;"	d	file:
+drvh1D	disfd_sub_opencl.c	/^static cl_mem drvh1D;$/;"	v	file:
+drvh1_init	disfd_comm.f90	/^      drth2_init,drvh1_init,/;"	v	module:wave_field_comm
+drvh2	disfd_comm.f90	/^ real(c_float), pointer,  dimension(:,:):: drti1,drth1,drti2,drth2,drvh1,drvh2$/;"	v	module:wave_field_comm
+drvh2	disfd_macros.h	76;"	d
+drvh2	disfd_sub.c	86;"	d	file:
+drvh2D	disfd_sub_opencl.c	/^static cl_mem drvh2D;$/;"	v	file:
+drvh2_init	disfd_comm.f90	/^      drth2_init,drvh1_init,drvh2_init$/;"	v	module:wave_field_comm
+dt	read_dfd.f90	/^ real:: dt,/;"	v	program:read_dfd
+dt	vm4dfd_v3.f90	/^ real:: depth_bm,depth_up,z0,zz,dzbm,zr2,dt$/;"	v	program:vm4dfd_v3
+dt_fd	disfd_comm.f90	/^ real :: dt_fd,/;"	v	module:comput_input_param
+dt_new	read_dfd.f90	/^ real:: dt,dt_new,/;"	v	program:read_dfd
+dt_out	disfd_comm.f90	/^ real :: dt_fd,dt_out,/;"	v	module:comput_input_param
+dx_all	disfd_comm.f90	/^ real, allocatable, dimension(:):: bound_x,bound_y,dx_all,/;"	v	module:boundMpi_comm
+dx_vm	vm4dfd_v3.f90	/^ real:: dx_vm,/;"	v	module:vmodel_inp
+dxh1	disfd_comm.f90	/^ real(c_float), pointer, dimension(:,:) :: dxh1,/;"	v	module:grid_node_comm
+dxh1	disfd_macros.h	26;"	d
+dxh1	disfd_sub.c	36;"	d	file:
+dxh1D	disfd_sub_opencl.c	/^static cl_mem dxh1D;$/;"	v	file:
+dxh2	disfd_comm.f90	/^ real(c_float), pointer, dimension(:,:):: dxh2,/;"	v	module:grid_node_comm
+dxh2	disfd_macros.h	90;"	d
+dxh2	disfd_sub.c	100;"	d	file:
+dxh2D	disfd_sub_opencl.c	/^static cl_mem dxh2D;$/;"	v	file:
+dxi1	disfd_comm.f90	/^ real(c_float), pointer, dimension(:,:) :: dxh1,dxi1,/;"	v	module:grid_node_comm
+dxi1	disfd_macros.h	23;"	d
+dxi1	disfd_sub.c	33;"	d	file:
+dxi1D	disfd_sub_opencl.c	/^static cl_mem dxi1D;$/;"	v	file:
+dxi2	disfd_comm.f90	/^ real(c_float), pointer, dimension(:,:):: dxh2,dxi2,/;"	v	module:grid_node_comm
+dxi2	disfd_macros.h	86;"	d
+dxi2	disfd_sub.c	96;"	d	file:
+dxi2D	disfd_sub_opencl.c	/^static cl_mem dxi2D;$/;"	v	file:
+dxseg	vm4dfd_v3.f90	/^ real, allocatable, dimension(:):: dxseg,/;"	v	program:vm4dfd_v3
+dxx	vm4dfd_v3.f90	/^ real, allocatable, dimension(:):: dxx,/;"	v	module:grid_sp_num
+dxx0	vm4dfd_v3.f90	/^ real, allocatable, dimension(:):: dxx0,/;"	v	module:grid_sp_num
+dy_all	disfd_comm.f90	/^ real, allocatable, dimension(:):: bound_x,bound_y,dx_all,dy_all,/;"	v	module:boundMpi_comm
+dy_vm	vm4dfd_v3.f90	/^ real:: dx_vm,dy_vm,/;"	v	module:vmodel_inp
+dyh1	disfd_comm.f90	/^ real(c_float), pointer, dimension(:,:) :: dxh1,dxi1,dyh1,/;"	v	module:grid_node_comm
+dyh1	disfd_macros.h	27;"	d
+dyh1	disfd_sub.c	37;"	d	file:
+dyh1D	disfd_sub_opencl.c	/^static cl_mem dyh1D;$/;"	v	file:
+dyh2	disfd_comm.f90	/^ real(c_float), pointer, dimension(:,:):: dxh2,dxi2,dyh2,/;"	v	module:grid_node_comm
+dyh2	disfd_macros.h	91;"	d
+dyh2	disfd_sub.c	101;"	d	file:
+dyh2D	disfd_sub_opencl.c	/^static cl_mem dyh2D;$/;"	v	file:
+dyi1	disfd_comm.f90	/^ real(c_float), pointer, dimension(:,:) :: dxh1,dxi1,dyh1,dyi1,/;"	v	module:grid_node_comm
+dyi1	disfd_macros.h	24;"	d
+dyi1	disfd_sub.c	34;"	d	file:
+dyi1D	disfd_sub_opencl.c	/^static cl_mem dyi1D;$/;"	v	file:
+dyi2	disfd_comm.f90	/^ real(c_float), pointer, dimension(:,:):: dxh2,dxi2,dyh2,dyi2,/;"	v	module:grid_node_comm
+dyi2	disfd_macros.h	87;"	d
+dyi2	disfd_sub.c	97;"	d	file:
+dyi2D	disfd_sub_opencl.c	/^static cl_mem dyi2D;$/;"	v	file:
+dyseg	vm4dfd_v3.f90	/^ real, allocatable, dimension(:):: dxseg,distx,dyseg,/;"	v	program:vm4dfd_v3
+dyy	vm4dfd_v3.f90	/^ real, allocatable, dimension(:):: dxx,dyy,/;"	v	module:grid_sp_num
+dyy0	vm4dfd_v3.f90	/^ real, allocatable, dimension(:):: dxx0,dyy0,/;"	v	module:grid_sp_num
+dz_all	disfd_comm.f90	/^ real, allocatable, dimension(:):: bound_x,bound_y,dx_all,dy_all,dz_all$/;"	v	module:boundMpi_comm
+dz_vm	vm4dfd_v3.f90	/^ real:: dx_vm,dy_vm,dz_vm$/;"	v	module:vmodel_inp
+dzbm	vm4dfd_v3.f90	/^ real:: depth_bm,depth_up,z0,zz,dzbm,/;"	v	program:vm4dfd_v3
+dzh1	disfd_comm.f90	/^ real(c_float), pointer, dimension(:,:) :: dxh1,dxi1,dyh1,dyi1,dzh1,/;"	v	module:grid_node_comm
+dzh1	disfd_macros.h	28;"	d
+dzh1	disfd_sub.c	38;"	d	file:
+dzh1D	disfd_sub_opencl.c	/^static cl_mem dzh1D;$/;"	v	file:
+dzh2	disfd_comm.f90	/^ real(c_float), pointer, dimension(:,:):: dxh2,dxi2,dyh2,dyi2,dzh2,/;"	v	module:grid_node_comm
+dzh2	disfd_macros.h	92;"	d
+dzh2	disfd_sub.c	102;"	d	file:
+dzh2D	disfd_sub_opencl.c	/^static cl_mem dzh2D;$/;"	v	file:
+dzi1	disfd_comm.f90	/^ real(c_float), pointer, dimension(:,:) :: dxh1,dxi1,dyh1,dyi1,dzh1,dzi1$/;"	v	module:grid_node_comm
+dzi1	disfd_macros.h	25;"	d
+dzi1	disfd_sub.c	35;"	d	file:
+dzi1D	disfd_sub_opencl.c	/^static cl_mem dzi1D;$/;"	v	file:
+dzi2	disfd_comm.f90	/^ real(c_float), pointer, dimension(:,:):: dxh2,dxi2,dyh2,dyi2,dzh2,dzi2$/;"	v	module:grid_node_comm
+dzi2	disfd_macros.h	88;"	d
+dzi2	disfd_sub.c	98;"	d	file:
+dzi2D	disfd_sub_opencl.c	/^static cl_mem dzi2D;$/;"	v	file:
+dzseg	vm4dfd_v3.f90	/^ real, allocatable, dimension(:):: dxseg,distx,dyseg,disty,dzseg,/;"	v	program:vm4dfd_v3
+dzz	vm4dfd_v3.f90	/^ real, allocatable, dimension(:):: dxx,dyy,dzz$/;"	v	module:grid_sp_num
+dzz0	vm4dfd_v3.f90	/^ real, allocatable, dimension(:):: dxx0,dyy0,dzz0$/;"	v	module:grid_sp_num
+e	sac.h	/^  float	e;			\/* RD end time               *\/$/;"	m	struct:sac_head
+elapsed	RealTimer.h	/^  double elapsed;$/;"	m	struct:RealTimer
+epdt	disfd_comm.f90	/^ real(c_float), pointer, dimension(:) :: rho,clamda,cmu,qwp,qws,epdt,/;"	v	module:grid_node_comm
+epdt	disfd_macros.h	69;"	d
+epdt	disfd_sub.c	79;"	d	file:
+epdt	vm4dfd_v3.f90	/^ real, dimension(nll):: epdt,/;"	v	module:fd_model_comm
+epdtD	disfd_sub_opencl.c	/^static cl_mem epdtD;$/;"	v	file:
+eq_linear	disfd_sub.f90	/^subroutine eq_linear(/;"	s
+eqp	vm4dfd_v3.f90	/^ real, allocatable, dimension(:):: evp,evs,erh,eqp,/;"	v	module:fd_model_comm
+eqs	vm4dfd_v3.f90	/^ real, allocatable, dimension(:):: evp,evs,erh,eqp,eqs$/;"	v	module:fd_model_comm
+erh	vm4dfd_v3.f90	/^ real, allocatable, dimension(:):: evp,evs,erh,/;"	v	module:fd_model_comm
+errm	vm4dfd_v3.f90	/^ real, parameter:: ar_ha=-1.0, errm=/;"	v	module:fd_model_comm
+evdp	sac.h	/^  float	evdp;			\/*    event depth            *\/$/;"	m	struct:sac_head
+evel	sac.h	/^  float	evel;			\/*    event elevation        *\/$/;"	m	struct:sac_head
+evla	sac.h	/^  float	evla;			\/*    event latitude         *\/$/;"	m	struct:sac_head
+evlo	sac.h	/^  float	evlo;			\/*    event longitude        *\/$/;"	m	struct:sac_head
+evp	vm4dfd_v3.f90	/^ real, allocatable, dimension(:):: evp,/;"	v	module:fd_model_comm
+evs	vm4dfd_v3.f90	/^ real, allocatable, dimension(:):: evp,evs,/;"	v	module:fd_model_comm
+f	sac.h	/^  float	f;			\/*    event end, sec > 0     *\/$/;"	m	struct:sac_head
+fDesc	RealTimer.h	/^  char *fDesc;$/;"	m	struct:RealTimer
+famp	disfd_comm.f90	/^ real, allocatable, dimension(:,:):: famp$/;"	v	module:source_parm_comm
+fampD	disfd_sub_opencl.c	/^static cl_mem fampD;$/;"	v	file:
+fblock	read_dfd.f90	/^ character (len=70):: fd_out_list,fname_vel,fout,fblock,/;"	v	program:read_dfd
+fc_hp	read_dfd.f90	/^ real:: dt,dt_new,rtmp,fc_lp,fc_hp$/;"	v	program:read_dfd
+fc_lp	read_dfd.f90	/^ real:: dt,dt_new,rtmp,fc_lp,/;"	v	program:read_dfd
+fd_model_comm	vm4dfd_v3.f90	/^module fd_model_comm$/;"	m
+fd_out	read_dfd.f90	/^ character(len=72), allocatable, dimension(:):: stan_name,fd_out$/;"	v	program:read_dfd
+fd_out_file	disfd_comm.f90	/^ character(len=72) :: fd_out_root,fd_out_file$/;"	v	module:comput_input_param
+fd_out_list	read_dfd.f90	/^ character (len=70):: fd_out_list,/;"	v	program:read_dfd
+fd_out_root	disfd_comm.f90	/^ character(len=72) :: fd_out_root,/;"	v	module:comput_input_param
+fileInp	disfd.f90	/^ character(len=72)::fileInp$/;"	v	program:disfd
+fileall	vm4dfd_v3.f90	/^ character(len=72), allocatable, dimension(:):: fileall$/;"	v	module:vmodel_inp
+fileout	vm4dfd_v3.f90	/^ character(len=72):: fileout$/;"	v	program:vm4dfd_v3
+fmax	vm4dfd_v3.f90	/^ real:: depth_I_II,fmax,/;"	v	program:vm4dfd_v3
+fname_stn	disfd_comm.f90	/^ character(len=72), allocatable, dimension(:)::fname_stn$/;"	v	module:station_comm
+fname_vel	read_dfd.f90	/^ character (len=70):: fd_out_list,fname_vel,/;"	v	program:read_dfd
+format_dt	vm4dfd_v3.f90	/^subroutine format_dt(/;"	s
+fout	read_dfd.f90	/^ character (len=70):: fd_out_list,fname_vel,fout,/;"	v	program:read_dfd
+free_device_memC_opencl	disfd_sub_opencl.c	/^void free_device_memC_opencl(int *lbx, int *lby)$/;"	f
+freq_ref	vm4dfd_v3.f90	/^ real:: depth_I_II,fmax,freq_ref,/;"	v	program:vm4dfd_v3
+fsource	disfd_sub.f90	/^function fsource(/;"	f
+gammln	disfd_sub.f90	/^FUNCTION gammln(/;"	f
+gcarc	sac.h	/^  float	gcarc;			\/*    stn-event dist, degrees*\/$/;"	m	struct:sac_head
+gdsp_vm	vm4dfd_v3.f90	/^ real, allocatable, dimension(:,:):: gdsp_vm,/;"	v	module:vmodel_inp
+getDevicePointer	disfd_sub_opencl.c	/^cl_mem getDevicePointer(int id) {$/;"	f
+getGPUArray_Metadata	disfd_sub_opencl.c	/^struct GPUArray_Metadata getGPUArray_Metadata(int id) {$/;"	f
+get_tiempo	disfd.f90	/^subroutine get_tiempo(/;"	s
+getlen	disfd_sub.f90	/^function getlen(/;"	f
+getnpt_	sacio.c	/^void getnpt_(const char *name2, int *npt) {$/;"	f
+globalWorkSize	disfd_sub_opencl.c	/^size_t globalWorkSize[3];$/;"	v
+grid_node_comm	disfd_comm.f90	/^MODULE grid_node_comm$/;"	m
+grid_sp_num	vm4dfd_v3.f90	/^module grid_sp_num$/;"	m
+grid_space	vm4dfd_v3.f90	/^subroutine grid_space(/;"	s
+gridx1	disfd_comm.f90	/^ real(c_float), pointer, dimension(:):: gridx1,/;"	v	module:grid_node_comm
+gridx1_init	disfd_comm.f90	/^ real(c_float), pointer, dimension(:):: gridx1_init,/;"	v	module:grid_node_comm
+gridx2	disfd_comm.f90	/^ real(c_float), pointer, dimension(:):: gridx1,gridy1,gridx2,/;"	v	module:grid_node_comm
+gridx2_init	disfd_comm.f90	/^ real(c_float), pointer, dimension(:):: gridx1_init,gridy1_init,gridx2_init,/;"	v	module:grid_node_comm
+gridy1	disfd_comm.f90	/^ real(c_float), pointer, dimension(:):: gridx1,gridy1,/;"	v	module:grid_node_comm
+gridy1_init	disfd_comm.f90	/^ real(c_float), pointer, dimension(:):: gridx1_init,gridy1_init,/;"	v	module:grid_node_comm
+gridy2	disfd_comm.f90	/^ real(c_float), pointer, dimension(:):: gridx1,gridy1,gridx2,gridy2,/;"	v	module:grid_node_comm
+gridy2_init	disfd_comm.f90	/^ real(c_float), pointer, dimension(:):: gridx1_init,gridy1_init,gridx2_init,gridy2_init,/;"	v	module:grid_node_comm
+gridz	disfd_comm.f90	/^ real(c_float), pointer, dimension(:):: gridx1,gridy1,gridx2,gridy2,gridz$/;"	v	module:grid_node_comm
+gridz_init	disfd_comm.f90	/^ real(c_float), pointer, dimension(:):: gridx1_init,gridy1_init,gridx2_init,gridy2_init,gridz_init$/;"	v	module:grid_node_comm
+group_id	disfd_comm.f90	/^ integer :: nproc,group_id,/;"	v	module:comput_input_param
+gstep	vm4dfd_v3.f90	/^ real:: tstep,gstep,/;"	v	program:vm4dfd_v3
+h2dTimerStress	disfd_sub_opencl.c	/^RealTimer h2dTimerStress[NUM_COMMAND_QUEUES];$/;"	v
+h2dTimerVelocity	disfd_sub_opencl.c	/^RealTimer h2dTimerVelocity[NUM_COMMAND_QUEUES];$/;"	v
+h2d_interp	vm4dfd_v3.f90	/^subroutine h2d_interp(/;"	s
+i	disfd_sub_opencl.c	/^	int i;$/;"	m	struct:GPUArray_Metadata	file:
+i	read_dfd.f90	/^ in/;"	v	program:read_dfd
+i	vm4dfd_v3.f90	/^ in/;"	v	program:vm4dfd_v3
+i2	read_dfd.f90	/^ integer:: id_format,isrc,kf,ks,nch1,nch2,npt,nt_new,nr3,i,j,k,i2,/;"	v	program:read_dfd
+iblk	read_dfd.f90	/^ integer:: nblock,nrbx,nrby,nrbz,iblk,/;"	v	program:read_dfd
+id_format	read_dfd.f90	/^ integer:: id_format,/;"	v	program:read_dfd
+id_sf_type	disfd_comm.f90	/^ integer:: nfadd,id_sf_type$/;"	v	module:source_parm_comm
+idep	sac.h	/^  int	idep;			\/*    type of amplitude      *\/$/;"	m	struct:sac_head
+idfxy	vm4dfd_v3.f90	/^ integer, allocatable, dimension(:,:,:):: idfxy$/;"	v	module:fd_model_comm
+idmat	vm4dfd_v3.f90	/^ integer, allocatable, dimension(:):: idmat$/;"	v	module:fd_model_comm
+idmat1	disfd_comm.f90	/^ integer(c_int), pointer, dimension(:,:,:):: idmat1,/;"	v	module:grid_node_comm
+idmat1	disfd_macros.h	9;"	d
+idmat1	disfd_sub.c	18;"	d	file:
+idmat1D	disfd_sub_opencl.c	/^static cl_mem idmat1D;$/;"	v	file:
+idmat1_init	disfd_comm.f90	/^ integer(c_int), pointer, dimension(:,:,:):: idmat1, idmat1_init$/;"	v	module:grid_node_comm
+idmat2	disfd_comm.f90	/^ integer(c_int), pointer, dimension(:,:,:):: idmat2,/;"	v	module:grid_node_comm
+idmat2	disfd_macros.h	80;"	d
+idmat2	disfd_sub.c	90;"	d	file:
+idmat2D	disfd_sub_opencl.c	/^static cl_mem idmat2D;$/;"	v	file:
+idmat2_init	disfd_comm.f90	/^ integer(c_int), pointer, dimension(:,:,:):: idmat2, idmat2_init$/;"	v	module:grid_node_comm
+ierr	disfd.f90	/^ integer:: nproc_world,myid_world,comm_world,ierr$/;"	v	program:disfd
+ierr	vm4dfd_v3.f90	/^ integer:: i,ix,jy,kz,ncx,ncy,ncz,modlx,modly,ncount,nof,myfh,ierr$/;"	v	program:vm4dfd_v3
+ievreg	sac.h	/^  int	ievreg;			\/*    event geographic region*\/$/;"	m	struct:sac_head
+ievtyp	sac.h	/^  int	ievtyp;			\/*    event type             *\/$/;"	m	struct:sac_head
+iftype	sac.h	/^  int	iftype;			\/* RA type of file          *\/$/;"	m	struct:sac_head
+ii0	read_dfd.f90	/^ integer:: nblock,nrbx,nrby,nrbz,iblk,nt0,ii0,/;"	v	program:read_dfd
+iia	read_dfd.f90	/^ integer:: nblock,nrbx,nrby,nrbz,iblk,nt0,ii0,iib,iia,/;"	v	program:read_dfd
+iib	read_dfd.f90	/^ integer:: nblock,nrbx,nrby,nrbz,iblk,nt0,ii0,iib,/;"	v	program:read_dfd
+iinst	sac.h	/^  int	iinst;			\/*    recording instrument   *\/$/;"	m	struct:sac_head
+index_xyz_source	disfd_comm.f90	/^ integer, allocatable, dimension(:,:,:):: index_xyz_source$/;"	v	module:source_parm_comm
+index_xyz_sourceD	disfd_sub_opencl.c	/^static cl_mem index_xyz_sourceD;$/;"	v	file:
+inds	vm4dfd_v3.f90	/^ integer:: k,kup,kbm,kzsub_vm,nchk,is_refresh,ndis,kdis,inds,/;"	v	program:vm4dfd_v3
+ini_plane_wave	disfd_sub.f90	/^subroutine ini_plane_wave(/;"	s
+init_cl	disfd_sub_opencl.c	/^void init_cl(int *deviceID) $/;"	f
+init_gpuarr_metadata	disfd_sub_opencl.c	/^void init_gpuarr_metadata (int nxtop, int nytop, int nztop, int nxbtm, int nybtm, int nzbtm) $/;"	f
+init_metadata	disfd_comm.f90	/^    subroutine init_metadata /;"	s	module:metadata
+initial	disfd_sub.f90	/^subroutine initial(/;"	s
+initxdr	vm4dfd_v3.f90	/^ integer:: initxdr,/;"	v	program:vm4dfd_v3
+input_Receiver_location	disfd_sub.f90	/^subroutine input_Receiver_location(/;"	s
+input_fd_param	disfd.f90	/^subroutine input_fd_param(/;"	s
+input_material	disfd_sub.f90	/^subroutine input_material(/;"	s
+input_source_param	disfd_sub.f90	/^subroutine input_source_param(/;"	s
+inter_face	vm4dfd_v3.f90	/^subroutine inter_face(/;"	s
+internal1	sac.h	/^  float	internal1;		\/*    internal use           *\/$/;"	m	struct:sac_head
+internal2	sac.h	/^  float	internal2;		\/*    internal use           *\/$/;"	m	struct:sac_head
+internal3	sac.h	/^  float	internal3;		\/*    internal use           *\/$/;"	m	struct:sac_head
+internal4	sac.h	/^  int	internal4;		\/*  R header version number  *\/$/;"	m	struct:sac_head
+internal5	sac.h	/^  int	internal5;		\/*    internal use           *\/$/;"	m	struct:sac_head
+internal6	sac.h	/^  int	internal6;		\/*    internal use           *\/$/;"	m	struct:sac_head
+internal7	sac.h	/^  int	internal7;		\/*    internal use           *\/$/;"	m	struct:sac_head
+internal8	sac.h	/^  int	internal8;		\/*    internal use           *\/$/;"	m	struct:sac_head
+interp_stress	disfd_sub_opencl.c	/^void interp_stress (int neighb1, int neighb2, int neighb3, int neighb4, $/;"	f
+interp_stress1	disfd_sub_opencl.c	/^void interp_stress1 ( int ntx1, int nz1p1, int nxbtm , int nybtm , int nzbtm, $/;"	f
+interp_stress2	disfd_sub_opencl.c	/^void interp_stress2 ( int nty1, int nz1p1, int nxbtm , int nybtm , int nzbtm, $/;"	f
+interp_stress3	disfd_sub_opencl.c	/^void interp_stress3 ( int nxbtm , int nybtm , int nzbtm, $/;"	f
+interpl_3vbtm	disfd_sub.f90	/^subroutine interpl_3vbtm$/;"	s
+interpl_3vbtm_vel1	disfd_sub_opencl.c	/^void interpl_3vbtm_vel1(int* ny1p2, int* ny2p2, int* nz1p1, int* nyvx, $/;"	f
+interpl_3vbtm_vel11	disfd_sub_opencl.c	/^void interpl_3vbtm_vel11(int* nx1p2, int* nx2p1, int* ny1p1, int* nz1p1, int* nxvy1, $/;"	f
+interpl_3vbtm_vel13	disfd_sub_opencl.c	/^void interpl_3vbtm_vel13(int* nxbtm, int* nybtm, int* nzbtm, int* nxtop, int* nytop, int* nztop)$/;"	f
+interpl_3vbtm_vel14	disfd_sub_opencl.c	/^void interpl_3vbtm_vel14(int* nxbtm, int* nybtm, int* nzbtm, int* nxtop, int* nytop, int* nztop)$/;"	f
+interpl_3vbtm_vel15	disfd_sub_opencl.c	/^void interpl_3vbtm_vel15(int* nxbtm, int* nybtm, int* nzbtm, int* nxtop, int* nytop, int* nztop)$/;"	f
+interpl_3vbtm_vel3	disfd_sub_opencl.c	/^void interpl_3vbtm_vel3(int* ny1p2, int* nz1p1, int* nyvx1, int* nxbm1, $/;"	f
+interpl_3vbtm_vel4	disfd_sub_opencl.c	/^void interpl_3vbtm_vel4(int* nx1p2, int* ny2p2, int* nz1p1, int* nxvy, int* nybm1, $/;"	f
+interpl_3vbtm_vel5	disfd_sub_opencl.c	/^void interpl_3vbtm_vel5(int* nx1p2, int* nx2p2, int* nz1p1, int* nxvy, int* nybm1, $/;"	f
+interpl_3vbtm_vel6	disfd_sub_opencl.c	/^void interpl_3vbtm_vel6(int* nx1p2,  int* nz1p1, int* nxvy1, int* nybm1, $/;"	f
+interpl_3vbtm_vel7	disfd_sub_opencl.c	/^void interpl_3vbtm_vel7 (int* nxbtm, int* nybtm, int* nzbtm, int* nxtop, int* nytop, int* nztop, float* sdx1)$/;"	f
+interpl_3vbtm_vel8	disfd_sub_opencl.c	/^void interpl_3vbtm_vel8 (int* nxbtm, int* nybtm, int* nzbtm, int* nxtop, int* nytop, int* nztop, float* sdx2)$/;"	f
+interpl_3vbtm_vel9	disfd_sub_opencl.c	/^void interpl_3vbtm_vel9(int* nx1p2, int* ny2p1, int* nz1p1, int* nxvy, int* nybm1, $/;"	f
+interpol	read_dfd.f90	/^subroutine interpol(/;"	s
+intprt	disfd_comm.f90	/^ integer :: num_src_model,nproc_x,nproc_y,intprt,/;"	v	module:comput_input_param
+ipox	disfd_comm.f90	/^ integer, allocatable, dimension(:,:):: ipox,/;"	v	module:station_comm
+ipoy	disfd_comm.f90	/^ integer, allocatable, dimension(:,:):: ipox,ipoy,/;"	v	module:station_comm
+ipoz	disfd_comm.f90	/^ integer, allocatable, dimension(:,:):: ipox,ipoy,ipoz,/;"	v	module:station_comm
+iqual	sac.h	/^  int	iqual;			\/*    quality of data        *\/$/;"	m	struct:sac_head
+isRunning	RealTimer.h	/^  char isRunning;$/;"	m	struct:RealTimer
+is_1Dmodel	vm4dfd_v3.f90	/^ character(len=72):: is_1Dmodel$/;"	v	module:vmodel_inp
+is_refresh	vm4dfd_v3.f90	/^ integer:: k,kup,kbm,kzsub_vm,nchk,is_refresh,/;"	v	program:vm4dfd_v3
+isrc	read_dfd.f90	/^ integer:: id_format,isrc,/;"	v	program:read_dfd
+istreg	sac.h	/^  int	istreg;			\/*    stn geographic region  *\/$/;"	m	struct:sac_head
+isynth	sac.h	/^  int	isynth;			\/*    synthetic data flag    *\/$/;"	m	struct:sac_head
+it	read_dfd.f90	/^ integer:: nblock,nrbx,nrby,nrbz,iblk,nt0,ii0,iib,iia,it,/;"	v	program:read_dfd
+itface_comm	disfd_comm.f90	/^MODULE itface_comm$/;"	m
+itype	vm4dfd_v3.f90	/^ integer:: k,kup,kbm,kzsub_vm,nchk,is_refresh,ndis,kdis,inds,itype$/;"	v	program:vm4dfd_v3
+iwrt	vm4dfd_v3.f90	/^ integer:: iwrt,/;"	v	program:vm4dfd_v3
+ix	vm4dfd_v3.f90	/^ integer:: i,ix,/;"	v	program:vm4dfd_v3
+ixdrclose	vm4dfd_v3.f90	/^ integer:: initxdr,ixdrimat,ixdrrmat,ixdrint,ixdrreal,ixdrclose$/;"	v	program:vm4dfd_v3
+ixdrimat	vm4dfd_v3.f90	/^ integer:: initxdr,ixdrimat,/;"	v	program:vm4dfd_v3
+ixdrint	vm4dfd_v3.f90	/^ integer:: initxdr,ixdrimat,ixdrrmat,ixdrint,/;"	v	program:vm4dfd_v3
+ixdrreal	vm4dfd_v3.f90	/^ integer:: initxdr,ixdrimat,ixdrrmat,ixdrint,ixdrreal,/;"	v	program:vm4dfd_v3
+ixdrrmat	vm4dfd_v3.f90	/^ integer:: initxdr,ixdrimat,ixdrrmat,/;"	v	program:vm4dfd_v3
+iztype	sac.h	/^  int	iztype;			\/*    zero time equivalence  *\/$/;"	m	struct:sac_head
+j	disfd_sub_opencl.c	/^	int j;$/;"	m	struct:GPUArray_Metadata	file:
+j	read_dfd.f90	/^ integer:: id_format,isrc,kf,ks,nch1,nch2,npt,nt_new,nr3,i,j,/;"	v	program:read_dfd
+j2	read_dfd.f90	/^ integer:: id_format,isrc,kf,ks,nch1,nch2,npt,nt_new,nr3,i,j,k,i2,j2$/;"	v	program:read_dfd
+jy	vm4dfd_v3.f90	/^ integer:: i,ix,jy,/;"	v	program:vm4dfd_v3
+k	disfd_sub_opencl.c	/^	int k;$/;"	m	struct:GPUArray_Metadata	file:
+k	read_dfd.f90	/^ integer:: id_format,isrc,kf/;"	v	program:read_dfd
+k	vm4dfd_v3.f90	/^ integer:: k,/;"	v	program:vm4dfd_v3
+ka	sac.h	/^  char	ka[8];			\/*    1st arrival time ident *\/$/;"	m	struct:sac_head
+kbm	vm4dfd_v3.f90	/^ integer:: k,kup,kbm,/;"	v	program:vm4dfd_v3
+kcmpnm	sac.h	/^  char	kcmpnm[8];		\/*  F component name         *\/$/;"	m	struct:sac_head
+kdatrd	sac.h	/^  char	kdatrd[8];		\/*    date data read         *\/$/;"	m	struct:sac_head
+kdis	vm4dfd_v3.f90	/^ integer:: k,kup,kbm,kzsub_vm,nchk,is_refresh,ndis,kdis,/;"	v	program:vm4dfd_v3
+kernelTimerStress	disfd_sub_opencl.c	/^RealTimer kernelTimerStress[NUM_COMMAND_QUEUES];$/;"	v
+kernelTimerVelocity	disfd_sub_opencl.c	/^RealTimer kernelTimerVelocity[NUM_COMMAND_QUEUES];$/;"	v
+kevnm	sac.h	/^  char	kevnm[16];		\/*    event name             *\/$/;"	m	struct:sac_head
+kf	read_dfd.f90	/^ integer:: id_format,isrc,kf,/;"	v	program:read_dfd
+kf	sac.h	/^  char	kf[8];			\/*    end of event ident     *\/$/;"	m	struct:sac_head
+khole	sac.h	/^  char	khole[8];		\/*    man-made event name    *\/$/;"	m	struct:sac_head
+kinst	sac.h	/^  char	kinst[8];		\/*    instrument name        *\/$/;"	m	struct:sac_head
+knetwk	sac.h	/^  char	knetwk[8];		\/*    network name           *\/$/;"	m	struct:sac_head
+ko	sac.h	/^  char	ko[8];			\/*    event origin time id   *\/$/;"	m	struct:sac_head
+ks	read_dfd.f90	/^ integer:: id_format,isrc,kf,ks,/;"	v	program:read_dfd
+kstnm	sac.h	/^  char	kstnm[8];		\/*  F station name           *\/$/;"	m	struct:sac_head
+kt0	sac.h	/^  char	kt0[8];			\/*    time pick 0 ident      *\/$/;"	m	struct:sac_head
+kt1	sac.h	/^  char	kt1[8];			\/*    time pick 1 ident      *\/$/;"	m	struct:sac_head
+kt2	sac.h	/^  char	kt2[8];			\/*    time pick 2 ident      *\/$/;"	m	struct:sac_head
+kt3	sac.h	/^  char	kt3[8];			\/*    time pick 3 ident      *\/$/;"	m	struct:sac_head
+kt4	sac.h	/^  char	kt4[8];			\/*    time pick 4 ident      *\/$/;"	m	struct:sac_head
+kt5	sac.h	/^  char	kt5[8];			\/*    time pick 5 ident      *\/$/;"	m	struct:sac_head
+kt6	sac.h	/^  char	kt6[8];			\/*    time pick 6 ident      *\/$/;"	m	struct:sac_head
+kt7	sac.h	/^  char	kt7[8];			\/*    time pick 7 ident      *\/$/;"	m	struct:sac_head
+kt8	sac.h	/^  char	kt8[8];			\/*    time pick 8 ident      *\/$/;"	m	struct:sac_head
+kt9	sac.h	/^  char	kt9[8];			\/*    time pick 9 ident      *\/$/;"	m	struct:sac_head
+kup	vm4dfd_v3.f90	/^ integer:: k,kup,/;"	v	program:vm4dfd_v3
+kuser0	sac.h	/^  char	kuser0[8];		\/*    available to user      *\/$/;"	m	struct:sac_head
+kuser1	sac.h	/^  char	kuser1[8];		\/*    available to user      *\/$/;"	m	struct:sac_head
+kuser2	sac.h	/^  char	kuser2[8];		\/*    available to user      *\/$/;"	m	struct:sac_head
+kz	vm4dfd_v3.f90	/^ integer:: i,ix,jy,kz,/;"	v	program:vm4dfd_v3
+kzsub_vm	vm4dfd_v3.f90	/^ integer:: k,kup,kbm,kzsub_vm,/;"	v	program:vm4dfd_v3
+last_blk	read_dfd.f90	/^ integer:: nblock,nrbx,nrby,nrbz,iblk,nt0,ii0,iib,iia,it,last_blk$/;"	v	program:read_dfd
+lbx	disfd_comm.f90	/^ integer(c_int), target, dimension(2):: lbx,/;"	v	module:grid_node_comm
+lby	disfd_comm.f90	/^ integer(c_int), target, dimension(2):: lbx,lby$/;"	v	module:grid_node_comm
+lcalda	sac.h	/^  int	lcalda;			\/*    calc distance, azimuth *\/$/;"	m	struct:sac_head
+leven	sac.h	/^  int	leven;			\/* RA data-evenly-spaced flag*\/$/;"	m	struct:sac_head
+localWorkSize	disfd_sub_opencl.c	/^size_t localWorkSize[3];$/;"	v
+logger_log_timing	disfd_sub_opencl.c	/^void logger_log_timing(const char *msg, double time) $/;"	f
+lovrok	sac.h	/^  int	lovrok;			\/*    overwrite permission   *\/$/;"	m	struct:sac_head
+lpspol	sac.h	/^  int	lpspol;			\/*    station polarity flag  *\/$/;"	m	struct:sac_head
+mat_type_myid	disfd_sub.f90	/^subroutine mat_type_myid(/;"	s
+metadata	disfd_comm.f90	/^module metadata$/;"	m
+modlx	vm4dfd_v3.f90	/^ integer:: i,ix,jy,kz,ncx,ncy,ncz,modlx,/;"	v	program:vm4dfd_v3
+modly	vm4dfd_v3.f90	/^ integer:: i,ix,jy,kz,ncx,ncy,ncz,modlx,modly,/;"	v	program:vm4dfd_v3
+modlz	vm4dfd_v3.f90	/^ integer:: num_file,nx_vm,ny_vm,nz_vm,modlz$/;"	v	module:vmodel_inp
+mrgsp	disfd_comm.f90	/^ integer, parameter:: mrgsp=/;"	v	module:grid_node_comm
+msh1	disfd_comm.f90	/^ integer, parameter:: mrgsp=3, msh1=/;"	v	module:grid_node_comm
+mtype	vm4dfd_v3.f90	/^ integer:: ntype,mtype$/;"	v	module:fd_model_comm
+mw1_pml	disfd_comm.f90	/^ integer(c_int) :: mw2_pml,mw2_pml1,mw1_pml,/;"	v	module:grid_node_comm
+mw1_pml1	disfd_comm.f90	/^ integer(c_int) :: mw2_pml,mw2_pml1,mw1_pml,mw1_pml1$/;"	v	module:grid_node_comm
+mw2_pml	disfd_comm.f90	/^ integer(c_int) :: mw2_pml,/;"	v	module:grid_node_comm
+mw2_pml1	disfd_comm.f90	/^ integer(c_int) :: mw2_pml,mw2_pml1,/;"	v	module:grid_node_comm
+myfh	vm4dfd_v3.f90	/^ integer:: i,ix,jy,kz,ncx,ncy,ncz,modlx,modly,ncount,nof,myfh,/;"	v	program:vm4dfd_v3
+myid	disfd_comm.f90	/^ integer :: nproc,group_id,myid$/;"	v	module:comput_input_param
+myid_world	disfd.f90	/^ integer:: nproc_world,myid_world,/;"	v	program:disfd
+myid_x	disfd_comm.f90	/^ integer:: nprc1,np_x,np_y,myid_x,/;"	v	module:boundMpi_comm
+myid_y	disfd_comm.f90	/^ integer:: nprc1,np_x,np_y,myid_x,myid_y,/;"	v	module:boundMpi_comm
+n	mpiacc_wrappers.h	/^        integer(c_int), intent(in), value :: n, dest, tag$/;"	m	class:value
+n	mpiacc_wrappers.h	/^        integer(c_int), intent(in), value :: n, src, tag$/;"	m	class:value
+n	mpiacc_wrappers.h	/^        integer(c_int), intent(in), value :: offset, n, dest, tag$/;"	v
+n	mpiacc_wrappers.h	/^        integer(c_int), intent(in), value :: offset, n, src, tag$/;"	v
+nbbf	read_dfd.f90	/^ integer,allocatable, dimension(:,:):: nbbf$/;"	v	program:read_dfd
+nblock	disfd_comm.f90	/^ integer:: nrecs,recv_type,nblock$/;"	v	module:station_comm
+nblock	read_dfd.f90	/^ integer:: nblock,/;"	v	program:read_dfd
+nch1	read_dfd.f90	/^ integer:: id_format,isrc,kf,ks,nch1,/;"	v	program:read_dfd
+nch2	read_dfd.f90	/^ integer:: id_format,isrc,kf,ks,nch1,nch2,/;"	v	program:read_dfd
+nchk	vm4dfd_v3.f90	/^ integer:: k,kup,kbm,kzsub_vm,nchk,/;"	v	program:vm4dfd_v3
+ncount	vm4dfd_v3.f90	/^ integer:: i,ix,jy,kz,ncx,ncy,ncz,modlx,modly,ncount,/;"	v	program:vm4dfd_v3
+ncx	vm4dfd_v3.f90	/^ integer:: i,ix,jy,kz,ncx,/;"	v	program:vm4dfd_v3
+ncy	vm4dfd_v3.f90	/^ integer:: i,ix,jy,kz,ncx,ncy,/;"	v	program:vm4dfd_v3
+ncz	vm4dfd_v3.f90	/^ integer:: i,ix,jy,kz,ncx,ncy,ncz,/;"	v	program:vm4dfd_v3
+nd1_txy	disfd_comm.f90	/^ integer(c_int), target, dimension(18)::nd1_vel,nd1_tyy,nd1_txy,/;"	v	module:grid_node_comm
+nd1_txyD	disfd_sub_opencl.c	/^static cl_mem nd1_txyD;$/;"	v	file:
+nd1_txz	disfd_comm.f90	/^ integer(c_int), target, dimension(18)::nd1_vel,nd1_tyy,nd1_txy,nd1_txz,/;"	v	module:grid_node_comm
+nd1_txzD	disfd_sub_opencl.c	/^static cl_mem nd1_txzD;$/;"	v	file:
+nd1_tyy	disfd_comm.f90	/^ integer(c_int), target, dimension(18)::nd1_vel,nd1_tyy,/;"	v	module:grid_node_comm
+nd1_tyyD	disfd_sub_opencl.c	/^static cl_mem nd1_tyyD;$/;"	v	file:
+nd1_tyz	disfd_comm.f90	/^ integer(c_int), target, dimension(18)::nd1_vel,nd1_tyy,nd1_txy,nd1_txz,nd1_tyz,/;"	v	module:grid_node_comm
+nd1_tyzD	disfd_sub_opencl.c	/^static cl_mem nd1_tyzD;$/;"	v	file:
+nd1_vel	disfd_comm.f90	/^ integer(c_int), target, dimension(18)::nd1_vel,/;"	v	module:grid_node_comm
+nd1_velD	disfd_sub_opencl.c	/^static cl_mem nd1_velD;$/;"	v	file:
+nd2_txy	disfd_comm.f90	/^                         nd2_vel,nd2_tyy,nd2_txy,/;"	v	module:grid_node_comm
+nd2_txyD	disfd_sub_opencl.c	/^static cl_mem nd2_txyD;  \/\/int[18]$/;"	v	file:
+nd2_txz	disfd_comm.f90	/^                         nd2_vel,nd2_tyy,nd2_txy,nd2_txz,/;"	v	module:grid_node_comm
+nd2_txzD	disfd_sub_opencl.c	/^static cl_mem nd2_txzD;  \/\/int[18]$/;"	v	file:
+nd2_tyy	disfd_comm.f90	/^                         nd2_vel,nd2_tyy,/;"	v	module:grid_node_comm
+nd2_tyyD	disfd_sub_opencl.c	/^static cl_mem nd2_tyyD;  \/\/int[18]$/;"	v	file:
+nd2_tyz	disfd_comm.f90	/^                         nd2_vel,nd2_tyy,nd2_txy,nd2_txz,nd2_tyz$/;"	v	module:grid_node_comm
+nd2_tyzD	disfd_sub_opencl.c	/^static cl_mem nd2_tyzD;  \/\/int[18]$/;"	v	file:
+nd2_vel	disfd_comm.f90	/^ integer(c_int), target, dimension(18)::nd1_vel,nd1_tyy,nd1_txy,nd1_txz,nd1_tyz, &$/;"	v	module:grid_node_comm
+nd2_velD	disfd_sub_opencl.c	/^static cl_mem nd2_velD;$/;"	v	file:
+ndata	disfd_comm.f90	/^            nr_all,ndata,/;"	v	module:comput_input_param
+ndis	vm4dfd_v3.f90	/^ integer:: k,kup,kbm,kzsub_vm,nchk,is_refresh,ndis,/;"	v	program:vm4dfd_v3
+neighb	disfd_comm.f90	/^ integer, dimension(4):: nzrg1,neighb$/;"	v	module:grid_node_comm
+nfadd	disfd_comm.f90	/^ integer:: nfadd,/;"	v	module:source_parm_comm
+nfiles	disfd_comm.f90	/^ integer, allocatable, dimension(:) :: nfiles$/;"	v	module:comput_input_param
+nll	disfd_comm.f90	/^ integer:: nmat, nll$/;"	v	module:grid_node_comm
+nll	vm4dfd_v3.f90	/^ integer, parameter:: nll=/;"	v	module:fd_model_comm
+nmat	disfd_comm.f90	/^ integer:: nmat,/;"	v	module:grid_node_comm
+nnode	vm4dfd_v3.f90	/^ integer:: iwrt,nnode(/;"	v	program:vm4dfd_v3
+nodexyz	vm4dfd_v3.f90	/^ integer, allocatable, dimension(:,:):: nodexyz$/;"	v	module:vmodel_inp
+nof	vm4dfd_v3.f90	/^ integer:: i,ix,jy,kz,ncx,ncy,ncz,modlx,modly,ncount,nof,/;"	v	program:vm4dfd_v3
+normalize	disfd_sub.f90	/^subroutine normalize(/;"	s
+np_x	disfd_comm.f90	/^ integer:: nprc1,np_x,/;"	v	module:boundMpi_comm
+np_y	disfd_comm.f90	/^ integer:: nprc1,np_x,np_y,/;"	v	module:boundMpi_comm
+npat_x	disfd_comm.f90	/^ integer, allocatable, dimension(:):: npat_x,/;"	v	module:boundMpi_comm
+npat_y	disfd_comm.f90	/^ integer, allocatable, dimension(:):: npat_x,npat_y$/;"	v	module:boundMpi_comm
+nprc1	disfd_comm.f90	/^ integer:: nprc1,/;"	v	module:boundMpi_comm
+nproc	disfd_comm.f90	/^ integer :: nproc,/;"	v	module:comput_input_param
+nproc_world	disfd.f90	/^ integer:: nproc_world,/;"	v	program:disfd
+nproc_x	disfd_comm.f90	/^ integer :: num_src_model,nproc_x,/;"	v	module:comput_input_param
+nproc_y	disfd_comm.f90	/^ integer :: num_src_model,nproc_x,nproc_y,/;"	v	module:comput_input_param
+npt	read_dfd.f90	/^ integer:: id_format,isrc,kf,ks,nch1,nch2,npt,/;"	v	program:read_dfd
+npt_fd	disfd_comm.f90	/^ integer :: num_src_model,nproc_x,nproc_y,intprt,npt_fd,/;"	v	module:comput_input_param
+npt_out	disfd_comm.f90	/^ integer :: num_src_model,nproc_x,nproc_y,intprt,npt_fd,npt_out,/;"	v	module:comput_input_param
+npts	sac.h	/^  int	npts;			\/* RF number of samples      *\/$/;"	m	struct:sac_head
+nr3	read_dfd.f90	/^ integer:: id_format,isrc,kf,ks,nch1,nch2,npt,nt_new,nr3,/;"	v	program:read_dfd
+nr_all	disfd_comm.f90	/^ integer :: num_src_model,nproc_x,nproc_y,intprt,npt_fd,npt_out,&$/;"	v	module:comput_input_param
+nr_all	read_dfd.f90	/^ integer:: num_src_model,num_fout,recv_type,nr_all,/;"	v	program:read_dfd
+nr_inp	read_dfd.f90	/^ integer:: num_src_model,num_fout,recv_type,nr_all,nr_inp$/;"	v	program:read_dfd
+nrbx	read_dfd.f90	/^ integer:: nblock,nrbx,/;"	v	program:read_dfd
+nrby	read_dfd.f90	/^ integer:: nblock,nrbx,nrby,/;"	v	program:read_dfd
+nrbz	read_dfd.f90	/^ integer:: nblock,nrbx,nrby,nrbz,/;"	v	program:read_dfd
+nrecs	disfd_comm.f90	/^ integer:: nrecs,/;"	v	module:station_comm
+nrxyz	disfd_comm.f90	/^ integer, allocatable, dimension(:,:):: ipox,ipoy,ipoz,nrxyz$/;"	v	module:station_comm
+nrxyz_all	read_dfd.f90	/^ integer,allocatable, dimension(:,:,:):: nrxyz_all$/;"	v	program:read_dfd
+nt0	read_dfd.f90	/^ integer:: nblock,nrbx,nrby,nrbz,iblk,nt0,/;"	v	program:read_dfd
+nt_new	read_dfd.f90	/^ integer:: id_format,isrc,kf,ks,nch1,nch2,npt,nt_new,/;"	v	program:read_dfd
+ntyp_order	vm4dfd_v3.f90	/^ integer, allocatable, dimension(:):: ntyp_order$/;"	v	module:fd_model_comm
+ntype	vm4dfd_v3.f90	/^ integer:: ntype,/;"	v	module:fd_model_comm
+num_dimensions	disfd_comm.f90	/^        integer :: num_dimensions$/;"	k	type:Array_Info
+num_file	vm4dfd_v3.f90	/^ integer:: num_file,/;"	v	module:vmodel_inp
+num_fout	disfd_comm.f90	/^            nr_all,ndata,num_fout$/;"	v	module:comput_input_param
+num_fout	read_dfd.f90	/^ integer:: num_src_model,num_fout,/;"	v	program:read_dfd
+num_src_model	disfd_comm.f90	/^ integer :: num_src_model,/;"	v	module:comput_input_param
+num_src_model	read_dfd.f90	/^ integer:: num_src_model,/;"	v	program:read_dfd
+nwrt	vm4dfd_v3.f90	/^ integer, parameter:: nwrt=/;"	v	program:vm4dfd_v3
+nx1p1	disfd_comm.f90	/^ integer(c_int), target :: nxtm1,nytm1,nztm1,nxbm1,nybm1,nzbm1,nx1p1,/;"	v	module:grid_node_comm
+nx1p2	disfd_comm.f90	/^ integer(c_int), target :: nxtm1,nytm1,nztm1,nxbm1,nybm1,nzbm1,nx1p1,nx1p2,/;"	v	module:grid_node_comm
+nx2_all	disfd_comm.f90	/^ integer:: nprc1,np_x,np_y,myid_x,myid_y,nx2_all,/;"	v	module:boundMpi_comm
+nx2p1	disfd_comm.f90	/^           ny1p1,ny1p2,nx2p1,/;"	v	module:grid_node_comm
+nx2p2	disfd_comm.f90	/^           ny1p1,ny1p2,nx2p1,nx2p2,/;"	v	module:grid_node_comm
+nx_fd	vm4dfd_v3.f90	/^ integer :: nx_fd,/;"	v	module:grid_sp_num
+nx_fd0	vm4dfd_v3.f90	/^ integer:: nx_fd0,/;"	v	module:grid_sp_num
+nx_vm	vm4dfd_v3.f90	/^ integer:: num_file,nx_vm,/;"	v	module:vmodel_inp
+nxb1	disfd_comm.f90	/^           ny1p1,ny1p2,nx2p1,nx2p2,ny2p1,ny2p2,nxb1,/;"	v	module:grid_node_comm
+nxb2	disfd_comm.f90	/^           ny1p1,ny1p2,nx2p1,nx2p2,ny2p1,ny2p2,nxb1,nyb1,nxb2,/;"	v	module:grid_node_comm
+nxbm1	disfd_comm.f90	/^ integer(c_int), target :: nxtm1,nytm1,nztm1,nxbm1,/;"	v	module:grid_node_comm
+nxbtm	disfd_comm.f90	/^ integer(c_int), target :: nxbtm,/;"	v	module:grid_node_comm
+nxtm1	disfd_comm.f90	/^ integer(c_int), target :: nxtm1,/;"	v	module:grid_node_comm
+nxtop	disfd_comm.f90	/^ integer(c_int), target :: nxbtm,nybtm,nzbtm,nxtop,/;"	v	module:grid_node_comm
+nxvy	disfd_comm.f90	/^ integer:: nyvx,nyvx1,nxvy,/;"	v	module:itface_comm
+nxvy1	disfd_comm.f90	/^ integer:: nyvx,nyvx1,nxvy,nxvy1,/;"	v	module:itface_comm
+nxyabc	disfd_comm.f90	/^ integer, dimension(16):: nxyabc$/;"	v	module:grid_node_comm
+ny1p1	disfd_comm.f90	/^ integer(c_int), target :: nxtm1,nytm1,nztm1,nxbm1,nybm1,nzbm1,nx1p1,nx1p2,nz1p1, &$/;"	v	module:grid_node_comm
+ny1p2	disfd_comm.f90	/^           ny1p1,ny1p2,/;"	v	module:grid_node_comm
+ny2_all	disfd_comm.f90	/^ integer:: nprc1,np_x,np_y,myid_x,myid_y,nx2_all,ny2_all$/;"	v	module:boundMpi_comm
+ny2p1	disfd_comm.f90	/^           ny1p1,ny1p2,nx2p1,nx2p2,ny2p1,/;"	v	module:grid_node_comm
+ny2p2	disfd_comm.f90	/^           ny1p1,ny1p2,nx2p1,nx2p2,ny2p1,ny2p2,/;"	v	module:grid_node_comm
+ny_fd	vm4dfd_v3.f90	/^ integer :: nx_fd,ny_fd,/;"	v	module:grid_sp_num
+ny_fd0	vm4dfd_v3.f90	/^ integer:: nx_fd0,ny_fd0,/;"	v	module:grid_sp_num
+ny_vm	vm4dfd_v3.f90	/^ integer:: num_file,nx_vm,ny_vm,/;"	v	module:vmodel_inp
+nyb1	disfd_comm.f90	/^           ny1p1,ny1p2,nx2p1,nx2p2,ny2p1,ny2p2,nxb1,nyb1,/;"	v	module:grid_node_comm
+nyb2	disfd_comm.f90	/^           ny1p1,ny1p2,nx2p1,nx2p2,ny2p1,ny2p2,nxb1,nyb1,nxb2,nyb2$/;"	v	module:grid_node_comm
+nybm1	disfd_comm.f90	/^ integer(c_int), target :: nxtm1,nytm1,nztm1,nxbm1,nybm1,/;"	v	module:grid_node_comm
+nybtm	disfd_comm.f90	/^ integer(c_int), target :: nxbtm,nybtm,/;"	v	module:grid_node_comm
+nytm1	disfd_comm.f90	/^ integer(c_int), target :: nxtm1,nytm1,/;"	v	module:grid_node_comm
+nytop	disfd_comm.f90	/^ integer(c_int), target :: nxbtm,nybtm,nzbtm,nxtop,nytop,/;"	v	module:grid_node_comm
+nyvx	disfd_comm.f90	/^ integer:: nyvx,/;"	v	module:itface_comm
+nyvx1	disfd_comm.f90	/^ integer:: nyvx,nyvx1,/;"	v	module:itface_comm
+nz1_fd	vm4dfd_v3.f90	/^ integer:: nx_fd0,ny_fd0,nz_fd0,nz1_fd,/;"	v	module:grid_sp_num
+nz1p1	disfd_comm.f90	/^ integer(c_int), target :: nxtm1,nytm1,nztm1,nxbm1,nybm1,nzbm1,nx1p1,nx1p2,nz1p1,/;"	v	module:grid_node_comm
+nz2_fd	vm4dfd_v3.f90	/^ integer:: nx_fd0,ny_fd0,nz_fd0,nz1_fd,nz2_fd$/;"	v	module:grid_sp_num
+nz_fd	vm4dfd_v3.f90	/^ integer :: nx_fd,ny_fd,nz_fd$/;"	v	module:grid_sp_num
+nz_fd0	vm4dfd_v3.f90	/^ integer:: nx_fd0,ny_fd0,nz_fd0,/;"	v	module:grid_sp_num
+nz_vm	vm4dfd_v3.f90	/^ integer:: num_file,nx_vm,ny_vm,nz_vm,/;"	v	module:vmodel_inp
+nzbm1	disfd_comm.f90	/^ integer(c_int), target :: nxtm1,nytm1,nztm1,nxbm1,nybm1,nzbm1,/;"	v	module:grid_node_comm
+nzbtm	disfd_comm.f90	/^ integer(c_int), target :: nxbtm,nybtm,nzbtm,/;"	v	module:grid_node_comm
+nzhour	sac.h	/^  int	nzhour;			\/*  F zero time of file, hr  *\/$/;"	m	struct:sac_head
+nzjday	sac.h	/^  int	nzjday;			\/*  F zero time of file, day *\/$/;"	m	struct:sac_head
+nzmin	sac.h	/^  int	nzmin;			\/*  F zero time of file, min *\/$/;"	m	struct:sac_head
+nzmsec	sac.h	/^  int	nzmsec;			\/*  F zero time of file, msec*\/$/;"	m	struct:sac_head
+nzrg1	disfd_comm.f90	/^ integer, dimension(4):: nzrg1,/;"	v	module:grid_node_comm
+nzsec	sac.h	/^  int	nzsec;			\/*  F zero time of file, sec *\/$/;"	m	struct:sac_head
+nztm1	disfd_comm.f90	/^ integer(c_int), target :: nxtm1,nytm1,nztm1,/;"	v	module:grid_node_comm
+nztol	disfd_comm.f90	/^ integer(c_int), target :: nxbtm,nybtm,nzbtm,nxtop,nytop,nztop,nztol$/;"	v	module:grid_node_comm
+nztop	disfd_comm.f90	/^ integer(c_int), target :: nxbtm,nybtm,nzbtm,nxtop,nytop,nztop,/;"	v	module:grid_node_comm
+nzyear	sac.h	/^  int	nzyear;			\/*  F zero time of file, yr  *\/$/;"	m	struct:sac_head
+o	sac.h	/^  float	o;			\/*    event start            *\/$/;"	m	struct:sac_head
+odelta	sac.h	/^  float	odelta;			\/*    observed time inc      *\/$/;"	m	struct:sac_head
+offset	mpiacc_wrappers.h	/^        integer(c_int), intent(in), value :: offset, n, dest, tag$/;"	m	class:value
+offset	mpiacc_wrappers.h	/^        integer(c_int), intent(in), value :: offset, n, src, tag$/;"	m	class:value
+onceTime	disfd_sub_opencl.c	/^float onceTime;$/;"	v
+onceTime2	disfd_sub_opencl.c	/^float onceTime2;$/;"	v
+operator_diff	disfd_sub.f90	/^subroutine operator_diff(/;"	s
+order_imsr	disfd_comm.f90	/^ integer:: nyvx,nyvx1,nxvy,nxvy1,order_imsr,/;"	v	module:itface_comm
+output3	read_dfd.f90	/^subroutine output3(/;"	s
+output_1	disfd_sub.f90	/^subroutine output_1(/;"	s
+output_2	disfd_sub.f90	/^subroutine output_2(/;"	s
+p	vm4dfd_v3.f90	/^   Type/;"	k	type:xyz_list
+papi_accum_all_events	papi_interface.c	/^void papi_accum_all_events()$/;"	f
+papi_event_set	papi_interface.c	/^static int papi_event_set = PAPI_NULL;$/;"	v	file:
+papi_events	papi_interface.c	/^static int papi_events[MAX_PAPI_EVENTS] = {$/;"	v	file:
+papi_get_counter_val	papi_interface.c	/^long long papi_get_counter_val(int event_id)$/;"	f
+papi_handle_error	papi_interface.c	/^void papi_handle_error(int retval) {$/;"	f
+papi_init	papi_interface.c	/^void papi_init()$/;"	f
+papi_print_all_events	papi_interface.c	/^void papi_print_all_events()$/;"	f
+papi_reset_all_events	papi_interface.c	/^void papi_reset_all_events()$/;"	f
+papi_start_all_events	papi_interface.c	/^void papi_start_all_events()$/;"	f
+papi_stop_all_events	papi_interface.c	/^void papi_stop_all_events()$/;"	f
+papi_values	papi_interface.c	/^static long long papi_values[MAX_PAPI_EVENTS] = {0};$/;"	v	file:
+partition	disfd_sub.f90	/^subroutine partition(/;"	s
+pid_imr	disfd_comm.f90	/^ integer:: nyvx,nyvx1,nxvy,nxvy1,order_imsr,pid_ims,pid_imr$/;"	v	module:itface_comm
+pid_ims	disfd_comm.f90	/^ integer:: nyvx,nyvx1,nxvy,nxvy1,order_imsr,pid_ims,/;"	v	module:itface_comm
+plane_wave_bd	disfd_comm.f90	/^MODULE plane_wave_bd /;"	m
+pointer_remapping	disfd_comm.f90	/^MODULE pointer_remapping$/;"	m
+pre_abc	disfd_sub.f90	/^subroutine pre_abc$/;"	s
+procID	disfd_sub_opencl.c	/^int procID;$/;"	v
+qply	vm4dfd_v3.f90	/^                                       rholy,qply,/;"	v	module:fd_model_comm
+qpmd	vm4dfd_v3.f90	/^ real, allocatable, dimension(:,:):: gdsp_vm,rbkmd,rmumd,roth,qpmd,/;"	v	module:vmodel_inp
+qpmin	vm4dfd_v3.f90	/^ real:: vpmin,vsmin,rohmin,qpmin,/;"	v	module:vmodel_inp
+qpmn1	vm4dfd_v3.f90	/^ real:: vpmx1,vpmn1,vsmx1,vsmn1,rhmx1,rhmn1,qpmx1,qpmn1,/;"	v	program:vm4dfd_v3
+qpmx1	vm4dfd_v3.f90	/^ real:: vpmx1,vpmn1,vsmx1,vsmn1,rhmx1,rhmn1,qpmx1,/;"	v	program:vm4dfd_v3
+qqmax	vm4dfd_v3.f90	/^ real:: vpmin,vsmin,rohmin,qpmin,qsmin,qqmax$/;"	v	module:vmodel_inp
+qsly	vm4dfd_v3.f90	/^                                       rholy,qply,qsly$/;"	v	module:fd_model_comm
+qsmd	vm4dfd_v3.f90	/^ real, allocatable, dimension(:,:):: gdsp_vm,rbkmd,rmumd,roth,qpmd,qsmd$/;"	v	module:vmodel_inp
+qsmin	vm4dfd_v3.f90	/^ real:: vpmin,vsmin,rohmin,qpmin,qsmin,/;"	v	module:vmodel_inp
+qsmn1	vm4dfd_v3.f90	/^ real:: vpmx1,vpmn1,vsmx1,vsmn1,rhmx1,rhmn1,qpmx1,qpmn1,qsmx1,qsmn1$/;"	v	program:vm4dfd_v3
+qsmx1	vm4dfd_v3.f90	/^ real:: vpmx1,vpmn1,vsmx1,vsmn1,rhmx1,rhmn1,qpmx1,qpmn1,qsmx1,/;"	v	program:vm4dfd_v3
+qt1xx	disfd_comm.f90	/^ real(c_float), pointer, dimension(:,:,:):: qt1xx,/;"	v	module:wave_field_comm
+qt1xx	disfd_macros.h	59;"	d
+qt1xx	disfd_sub.c	69;"	d	file:
+qt1xxD	disfd_sub_opencl.c	/^static cl_mem qt1xxD;$/;"	v	file:
+qt1xx_px	disfd_comm.f90	/^ real(c_float), pointer, dimension(:,:,:):: qt1xx_px,/;"	v	module:wave_field_comm
+qt1xx_px	disfd_macros.h	43;"	d
+qt1xx_px	disfd_sub.c	53;"	d	file:
+qt1xx_pxD	disfd_sub_opencl.c	/^static cl_mem qt1xx_pxD;$/;"	v	file:
+qt1xx_py	disfd_comm.f90	/^ real(c_float), pointer, dimension(:,:,:):: qt1xx_py,/;"	v	module:wave_field_comm
+qt1xx_py	disfd_macros.h	54;"	d
+qt1xx_py	disfd_sub.c	64;"	d	file:
+qt1xx_pyD	disfd_sub_opencl.c	/^static cl_mem qt1xx_pyD;$/;"	v	file:
+qt1xy	disfd_comm.f90	/^ real(c_float), pointer, dimension(:,:,:):: qt1xx,qt1xy,/;"	v	module:wave_field_comm
+qt1xy	disfd_macros.h	60;"	d
+qt1xy	disfd_sub.c	70;"	d	file:
+qt1xyD	disfd_sub_opencl.c	/^static cl_mem qt1xyD;$/;"	v	file:
+qt1xy_px	disfd_comm.f90	/^ real(c_float), pointer, dimension(:,:,:):: qt1xx_px,qt1yy_px,qt1xy_px,/;"	v	module:wave_field_comm
+qt1xy_px	disfd_macros.h	44;"	d
+qt1xy_px	disfd_sub.c	54;"	d	file:
+qt1xy_pxD	disfd_sub_opencl.c	/^static cl_mem qt1xy_pxD;$/;"	v	file:
+qt1xy_py	disfd_comm.f90	/^ real(c_float), pointer, dimension(:,:,:):: qt1xx_py,qt1yy_py,qt1xy_py,/;"	v	module:wave_field_comm
+qt1xy_py	disfd_macros.h	55;"	d
+qt1xy_py	disfd_sub.c	65;"	d	file:
+qt1xy_pyD	disfd_sub_opencl.c	/^static cl_mem qt1xy_pyD;$/;"	v	file:
+qt1xz	disfd_comm.f90	/^ real(c_float), pointer, dimension(:,:,:):: qt1xx,qt1xy,qt1xz,/;"	v	module:wave_field_comm
+qt1xz	disfd_macros.h	61;"	d
+qt1xz	disfd_sub.c	71;"	d	file:
+qt1xzD	disfd_sub_opencl.c	/^static cl_mem qt1xzD;$/;"	v	file:
+qt1xz_px	disfd_comm.f90	/^ real(c_float), pointer, dimension(:,:,:):: qt1xx_px,qt1yy_px,qt1xy_px,qt1xz_px,/;"	v	module:wave_field_comm
+qt1xz_px	disfd_macros.h	45;"	d
+qt1xz_px	disfd_sub.c	55;"	d	file:
+qt1xz_pxD	disfd_sub_opencl.c	/^static cl_mem qt1xz_pxD;$/;"	v	file:
+qt1yy	disfd_comm.f90	/^ real(c_float), pointer, dimension(:,:,:):: qt1xx,qt1xy,qt1xz,qt1yy,/;"	v	module:wave_field_comm
+qt1yy	disfd_macros.h	62;"	d
+qt1yy	disfd_sub.c	72;"	d	file:
+qt1yyD	disfd_sub_opencl.c	/^static cl_mem qt1yyD;$/;"	v	file:
+qt1yy_px	disfd_comm.f90	/^ real(c_float), pointer, dimension(:,:,:):: qt1xx_px,qt1yy_px,/;"	v	module:wave_field_comm
+qt1yy_px	disfd_macros.h	46;"	d
+qt1yy_px	disfd_sub.c	56;"	d	file:
+qt1yy_pxD	disfd_sub_opencl.c	/^static cl_mem qt1yy_pxD;$/;"	v	file:
+qt1yy_py	disfd_comm.f90	/^ real(c_float), pointer, dimension(:,:,:):: qt1xx_py,qt1yy_py,/;"	v	module:wave_field_comm
+qt1yy_py	disfd_macros.h	56;"	d
+qt1yy_py	disfd_sub.c	66;"	d	file:
+qt1yy_pyD	disfd_sub_opencl.c	/^static cl_mem qt1yy_pyD;$/;"	v	file:
+qt1yz	disfd_comm.f90	/^ real(c_float), pointer, dimension(:,:,:):: qt1xx,qt1xy,qt1xz,qt1yy,qt1yz,/;"	v	module:wave_field_comm
+qt1yz	disfd_macros.h	63;"	d
+qt1yz	disfd_sub.c	73;"	d	file:
+qt1yzD	disfd_sub_opencl.c	/^static cl_mem qt1yzD;$/;"	v	file:
+qt1yz_py	disfd_comm.f90	/^ real(c_float), pointer, dimension(:,:,:):: qt1xx_py,qt1yy_py,qt1xy_py,qt1yz_py,/;"	v	module:wave_field_comm
+qt1yz_py	disfd_macros.h	57;"	d
+qt1yz_py	disfd_sub.c	67;"	d	file:
+qt1yz_pyD	disfd_sub_opencl.c	/^static cl_mem qt1yz_pyD;$/;"	v	file:
+qt1zz	disfd_comm.f90	/^ real(c_float), pointer, dimension(:,:,:):: qt1xx,qt1xy,qt1xz,qt1yy,qt1yz,qt1zz$/;"	v	module:wave_field_comm
+qt1zz	disfd_macros.h	64;"	d
+qt1zz	disfd_sub.c	74;"	d	file:
+qt1zzD	disfd_sub_opencl.c	/^static cl_mem qt1zzD;$/;"	v	file:
+qt2xx	disfd_comm.f90	/^ real(c_float), pointer, dimension(:,:,:):: qt2xx,/;"	v	module:wave_field_comm
+qt2xx	disfd_macros.h	100;"	d
+qt2xx	disfd_sub.c	110;"	d	file:
+qt2xxD	disfd_sub_opencl.c	/^static cl_mem qt2xxD;$/;"	v	file:
+qt2xx_px	disfd_comm.f90	/^ real(c_float), pointer, dimension(:,:,:):: qt1xx_px,qt1yy_px,qt1xy_px,qt1xz_px, &$/;"	v	module:wave_field_comm
+qt2xx_px	disfd_macros.h	124;"	d
+qt2xx_px	disfd_sub.c	134;"	d	file:
+qt2xx_pxD	disfd_sub_opencl.c	/^static cl_mem qt2xx_pxD;$/;"	v	file:
+qt2xx_py	disfd_comm.f90	/^ real(c_float), pointer, dimension(:,:,:):: qt1xx_py,qt1yy_py,qt1xy_py,qt1yz_py, &$/;"	v	module:wave_field_comm
+qt2xx_py	disfd_macros.h	129;"	d
+qt2xx_py	disfd_sub.c	139;"	d	file:
+qt2xx_pyD	disfd_sub_opencl.c	/^static cl_mem qt2xx_pyD;$/;"	v	file:
+qt2xx_pz	disfd_comm.f90	/^ real(c_float), pointer, dimension(:,:,:):: qt2xx_pz,/;"	v	module:wave_field_comm
+qt2xx_pz	disfd_macros.h	134;"	d
+qt2xx_pz	disfd_sub.c	144;"	d	file:
+qt2xx_pzD	disfd_sub_opencl.c	/^static cl_mem qt2xx_pzD;$/;"	v	file:
+qt2xy	disfd_comm.f90	/^ real(c_float), pointer, dimension(:,:,:):: qt2xx,qt2xy,/;"	v	module:wave_field_comm
+qt2xy	disfd_macros.h	101;"	d
+qt2xy	disfd_sub.c	111;"	d	file:
+qt2xyD	disfd_sub_opencl.c	/^static cl_mem qt2xyD;$/;"	v	file:
+qt2xy_px	disfd_comm.f90	/^                                       qt2xx_px,qt2yy_px,qt2xy_px,/;"	v	module:wave_field_comm
+qt2xy_px	disfd_macros.h	125;"	d
+qt2xy_px	disfd_sub.c	135;"	d	file:
+qt2xy_pxD	disfd_sub_opencl.c	/^static cl_mem qt2xy_pxD;$/;"	v	file:
+qt2xy_py	disfd_comm.f90	/^                                       qt2xx_py,qt2yy_py,qt2xy_py,/;"	v	module:wave_field_comm
+qt2xy_py	disfd_macros.h	130;"	d
+qt2xy_py	disfd_sub.c	140;"	d	file:
+qt2xy_pyD	disfd_sub_opencl.c	/^static cl_mem qt2xy_pyD;$/;"	v	file:
+qt2xz	disfd_comm.f90	/^ real(c_float), pointer, dimension(:,:,:):: qt2xx,qt2xy,qt2xz,/;"	v	module:wave_field_comm
+qt2xz	disfd_macros.h	102;"	d
+qt2xz	disfd_sub.c	112;"	d	file:
+qt2xzD	disfd_sub_opencl.c	/^static cl_mem qt2xzD;$/;"	v	file:
+qt2xz_px	disfd_comm.f90	/^                                       qt2xx_px,qt2yy_px,qt2xy_px,qt2xz_px$/;"	v	module:wave_field_comm
+qt2xz_px	disfd_macros.h	126;"	d
+qt2xz_px	disfd_sub.c	136;"	d	file:
+qt2xz_pxD	disfd_sub_opencl.c	/^static cl_mem qt2xz_pxD;$/;"	v	file:
+qt2xz_pz	disfd_comm.f90	/^ real(c_float), pointer, dimension(:,:,:):: qt2xx_pz,qt2zz_pz,qt2xz_pz,/;"	v	module:wave_field_comm
+qt2xz_pz	disfd_macros.h	135;"	d
+qt2xz_pz	disfd_sub.c	145;"	d	file:
+qt2xz_pzD	disfd_sub_opencl.c	/^static cl_mem qt2xz_pzD;$/;"	v	file:
+qt2yy	disfd_comm.f90	/^ real(c_float), pointer, dimension(:,:,:):: qt2xx,qt2xy,qt2xz,qt2yy,/;"	v	module:wave_field_comm
+qt2yy	disfd_macros.h	103;"	d
+qt2yy	disfd_sub.c	113;"	d	file:
+qt2yyD	disfd_sub_opencl.c	/^static cl_mem qt2yyD;$/;"	v	file:
+qt2yy_px	disfd_comm.f90	/^                                       qt2xx_px,qt2yy_px,/;"	v	module:wave_field_comm
+qt2yy_px	disfd_macros.h	127;"	d
+qt2yy_px	disfd_sub.c	137;"	d	file:
+qt2yy_pxD	disfd_sub_opencl.c	/^static cl_mem qt2yy_pxD;$/;"	v	file:
+qt2yy_py	disfd_comm.f90	/^                                       qt2xx_py,qt2yy_py,/;"	v	module:wave_field_comm
+qt2yy_py	disfd_macros.h	131;"	d
+qt2yy_py	disfd_sub.c	141;"	d	file:
+qt2yy_pyD	disfd_sub_opencl.c	/^static cl_mem qt2yy_pyD;$/;"	v	file:
+qt2yz	disfd_comm.f90	/^ real(c_float), pointer, dimension(:,:,:):: qt2xx,qt2xy,qt2xz,qt2yy,qt2yz,/;"	v	module:wave_field_comm
+qt2yz	disfd_macros.h	104;"	d
+qt2yz	disfd_sub.c	114;"	d	file:
+qt2yzD	disfd_sub_opencl.c	/^static cl_mem qt2yzD;$/;"	v	file:
+qt2yz_py	disfd_comm.f90	/^                                       qt2xx_py,qt2yy_py,qt2xy_py,qt2yz_py$/;"	v	module:wave_field_comm
+qt2yz_py	disfd_macros.h	132;"	d
+qt2yz_py	disfd_sub.c	142;"	d	file:
+qt2yz_pyD	disfd_sub_opencl.c	/^static cl_mem qt2yz_pyD;$/;"	v	file:
+qt2yz_pz	disfd_comm.f90	/^ real(c_float), pointer, dimension(:,:,:):: qt2xx_pz,qt2zz_pz,qt2xz_pz,qt2yz_pz$/;"	v	module:wave_field_comm
+qt2yz_pz	disfd_macros.h	136;"	d
+qt2yz_pz	disfd_sub.c	146;"	d	file:
+qt2yz_pzD	disfd_sub_opencl.c	/^static cl_mem qt2yz_pzD;$/;"	v	file:
+qt2zz	disfd_comm.f90	/^ real(c_float), pointer, dimension(:,:,:):: qt2xx,qt2xy,qt2xz,qt2yy,qt2yz,qt2zz$/;"	v	module:wave_field_comm
+qt2zz	disfd_macros.h	105;"	d
+qt2zz	disfd_sub.c	115;"	d	file:
+qt2zzD	disfd_sub_opencl.c	/^static cl_mem qt2zzD;$/;"	v	file:
+qt2zz_pz	disfd_comm.f90	/^ real(c_float), pointer, dimension(:,:,:):: qt2xx_pz,qt2zz_pz,/;"	v	module:wave_field_comm
+qt2zz_pz	disfd_macros.h	137;"	d
+qt2zz_pz	disfd_sub.c	147;"	d	file:
+qt2zz_pzD	disfd_sub_opencl.c	/^static cl_mem qt2zz_pzD;$/;"	v	file:
+qwp	disfd_comm.f90	/^ real(c_float), pointer, dimension(:) :: rho,clamda,cmu,qwp,/;"	v	module:grid_node_comm
+qwp	disfd_macros.h	70;"	d
+qwp	disfd_sub.c	80;"	d	file:
+qwpD	disfd_sub_opencl.c	/^static cl_mem qwpD;$/;"	v	file:
+qws	disfd_comm.f90	/^ real(c_float), pointer, dimension(:) :: rho,clamda,cmu,qwp,qws,/;"	v	module:grid_node_comm
+qws	disfd_macros.h	71;"	d
+qws	disfd_sub.c	81;"	d	file:
+qwsD	disfd_sub_opencl.c	/^static cl_mem qwsD;$/;"	v	file:
+qwt1	disfd_comm.f90	/^ real(c_float), pointer, dimension(:) :: rho,clamda,cmu,qwp,qws,epdt,qwt1,/;"	v	module:grid_node_comm
+qwt1	disfd_macros.h	72;"	d
+qwt1	disfd_sub.c	82;"	d	file:
+qwt1	vm4dfd_v3.f90	/^ real, dimension(nll):: epdt,qwt1,/;"	v	module:fd_model_comm
+qwt1D	disfd_sub_opencl.c	/^static cl_mem qwt1D;$/;"	v	file:
+qwt2	disfd_comm.f90	/^ real(c_float), pointer, dimension(:) :: rho,clamda,cmu,qwp,qws,epdt,qwt1,qwt2$/;"	v	module:grid_node_comm
+qwt2	disfd_macros.h	73;"	d
+qwt2	disfd_sub.c	83;"	d	file:
+qwt2	vm4dfd_v3.f90	/^ real, dimension(nll):: epdt,qwt1,qwt2,/;"	v	module:fd_model_comm
+qwt2D	disfd_sub_opencl.c	/^static cl_mem qwt2D;$/;"	v	file:
+ran1	disfd_comm.f90	/^  function ran1(/;"	f	module:random_initial
+random_initial	disfd_comm.f90	/^MODULE random_initial$/;"	m
+rank	disfd_sub_opencl.c	/^int rank;$/;"	v
+rbkly	vm4dfd_v3.f90	/^ real, allocatable, dimension(:,:,:):: cefxy,rbkly,/;"	v	module:fd_model_comm
+rbkmd	vm4dfd_v3.f90	/^ real, allocatable, dimension(:,:):: gdsp_vm,rbkmd,/;"	v	module:vmodel_inp
+rcx1	disfd_comm.f90	/^real(c_float), allocatable, target, dimension(:):: sdy1,sdy2,sdx1,sdx2,rcy1,rcy2,rcx1,/;"	v	module:itface_comm
+rcx1D	disfd_sub_opencl.c	/^cl_mem rcx1D;$/;"	v
+rcx1D_meta	disfd_sub_opencl.c	/^	rcx1D_meta, rcx2D_meta, rcy1D_meta, rcy2D_meta,$/;"	v	typeref:struct:GPUArray_Metadata
+rcx1_meta	disfd_comm.f90	/^                    sdx1_meta, sdx2_meta, sdy1_meta, sdy2_meta, &$/;"	v	module:metadata
+rcx1_vel	disfd_sub_opencl.c	/^void rcx1_vel(float* rcx1, int* nxtop, int* nytop, int* nxbtm, int* nzbtm, int* ny2p1, int* ny2p2)$/;"	f
+rcx2	disfd_comm.f90	/^real(c_float), allocatable, target, dimension(:):: sdy1,sdy2,sdx1,sdx2,rcy1,rcy2,rcx1,rcx2$/;"	v	module:itface_comm
+rcx2D	disfd_sub_opencl.c	/^cl_mem rcx2D;$/;"	v
+rcx2D_meta	disfd_sub_opencl.c	/^	rcx1D_meta, rcx2D_meta, rcy1D_meta, rcy2D_meta,$/;"	v	typeref:struct:GPUArray_Metadata
+rcx2_meta	disfd_comm.f90	/^                    rcx1_meta, rcx2_meta,/;"	v	module:metadata
+rcx2_vel	disfd_sub_opencl.c	/^void rcx2_vel(float* rcx2, int* nxtop, int* nytop, int* nxbtm, int* nzbtm, int* nx2p1, int* nx2p2, int* ny2p1, int* ny2p2)$/;"	f
+rcx41	disfd_comm.f90	/^ real(c_float), pointer, dimension(:,:,:)::sdx51,sdx41,sdy51,sdy41,rcx51,rcx41,/;"	v	module:wave_field_comm
+rcx41	disfd_macros.h	169;"	d
+rcx41D	disfd_sub_opencl.c	/^cl_mem rcx41D;$/;"	v
+rcx41D_meta	disfd_sub_opencl.c	/^	rcx41D_meta, rcx42D_meta, rcy41D_meta, rcy42D_meta,$/;"	v	typeref:struct:GPUArray_Metadata
+rcx41_meta	disfd_comm.f90	/^                    sdy41_meta, sdy42_meta, sdy51_meta, sdy52_meta, & $/;"	v	module:metadata
+rcx41_stress	disfd_sub_opencl.c	/^void rcx41_stress (float** rcx41, int* nxtop, int* nytop, int* nztop, int* nx1p1, int* nx1p2) {$/;"	f
+rcx41_vel	disfd_sub_opencl.c	/^void rcx41_vel (float** rcx41, int* nxtop, int* nytop, int* nztop) {$/;"	f
+rcx42	disfd_comm.f90	/^                                       sdy42,rcx52,rcx42,/;"	v	module:wave_field_comm
+rcx42	disfd_macros.h	170;"	d
+rcx42D	disfd_sub_opencl.c	/^cl_mem rcx42D;$/;"	v
+rcx42D_meta	disfd_sub_opencl.c	/^	rcx41D_meta, rcx42D_meta, rcy41D_meta, rcy42D_meta,$/;"	v	typeref:struct:GPUArray_Metadata
+rcx42_meta	disfd_comm.f90	/^                    rcx41_meta, rcx42_meta,/;"	v	module:metadata
+rcx42_stress	disfd_sub_opencl.c	/^void rcx42_stress (float** rcx42, int* nxbtm, int* nybtm, int* nzbtm, int* nx2p1, int* nx2p2) {$/;"	f
+rcx42_vel	disfd_sub_opencl.c	/^void rcx42_vel (float** rcx42, int* nxbtm, int* nybtm, int* nzbtm) { $/;"	f
+rcx51	disfd_comm.f90	/^ real(c_float), pointer, dimension(:,:,:)::sdx51,sdx41,sdy51,sdy41,rcx51,/;"	v	module:wave_field_comm
+rcx51	disfd_macros.h	167;"	d
+rcx51D	disfd_sub_opencl.c	/^cl_mem rcx51D;$/;"	v
+rcx51D_meta	disfd_sub_opencl.c	/^	rcx51D_meta, rcx52D_meta, rcy51D_meta, rcy52D_meta;$/;"	v	typeref:struct:GPUArray_Metadata
+rcx51_meta	disfd_comm.f90	/^                    rcx41_meta, rcx42_meta, rcx51_meta,/;"	v	module:metadata
+rcx51_stress	disfd_sub_opencl.c	/^void rcx51_stress (float** rcx51, int* nxtop, int* nytop, int* nztop) {$/;"	f
+rcx51_vel	disfd_sub_opencl.c	/^void rcx51_vel (float** rcx51, int* nxtop, int* nytop, int* nztop, int* nx1p1, int* nx1p2) {$/;"	f
+rcx52	disfd_comm.f90	/^                                       sdy42,rcx52,/;"	v	module:wave_field_comm
+rcx52	disfd_macros.h	168;"	d
+rcx52D	disfd_sub_opencl.c	/^cl_mem rcx52D;$/;"	v
+rcx52D_meta	disfd_sub_opencl.c	/^	rcx51D_meta, rcx52D_meta, rcy51D_meta, rcy52D_meta;$/;"	v	typeref:struct:GPUArray_Metadata
+rcx52_meta	disfd_comm.f90	/^                    rcx41_meta, rcx42_meta, rcx51_meta, rcx52_meta,/;"	v	module:metadata
+rcx52_stress	disfd_sub_opencl.c	/^void rcx52_stress (float** rcx52, int* nxbtm, int* nybtm, int* nzbtm) {$/;"	f
+rcx52_vel	disfd_sub_opencl.c	/^void rcx52_vel (float** rcx52, int* nxbtm, int* nybtm, int* nzbtm, int* nx2p1, int* nx2p2) {$/;"	f
+rcy1	disfd_comm.f90	/^real(c_float), allocatable, target, dimension(:):: sdy1,sdy2,sdx1,sdx2,rcy1,/;"	v	module:itface_comm
+rcy1D	disfd_sub_opencl.c	/^cl_mem rcy1D;$/;"	v
+rcy1D_meta	disfd_sub_opencl.c	/^	rcx1D_meta, rcx2D_meta, rcy1D_meta, rcy2D_meta,$/;"	v	typeref:struct:GPUArray_Metadata
+rcy1_meta	disfd_comm.f90	/^                    rcx1_meta, rcx2_meta, rcy1_meta,/;"	v	module:metadata
+rcy1_vel	disfd_sub_opencl.c	/^void rcy1_vel(float* rcy1, int* nxtop, int* nytop, int*nxbtm, int* nzbtm,  int* nx2p1, int* nx2p2)$/;"	f
+rcy2	disfd_comm.f90	/^real(c_float), allocatable, target, dimension(:):: sdy1,sdy2,sdx1,sdx2,rcy1,rcy2,/;"	v	module:itface_comm
+rcy2D	disfd_sub_opencl.c	/^cl_mem rcy2D;$/;"	v
+rcy2D_meta	disfd_sub_opencl.c	/^	rcx1D_meta, rcx2D_meta, rcy1D_meta, rcy2D_meta,$/;"	v	typeref:struct:GPUArray_Metadata
+rcy2_meta	disfd_comm.f90	/^                    rcx1_meta, rcx2_meta, rcy1_meta, rcy2_meta,/;"	v	module:metadata
+rcy2_vel	disfd_sub_opencl.c	/^void rcy2_vel(float* rcy2, int* nxtop, int* nytop, int* nxbtm, int*  nzbtm, int* nx2p1, int* nx2p2, int* ny2p1, int* ny2p2)$/;"	f
+rcy41	disfd_comm.f90	/^                                       rcy51,rcy41,/;"	v	module:wave_field_comm
+rcy41	disfd_macros.h	174;"	d
+rcy41D	disfd_sub_opencl.c	/^cl_mem rcy41D;$/;"	v
+rcy41D_meta	disfd_sub_opencl.c	/^	rcx41D_meta, rcx42D_meta, rcy41D_meta, rcy42D_meta,$/;"	v	typeref:struct:GPUArray_Metadata
+rcy41_meta	disfd_comm.f90	/^                    rcx41_meta, rcx42_meta, rcx51_meta, rcx52_meta, & $/;"	v	module:metadata
+rcy41_stress	disfd_sub_opencl.c	/^void rcy41_stress (float** rcy41, int* nxtop, int* nytop, int* nztop, int* ny1p1, int* ny1p2) {$/;"	f
+rcy41_vel	disfd_sub_opencl.c	/^void rcy41_vel (float** rcy41, int* nxtop, int* nytop, int* nztop) {$/;"	f
+rcy42	disfd_comm.f90	/^                                       sdy42,rcx52,rcx42,rcy52,rcy42$/;"	v	module:wave_field_comm
+rcy42	disfd_macros.h	175;"	d
+rcy42D	disfd_sub_opencl.c	/^cl_mem rcy42D;$/;"	v
+rcy42D_meta	disfd_sub_opencl.c	/^	rcx41D_meta, rcx42D_meta, rcy41D_meta, rcy42D_meta,$/;"	v	typeref:struct:GPUArray_Metadata
+rcy42_meta	disfd_comm.f90	/^                    rcy41_meta, rcy42_meta,/;"	v	module:metadata
+rcy42_stress	disfd_sub_opencl.c	/^void rcy42_stress (float** rcy42, int* nxbtm, int* nybtm, int* nzbtm, int* ny2p1, int* ny2p2) {$/;"	f
+rcy42_vel	disfd_sub_opencl.c	/^void rcy42_vel (float** rcy42, int* nxbtm, int* nybtm, int* nzbtm) { $/;"	f
+rcy51	disfd_comm.f90	/^ real(c_float), pointer, dimension(:,:,:)::sdx51,sdx41,sdy51,sdy41,rcx51,rcx41, &$/;"	v	module:wave_field_comm
+rcy51	disfd_macros.h	172;"	d
+rcy51D	disfd_sub_opencl.c	/^cl_mem rcy51D;$/;"	v
+rcy51D_meta	disfd_sub_opencl.c	/^	rcx51D_meta, rcx52D_meta, rcy51D_meta, rcy52D_meta;$/;"	v	typeref:struct:GPUArray_Metadata
+rcy51_meta	disfd_comm.f90	/^                    rcy41_meta, rcy42_meta, rcy51_meta,/;"	v	module:metadata
+rcy51_stress	disfd_sub_opencl.c	/^void rcy51_stress (float** rcy51, int* nxtop, int* nytop, int* nztop) {$/;"	f
+rcy51_vel	disfd_sub_opencl.c	/^void rcy51_vel (float** rcy51, int* nxtop, int* nytop, int* nztop, int* ny1p1,int* ny1p2) {$/;"	f
+rcy52	disfd_comm.f90	/^                                       sdy42,rcx52,rcx42,rcy52,/;"	v	module:wave_field_comm
+rcy52	disfd_macros.h	173;"	d
+rcy52D	disfd_sub_opencl.c	/^cl_mem rcy52D;$/;"	v
+rcy52D_meta	disfd_sub_opencl.c	/^	rcx51D_meta, rcx52D_meta, rcy51D_meta, rcy52D_meta;$/;"	v	typeref:struct:GPUArray_Metadata
+rcy52_meta	disfd_comm.f90	/^                    rcy41_meta, rcy42_meta, rcy51_meta, rcy52_meta$/;"	v	module:metadata
+rcy52_stress	disfd_sub_opencl.c	/^void rcy52_stress (float** rcy52, int* nxbtm, int* nybtm, int* nzbtm) {$/;"	f
+rcy52_vel	disfd_sub_opencl.c	/^void rcy52_vel (float** rcy52, int* nxbtm, int* nybtm, int* nzbtm, int* ny2p1, int* ny2p2) {$/;"	f
+rdsac0_	sacio.c	/^void rdsac0_(const char *name2, float *dt, int *ns, float *b0, float *ar) {$/;"	f
+re_order	vm4dfd_v3.f90	/^subroutine re_order$/;"	s
+read_dfd	read_dfd.f90	/^Program read_dfd$/;"	p
+read_inp	disfd_sub.f90	/^subroutine read_inp(/;"	s
+read_mvl	disfd_sub.f90	/^subroutine read_mvl(/;"	s
+read_sac	sacio.c	/^float*	read_sac(const char	*name,$/;"	f
+read_sac2	sacio.c	/^float*	read_sac2(const char	*name,$/;"	f
+read_sachead	sacio.c	/^int	read_sachead(const char	*name,$/;"	f
+readvel	vm4dfd_v3.f90	/^subroutine readvel(/;"	s
+receiver_index	disfd_sub.f90	/^subroutine receiver_index(/;"	s
+record_time	timer.c	/^void record_time(double* time) {$/;"	f
+recv_type	disfd_comm.f90	/^ integer:: nrecs,recv_type,/;"	v	module:station_comm
+recv_type	read_dfd.f90	/^ integer:: num_src_model,num_fout,recv_type,/;"	v	program:read_dfd
+relaxt	vm4dfd_v3.f90	/^ real, dimension(nll):: epdt,qwt1,qwt2,relaxt$/;"	v	module:fd_model_comm
+release_cl	disfd_sub_opencl.c	/^void release_cl(int *deviceID) $/;"	f
+relx_wt_coef	vm4dfd_v3.f90	/^subroutine relx_wt_coef(/;"	s
+remapping_interface	disfd_comm.f90	/^MODULE remapping_interface$/;"	m
+resp0	sac.h	/^  float	resp0;			\/*    instrument respnse parm*\/$/;"	m	struct:sac_head
+resp1	sac.h	/^  float	resp1;			\/*    instrument respnse parm*\/$/;"	m	struct:sac_head
+resp2	sac.h	/^  float	resp2;			\/*    instrument respnse parm*\/$/;"	m	struct:sac_head
+resp3	sac.h	/^  float	resp3;			\/*    instrument respnse parm*\/$/;"	m	struct:sac_head
+resp4	sac.h	/^  float	resp4;			\/*    instrument respnse parm*\/$/;"	m	struct:sac_head
+resp5	sac.h	/^  float	resp5;			\/*    instrument respnse parm*\/$/;"	m	struct:sac_head
+resp6	sac.h	/^  float	resp6;			\/*    instrument respnse parm*\/$/;"	m	struct:sac_head
+resp7	sac.h	/^  float	resp7;			\/*    instrument respnse parm*\/$/;"	m	struct:sac_head
+resp8	sac.h	/^  float	resp8;			\/*    instrument respnse parm*\/$/;"	m	struct:sac_head
+resp9	sac.h	/^  float	resp9;			\/*    instrument respnse parm*\/$/;"	m	struct:sac_head
+rhmn1	vm4dfd_v3.f90	/^ real:: vpmx1,vpmn1,vsmx1,vsmn1,rhmx1,rhmn1,/;"	v	program:vm4dfd_v3
+rhmx1	vm4dfd_v3.f90	/^ real:: vpmx1,vpmn1,vsmx1,vsmn1,rhmx1,/;"	v	program:vm4dfd_v3
+rho	disfd_comm.f90	/^ real(c_float), pointer, dimension(:) :: rho,/;"	v	module:grid_node_comm
+rho	disfd_macros.h	66;"	d
+rho	disfd_sub.c	76;"	d	file:
+rhoD	disfd_sub_opencl.c	/^static cl_mem rhoD;$/;"	v	file:
+rholy	vm4dfd_v3.f90	/^ real, allocatable, dimension(:,:,:):: cefxy,rbkly,rmuly, & $/;"	v	module:fd_model_comm
+riset	disfd_comm.f90	/^ real, allocatable, dimension(:):: ruptm,riset,/;"	v	module:source_parm_comm
+risetD	disfd_sub_opencl.c	/^static cl_mem risetD;$/;"	v	file:
+rmuly	vm4dfd_v3.f90	/^ real, allocatable, dimension(:,:,:):: cefxy,rbkly,rmuly,/;"	v	module:fd_model_comm
+rmumd	vm4dfd_v3.f90	/^ real, allocatable, dimension(:,:):: gdsp_vm,rbkmd,rmumd,/;"	v	module:vmodel_inp
+rohmin	vm4dfd_v3.f90	/^ real:: vpmin,vsmin,rohmin,/;"	v	module:vmodel_inp
+roth	vm4dfd_v3.f90	/^ real, allocatable, dimension(:,:):: gdsp_vm,rbkmd,rmumd,roth,/;"	v	module:vmodel_inp
+rsac1_	sacio.c	/^void rsac1_(const char *name2, float *ar, int *ns, float *b0, float *dt, int *nl, int *ier) {$/;"	f
+rtmp	read_dfd.f90	/^ real:: dt,dt_new,rtmp,/;"	v	program:read_dfd
+run_fd_simul	disfd.f90	/^subroutine run_fd_simul(/;"	s
+ruptm	disfd_comm.f90	/^ real, allocatable, dimension(:):: ruptm,/;"	v	module:source_parm_comm
+ruptmD	disfd_sub_opencl.c	/^static cl_mem ruptmD;$/;"	v	file:
+rw_ha_10hz1	vm4dfd_v3.f90	/^subroutine rw_ha_10hz1(/;"	s
+rw_ha_10hz2	vm4dfd_v3.f90	/^subroutine rw_ha_10hz2(/;"	s
+rw_ha_3hz1	vm4dfd_v3.f90	/^subroutine rw_ha_3hz1(/;"	s
+sac_head	sac.h	/^typedef struct sac_head$/;"	s
+sac_null	sac.h	/^static SACHEAD sac_null = {$/;"	v
+sachdr	sacio.c	/^SACHEAD    sachdr( float dt, int ns, float b0)$/;"	f
+scale	sac.h	/^  float	scale;			\/*    amplitude scale factor *\/$/;"	m	struct:sac_head
+sdx1	disfd_comm.f90	/^real(c_float), allocatable, target, dimension(:):: sdy1,sdy2,sdx1,/;"	v	module:itface_comm
+sdx1D	disfd_sub_opencl.c	/^cl_mem sdx1D;$/;"	v
+sdx1D_meta	disfd_sub_opencl.c	/^	sdx1D_meta, sdx2D_meta, sdy1D_meta, sdy2D_meta,$/;"	v	typeref:struct:GPUArray_Metadata
+sdx1_meta	disfd_comm.f90	/^                    t2xx_meta, t2xy_meta, t2xz_meta, t2yy_meta, t2yz_meta, t2zz_meta, &$/;"	v	module:metadata
+sdx1_vel	disfd_sub_opencl.c	/^void sdx1_vel(float* sdx1, int* nxtop, int* nytop, int* nxbtm, int* nzbtm, int* ny2p1, int* ny2p2)$/;"	f
+sdx2	disfd_comm.f90	/^real(c_float), allocatable, target, dimension(:):: sdy1,sdy2,sdx1,sdx2,/;"	v	module:itface_comm
+sdx2D	disfd_sub_opencl.c	/^cl_mem sdx2D;$/;"	v
+sdx2D_meta	disfd_sub_opencl.c	/^	sdx1D_meta, sdx2D_meta, sdy1D_meta, sdy2D_meta,$/;"	v	typeref:struct:GPUArray_Metadata
+sdx2_meta	disfd_comm.f90	/^                    sdx1_meta, sdx2_meta,/;"	v	module:metadata
+sdx2_vel	disfd_sub_opencl.c	/^void sdx2_vel(float* sdx2, int* nxtop, int* nytop, int* nxbm1, int* nxbtm, int* nzbtm, int* ny2p1, int* ny2p2)$/;"	f
+sdx41	disfd_comm.f90	/^ real(c_float), pointer, dimension(:,:,:)::sdx51,sdx41,/;"	v	module:wave_field_comm
+sdx41	disfd_macros.h	159;"	d
+sdx41D	disfd_sub_opencl.c	/^cl_mem sdx41D;$/;"	v
+sdx41D_meta	disfd_sub_opencl.c	/^	sdx41D_meta, sdx42D_meta, sdy41D_meta, sdy42D_meta,$/;"	v	typeref:struct:GPUArray_Metadata
+sdx41_meta	disfd_comm.f90	/^                    rcx1_meta, rcx2_meta, rcy1_meta, rcy2_meta, &$/;"	v	module:metadata
+sdx41_stress	disfd_sub_opencl.c	/^void sdx41_stress (float** sdx41, int* nxtop, int* nytop, int* nztop) {$/;"	f
+sdx41_vel	disfd_sub_opencl.c	/^void sdx41_vel (float** sdx41, int* nxtop, int* nytop, int* nztop, int* nxtm1) {$/;"	f
+sdx42	disfd_comm.f90	/^                                       rcy51,rcy41,sdx52,sdx42,/;"	v	module:wave_field_comm
+sdx42	disfd_macros.h	160;"	d
+sdx42D	disfd_sub_opencl.c	/^cl_mem sdx42D;$/;"	v
+sdx42D_meta	disfd_sub_opencl.c	/^	sdx41D_meta, sdx42D_meta, sdy41D_meta, sdy42D_meta,$/;"	v	typeref:struct:GPUArray_Metadata
+sdx42_meta	disfd_comm.f90	/^                    sdx41_meta, sdx42_meta,/;"	v	module:metadata
+sdx42_stress	disfd_sub_opencl.c	/^void sdx42_stress (float** sdx42, int* nxbtm, int* nybtm, int* nzbtm) {$/;"	f
+sdx42_vel	disfd_sub_opencl.c	/^void sdx42_vel (float** sdx42, int* nxbtm, int* nybtm, int* nzbtm, int* nxbm1){ $/;"	f
+sdx51	disfd_comm.f90	/^ real(c_float), pointer, dimension(:,:,:)::sdx51,/;"	v	module:wave_field_comm
+sdx51	disfd_macros.h	157;"	d
+sdx51D	disfd_sub_opencl.c	/^cl_mem sdx51D;$/;"	v
+sdx51D_meta	disfd_sub_opencl.c	/^	sdx51D_meta, sdx52D_meta, sdy51D_meta, sdy52D_meta,$/;"	v	typeref:struct:GPUArray_Metadata
+sdx51_meta	disfd_comm.f90	/^                    sdx41_meta, sdx42_meta, sdx51_meta,/;"	v	module:metadata
+sdx51_stress	disfd_sub_opencl.c	/^void sdx51_stress (float** sdx51, int* nxtop, int* nytop, int* nztop, int* nxtm1) {$/;"	f
+sdx51_vel	disfd_sub_opencl.c	/^void sdx51_vel (float** sdx51, int* nytop, int* nztop, int* nxtop) {$/;"	f
+sdx52	disfd_comm.f90	/^                                       rcy51,rcy41,sdx52,/;"	v	module:wave_field_comm
+sdx52	disfd_macros.h	158;"	d
+sdx52D	disfd_sub_opencl.c	/^cl_mem sdx52D;$/;"	v
+sdx52D_meta	disfd_sub_opencl.c	/^	sdx51D_meta, sdx52D_meta, sdy51D_meta, sdy52D_meta,$/;"	v	typeref:struct:GPUArray_Metadata
+sdx52_meta	disfd_comm.f90	/^                    sdx41_meta, sdx42_meta, sdx51_meta, sdx52_meta,/;"	v	module:metadata
+sdx52_stress	disfd_sub_opencl.c	/^void sdx52_stress (float** sdx52, int* nxbtm, int* nybtm, int* nzbtm, int* nxbm1) {$/;"	f
+sdx52_vel	disfd_sub_opencl.c	/^void sdx52_vel (float** sdx52, int* nybtm, int* nzbtm, int* nxbtm) {$/;"	f
+sdy1	disfd_comm.f90	/^real(c_float), allocatable, target, dimension(:):: sdy1,/;"	v	module:itface_comm
+sdy1D	disfd_sub_opencl.c	/^cl_mem sdy1D;$/;"	v
+sdy1D_meta	disfd_sub_opencl.c	/^	sdx1D_meta, sdx2D_meta, sdy1D_meta, sdy2D_meta,$/;"	v	typeref:struct:GPUArray_Metadata
+sdy1_meta	disfd_comm.f90	/^                    sdx1_meta, sdx2_meta, sdy1_meta,/;"	v	module:metadata
+sdy1_vel	disfd_sub_opencl.c	/^void sdy1_vel(float* sdy1, int* nxtop, int* nytop, int* nxbtm, int* nzbtm, int* nx2p1, int* nx2p2)$/;"	f
+sdy2	disfd_comm.f90	/^real(c_float), allocatable, target, dimension(:):: sdy1,sdy2,/;"	v	module:itface_comm
+sdy2D	disfd_sub_opencl.c	/^cl_mem sdy2D;$/;"	v
+sdy2D_meta	disfd_sub_opencl.c	/^	sdx1D_meta, sdx2D_meta, sdy1D_meta, sdy2D_meta,$/;"	v	typeref:struct:GPUArray_Metadata
+sdy2_meta	disfd_comm.f90	/^                    sdx1_meta, sdx2_meta, sdy1_meta, sdy2_meta,/;"	v	module:metadata
+sdy2_vel	disfd_sub_opencl.c	/^void sdy2_vel(float* sdy2, int* nxtop, int* nytop, int* nybm1, int* nybtm, int* nxbtm, int* nzbtm, int* nx2p1, int* nx2p2)$/;"	f
+sdy41	disfd_comm.f90	/^ real(c_float), pointer, dimension(:,:,:)::sdx51,sdx41,sdy51,sdy41,/;"	v	module:wave_field_comm
+sdy41	disfd_macros.h	164;"	d
+sdy41D	disfd_sub_opencl.c	/^cl_mem sdy41D;$/;"	v
+sdy41D_meta	disfd_sub_opencl.c	/^	sdx41D_meta, sdx42D_meta, sdy41D_meta, sdy42D_meta,$/;"	v	typeref:struct:GPUArray_Metadata
+sdy41_meta	disfd_comm.f90	/^                    sdx41_meta, sdx42_meta, sdx51_meta, sdx52_meta, & $/;"	v	module:metadata
+sdy41_stress	disfd_sub_opencl.c	/^void sdy41_stress (float** sdy41, int* nxtop, int* nytop, int* nztop) {$/;"	f
+sdy41_vel	disfd_sub_opencl.c	/^void sdy41_vel (float** sdy41, int* nxtop, int* nytop, int* nztop, int* nytm1) {$/;"	f
+sdy42	disfd_comm.f90	/^                                       rcy51,rcy41,sdx52,sdx42,sdy52, &$/;"	v	module:wave_field_comm
+sdy42	disfd_macros.h	165;"	d
+sdy42D	disfd_sub_opencl.c	/^cl_mem sdy42D;$/;"	v
+sdy42D_meta	disfd_sub_opencl.c	/^	sdx41D_meta, sdx42D_meta, sdy41D_meta, sdy42D_meta,$/;"	v	typeref:struct:GPUArray_Metadata
+sdy42_meta	disfd_comm.f90	/^                    sdy41_meta, sdy42_meta,/;"	v	module:metadata
+sdy42_stress	disfd_sub_opencl.c	/^void sdy42_stress (float** sdy42, int* nxbtm, int* nybtm, int* nzbtm) {$/;"	f
+sdy42_vel	disfd_sub_opencl.c	/^void sdy42_vel (float** sdy42, int* nxbtm, int* nybtm, int* nzbtm, int* nybm1) $/;"	f
+sdy51	disfd_comm.f90	/^ real(c_float), pointer, dimension(:,:,:)::sdx51,sdx41,sdy51,/;"	v	module:wave_field_comm
+sdy51	disfd_macros.h	162;"	d
+sdy51D	disfd_sub_opencl.c	/^cl_mem sdy51D;$/;"	v
+sdy51D_meta	disfd_sub_opencl.c	/^	sdx51D_meta, sdx52D_meta, sdy51D_meta, sdy52D_meta,$/;"	v	typeref:struct:GPUArray_Metadata
+sdy51_meta	disfd_comm.f90	/^                    sdy41_meta, sdy42_meta, sdy51_meta,/;"	v	module:metadata
+sdy51_stress	disfd_sub_opencl.c	/^void sdy51_stress (float** sdy51, int* nxtop, int* nytop, int* nztop, int* nytm1) {$/;"	f
+sdy51_vel	disfd_sub_opencl.c	/^void sdy51_vel (float** sdy51, int* nxtop, int* nytop, int* nztop) {$/;"	f
+sdy52	disfd_comm.f90	/^                                       rcy51,rcy41,sdx52,sdx42,sdy52,/;"	v	module:wave_field_comm
+sdy52	disfd_macros.h	163;"	d
+sdy52D	disfd_sub_opencl.c	/^cl_mem sdy52D;$/;"	v
+sdy52D_meta	disfd_sub_opencl.c	/^	sdx51D_meta, sdx52D_meta, sdy51D_meta, sdy52D_meta,$/;"	v	typeref:struct:GPUArray_Metadata
+sdy52_meta	disfd_comm.f90	/^                    sdy41_meta, sdy42_meta, sdy51_meta, sdy52_meta,/;"	v	module:metadata
+sdy52_stress	disfd_sub_opencl.c	/^void sdy52_stress (float** sdy52, int* nxbtm, int* nybtm, int* nzbtm, int* nybm1) {$/;"	f
+sdy52_vel	disfd_sub_opencl.c	/^void sdy52_vel (float** sdy52, int* nxbtm, int* nybtm, int* nzbtm) {$/;"	f
+search	vm4dfd_v3.f90	/^subroutine search(/;"	s
+set_node_grid	disfd_sub.f90	/^subroutine set_node_grid$/;"	s
+set_receiver	disfd_sub.f90	/^subroutine set_receiver(/;"	s
+set_vm_dim	vm4dfd_v3.f90	/^subroutine set_vm_dim(/;"	s
+smooth	vm4dfd_v3.f90	/^subroutine smooth(/;"	s
+smq	vm4dfd_v3.f90	/^function smq(/;"	f
+smq_coef	vm4dfd_v3.f90	/^subroutine smq_coef(/;"	s
+source_coef	disfd_sub.f90	/^subroutine source_coef(/;"	s
+source_index	disfd_sub.f90	/^subroutine source_index(/;"	s
+source_name_list	disfd_comm.f90	/^ character(len=72), dimension(200) :: source_name_list$/;"	v	module:comput_input_param
+source_parm_comm	disfd_comm.f90	/^MODULE source_parm_comm$/;"	m
+sparam2	disfd_comm.f90	/^ real, allocatable, dimension(:):: ruptm,riset,sparam2$/;"	v	module:source_parm_comm
+sparam2D	disfd_sub_opencl.c	/^static cl_mem sparam2D;$/;"	v	file:
+src	mpiacc_wrappers.h	/^        integer(c_int), intent(in), value :: n, src, tag$/;"	v
+src	mpiacc_wrappers.h	/^        integer(c_int), intent(in), value :: offset, n, src, tag$/;"	v
+stan_name	read_dfd.f90	/^ character(len=72), allocatable, dimension(:):: stan_name,/;"	v	program:read_dfd
+start_time	RealTimer.h	/^  double start_time;$/;"	m	struct:RealTimer
+station_comm	disfd_comm.f90	/^MODULE station_comm$/;"	m
+stdp	sac.h	/^  float	stdp;			\/*  T station depth, m      *\/$/;"	m	struct:sac_head
+stel	sac.h	/^  float	stel;			\/*  T station elevation, m   *\/$/;"	m	struct:sac_head
+stla	sac.h	/^  float	stla;			\/*  T station latititude     *\/$/;"	m	struct:sac_head
+stlo	sac.h	/^  float	stlo;			\/*  T station longitude      *\/$/;"	m	struct:sac_head
+stream	disfd_sub_opencl.c	/^cl_command_queue stream[2];$/;"	v
+stress_interp	disfd_sub.f90	/^subroutine stress_interp$/;"	s
+stress_norm_PmlX_I	disfd_sub.f90	/^subroutine stress_norm_PmlX_I$/;"	s
+stress_norm_PmlX_IC	disfd_sub.c	/^void stress_norm_PmlX_IC(int nxb1,$/;"	f
+stress_norm_PmlX_II	disfd_sub.f90	/^subroutine stress_norm_PmlX_II$/;"	s
+stress_norm_PmlX_IIC	disfd_sub.c	/^void stress_norm_PmlX_IIC(int nxb2,$/;"	f
+stress_norm_PmlY_I	disfd_sub.f90	/^subroutine stress_norm_PmlY_I$/;"	s
+stress_norm_PmlY_IC	disfd_sub.c	/^void stress_norm_PmlY_IC(int nxb1,$/;"	f
+stress_norm_PmlY_II	disfd_sub.c	/^void stress_norm_PmlY_II(int nxb2,$/;"	f
+stress_norm_PmlY_II	disfd_sub.f90	/^subroutine stress_norm_PmlY_II$/;"	s
+stress_norm_PmlZ_II	disfd_sub.f90	/^subroutine stress_norm_PmlZ_II$/;"	s
+stress_norm_PmlZ_IIC	disfd_sub.c	/^void stress_norm_PmlZ_IIC(int nxb2,$/;"	f
+stress_norm_xy_I	disfd_sub.f90	/^subroutine stress_norm_xy_I$/;"	s
+stress_norm_xy_IC	disfd_sub.c	/^void stress_norm_xy_IC(int nxb1,$/;"	f
+stress_norm_xy_II	disfd_sub.c	/^void stress_norm_xy_II(int nxb2,$/;"	f
+stress_norm_xy_II	disfd_sub.f90	/^subroutine stress_norm_xy_II$/;"	s
+stress_xy_PmlX_I	disfd_sub.f90	/^subroutine stress_xy_PmlX_I$/;"	s
+stress_xy_PmlX_IC	disfd_sub.c	/^void stress_xy_PmlX_IC(int nxb1,$/;"	f
+stress_xy_PmlX_II	disfd_sub.f90	/^subroutine stress_xy_PmlX_II$/;"	s
+stress_xy_PmlX_IIC	disfd_sub.c	/^void stress_xy_PmlX_IIC(int nxb2,$/;"	f
+stress_xy_PmlY_I	disfd_sub.f90	/^subroutine stress_xy_PmlY_I$/;"	s
+stress_xy_PmlY_IC	disfd_sub.c	/^void stress_xy_PmlY_IC(int nxb1,$/;"	f
+stress_xy_PmlY_II	disfd_sub.f90	/^subroutine stress_xy_PmlY_II$/;"	s
+stress_xy_PmlY_IIC	disfd_sub.c	/^void stress_xy_PmlY_IIC(int nxb2,$/;"	f
+stress_xy_PmlZ_II	disfd_sub.c	/^void stress_xy_PmlZ_II(int nxb2,$/;"	f
+stress_xy_PmlZ_II	disfd_sub.f90	/^subroutine stress_xy_PmlZ_II$/;"	s
+stress_xz_PmlX_I	disfd_sub.f90	/^subroutine stress_xz_PmlX_I$/;"	s
+stress_xz_PmlX_IC	disfd_sub.c	/^void stress_xz_PmlX_IC(int nxb1,$/;"	f
+stress_xz_PmlX_II	disfd_sub.f90	/^subroutine stress_xz_PmlX_II$/;"	s
+stress_xz_PmlX_IIC	disfd_sub.c	/^void stress_xz_PmlX_IIC(int nxb2,$/;"	f
+stress_xz_PmlY_I	disfd_sub.f90	/^subroutine stress_xz_PmlY_I$/;"	s
+stress_xz_PmlY_IC	disfd_sub.c	/^void stress_xz_PmlY_IC(int nxb1,$/;"	f
+stress_xz_PmlY_II	disfd_sub.f90	/^subroutine stress_xz_PmlY_II$/;"	s
+stress_xz_PmlY_IIC	disfd_sub.c	/^void stress_xz_PmlY_IIC(int nxb2,$/;"	f
+stress_xz_PmlZ_II	disfd_sub.f90	/^subroutine stress_xz_PmlZ_II$/;"	s
+stress_xz_PmlZ_IIC	disfd_sub.c	/^void stress_xz_PmlZ_IIC(int nxb2,$/;"	f
+stress_xz_yz_I	disfd_sub.f90	/^subroutine stress_xz_yz_I$/;"	s
+stress_xz_yz_IC	disfd_sub.c	/^void  stress_xz_yz_IC(int nxb1,$/;"	f
+stress_xz_yz_II	disfd_sub.f90	/^subroutine stress_xz_yz_II$/;"	s
+stress_xz_yz_IIC	disfd_sub.c	/^void stress_xz_yz_IIC(int nxb2,$/;"	f
+stress_yz_PmlX_I	disfd_sub.f90	/^subroutine stress_yz_PmlX_I$/;"	s
+stress_yz_PmlX_IC	disfd_sub.c	/^void stress_yz_PmlX_IC(int nxb1,$/;"	f
+stress_yz_PmlX_II	disfd_sub.f90	/^subroutine stress_yz_PmlX_II$/;"	s
+stress_yz_PmlX_IIC	disfd_sub.c	/^void stress_yz_PmlX_IIC(int nxb2,$/;"	f
+stress_yz_PmlY_I	disfd_sub.f90	/^subroutine stress_yz_PmlY_I$/;"	s
+stress_yz_PmlY_IC	disfd_sub.c	/^void stress_yz_PmlY_IC(int nxb1,$/;"	f
+stress_yz_PmlY_II	disfd_sub.f90	/^subroutine stress_yz_PmlY_II$/;"	s
+stress_yz_PmlY_IIC	disfd_sub.c	/^void stress_yz_PmlY_IIC(int nxb2,$/;"	f
+stress_yz_PmlZ_II	disfd_sub.f90	/^subroutine stress_yz_PmlZ_II$/;"	s
+stress_yz_PmlZ_IIC	disfd_sub.c	/^void stress_yz_PmlZ_IIC(int nxb2,$/;"	f
+sutmArrD	disfd_sub_opencl.c	/^static cl_mem sutmArrD;$/;"	v	file:
+swab4	sacio.c	/^void	swab4(	char	*pt,$/;"	f
+switch	vm4dfd_v3.f90	/^subroutine switch(/;"	s
+syn_dti	disfd_comm.f90	/^ real, allocatable, dimension(:) :: syn_dti$/;"	v	module:comput_input_param
+t0	sac.h	/^  float	t0;			\/*    user-defined time pick *\/$/;"	m	struct:sac_head
+t1	disfd_sub_opencl.c	/^struct timeval t1, t2;$/;"	v	typeref:struct:timeval
+t1	sac.h	/^  float	t1;			\/*    user-defined time pick *\/$/;"	m	struct:sac_head
+t1xx	disfd_comm.f90	/^ real(c_float), pointer,  dimension(:,:,:) :: t1xx,/;"	v	module:wave_field_comm
+t1xx	disfd_macros.h	30;"	d
+t1xx	disfd_sub.c	40;"	d	file:
+t1xxD	disfd_sub_opencl.c	/^static cl_mem t1xxD;$/;"	v	file:
+t1xxD_meta	disfd_sub_opencl.c	/^	t1xxD_meta, t1xyD_meta, t1xzD_meta, t1yyD_meta, t1yzD_meta, t1zzD_meta,$/;"	v	typeref:struct:GPUArray_Metadata
+t1xx_init	disfd_comm.f90	/^ real(c_float), pointer,  dimension(:,:,:) :: t1xx_init,/;"	v	module:wave_field_comm
+t1xx_meta	disfd_comm.f90	/^    TYPE(Array_Info) :: v1x_meta, v2x_meta, v1y_meta, v2y_meta, v1z_meta, v2z_meta, &$/;"	v	module:metadata
+t1xx_px	disfd_comm.f90	/^ real(c_float), pointer, dimension(:,:,:):: t1xx_px,/;"	v	module:wave_field_comm
+t1xx_px	disfd_macros.h	39;"	d
+t1xx_px	disfd_sub.c	49;"	d	file:
+t1xx_pxD	disfd_sub_opencl.c	/^static cl_mem t1xx_pxD;$/;"	v	file:
+t1xx_py	disfd_comm.f90	/^ real(c_float), pointer, dimension(:,:,:):: t1xx_py,/;"	v	module:wave_field_comm
+t1xx_py	disfd_macros.h	50;"	d
+t1xx_py	disfd_sub.c	60;"	d	file:
+t1xx_pyD	disfd_sub_opencl.c	/^static cl_mem t1xx_pyD;$/;"	v	file:
+t1xy	disfd_comm.f90	/^ real(c_float), pointer,  dimension(:,:,:) :: t1xx,t1xy,/;"	v	module:wave_field_comm
+t1xy	disfd_macros.h	31;"	d
+t1xy	disfd_sub.c	41;"	d	file:
+t1xyD	disfd_sub_opencl.c	/^static cl_mem t1xyD;$/;"	v	file:
+t1xyD_meta	disfd_sub_opencl.c	/^	t1xxD_meta, t1xyD_meta, t1xzD_meta, t1yyD_meta, t1yzD_meta, t1zzD_meta,$/;"	v	typeref:struct:GPUArray_Metadata
+t1xy_init	disfd_comm.f90	/^ real(c_float), pointer,  dimension(:,:,:) :: t1xx_init,t1xy_init,/;"	v	module:wave_field_comm
+t1xy_meta	disfd_comm.f90	/^                    t1xx_meta, t1xy_meta,/;"	v	module:metadata
+t1xy_px	disfd_comm.f90	/^ real(c_float), pointer, dimension(:,:,:):: t1xx_px,t1yy_px,t1xy_px,/;"	v	module:wave_field_comm
+t1xy_px	disfd_macros.h	40;"	d
+t1xy_px	disfd_sub.c	50;"	d	file:
+t1xy_pxD	disfd_sub_opencl.c	/^static cl_mem t1xy_pxD;$/;"	v	file:
+t1xy_py	disfd_comm.f90	/^ real(c_float), pointer, dimension(:,:,:):: t1xx_py,t1yy_py,t1xy_py,/;"	v	module:wave_field_comm
+t1xy_py	disfd_macros.h	51;"	d
+t1xy_py	disfd_sub.c	61;"	d	file:
+t1xy_pyD	disfd_sub_opencl.c	/^static cl_mem t1xy_pyD;$/;"	v	file:
+t1xz	disfd_comm.f90	/^ real(c_float), pointer,  dimension(:,:,:) :: t1xx,t1xy,t1xz,/;"	v	module:wave_field_comm
+t1xz	disfd_macros.h	32;"	d
+t1xz	disfd_sub.c	42;"	d	file:
+t1xzD	disfd_sub_opencl.c	/^static cl_mem t1xzD;$/;"	v	file:
+t1xzD_meta	disfd_sub_opencl.c	/^	t1xxD_meta, t1xyD_meta, t1xzD_meta, t1yyD_meta, t1yzD_meta, t1zzD_meta,$/;"	v	typeref:struct:GPUArray_Metadata
+t1xz_init	disfd_comm.f90	/^ real(c_float), pointer,  dimension(:,:,:) :: t1xx_init,t1xy_init,t1xz_init,/;"	v	module:wave_field_comm
+t1xz_meta	disfd_comm.f90	/^                    t1xx_meta, t1xy_meta, t1xz_meta,/;"	v	module:metadata
+t1xz_px	disfd_comm.f90	/^ real(c_float), pointer, dimension(:,:,:):: t1xx_px,t1yy_px,t1xy_px,t1xz_px,/;"	v	module:wave_field_comm
+t1xz_px	disfd_macros.h	41;"	d
+t1xz_px	disfd_sub.c	51;"	d	file:
+t1xz_pxD	disfd_sub_opencl.c	/^static cl_mem t1xz_pxD;$/;"	v	file:
+t1yy	disfd_comm.f90	/^ real(c_float), pointer,  dimension(:,:,:) :: t1xx,t1xy,t1xz,t1yy,/;"	v	module:wave_field_comm
+t1yy	disfd_macros.h	33;"	d
+t1yy	disfd_sub.c	43;"	d	file:
+t1yyD	disfd_sub_opencl.c	/^static cl_mem t1yyD;$/;"	v	file:
+t1yyD_meta	disfd_sub_opencl.c	/^	t1xxD_meta, t1xyD_meta, t1xzD_meta, t1yyD_meta, t1yzD_meta, t1zzD_meta,$/;"	v	typeref:struct:GPUArray_Metadata
+t1yy_init	disfd_comm.f90	/^ real(c_float), pointer,  dimension(:,:,:) :: t1xx_init,t1xy_init,t1xz_init, &$/;"	v	module:wave_field_comm
+t1yy_meta	disfd_comm.f90	/^                    t1xx_meta, t1xy_meta, t1xz_meta, t1yy_meta,/;"	v	module:metadata
+t1yy_px	disfd_comm.f90	/^ real(c_float), pointer, dimension(:,:,:):: t1xx_px,t1yy_px,/;"	v	module:wave_field_comm
+t1yy_px	disfd_macros.h	42;"	d
+t1yy_px	disfd_sub.c	52;"	d	file:
+t1yy_pxD	disfd_sub_opencl.c	/^static cl_mem t1yy_pxD;$/;"	v	file:
+t1yy_py	disfd_comm.f90	/^ real(c_float), pointer, dimension(:,:,:):: t1xx_py,t1yy_py,/;"	v	module:wave_field_comm
+t1yy_py	disfd_macros.h	52;"	d
+t1yy_py	disfd_sub.c	62;"	d	file:
+t1yy_pyD	disfd_sub_opencl.c	/^static cl_mem t1yy_pyD;$/;"	v	file:
+t1yz	disfd_comm.f90	/^ real(c_float), pointer,  dimension(:,:,:) :: t1xx,t1xy,t1xz,t1yy,t1yz,/;"	v	module:wave_field_comm
+t1yz	disfd_macros.h	34;"	d
+t1yz	disfd_sub.c	44;"	d	file:
+t1yzD	disfd_sub_opencl.c	/^static cl_mem t1yzD;$/;"	v	file:
+t1yzD_meta	disfd_sub_opencl.c	/^	t1xxD_meta, t1xyD_meta, t1xzD_meta, t1yyD_meta, t1yzD_meta, t1zzD_meta,$/;"	v	typeref:struct:GPUArray_Metadata
+t1yz_init	disfd_comm.f90	/^      t1yy_init,t1yz_init$/;"	v	module:wave_field_comm
+t1yz_meta	disfd_comm.f90	/^                    t1xx_meta, t1xy_meta, t1xz_meta, t1yy_meta, t1yz_meta,/;"	v	module:metadata
+t1yz_py	disfd_comm.f90	/^ real(c_float), pointer, dimension(:,:,:):: t1xx_py,t1yy_py,t1xy_py,t1yz_py,/;"	v	module:wave_field_comm
+t1yz_py	disfd_macros.h	53;"	d
+t1yz_py	disfd_sub.c	63;"	d	file:
+t1yz_pyD	disfd_sub_opencl.c	/^static cl_mem t1yz_pyD;$/;"	v	file:
+t1zz	disfd_comm.f90	/^ real(c_float), pointer,  dimension(:,:,:) :: t1xx,t1xy,t1xz,t1yy,t1yz,t1zz$/;"	v	module:wave_field_comm
+t1zz	disfd_macros.h	35;"	d
+t1zz	disfd_sub.c	45;"	d	file:
+t1zzD	disfd_sub_opencl.c	/^static cl_mem t1zzD;$/;"	v	file:
+t1zzD_meta	disfd_sub_opencl.c	/^	t1xxD_meta, t1xyD_meta, t1xzD_meta, t1yyD_meta, t1yzD_meta, t1zzD_meta,$/;"	v	typeref:struct:GPUArray_Metadata
+t1zz_meta	disfd_comm.f90	/^                    t1xx_meta, t1xy_meta, t1xz_meta, t1yy_meta, t1yz_meta, t1zz_meta,/;"	v	module:metadata
+t2	disfd_sub_opencl.c	/^struct timeval t1, t2;$/;"	v	typeref:struct:
+t2	sac.h	/^  float	t2;			\/*    user-defined time pick *\/$/;"	m	struct:sac_head
+t2xx	disfd_comm.f90	/^ real(c_float), pointer, dimension(:,:,:):: t2xx,/;"	v	module:wave_field_comm
+t2xx	disfd_macros.h	94;"	d
+t2xx	disfd_sub.c	104;"	d	file:
+t2xxD	disfd_sub_opencl.c	/^static cl_mem t2xxD;$/;"	v	file:
+t2xxD_meta	disfd_sub_opencl.c	/^	t2xxD_meta, t2xyD_meta, t2xzD_meta, t2yyD_meta, t2yzD_meta, t2zzD_meta,$/;"	v	typeref:struct:GPUArray_Metadata
+t2xx_init	disfd_comm.f90	/^ real(c_float), pointer, dimension(:,:,:):: t2xx_init,/;"	v	module:wave_field_comm
+t2xx_meta	disfd_comm.f90	/^                    t1xx_meta, t1xy_meta, t1xz_meta, t1yy_meta, t1yz_meta, t1zz_meta, &$/;"	v	module:metadata
+t2xx_px	disfd_comm.f90	/^ real(c_float), pointer, dimension(:,:,:):: t1xx_px,t1yy_px,t1xy_px,t1xz_px, &$/;"	v	module:wave_field_comm
+t2xx_px	disfd_macros.h	109;"	d
+t2xx_px	disfd_sub.c	119;"	d	file:
+t2xx_pxD	disfd_sub_opencl.c	/^static cl_mem t2xx_pxD;$/;"	v	file:
+t2xx_py	disfd_comm.f90	/^ real(c_float), pointer, dimension(:,:,:):: t1xx_py,t1yy_py,t1xy_py,t1yz_py, &$/;"	v	module:wave_field_comm
+t2xx_py	disfd_macros.h	114;"	d
+t2xx_py	disfd_sub.c	124;"	d	file:
+t2xx_pyD	disfd_sub_opencl.c	/^static cl_mem t2xx_pyD;$/;"	v	file:
+t2xx_pz	disfd_comm.f90	/^ real(c_float), pointer, dimension(:,:,:):: t2xx_pz,/;"	v	module:wave_field_comm
+t2xx_pz	disfd_macros.h	119;"	d
+t2xx_pz	disfd_sub.c	129;"	d	file:
+t2xx_pzD	disfd_sub_opencl.c	/^static cl_mem t2xx_pzD;$/;"	v	file:
+t2xy	disfd_comm.f90	/^ real(c_float), pointer, dimension(:,:,:):: t2xx,t2xy,/;"	v	module:wave_field_comm
+t2xy	disfd_macros.h	95;"	d
+t2xy	disfd_sub.c	105;"	d	file:
+t2xyD	disfd_sub_opencl.c	/^static cl_mem t2xyD;$/;"	v	file:
+t2xyD_meta	disfd_sub_opencl.c	/^	t2xxD_meta, t2xyD_meta, t2xzD_meta, t2yyD_meta, t2yzD_meta, t2zzD_meta,$/;"	v	typeref:struct:GPUArray_Metadata
+t2xy_init	disfd_comm.f90	/^ real(c_float), pointer, dimension(:,:,:):: t2xx_init,t2xy_init,/;"	v	module:wave_field_comm
+t2xy_meta	disfd_comm.f90	/^                    t2xx_meta, t2xy_meta,/;"	v	module:metadata
+t2xy_px	disfd_comm.f90	/^                                       t2xx_px,t2yy_px,t2xy_px,/;"	v	module:wave_field_comm
+t2xy_px	disfd_macros.h	110;"	d
+t2xy_px	disfd_sub.c	120;"	d	file:
+t2xy_pxD	disfd_sub_opencl.c	/^static cl_mem t2xy_pxD;$/;"	v	file:
+t2xy_py	disfd_comm.f90	/^                                       t2xx_py,t2yy_py,t2xy_py,/;"	v	module:wave_field_comm
+t2xy_py	disfd_macros.h	115;"	d
+t2xy_py	disfd_sub.c	125;"	d	file:
+t2xy_pyD	disfd_sub_opencl.c	/^static cl_mem t2xy_pyD;$/;"	v	file:
+t2xz	disfd_comm.f90	/^ real(c_float), pointer, dimension(:,:,:):: t2xx,t2xy,t2xz,/;"	v	module:wave_field_comm
+t2xz	disfd_macros.h	96;"	d
+t2xz	disfd_sub.c	106;"	d	file:
+t2xzD	disfd_sub_opencl.c	/^static cl_mem t2xzD;$/;"	v	file:
+t2xzD_meta	disfd_sub_opencl.c	/^	t2xxD_meta, t2xyD_meta, t2xzD_meta, t2yyD_meta, t2yzD_meta, t2zzD_meta,$/;"	v	typeref:struct:GPUArray_Metadata
+t2xz_init	disfd_comm.f90	/^ real(c_float), pointer, dimension(:,:,:):: t2xx_init,t2xy_init,t2xz_init,/;"	v	module:wave_field_comm
+t2xz_meta	disfd_comm.f90	/^                    t2xx_meta, t2xy_meta, t2xz_meta,/;"	v	module:metadata
+t2xz_px	disfd_comm.f90	/^                                       t2xx_px,t2yy_px,t2xy_px,t2xz_px$/;"	v	module:wave_field_comm
+t2xz_px	disfd_macros.h	111;"	d
+t2xz_px	disfd_sub.c	121;"	d	file:
+t2xz_pxD	disfd_sub_opencl.c	/^static cl_mem t2xz_pxD;$/;"	v	file:
+t2xz_pz	disfd_comm.f90	/^ real(c_float), pointer, dimension(:,:,:):: t2xx_pz,t2zz_pz,t2xz_pz,/;"	v	module:wave_field_comm
+t2xz_pz	disfd_macros.h	120;"	d
+t2xz_pz	disfd_sub.c	130;"	d	file:
+t2xz_pzD	disfd_sub_opencl.c	/^static cl_mem t2xz_pzD;$/;"	v	file:
+t2yy	disfd_comm.f90	/^ real(c_float), pointer, dimension(:,:,:):: t2xx,t2xy,t2xz,t2yy,/;"	v	module:wave_field_comm
+t2yy	disfd_macros.h	97;"	d
+t2yy	disfd_sub.c	107;"	d	file:
+t2yyD	disfd_sub_opencl.c	/^static cl_mem t2yyD;$/;"	v	file:
+t2yyD_meta	disfd_sub_opencl.c	/^	t2xxD_meta, t2xyD_meta, t2xzD_meta, t2yyD_meta, t2yzD_meta, t2zzD_meta,$/;"	v	typeref:struct:GPUArray_Metadata
+t2yy_init	disfd_comm.f90	/^ real(c_float), pointer, dimension(:,:,:):: t2xx_init,t2xy_init,t2xz_init, &$/;"	v	module:wave_field_comm
+t2yy_meta	disfd_comm.f90	/^                    t2xx_meta, t2xy_meta, t2xz_meta, t2yy_meta,/;"	v	module:metadata
+t2yy_px	disfd_comm.f90	/^                                       t2xx_px,t2yy_px,/;"	v	module:wave_field_comm
+t2yy_px	disfd_macros.h	112;"	d
+t2yy_px	disfd_sub.c	122;"	d	file:
+t2yy_pxD	disfd_sub_opencl.c	/^static cl_mem t2yy_pxD;$/;"	v	file:
+t2yy_py	disfd_comm.f90	/^                                       t2xx_py,t2yy_py,/;"	v	module:wave_field_comm
+t2yy_py	disfd_macros.h	116;"	d
+t2yy_py	disfd_sub.c	126;"	d	file:
+t2yy_pyD	disfd_sub_opencl.c	/^static cl_mem t2yy_pyD;$/;"	v	file:
+t2yz	disfd_comm.f90	/^ real(c_float), pointer, dimension(:,:,:):: t2xx,t2xy,t2xz,t2yy,t2yz,/;"	v	module:wave_field_comm
+t2yz	disfd_macros.h	98;"	d
+t2yz	disfd_sub.c	108;"	d	file:
+t2yzD	disfd_sub_opencl.c	/^static cl_mem t2yzD;$/;"	v	file:
+t2yzD_meta	disfd_sub_opencl.c	/^	t2xxD_meta, t2xyD_meta, t2xzD_meta, t2yyD_meta, t2yzD_meta, t2zzD_meta,$/;"	v	typeref:struct:GPUArray_Metadata
+t2yz_init	disfd_comm.f90	/^                                            t2yy_init,t2yz_init,/;"	v	module:wave_field_comm
+t2yz_meta	disfd_comm.f90	/^                    t2xx_meta, t2xy_meta, t2xz_meta, t2yy_meta, t2yz_meta,/;"	v	module:metadata
+t2yz_py	disfd_comm.f90	/^                                       t2xx_py,t2yy_py,t2xy_py,t2yz_py$/;"	v	module:wave_field_comm
+t2yz_py	disfd_macros.h	117;"	d
+t2yz_py	disfd_sub.c	127;"	d	file:
+t2yz_pyD	disfd_sub_opencl.c	/^static cl_mem t2yz_pyD;$/;"	v	file:
+t2yz_pz	disfd_comm.f90	/^ real(c_float), pointer, dimension(:,:,:):: t2xx_pz,t2zz_pz,t2xz_pz,t2yz_pz$/;"	v	module:wave_field_comm
+t2yz_pz	disfd_macros.h	121;"	d
+t2yz_pz	disfd_sub.c	131;"	d	file:
+t2yz_pzD	disfd_sub_opencl.c	/^static cl_mem t2yz_pzD;$/;"	v	file:
+t2zz	disfd_comm.f90	/^ real(c_float), pointer, dimension(:,:,:):: t2xx,t2xy,t2xz,t2yy,t2yz,t2zz$/;"	v	module:wave_field_comm
+t2zz	disfd_macros.h	99;"	d
+t2zz	disfd_sub.c	109;"	d	file:
+t2zzD	disfd_sub_opencl.c	/^static cl_mem t2zzD;$/;"	v	file:
+t2zzD_meta	disfd_sub_opencl.c	/^	t2xxD_meta, t2xyD_meta, t2xzD_meta, t2yyD_meta, t2yzD_meta, t2zzD_meta,$/;"	v	typeref:struct:GPUArray_Metadata
+t2zz_init	disfd_comm.f90	/^                                            t2yy_init,t2yz_init,t2zz_init$/;"	v	module:wave_field_comm
+t2zz_meta	disfd_comm.f90	/^                    t2xx_meta, t2xy_meta, t2xz_meta, t2yy_meta, t2yz_meta, t2zz_meta,/;"	v	module:metadata
+t2zz_pz	disfd_comm.f90	/^ real(c_float), pointer, dimension(:,:,:):: t2xx_pz,t2zz_pz,/;"	v	module:wave_field_comm
+t2zz_pz	disfd_macros.h	122;"	d
+t2zz_pz	disfd_sub.c	132;"	d	file:
+t2zz_pzD	disfd_sub_opencl.c	/^static cl_mem t2zz_pzD;$/;"	v	file:
+t3	sac.h	/^  float	t3;			\/*    user-defined time pick *\/$/;"	m	struct:sac_head
+t4	sac.h	/^  float	t4;			\/*    user-defined time pick *\/$/;"	m	struct:sac_head
+t5	sac.h	/^  float	t5;			\/*    user-defined time pick *\/$/;"	m	struct:sac_head
+t6	sac.h	/^  float	t6;			\/*    user-defined time pick *\/$/;"	m	struct:sac_head
+t7	sac.h	/^  float	t7;			\/*    user-defined time pick *\/$/;"	m	struct:sac_head
+t8	sac.h	/^  float	t8;			\/*    user-defined time pick *\/$/;"	m	struct:sac_head
+t9	sac.h	/^  float	t9;			\/*    user-defined time pick *\/$/;"	m	struct:sac_head
+tdura	disfd_comm.f90	/^ real :: dt_fd,dt_out,tdura,/;"	v	module:comput_input_param
+temp_gpu_arr	disfd_sub_opencl.c	/^cl_mem  temp_gpu_arr; \/\/ used by get_gpu_arrC$/;"	v
+time_offset	RealTimer.h	/^  int time_offset;$/;"	m	struct:RealTimer
+tmpTime	disfd_sub_opencl.c	/^float tmpTime;$/;"	v
+top_depth	vm4dfd_v3.f90	/^ real, allocatable, dimension(:):: top_depth$/;"	v	module:vmodel_inp
+totalTimeCompS	disfd_sub_opencl.c	/^float totalTimeCompV, totalTimeCompS;$/;"	v
+totalTimeCompV	disfd_sub_opencl.c	/^float totalTimeCompV, totalTimeCompS;$/;"	v
+totalTimeD2HS	disfd_sub_opencl.c	/^float totalTimeH2DS, totalTimeD2HS;$/;"	v
+totalTimeD2HV	disfd_sub_opencl.c	/^float totalTimeH2DV, totalTimeD2HV;$/;"	v
+totalTimeH2DS	disfd_sub_opencl.c	/^float totalTimeH2DS, totalTimeD2HS;$/;"	v
+totalTimeH2DV	disfd_sub_opencl.c	/^float totalTimeH2DV, totalTimeD2HV;$/;"	v
+trim	sacio.c	/^char *trim(const char *name)$/;"	f
+tstep	vm4dfd_v3.f90	/^ real:: tstep,/;"	v	program:vm4dfd_v3
+unrelaxed_mu	vm4dfd_v3.f90	/^function unrelaxed_mu(/;"	f
+unused1	sac.h	/^  float	unused1;		\/*    reserved for future use*\/$/;"	m	struct:sac_head
+unused10	sac.h	/^  float	unused10;		\/*    reserved for future use*\/$/;"	m	struct:sac_head
+unused11	sac.h	/^  float	unused11;		\/*    reserved for future use*\/$/;"	m	struct:sac_head
+unused12	sac.h	/^  float	unused12;		\/*    reserved for future use*\/$/;"	m	struct:sac_head
+unused13	sac.h	/^  int	unused13;		\/*    reserved for future use*\/$/;"	m	struct:sac_head
+unused14	sac.h	/^  int	unused14;		\/*    reserved for future use*\/$/;"	m	struct:sac_head
+unused15	sac.h	/^  int	unused15;		\/*    reserved for future use*\/$/;"	m	struct:sac_head
+unused16	sac.h	/^  int	unused16;		\/*    reserved for future use*\/$/;"	m	struct:sac_head
+unused17	sac.h	/^  int	unused17;		\/*    reserved for future use*\/$/;"	m	struct:sac_head
+unused18	sac.h	/^  int	unused18;		\/*    reserved for future use*\/$/;"	m	struct:sac_head
+unused19	sac.h	/^  int	unused19;		\/*    reserved for future use*\/$/;"	m	struct:sac_head
+unused2	sac.h	/^  float	unused2;		\/*    reserved for future use*\/$/;"	m	struct:sac_head
+unused20	sac.h	/^  int	unused20;		\/*    reserved for future use*\/$/;"	m	struct:sac_head
+unused21	sac.h	/^  int	unused21;		\/*    reserved for future use*\/$/;"	m	struct:sac_head
+unused22	sac.h	/^  int	unused22;		\/*    reserved for future use*\/$/;"	m	struct:sac_head
+unused23	sac.h	/^  int	unused23;		\/*    reserved for future use*\/$/;"	m	struct:sac_head
+unused24	sac.h	/^  int	unused24;		\/*    reserved for future use*\/$/;"	m	struct:sac_head
+unused25	sac.h	/^  int	unused25;		\/*    reserved for future use*\/$/;"	m	struct:sac_head
+unused26	sac.h	/^  int	unused26;		\/*    reserved for future use*\/$/;"	m	struct:sac_head
+unused27	sac.h	/^  int	unused27;		\/*    reserved for future use*\/$/;"	m	struct:sac_head
+unused3	sac.h	/^  float	unused3;		\/*    reserved for future use*\/$/;"	m	struct:sac_head
+unused4	sac.h	/^  float	unused4;		\/*    reserved for future use*\/$/;"	m	struct:sac_head
+unused5	sac.h	/^  float	unused5;		\/*    reserved for future use*\/$/;"	m	struct:sac_head
+unused6	sac.h	/^  float	unused6;		\/*    reserved for future use*\/$/;"	m	struct:sac_head
+unused7	sac.h	/^  float	unused7;		\/*    reserved for future use*\/$/;"	m	struct:sac_head
+unused8	sac.h	/^  float	unused8;		\/*    reserved for future use*\/$/;"	m	struct:sac_head
+unused9	sac.h	/^  float	unused9;		\/*    reserved for future use*\/$/;"	m	struct:sac_head
+update_stress	disfd_sub.f90	/^subroutine update_stress(/;"	s
+user0	sac.h	/^  float	user0;			\/*    available to user      *\/$/;"	m	struct:sac_head
+user1	sac.h	/^  float	user1;			\/*    available to user      *\/$/;"	m	struct:sac_head
+user2	sac.h	/^  float	user2;			\/*    available to user      *\/$/;"	m	struct:sac_head
+user3	sac.h	/^  float	user3;			\/*    available to user      *\/$/;"	m	struct:sac_head
+user4	sac.h	/^  float	user4;			\/*    available to user      *\/$/;"	m	struct:sac_head
+user5	sac.h	/^  float	user5;			\/*    available to user      *\/$/;"	m	struct:sac_head
+user6	sac.h	/^  float	user6;			\/*    available to user      *\/$/;"	m	struct:sac_head
+user7	sac.h	/^  float	user7;			\/*    available to user      *\/$/;"	m	struct:sac_head
+user8	sac.h	/^  float	user8;			\/*    available to user      *\/$/;"	m	struct:sac_head
+user9	sac.h	/^  float	user9;			\/*    available to user      *\/$/;"	m	struct:sac_head
+v1d_interp	vm4dfd_v3.f90	/^subroutine v1d_interp(/;"	s
+v1x	disfd_comm.f90	/^ real(c_float), pointer,  dimension(:,:,:) :: v1x,/;"	v	module:wave_field_comm
+v1x	disfd_macros.h	11;"	d
+v1x	disfd_sub.c	20;"	d	file:
+v1xD	disfd_sub_opencl.c	/^static cl_mem v1xD;    \/\/output$/;"	v	file:
+v1xD_meta	disfd_sub_opencl.c	/^v1xD_meta, v2xD_meta, v1yD_meta, v2yD_meta, v1zD_meta, v2zD_meta,$/;"	v	typeref:struct:GPUArray_Metadata
+v1x_buff	disfd_comm.f90	/^ real(c_float), pointer,  dimension(:,:,:) :: v1x_buff,/;"	v	module:wave_field_comm
+v1x_init	disfd_comm.f90	/^ real(c_float), pointer,  dimension(:,:,:) :: v1x,v1y,v1z, v1x_init,/;"	v	module:wave_field_comm
+v1x_init_buff	disfd_comm.f90	/^ real(c_float), pointer,  dimension(:,:,:) :: v1x_buff, v1y_buff, v1z_buff, &$/;"	v	module:wave_field_comm
+v1x_meta	disfd_comm.f90	/^    TYPE(Array_Info) :: v1x_meta,/;"	v	module:metadata
+v1x_px	disfd_comm.f90	/^ real(c_float), pointer, dimension(:,:,:):: v1x_px,/;"	v	module:wave_field_comm
+v1x_px	disfd_macros.h	15;"	d
+v1x_px	disfd_sub.c	25;"	d	file:
+v1x_pxD	disfd_sub_opencl.c	/^static cl_mem v1x_pxD;$/;"	v	file:
+v1x_py	disfd_comm.f90	/^ real(c_float), pointer,  dimension(:,:,:):: v1x_py,/;"	v	module:wave_field_comm
+v1x_py	disfd_macros.h	19;"	d
+v1x_py	disfd_sub.c	29;"	d	file:
+v1x_pyD	disfd_sub_opencl.c	/^static cl_mem v1x_pyD;$/;"	v	file:
+v1y	disfd_comm.f90	/^ real(c_float), pointer,  dimension(:,:,:) :: v1x,v1y,/;"	v	module:wave_field_comm
+v1y	disfd_macros.h	12;"	d
+v1y	disfd_sub.c	21;"	d	file:
+v1yD	disfd_sub_opencl.c	/^static cl_mem v1yD;$/;"	v	file:
+v1yD_meta	disfd_sub_opencl.c	/^v1xD_meta, v2xD_meta, v1yD_meta, v2yD_meta, v1zD_meta, v2zD_meta,$/;"	v	typeref:struct:GPUArray_Metadata
+v1y_buff	disfd_comm.f90	/^ real(c_float), pointer,  dimension(:,:,:) :: v1x_buff, v1y_buff,/;"	v	module:wave_field_comm
+v1y_init	disfd_comm.f90	/^ real(c_float), pointer,  dimension(:,:,:) :: v1x,v1y,v1z, v1x_init,v1y_init,/;"	v	module:wave_field_comm
+v1y_init_buff	disfd_comm.f90	/^                                                v1x_init_buff, v1y_init_buff,/;"	v	module:wave_field_comm
+v1y_meta	disfd_comm.f90	/^    TYPE(Array_Info) :: v1x_meta, v2x_meta, v1y_meta,/;"	v	module:metadata
+v1y_px	disfd_comm.f90	/^ real(c_float), pointer, dimension(:,:,:):: v1x_px,v1y_px,/;"	v	module:wave_field_comm
+v1y_px	disfd_macros.h	16;"	d
+v1y_px	disfd_sub.c	26;"	d	file:
+v1y_pxD	disfd_sub_opencl.c	/^static cl_mem v1y_pxD;$/;"	v	file:
+v1y_py	disfd_comm.f90	/^ real(c_float), pointer,  dimension(:,:,:):: v1x_py,v1y_py,/;"	v	module:wave_field_comm
+v1y_py	disfd_macros.h	20;"	d
+v1y_py	disfd_sub.c	30;"	d	file:
+v1y_pyD	disfd_sub_opencl.c	/^static cl_mem v1y_pyD;$/;"	v	file:
+v1z	disfd_comm.f90	/^ real(c_float), pointer,  dimension(:,:,:) :: v1x,v1y,v1z,/;"	v	module:wave_field_comm
+v1z	disfd_macros.h	13;"	d
+v1z	disfd_sub.c	22;"	d	file:
+v1zD	disfd_sub_opencl.c	/^static cl_mem v1zD;$/;"	v	file:
+v1zD_meta	disfd_sub_opencl.c	/^v1xD_meta, v2xD_meta, v1yD_meta, v2yD_meta, v1zD_meta, v2zD_meta,$/;"	v	typeref:struct:GPUArray_Metadata
+v1z_buff	disfd_comm.f90	/^ real(c_float), pointer,  dimension(:,:,:) :: v1x_buff, v1y_buff, v1z_buff,/;"	v	module:wave_field_comm
+v1z_init	disfd_comm.f90	/^ real(c_float), pointer,  dimension(:,:,:) :: v1x,v1y,v1z, v1x_init,v1y_init,v1z_init$/;"	v	module:wave_field_comm
+v1z_init_buff	disfd_comm.f90	/^                                                v1x_init_buff, v1y_init_buff, v1z_init_buff$/;"	v	module:wave_field_comm
+v1z_meta	disfd_comm.f90	/^    TYPE(Array_Info) :: v1x_meta, v2x_meta, v1y_meta, v2y_meta, v1z_meta,/;"	v	module:metadata
+v1z_px	disfd_comm.f90	/^ real(c_float), pointer, dimension(:,:,:):: v1x_px,v1y_px,v1z_px,/;"	v	module:wave_field_comm
+v1z_px	disfd_macros.h	17;"	d
+v1z_px	disfd_sub.c	27;"	d	file:
+v1z_pxD	disfd_sub_opencl.c	/^static cl_mem v1z_pxD;$/;"	v	file:
+v1z_py	disfd_comm.f90	/^ real(c_float), pointer,  dimension(:,:,:):: v1x_py,v1y_py,v1z_py,/;"	v	module:wave_field_comm
+v1z_py	disfd_macros.h	21;"	d
+v1z_py	disfd_sub.c	31;"	d	file:
+v1z_pyD	disfd_sub_opencl.c	/^static cl_mem v1z_pyD;$/;"	v	file:
+v2x	disfd_comm.f90	/^ real(c_float), pointer, dimension(:,:,:):: v2x,/;"	v	module:wave_field_comm
+v2x	disfd_macros.h	139;"	d
+v2x	disfd_sub.c	149;"	d	file:
+v2xD	disfd_sub_opencl.c	/^static cl_mem v2xD;		\/\/output$/;"	v	file:
+v2xD_meta	disfd_sub_opencl.c	/^v1xD_meta, v2xD_meta, v1yD_meta, v2yD_meta, v1zD_meta, v2zD_meta,$/;"	v	typeref:struct:GPUArray_Metadata
+v2x_buff	disfd_comm.f90	/^ real(c_float), pointer,  dimension(:,:,:) :: v2x_buff,/;"	v	module:wave_field_comm
+v2x_init	disfd_comm.f90	/^ real(c_float), pointer, dimension(:,:,:):: v2x,v2y,v2z,v2x_init,/;"	v	module:wave_field_comm
+v2x_init_buff	disfd_comm.f90	/^ real(c_float), pointer,  dimension(:,:,:) :: v2x_buff, v2y_buff, v2z_buff, &$/;"	v	module:wave_field_comm
+v2x_meta	disfd_comm.f90	/^    TYPE(Array_Info) :: v1x_meta, v2x_meta,/;"	v	module:metadata
+v2x_px	disfd_comm.f90	/^ real(c_float), pointer, dimension(:,:,:):: v1x_px,v1y_px,v1z_px, &$/;"	v	module:wave_field_comm
+v2x_px	disfd_macros.h	144;"	d
+v2x_px	disfd_sub.c	154;"	d	file:
+v2x_pxD	disfd_sub_opencl.c	/^static cl_mem v2x_pxD;$/;"	v	file:
+v2x_py	disfd_comm.f90	/^ real(c_float), pointer,  dimension(:,:,:):: v1x_py,v1y_py,v1z_py, &$/;"	v	module:wave_field_comm
+v2x_py	disfd_macros.h	148;"	d
+v2x_py	disfd_sub.c	158;"	d	file:
+v2x_pyD	disfd_sub_opencl.c	/^static cl_mem v2x_pyD;$/;"	v	file:
+v2x_pz	disfd_comm.f90	/^ real(c_float), pointer, dimension(:,:,:):: v2x_pz,/;"	v	module:wave_field_comm
+v2x_pz	disfd_macros.h	152;"	d
+v2x_pz	disfd_sub.c	162;"	d	file:
+v2x_pzD	disfd_sub_opencl.c	/^static cl_mem v2x_pzD;$/;"	v	file:
+v2y	disfd_comm.f90	/^ real(c_float), pointer, dimension(:,:,:):: v2x,v2y,/;"	v	module:wave_field_comm
+v2y	disfd_macros.h	140;"	d
+v2y	disfd_sub.c	150;"	d	file:
+v2yD	disfd_sub_opencl.c	/^static cl_mem v2yD;$/;"	v	file:
+v2yD_meta	disfd_sub_opencl.c	/^v1xD_meta, v2xD_meta, v1yD_meta, v2yD_meta, v1zD_meta, v2zD_meta,$/;"	v	typeref:struct:GPUArray_Metadata
+v2y_buff	disfd_comm.f90	/^ real(c_float), pointer,  dimension(:,:,:) :: v2x_buff, v2y_buff,/;"	v	module:wave_field_comm
+v2y_init	disfd_comm.f90	/^ real(c_float), pointer, dimension(:,:,:):: v2x,v2y,v2z,v2x_init,v2y_init,/;"	v	module:wave_field_comm
+v2y_init_buff	disfd_comm.f90	/^                                                 v2x_init_buff, v2y_init_buff,/;"	v	module:wave_field_comm
+v2y_meta	disfd_comm.f90	/^    TYPE(Array_Info) :: v1x_meta, v2x_meta, v1y_meta, v2y_meta,/;"	v	module:metadata
+v2y_px	disfd_comm.f90	/^                                       v2x_px,v2y_px,/;"	v	module:wave_field_comm
+v2y_px	disfd_macros.h	145;"	d
+v2y_px	disfd_sub.c	155;"	d	file:
+v2y_pxD	disfd_sub_opencl.c	/^static cl_mem v2y_pxD;$/;"	v	file:
+v2y_py	disfd_comm.f90	/^                                       v2x_py,v2y_py,/;"	v	module:wave_field_comm
+v2y_py	disfd_macros.h	149;"	d
+v2y_py	disfd_sub.c	159;"	d	file:
+v2y_pyD	disfd_sub_opencl.c	/^static cl_mem v2y_pyD;$/;"	v	file:
+v2y_pz	disfd_comm.f90	/^ real(c_float), pointer, dimension(:,:,:):: v2x_pz,v2y_pz,/;"	v	module:wave_field_comm
+v2y_pz	disfd_macros.h	153;"	d
+v2y_pz	disfd_sub.c	163;"	d	file:
+v2y_pzD	disfd_sub_opencl.c	/^static cl_mem v2y_pzD;$/;"	v	file:
+v2z	disfd_comm.f90	/^ real(c_float), pointer, dimension(:,:,:):: v2x,v2y,v2z,/;"	v	module:wave_field_comm
+v2z	disfd_macros.h	141;"	d
+v2z	disfd_sub.c	151;"	d	file:
+v2zD	disfd_sub_opencl.c	/^static cl_mem v2zD;$/;"	v	file:
+v2zD_meta	disfd_sub_opencl.c	/^v1xD_meta, v2xD_meta, v1yD_meta, v2yD_meta, v1zD_meta, v2zD_meta,$/;"	v	typeref:struct:GPUArray_Metadata
+v2z_buff	disfd_comm.f90	/^ real(c_float), pointer,  dimension(:,:,:) :: v2x_buff, v2y_buff, v2z_buff,/;"	v	module:wave_field_comm
+v2z_init	disfd_comm.f90	/^ real(c_float), pointer, dimension(:,:,:):: v2x,v2y,v2z,v2x_init,v2y_init,v2z_init$/;"	v	module:wave_field_comm
+v2z_init_buff	disfd_comm.f90	/^                                                 v2x_init_buff, v2y_init_buff, v2z_init_buff$/;"	v	module:wave_field_comm
+v2z_meta	disfd_comm.f90	/^    TYPE(Array_Info) :: v1x_meta, v2x_meta, v1y_meta, v2y_meta, v1z_meta, v2z_meta,/;"	v	module:metadata
+v2z_px	disfd_comm.f90	/^                                       v2x_px,v2y_px,v2z_px$/;"	v	module:wave_field_comm
+v2z_px	disfd_macros.h	146;"	d
+v2z_px	disfd_sub.c	156;"	d	file:
+v2z_pxD	disfd_sub_opencl.c	/^static cl_mem v2z_pxD;$/;"	v	file:
+v2z_py	disfd_comm.f90	/^                                       v2x_py,v2y_py,v2z_py$/;"	v	module:wave_field_comm
+v2z_py	disfd_macros.h	150;"	d
+v2z_py	disfd_sub.c	160;"	d	file:
+v2z_pyD	disfd_sub_opencl.c	/^static cl_mem v2z_pyD;$/;"	v	file:
+v2z_pz	disfd_comm.f90	/^ real(c_float), pointer, dimension(:,:,:):: v2x_pz,v2y_pz,v2z_pz$/;"	v	module:wave_field_comm
+v2z_pz	disfd_macros.h	154;"	d
+v2z_pz	disfd_sub.c	164;"	d	file:
+v2z_pzD	disfd_sub_opencl.c	/^static cl_mem v2z_pzD;$/;"	v	file:
+vel	read_dfd.f90	/^ real, allocatable, dimension(:):: vel,/;"	v	program:read_dfd
+vel_PmlX_I	disfd_sub.f90	/^subroutine vel_PmlX_I$/;"	s
+vel_PmlX_IC	disfd_sub.c	/^void vel_PmlX_IC(float ca,$/;"	f
+vel_PmlX_II	disfd_sub.f90	/^subroutine vel_PmlX_II$/;"	s
+vel_PmlX_IIC	disfd_sub.c	/^void vel_PmlX_IIC(int   nzbm1,$/;"	f
+vel_PmlY_I	disfd_sub.f90	/^subroutine vel_PmlY_I$/;"	s
+vel_PmlY_IC	disfd_sub.c	/^void vel_PmlY_IC(int	  nztop,$/;"	f
+vel_PmlY_II	disfd_sub.f90	/^subroutine vel_PmlY_II$/;"	s
+vel_PmlY_IIC	disfd_sub.c	/^void vel_PmlY_IIC(int   nzbm1,$/;"	f
+vel_PmlZ_II	disfd_sub.f90	/^subroutine vel_PmlZ_II$/;"	s
+vel_PmlZ_IIC	disfd_sub.c	/^void vel_PmlZ_IIC(int   nzbm1,$/;"	f
+vel_plan	disfd_sub.f90	/^function vel_plan(/;"	f
+vel_tmp	read_dfd.f90	/^ real, allocatable, dimension(:,:):: vel_tmp$/;"	v	program:read_dfd
+velocity_inner_I	disfd_sub.f90	/^subroutine velocity_inner_I$/;"	s
+velocity_inner_IC	disfd_sub.c	/^void velocity_inner_IC(int	nztop,$/;"	f
+velocity_inner_II	disfd_sub.f90	/^subroutine velocity_inner_II$/;"	s
+velocity_inner_IIC	disfd_sub.c	/^void velocity_inner_IIC(float ca,$/;"	f
+velocity_interp	disfd_sub.f90	/^subroutine velocity_interp(/;"	s
+vm4dfd_v3	vm4dfd_v3.f90	/^Program vm4dfd_v3$/;"	p
+vmodel_inp	vm4dfd_v3.f90	/^module vmodel_inp$/;"	m
+vpmin	vm4dfd_v3.f90	/^ real:: vpmin,/;"	v	module:vmodel_inp
+vpmn1	vm4dfd_v3.f90	/^ real:: vpmx1,vpmn1,/;"	v	program:vm4dfd_v3
+vpmx1	vm4dfd_v3.f90	/^ real:: vpmx1,/;"	v	program:vm4dfd_v3
+vsmin	vm4dfd_v3.f90	/^ real:: vpmin,vsmin,/;"	v	module:vmodel_inp
+vsmn1	vm4dfd_v3.f90	/^ real:: vpmx1,vpmn1,vsmx1,vsmn1,/;"	v	program:vm4dfd_v3
+vsmx1	vm4dfd_v3.f90	/^ real:: vpmx1,vpmn1,vsmx1,/;"	v	program:vm4dfd_v3
+vxy_image_layer	disfd_sub.f90	/^subroutine vxy_image_layer(/;"	s
+vxy_image_layer_rcx2_vel	disfd_sub_opencl.c	/^void vxy_image_layer_rcx2_vel(float* rcx1, float* rcx2, int* nxtop, int* nytop, int* nztop, int* ny1p1) {$/;"	f
+vxy_image_layer_rcx_vel	disfd_sub_opencl.c	/^void vxy_image_layer_rcx_vel(float* rcx1, float* rcx2, int* nxtop, int* nytop, int* nztop,  int* nx1p1) {$/;"	f
+vxy_image_layer_sdx_vel	disfd_sub_opencl.c	/^void vxy_image_layer_sdx_vel(float* sdx1, float* sdx2, int* nxtop, int* nytop, int* nztop ) {$/;"	f
+vxy_image_layer_sdy_vel	disfd_sub_opencl.c	/^void vxy_image_layer_sdy_vel(float* sdy1, float* sdy2, int* nxtop, int* nytop,int* nztop ) {$/;"	f
+vxy_image_layer_vel1	disfd_sub_opencl.c	/^void vxy_image_layer_vel1(int* nd1_vel, int i, float dzdx, int nxbtm, int nybtm, int nzbtm, $/;"	f
+vxy_image_layer_vel2	disfd_sub_opencl.c	/^void vxy_image_layer_vel2(int* nd1_vel, float* v1x, int* iix, float* dzdt, int* nxbtm, int* nybtm, int* nzbtm, int* nxtop, int* nytop, int* nztop)$/;"	f
+vxy_image_layer_vel3	disfd_sub_opencl.c	/^void vxy_image_layer_vel3(int* nd1_vel, int* j, float* dzdy, int* nxbtm, int* nybtm, int* nzbtm, int* nxtop, int* nytop, int* nztop)$/;"	f
+vxy_image_layer_vel4	disfd_sub_opencl.c	/^void vxy_image_layer_vel4(int* nd1_vel, float* v1y, int* jjy, float* dzdt, int* nxbtm, int* nybtm, int* nzbtm, int* nxtop, int* nytop, int* nztop)$/;"	f
+wave_field_comm	disfd_comm.f90	/^MODULE wave_field_comm$/;"	m
+write_output	disfd_sub_opencl.c	/^void write_output(float *arr, int size, const char *filename)$/;"	f
+write_sac	sacio.c	/^int	write_sac(const char	*name,$/;"	f
+wrtsac0_	sacio.c	/^void    wrtsac0_(const char *name2, float *dtp, int *nsp, float *b0p, $/;"	f
+wrtsac2	sacio.c	/^int	wrtsac2(const char	*name,$/;"	f
+wrtsac2_	sacio.c	/^void    wrtsac2_(const char *name2, int n, const float *x, const float *y) {$/;"	f
+wrtsac3_	sacio.c	/^void    wrtsac3_(const char *name2, float dt, int ns, float b0, float dist, float cmpaz, float cmpinc, const float *ar) {$/;"	f
+wsac1_	sacio.c	/^void    wsac1_(const char *name2, float *ar, int *nsp, float *b0p, $/;"	f
+x	disfd_sub_opencl.c	/^	int x;$/;"	m	struct:__dim3	file:
+xcor	disfd_comm.f90	/^ real, allocatable, dimension(:,:):: xcor,/;"	v	module:station_comm
+xmd0	vm4dfd_v3.f90	/^ real:: depth_I_II,fmax,freq_ref,anglex,angley,xmd0,/;"	v	program:vm4dfd_v3
+xplwv	disfd_comm.f90	/^ real, dimension(5):: xplwv,/;"	v	module:plane_wave_bd
+xref_fdm	disfd_comm.f90	/^ real :: dt_fd,dt_out,tdura,angle_north_to_x,xref_fdm,/;"	v	module:comput_input_param
+xref_src	disfd_comm.f90	/^ real :: dt_fd,dt_out,tdura,angle_north_to_x,xref_fdm,yref_fdm, &$/;"	v	module:comput_input_param
+xyz	read_dfd.f90	/^ real, allocatable, dimension(:):: vel,xyz,/;"	v	program:read_dfd
+xyz_all	read_dfd.f90	/^ real, allocatable, dimension(:):: vel,xyz,xyz_all$/;"	v	program:read_dfd
+xyz_list	vm4dfd_v3.f90	/^ Type:: xyz_list$/;"	t	subroutine:grid_space
+y	disfd_sub_opencl.c	/^	int y;$/;"	m	struct:__dim3	file:
+ycor	disfd_comm.f90	/^ real, allocatable, dimension(:,:):: xcor,ycor,/;"	v	module:station_comm
+ymd0	vm4dfd_v3.f90	/^ real:: depth_I_II,fmax,freq_ref,anglex,angley,xmd0,ymd0$/;"	v	program:vm4dfd_v3
+yplwv	disfd_comm.f90	/^ real, dimension(5):: xplwv,yplwv$/;"	v	module:plane_wave_bd
+yref_fdm	disfd_comm.f90	/^ real :: dt_fd,dt_out,tdura,angle_north_to_x,xref_fdm,yref_fdm,/;"	v	module:comput_input_param
+yref_src	disfd_comm.f90	/^         xref_src,yref_src,/;"	v	module:comput_input_param
+z	disfd_sub_opencl.c	/^	int z;$/;"	m	struct:__dim3	file:
+z0	vm4dfd_v3.f90	/^ real:: depth_bm,depth_up,z0,/;"	v	program:vm4dfd_v3
+z2_top	vm4dfd_v3.f90	/^ real:: tstep,gstep,ztb1,ztb2,z2_top$/;"	v	program:vm4dfd_v3
+zcor	disfd_comm.f90	/^ real, allocatable, dimension(:,:):: xcor,ycor,zcor$/;"	v	module:station_comm
+zplwv	disfd_comm.f90	/^ real, dimension(2):: zplwv$/;"	v	module:plane_wave_bd
+zr2	vm4dfd_v3.f90	/^ real:: depth_bm,depth_up,z0,zz,dzbm,zr2,/;"	v	program:vm4dfd_v3
+ztb1	vm4dfd_v3.f90	/^ real:: tstep,gstep,ztb1,/;"	v	program:vm4dfd_v3
+ztb2	vm4dfd_v3.f90	/^ real:: tstep,gstep,ztb1,ztb2,/;"	v	program:vm4dfd_v3
+zz	vm4dfd_v3.f90	/^ real:: depth_bm,depth_up,z0,zz,/;"	v	program:vm4dfd_v3

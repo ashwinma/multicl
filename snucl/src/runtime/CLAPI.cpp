@@ -270,7 +270,7 @@ CL_API_ENTRY cl_int CL_API_CALL
 SNUCL_API_FUNCTION(clGetPlatformIDs)(
     cl_uint num_entries, cl_platform_id* platforms, cl_uint* num_platforms)
     CL_API_SUFFIX__VERSION_1_0 {
-  //std::cout << "InitSchedulers" << std::endl;
+  std::cout << "InitPlatform" << std::endl;
   if ((num_entries == 0 && platforms != NULL) ||
       (num_platforms == NULL && platforms == NULL))
     return CL_INVALID_VALUE;
@@ -345,6 +345,7 @@ SNUCL_API_FUNCTION(clCreateSubDevices)(
     cl_device_id in_device, const cl_device_partition_property* properties,
     cl_uint num_devices, cl_device_id* out_devices, cl_uint* num_devices_ret)
     CL_API_SUFFIX__VERSION_1_2 {
+  SNUCL_INFO("clCreateSubDevices 0\n", 0);
   if (IS_INVALID_DEVICE(in_device))
     return CL_INVALID_DEVICE;
 
@@ -381,13 +382,14 @@ SNUCL_API_FUNCTION(clCreateContext)(
     const cl_device_id* devices,
     void (CL_CALLBACK *pfn_notify)(const char*, const void*, size_t, void*),
     void* user_data, cl_int* errcode_ret) CL_API_SUFFIX__VERSION_1_0 {
+  SNUCL_INFO("Context 0\n", 0);
+//  SET_ERROR_AND_RETURN(CL_INVALID_VALUE, NULL);
   if (devices == NULL)
     SET_ERROR_AND_RETURN(CL_INVALID_VALUE, NULL);
   if (num_devices == 0)
     SET_ERROR_AND_RETURN(CL_INVALID_VALUE, NULL);
   if (pfn_notify == NULL && user_data != NULL)
     SET_ERROR_AND_RETURN(CL_INVALID_VALUE, NULL);
-
   ContextErrorNotificationCallback* callback = NULL;
   if (pfn_notify != NULL) {
     callback = new ContextErrorNotificationCallback(pfn_notify, user_data);
@@ -396,12 +398,14 @@ SNUCL_API_FUNCTION(clCreateContext)(
   }
 
   cl_int err = CL_SUCCESS;
+  SNUCL_INFO("Context 1\n", 0);
   CLContext* context = CLPlatform::GetPlatform()->CreateContextFromDevices(
       properties, num_devices, devices, callback, &err);
   if (err != CL_SUCCESS) {
     delete callback;
     SET_ERROR_AND_RETURN(err, NULL);
   }
+  SNUCL_INFO("Context 2\n", 0);
   SET_ERROR_AND_RETURN(CL_SUCCESS, context->st_obj());
 }
 

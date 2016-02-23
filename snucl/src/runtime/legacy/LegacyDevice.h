@@ -64,6 +64,7 @@ class LegacyDevice: public CLDevice {
 						   cl_context context,
                cl_platform_id platform_id, cl_device_id device_id,
 			   const int device_index);
+  LegacyDevice(LegacyDevice *device, cl_device_id device_id);
   ~LegacyDevice();
 
   virtual double WaitForKernel(CLCommand *command);
@@ -152,6 +153,10 @@ class LegacyDevice: public CLDevice {
   virtual void* AllocTrainingKernel(CLKernel* kernel);
   virtual void FreeKernel(CLKernel* kernel, void* dev_specific);
 
+  virtual cl_int CreateSubDevices(const cl_device_partition_property* properties,
+                          cl_uint num_devices, cl_device_id* out_devices,
+                          cl_uint* num_devices_ret);
+
   virtual cl_context context() const { return context_; }
  private:
   cl_program CreateProgram(CLProgramSource* source);
@@ -165,6 +170,7 @@ class LegacyDevice: public CLDevice {
   struct _cl_icd_dispatch* dispatch_;
   cl_platform_id platform_id_;
   cl_device_id device_id_;
+  cl_device_id *partition_device_ids_;
   cl_context context_;
   cl_command_queue kernel_queue_;
   cl_event kernel_event_;

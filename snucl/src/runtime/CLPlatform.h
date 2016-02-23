@@ -86,8 +86,9 @@ class CLPlatform: public CLObject<struct _cl_platform_id, CLPlatform,
   void InvokeAllSchedulers();
 
   const hwloc_topology_t &HWLOCTopology() {return topology_;}
- private:
   void InitDeviceMetrics();
+  void InitD2DMetrics(int force = 0);
+ private:
   size_t CheckContextProperties(const cl_context_properties* properties,
                                 cl_int* err);
 

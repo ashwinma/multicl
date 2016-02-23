@@ -362,9 +362,11 @@ cl_int CLDevice::GetDeviceInfo(cl_device_info param_name,
 cl_int CLDevice::CreateSubDevices(
     const cl_device_partition_property* properties, cl_uint num_devices,
     cl_device_id* out_devices, cl_uint* num_devices_ret) {
+  SNUCL_INFO("CreateSubDevices 0\n", 0);
   if (properties == NULL) return CL_INVALID_VALUE;
 
   bool supported = false;
+  SNUCL_INFO("CreateSubDevices 1\n", 0);
   for (size_t i = 0; i < num_partition_properties_; i++) {
     if (properties[0] == partition_properties_[i]) {
       supported = true;
@@ -372,7 +374,7 @@ cl_int CLDevice::CreateSubDevices(
     }
   }
   if (!supported) return CL_INVALID_VALUE;
-
+  SNUCL_INFO("CreateSubDevices 2\n", 0);
   switch (properties[0]) {
     case CL_DEVICE_PARTITION_EQUALLY: {
       unsigned int n = (unsigned int)properties[1];

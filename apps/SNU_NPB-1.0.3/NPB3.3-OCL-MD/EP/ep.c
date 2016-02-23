@@ -77,8 +77,12 @@
 #endif
 
 //#define USE_CHUNK_SCHEDULE
-#define MINIMD_SNUCL_OPTIMIZATIONS
-
+//#define MINIMD_SNUCL_OPTIMIZATIONS
+//#define DEVICE_FISSION
+#define SOCL_OPTIMIZATIONS
+#ifdef SOCL_OPTIMIZATIONS
+#include "socl.h"
+#endif
 //--------------------------------------------------------------------
 // OpenCL part
 //--------------------------------------------------------------------
@@ -207,6 +211,7 @@ int main(int argc, char *argv[])
   }
     
   for (i = 0; i < num_devices; i++) {
+  	printf("Before enqueueing to cmd_queue %d\n", i);
     err_code = clEnqueueNDRangeKernel(cmd_queue[i],
                                       kernel[i],
                                       1, NULL,
@@ -386,18 +391,135 @@ void setup_opencl(int argc, char *argv[])
   //device_type = CL_DEVICE_TYPE_CPU;
   //device_type = CL_DEVICE_TYPE_GPU;
   device_type = CL_DEVICE_TYPE_ALL;
+  if(argc <= 2) {
+    printf("Device type argument missing!\n");
+	exit(-1);
+  }
+  char *device_type_str = argv[2];
+  if(strcmp(device_type_str, "CPU") == 0 || strcmp(device_type_str, "cpu") == 0) {
+  	device_type = CL_DEVICE_TYPE_CPU;
+  } else if(strcmp(device_type_str, "GPU") == 0 || strcmp(device_type_str, "gpu") == 0) {
+  	device_type = CL_DEVICE_TYPE_GPU;
+  } else if(strcmp(device_type_str, "ALL") == 0 || strcmp(device_type_str, "all") == 0) {
+  	device_type = CL_DEVICE_TYPE_ALL;
+  } else {
+    printf("Unsupported device type!\n");
+	exit(-1);
+  }
    
   cl_platform_id platform;
-  err_code = clGetPlatformIDs(1, &platform, NULL);
-  clu_CheckError(err_code, "clGetPlatformIDs()");
+//  err_code = clGetPlatformIDs(1, &platform, NULL);
+//  clu_CheckError(err_code, "clGetPlatformIDs()");
 
+#ifdef SOCL_OPTIMIZATIONS
+	const char *PLATFORM_NAME = "SOCL Platform";
+#else
+	const char *PLATFORM_NAME = "SnuCL Single";
+#endif
+	cl_uint num_platforms;
+	cl_platform_id *platforms;
+	cl_int errNum = clGetPlatformIDs(0, NULL, &num_platforms);
+	clu_CheckError(errNum, "Platform Count");
+	printf("Number of platforms: %d\n", num_platforms);
+	platforms = (cl_platform_id*)malloc(sizeof(cl_platform_id) * num_platforms);
+	cl_int err = clGetPlatformIDs(num_platforms, platforms, NULL);
+	clu_CheckError(err, "Platform Count");
+
+	int platform_name_size;
+	for (i = 0; i < num_platforms; i++) {
+		err = clGetPlatformInfo(platforms[i], CL_PLATFORM_NAME, 0, NULL,
+				&platform_name_size);
+		clu_CheckError(err, "Platform Info");
+
+		char *platform_name = (char*)malloc(sizeof(char) * platform_name_size);
+		err = clGetPlatformInfo(platforms[i], CL_PLATFORM_NAME, platform_name_size,
+				platform_name, NULL);
+		clu_CheckError(err, "Platform Info");
+
+		printf("Platform %d: %s\n", i, platform_name);
+		if (strcmp(platform_name, PLATFORM_NAME) == 0)
+		{
+			printf("Choosing Platform %d: %s\n", i, platform_name);
+			platform = platforms[i];
+		}
+		free(platform_name);
+	}
+
+	if (platform == NULL) {
+		printf("%s platform is not found.\n", PLATFORM_NAME);
+		//exit(EXIT_FAILURE);
+	}
+
+#ifdef DEVICE_FISSION
+  cl_device_id *gpu_devices = NULL;
+  cl_device_id *out_cpu_devices = NULL;
+  int num_gpu_devices = 0;
+  int num_partitions = 0;
+
+  if(device_type == CL_DEVICE_TYPE_GPU || device_type == CL_DEVICE_TYPE_ALL) {
+	  clGetDeviceIDs(platform, CL_DEVICE_TYPE_GPU, 0, 
+			  NULL, &num_gpu_devices);
+	  clu_CheckError(err_code, "clGetDeviceIDs()");
+	  gpu_devices = (cl_device_id *)malloc(sizeof(cl_device_id) * 
+			  num_gpu_devices);
+	  clGetDeviceIDs(platform, CL_DEVICE_TYPE_GPU, num_gpu_devices,
+			  gpu_devices, NULL);
+	  clu_CheckError(err_code, "clGetDeviceIDs()");
+  }
+  if(device_type == CL_DEVICE_TYPE_CPU || device_type == CL_DEVICE_TYPE_ALL) {
+	  num_partitions = 2;
+	  cl_device_id cpu_device;
+	  out_cpu_devices = (cl_device_id *)malloc(sizeof(cl_device_id) * num_partitions);
+
+	  err_code = clGetDeviceIDs(platform, CL_DEVICE_TYPE_CPU, 1, &cpu_device, NULL);
+	  clu_CheckError(err_code, "clGetDeviceIDs()");
+#if 0
+	  cl_device_affinity_domain supported_affinity = 0;
+	  err_code = clGetDeviceInfo(cpu_device,
+			  CL_DEVICE_PARTITION_AFFINITY_DOMAIN,
+			  sizeof(cl_device_affinity_domain),
+			  &supported_affinity,
+			  NULL);
+	  clu_CheckError(err_code, "clGetDeviceInfo");
+	  printf("Supported Affinity: %x\n", supported_affinity);
+
+#endif
+
+	  /*cl_device_partition_property  partition_properties[3] = {
+		  CL_DEVICE_PARTITION_BY_AFFINITY_DOMAIN,
+		  CL_DEVICE_AFFINITY_DOMAIN_NEXT_PARTITIONABLE,
+		  //		CL_DEVICE_AFFINITY_DOMAIN_NUMA,
+		  0 };*/
+	  cl_device_partition_property  partition_properties[3] = {
+	  	  CL_DEVICE_PARTITION_EQUALLY, 8, 0 };
+	  int ret_device_count;
+	  err_code = clCreateSubDevices(cpu_device,
+			  partition_properties,
+			  num_partitions,
+			  out_cpu_devices,
+			  &ret_device_count);
+	  clu_CheckError(err_code, "clCreateSubDevices()");
+  }
+  num_devices = num_gpu_devices + num_partitions;
+  devices = (cl_device_id *)malloc(sizeof(cl_device_id) * num_devices);
+
+  int dev_id = 0;
+  for(i = 0; i < num_partitions; i++) {
+  	devices[dev_id++] = out_cpu_devices[i];
+  }
+  for(i = 0; i < num_gpu_devices; i++) {
+  	devices[dev_id++] = gpu_devices[i];
+  }
+  if(gpu_devices) free(gpu_devices);
+  if(out_cpu_devices) free(out_cpu_devices);
+#else
   err_code = clGetDeviceIDs(platform, device_type, 0, NULL, &num_devices);
   clu_CheckError(err_code, "clGetDeviceIDs()");
 
   devices = (cl_device_id *)malloc(sizeof(cl_device_id) * num_devices);
   err_code = clGetDeviceIDs(platform, device_type, num_devices, devices, NULL);
   clu_CheckError(err_code, "clGetDeviceIDs()");
-
+#endif
   max_compute_units = 16;
 
   // 2. Create a context for devices
@@ -408,8 +530,16 @@ void setup_opencl(int argc, char *argv[])
 		CL_CONTEXT_SCHEDULER,
 		//CL_CONTEXT_SCHEDULER_CODE_SEGMENTED_PERF_MODEL,
 		//CL_CONTEXT_SCHEDULER_PERF_MODEL,
-		//CL_CONTEXT_SCHEDULER_FIRST_EPOCH_BASED_PERF_MODEL,
-		CL_CONTEXT_SCHEDULER_ALL_EPOCH_BASED_PERF_MODEL,
+		CL_CONTEXT_SCHEDULER_FIRST_EPOCH_BASED_PERF_MODEL,
+		//CL_CONTEXT_SCHEDULER_ALL_EPOCH_BASED_PERF_MODEL,
+		0 };
+  context = clCreateContext(props, 
+#elif defined(SOCL_OPTIMIZATIONS)
+	cl_context_properties props[5] = {
+		CL_CONTEXT_PLATFORM,
+		(cl_context_properties)platform,
+		CL_CONTEXT_SCHEDULER_SOCL,
+		"dmda",
 		0 };
   context = clCreateContext(props, 
 #else
@@ -448,15 +578,21 @@ void setup_opencl(int argc, char *argv[])
 
   // 3. Create a command queue
   char *num_command_queues_str = getenv("SNU_NPB_COMMAND_QUEUES");
+  cl_uint num_command_queues = 1;
   if(num_command_queues_str != NULL)
-  	num_devices = atoi(num_command_queues_str);
-  cmd_queue = (cl_command_queue*)malloc(sizeof(cl_command_queue)*num_devices);
-  for (i = 0; i < num_devices; i++) {
-    cmd_queue[i] = clCreateCommandQueue(context, devices[i], 
+  	num_command_queues = atoi(num_command_queues_str);
+  cmd_queue = (cl_command_queue*)malloc(sizeof(cl_command_queue)*num_command_queues);
+  for (i = 0; i < num_command_queues; i++) {
+#ifdef SOCL_OPTIMIZATIONS
+	cmd_queue[i] = clCreateCommandQueue(context, NULL,
+#else
+	cmd_queue[i] = clCreateCommandQueue(context, devices[i % num_devices], 
+#endif
+    //cmd_queue[i] = clCreateCommandQueue(context, devices[num_devices - 1 - (i%num_devices)], 
 #ifdef MINIMD_SNUCL_OPTIMIZATIONS
 			CL_QUEUE_AUTO_DEVICE_SELECTION
+			| CL_QUEUE_COMPUTE_INTENSIVE
 			| CL_QUEUE_ITERATIVE,
-			//| CL_QUEUE_COMPUTE_INTENSIVE,
 #else
 	0,
 #endif
@@ -464,6 +600,7 @@ void setup_opencl(int argc, char *argv[])
     clu_CheckError(err_code, "clCreateCommandQueue()");
   }
 
+  num_devices = num_command_queues;
   // 5. Create buffers
   if (timers_enabled) timer_start(TIMER_BUFFER);
 

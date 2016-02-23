@@ -53,7 +53,7 @@ Program vm4dfd_v3
  use fd_model_comm
  implicit NONE
  character(len=72):: fileout
- integer, parameter:: nwrt=10
+ integer, parameter:: nwrt=20
  integer:: initxdr,ixdrimat,ixdrrmat,ixdrint,ixdrreal,ixdrclose
  integer:: i,ix,jy,kz,ncx,ncy,ncz,modlx,modly,ncount,nof,myfh,ierr
  integer:: k,kup,kbm,kzsub_vm,nchk,is_refresh,ndis,kdis,inds,itype
@@ -116,31 +116,37 @@ Program vm4dfd_v3
 ! 
  write(9,*) 'Enter the number of control points used in X-axis of FD'
  read(8,*) ncx
+ write(9,*) ncx
 !
  allocate(distx(ncx),dxseg(ncx))
  write(9,*) 'Enter the location and grid sapce of control points ', &
             'in X-axis for Region II' 
  do ix=1,ncx
    read(8,*) distx(ix),dxseg(ix)
+   write(9,*) distx(ix),dxseg(ix)
  enddo
 !
  write(9,*) 'Enter the number of control points used in Y-axis of FD '
  read(8,*) ncy
+ write(9,*) ncy
 !
  allocate(disty(ncy),dyseg(ncy))
  write(9,*) 'Enter the location and grid sapce of control points ', &
             'in Y-axis for Region II'
  do jy=1,ncy
    read(8,*) disty(jy),dyseg(jy)
+   write(9,*) disty(jy),dyseg(jy)
  enddo
 !
  write(9,*) 'Enter the number of control points  used in Z-axis of FD '
  read(8,*) ncz
+ write(9,*) ncz
 !
  allocate(distz(ncz),dzseg(ncz))
  write(9,*) 'Enter the location and grid sapce of control points in Z-axis'
  do kz=1,ncz
    read(8,*) distz(kz),dzseg(kz)
+   write(9,*) distz(kz),dzseg(kz)
  enddo
 !
  write(9,*) 'Enter min. Vp, Vs, roh, Qp, and Qs used in FD model' 
@@ -217,6 +223,8 @@ Program vm4dfd_v3
 !
  myfh=15 
  open(unit=15,file=fileout,status='replace',form='unformatted')
+! open(unit=15,file=fileout)
+ !open(42,file='fd_north.inf')
  write(15) nx_fd0, ny_fd0, nz2_fd, nz1_fd, nwrt
  write(15) (dxx0(i),i=1,nx_fd0)
  write(15) (dyy0(i),i=1,ny_fd0)
@@ -917,12 +925,20 @@ subroutine grid_space(id_xyz,nseg,xx,dx)
    dseg=xx(ks)-xx(ks-1);   slop=(dx(ks)-dx(ks-1))/dseg
    af1=(1.-0.5*slop);      afa=(1.+0.5*slop)/af1
    sss=dx(ks-1)/af1;       x0=xx(ks-1);    xi=0.0
+   print *, 'af1 afa sss'
+   print *, af1, afa, sss
+   print *, 'old xx'
+   print *, xx
    do while(xi < dseg)
      xi=xi*afa+sss;          nnode=nnode+1
      allocate(xyz_tail%p);   xyz_tail => xyz_tail%p
      nullify(xyz_tail%p);    xyz_tail%coor=xi+x0
    enddo
    xx(ks)=xi + x0
+   print *, 'new xx'
+   print *, xx
+   print *, 'nnode'
+   print *, nnode
  enddo
  allocate(gsp(nnode+1))
  nnode=0;  ptr => xyz_head
@@ -944,6 +960,9 @@ subroutine grid_space(id_xyz,nseg,xx,dx)
    allocate(dzz0(nnode))
    nz_fd0=nnode; dzz0=gsp
  endselect
+
+ print *, 'gsp array'
+ print *, gsp
 ! 
  deallocate(gsp)
  do 

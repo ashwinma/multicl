@@ -122,20 +122,25 @@ void CLScheduler::RemoveCommandQueue(CLCommandQueue* queue) {
 }
 
 void CLScheduler::Progress(bool explicit_synch_flag) {
+	SNUCL_INFO("Progress 0\n", 0);
 	if(queues_.size() <= 0) return;
 	/* Analyze the pending cmds in all the target queues and 
 	 * then invoke the scheduler */
 	// Check if all cmd queues are of same ctx
+	SNUCL_INFO("Progress 1\n", 0);
 	CLContext *ctx = queues_[0]->context();
 	std::vector<CLDevice *> devices = ctx->devices();
 	size_t num_devices = devices.size();
 	if(num_devices <= 1) return;
+	SNUCL_INFO("Progress 2: devices count: %d\n", num_devices);
 	size_t num_ctx_properties = ctx->num_properties();
 	cl_context_properties *ctx_properties = ctx->properties();
-	cl_context_scheduler_type ctx_sched_type;
+	cl_context_scheduler_type ctx_sched_type = 0;
+	SNUCL_INFO("Context Property Count: %d\n", num_ctx_properties);
 	for(int idx = 0; idx < num_ctx_properties; idx++) {
 		if(ctx_properties[idx] == CL_CONTEXT_SCHEDULER) {
 			ctx_sched_type = (cl_context_scheduler_type)ctx_properties[idx + 1];
+			SNUCL_INFO("Context Property [%d/%d]: 0x%x\n", idx, num_ctx_properties, ctx_sched_type);
 			break;
 		}
 	}
@@ -144,7 +149,7 @@ void CLScheduler::Progress(bool explicit_synch_flag) {
 	if(tmp_env_var_str != NULL)
 		tmp_env_var = atoi(tmp_env_var_str);
 	double snucl_device_selection_threshold = (double)tmp_env_var;
-	/*
+	
 	switch(ctx_sched_type)
 	{
 		case CL_CONTEXT_SCHEDULER_RR:
@@ -153,10 +158,13 @@ void CLScheduler::Progress(bool explicit_synch_flag) {
 		case CL_CONTEXT_SCHEDULER_PERF_MODEL:
 			SNUCL_INFO("Context Scheduler: Perf Model\n", 0);
 			break;
+		case CL_CONTEXT_SCHEDULER_CODE_SEGMENTED_PERF_MODEL:
+			SNUCL_INFO("Context Scheduler: Code segmented Perf Model\n", 0);
+			break;
 		default:
 			SNUCL_ERROR("INVALID Context Scheduler: %d\n", ctx_sched_type);
 			break;
-	}*/
+	}
 	if(ctx_sched_type == CL_CONTEXT_SCHEDULER_RR) 
 	{
 		int chosen_dev_id = 0; // start RR from dev 0 of the context;
@@ -176,6 +184,7 @@ void CLScheduler::Progress(bool explicit_synch_flag) {
 	}
 	else if(ctx_sched_type == CL_CONTEXT_SCHEDULER_CODE_SEGMENTED_PERF_MODEL)
 	{
+		SNUCL_INFO("Progress code segmented\n", 0);
 		// performance modeling
 		/* this function should do the following 
 		 * identify best device for the given SET of commands
@@ -649,9 +658,9 @@ void CLScheduler::Progress(bool explicit_synch_flag) {
 	}
 	else
 	{
-//		SNUCL_INFO("No Context Scheduling Defined\n", 0);
+		SNUCL_INFO("No Context Scheduling Defined\n", 0);
 	}
-//	SNUCL_INFO("Schedule Done\n", 0);
+	SNUCL_INFO("Schedule Done\n", 0);
 }
 
 void CLScheduler::Run() {

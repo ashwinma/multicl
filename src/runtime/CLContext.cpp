@@ -87,12 +87,14 @@ CLContext::CLContext(const std::vector<CLDevice*>& devices,
   callback_ = NULL;
   hosts_.clear();
   hosts_ = hosts;
-  InitDeviceMetrics(d2d_distances, d2h_distances, d_compute_perfs, 
+  if(d_compute_perfs.size() > 0)
+  	InitDeviceMetrics(d2d_distances, d2h_distances, d_compute_perfs, 
   								d_mem_perfs, d_lmem_perfs, filter_indices);
   pthread_mutex_init(&mutex_mems_, NULL);
   pthread_mutex_init(&mutex_samplers_, NULL);
 
   InitImageInfo();
+  SNUCL_INFO("Num properties: %d\n", num_properties_);
 }
 
 CLContext::~CLContext() {
@@ -142,6 +144,7 @@ void CLContext::InitDeviceMetrics(const std::vector<perf_vector> &d2d_distances,
 	size_t devices_size = filter_indices.size();
 	size_t hosts_size = hosts_.size();
 	SNUCL_INFO("Number of hosts: %u\n", hosts_size);
+	SNUCL_INFO("Number of devices: %u\n", devices_size);
 	devices_hosts_distances_.resize(hosts_size);
   	for(host_id = 0; host_id < hosts_size; host_id++)
 	{
@@ -165,21 +168,23 @@ void CLContext::InitDeviceMetrics(const std::vector<perf_vector> &d2d_distances,
 			unsigned int global_next_device_id = filter_indices[next_device_id];
 			devices_hosts_distances_[host_id][next_device_id].first = d2h_distances[host_id][global_next_device_id];
 			devices_hosts_distances_[host_id][next_device_id].second = next_device_id; 
+			SNUCL_INFO("[%d][%d] = [%d][%d] (sizes: %d, %d)\n", next_device_id, host_id, global_next_device_id, host_id, devices_hosts_distances_[host_id].size(), d2h_distances[host_id].size());
 		}
 	}
 
 	for(device_id = 0; device_id < devices_size; device_id++)
 	{
 		unsigned int global_device_id = filter_indices[device_id];
-		devices_compute_perf_[device_id].first = d_compute_perfs[global_device_id];
-		devices_compute_perf_[device_id].second = device_id;
-
 		devices_memory_perf_[device_id].first = d_mem_perfs[global_device_id];
 		devices_memory_perf_[device_id].second = device_id;
 
 		devices_lmemory_perf_[device_id].first = d_lmem_perfs[global_device_id];
 		devices_lmemory_perf_[device_id].second = device_id;
 
+		devices_compute_perf_[device_id].first = d_compute_perfs[global_device_id];
+		devices_compute_perf_[device_id].second = device_id;
+
+		SNUCL_INFO("[%d][%d] = [%d][%d]\n", device_id, device_id, global_device_id, global_device_id);
 		devices_devices_distances_[device_id][device_id].first = d2d_distances[global_device_id][global_device_id];
 		devices_devices_distances_[device_id][device_id].second = device_id;
 
@@ -189,6 +194,7 @@ void CLContext::InitDeviceMetrics(const std::vector<perf_vector> &d2d_distances,
 			devices_devices_distances_[device_id][next_device_id].first = d2d_distances[global_device_id][global_next_device_id];
 			devices_devices_distances_[device_id][next_device_id].second = next_device_id;
 
+			SNUCL_INFO("[%d][%d] = [%d][%d] (sizes: %d, %d)\n", next_device_id, device_id, global_next_device_id, global_device_id, devices_devices_distances_[next_device_id].size(), d2d_distances[global_next_device_id].size());
 			devices_devices_distances_[next_device_id][device_id].first = d2d_distances[global_next_device_id][global_device_id];
 			devices_devices_distances_[next_device_id][device_id].second = device_id;
 		}

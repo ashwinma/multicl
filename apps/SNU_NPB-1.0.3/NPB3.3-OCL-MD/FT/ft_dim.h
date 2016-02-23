@@ -37,14 +37,14 @@
 
 #define COMPUTE_IMAP_DIM_CPU            2
 #define EVOLVE_DIM_CPU                  2
-#define TRANSPOSE2_LOCAL1_DIM_CPU       1
-#define TRANSPOSE2_LOCAL2_DIM_CPU       1
-#define TRANSPOSE2_LOCAL3_DIM_CPU       1
+#define TRANSPOSE2_LOCAL1_DIM_CPU       2
+#define TRANSPOSE2_LOCAL2_DIM_CPU       2
+#define TRANSPOSE2_LOCAL3_DIM_CPU       2
 #define TRANSPOSE2_FINISH_DIM_CPU       2
-#define TRANSPOSE_X_Z_LOCAL1_DIM_CPU    1
-#define TRANSPOSE_X_Z_LOCAL2_DIM_CPU    1
+#define TRANSPOSE_X_Z_LOCAL1_DIM_CPU    2
+#define TRANSPOSE_X_Z_LOCAL2_DIM_CPU    2
 #define TRANSPOSE_X_Z_FINISH_DIM_CPU    2
-#define TRANSPOSE_X_Y_LOCAL_DIM_CPU     1
+#define TRANSPOSE_X_Y_LOCAL_DIM_CPU     2
 #define TRANSPOSE_X_Y_FINISH_DIM_CPU    2
 #define CFFTS1_DIM_CPU                  2
 #define CFFTS2_DIM_CPU                  2

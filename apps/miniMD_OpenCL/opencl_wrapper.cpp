@@ -33,7 +33,6 @@
 #include <cstring>
 #include <cmath>
 #include <cstdlib>
-#define MINIMD_SNUCL_OPTIMIZATIONS
 OpenCLWrapper::OpenCLWrapper()
 {
 	num_platforms = 0;
@@ -122,8 +121,9 @@ int OpenCLWrapper::Init(int argc, char** argv,int me,int ppn,int* devicelist,int
 	}
 
     //myPlatform = platformIDs[platformid];
+	cl_device_type device_type = CL_DEVICE_TYPE_ALL;
 
-    ciErrNum = clGetDeviceIDs (myPlatform, CL_DEVICE_TYPE_ALL, 0, NULL, &num_devices);
+    ciErrNum = clGetDeviceIDs (myPlatform, device_type, 0, NULL, &num_devices);
     if (ciErrNum != CL_SUCCESS)
     {
     	Error(ciErrNum,"Get_Num_Devices", __FILE__, __LINE__);
@@ -132,7 +132,7 @@ int OpenCLWrapper::Init(int argc, char** argv,int me,int ppn,int* devicelist,int
 
 
     deviceIDs = new cl_device_id[num_devices];
-    ciErrNum = clGetDeviceIDs (myPlatform, CL_DEVICE_TYPE_ALL, num_devices, deviceIDs, &num_devices);
+    ciErrNum = clGetDeviceIDs (myPlatform, device_type, num_devices, deviceIDs, &num_devices);
     if (ciErrNum != CL_SUCCESS)
     {
     	Error(ciErrNum,"Get_DeviceIDs", __FILE__, __LINE__);
@@ -142,7 +142,6 @@ int OpenCLWrapper::Init(int argc, char** argv,int me,int ppn,int* devicelist,int
     myDevice = deviceIDs[me%ppn];
 
 
-	cl_device_type device_type;
     clGetDeviceInfo(myDevice, CL_DEVICE_TYPE, sizeof(cl_device_type), &device_type, NULL);
     if(device_type & CL_DEVICE_TYPE_CPU) is_cpu = true;
 
@@ -167,7 +166,10 @@ int OpenCLWrapper::Init(int argc, char** argv,int me,int ppn,int* devicelist,int
 		CL_CONTEXT_PLATFORM,
 		(cl_context_properties)myPlatform,
 		CL_CONTEXT_SCHEDULER,
-		CL_CONTEXT_SCHEDULER_PERF_MODEL,
+		CL_CONTEXT_SCHEDULER_CODE_SEGMENTED_PERF_MODEL,
+		//CL_CONTEXT_SCHEDULER_PERF_MODEL,
+		//CL_CONTEXT_SCHEDULER_FIRST_EPOCH_BASED_PERF_MODEL,
+		//CL_CONTEXT_SCHEDULER_ALL_EPOCH_BASED_PERF_MODEL,
 		0 };
     myGPUContext = clCreateContext(props, num_devices, deviceIDs, NULL, NULL, &ciErrNum);
 #else
@@ -186,16 +188,40 @@ int OpenCLWrapper::Init(int argc, char** argv,int me,int ppn,int* devicelist,int
     for(unsigned int i=0;i<num_queues;i++)
       queues[i] = clCreateCommandQueue(myGPUContext, myDevice, 
 #ifdef MINIMD_SNUCL_OPTIMIZATIONS
-			CL_QUEUE_AUTO_DEVICE_SELECTION | 
-			CL_QUEUE_ITERATIVE | 
-			CL_QUEUE_COMPUTE_INTENSIVE | 
+			//CL_QUEUE_AUTO_DEVICE_SELECTION | 
+			//CL_QUEUE_ITERATIVE | 
+			//CL_QUEUE_COMPUTE_INTENSIVE | 
 #endif
 	  		CL_QUEUE_PROFILING_ENABLE, NULL);
     defaultQueue = queues[0];
-
+/*
+    cl_device_id dev;	
+	clGetCommandQueueInfo (defaultQueue,
+	 		CL_QUEUE_DEVICE,
+		 	sizeof(cl_device_id),
+			&dev,
+			NULL);
+	printf("Created queue with Device: %p ID: %d\n", dev, me%ppn);
+	*/
 	return 0;
 }
 
+void OpenCLWrapper::SetCommandQueueProperty() {
+  	clSetCommandQueueProperty(defaultQueue, 
+			CL_QUEUE_AUTO_DEVICE_SELECTION | 
+			CL_QUEUE_ITERATIVE | 
+			CL_QUEUE_COMPUTE_INTENSIVE |
+			CL_QUEUE_PROFILING_ENABLE,
+			true,
+			NULL);
+}
+
+void OpenCLWrapper::ResetCommandQueueProperty() {
+  	clSetCommandQueueProperty(defaultQueue, 
+			CL_QUEUE_PROFILING_ENABLE,
+			true,
+			NULL);
+}
 
 cl_mem OpenCLWrapper::AllocDevData(unsigned nbytes)
 {

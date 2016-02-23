@@ -5,10 +5,11 @@
  * Use of MPIX calls makes GPUs 1st class citizens
  * with MPI communication happening directly from GPU buffers
  */
-#define USE_MPIX 1
-#if USE_MPIX == 1
+#define USE_MPIX 0
+/*#if USE_MPIX == 1
 #define DISFD_GPU_MARSHALING
 #endif
+*/
 /*
  * If set to 1, turns ON the comprehensive correctness testing.
  * The baseline correct code is the CUDA code where all the data marshalling

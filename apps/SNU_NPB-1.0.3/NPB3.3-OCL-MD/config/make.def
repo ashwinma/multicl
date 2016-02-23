@@ -95,7 +95,8 @@ C_LIB = -L$(SNUCLROOT)/lib -lm -lOpenCL #-lsnucl_single
 #---------------------------------------------------------------------------
 # These macros are passed to the compiler 
 #---------------------------------------------------------------------------
-C_INC = -I../common -I$(SNUCLROOT)/inc #-I$(CUDA_INSTALL_PATH)/include
+#C_INC = -I../common -I$(SNUCLROOT)/inc #-I$(CUDA_INSTALL_PATH)/include
+C_INC = -I../common -I$(HOME)/opt/include/starpu/1.2 -I$(SOCL_ROOT)/socl/src -I$(CUDA_INSTALL_PATH)/include -I$(HOME)/src/starpu-1.2.0rc1/build/include
 
 #---------------------------------------------------------------------------
 # Global *compile time* flags for C programs

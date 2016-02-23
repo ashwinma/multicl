@@ -55,6 +55,12 @@ void Integrate::run(Atom &atom, Force &force, Neighbor &neighbor,
   comm.d_sendlist->upload();
   for (int n = 0; n < ntimes; n++) {
   	totalTimer.Start();
+#ifdef MINIMD_SNUCL_OPTIMIZATIONS
+  // set cmd queue property
+  if(n == 0) {
+  	opencl->SetCommandQueueProperty();
+  }
+#endif
 	    //atom.d_x->download();
 	    //atom.d_v->download();
 	    //atom.d_f->download();
@@ -107,6 +113,12 @@ void Integrate::run(Atom &atom, Force &force, Neighbor &neighbor,
       thermo.compute(n+1,atom,neighbor,force,timer,comm);
     }
 
+#ifdef MINIMD_SNUCL_OPTIMIZATIONS
+  // set cmd queue property
+  if(n == 0) {
+  	opencl->ResetCommandQueueProperty();
+  }
+#endif
   	totalTimer.Stop();
   }
   atom.d_x->download();

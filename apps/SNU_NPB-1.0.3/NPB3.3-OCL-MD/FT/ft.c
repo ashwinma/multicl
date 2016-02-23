@@ -89,6 +89,10 @@
 
 #define DEFAULT_NUM_SUBS    32
 //#define MINIMD_SNUCL_OPTIMIZATIONS
+#define SOCL_OPTIMIZATIONS
+#ifdef SOCL_OPTIMIZATIONS
+#include "socl.h"
+#endif
 
 
 // OPENCL Variables
@@ -1319,6 +1323,7 @@ static void transpose2_local(int n1, int n2, cl_mem *xin, cl_mem *xout)
 				  t2l1_lws[0] = temp == 0 ? 1 : temp;
 				  t2l1_gws[0] = clu_RoundWorkSize((size_t)n2, t2l1_lws[0]);
 			  }
+			  #ifdef MINIMD_SNUCL_OPTIMIZATIONS
 			  ecode = clSetKernelLaunchConfiguration(devices[i],
 					  k_transpose2_local1[cmdq_id],
 					  3,
@@ -1328,6 +1333,7 @@ static void transpose2_local(int n1, int n2, cl_mem *xin, cl_mem *xout)
 					  t2l1_lws
 					  );
 			  clu_CheckError(ecode, "clEnqueueNDRangeKernel()");
+			  #endif
 		  }
 		  }
 		  for (i = 0; i < num_devices; i++) {
@@ -1368,6 +1374,7 @@ static void transpose2_local(int n1, int n2, cl_mem *xin, cl_mem *xout)
 				  t2l2_lws[0] = temp == 0 ? 1 : temp;
 				  t2l2_gws[0] = clu_RoundWorkSize((size_t)n1, t2l2_lws[0]);
 			  }
+			  #ifdef MINIMD_SNUCL_OPTIMIZATIONS
 			  ecode = clSetKernelLaunchConfiguration(devices[i],
 					  k_transpose2_local2[cmdq_id],
 					  3,
@@ -1377,6 +1384,7 @@ static void transpose2_local(int n1, int n2, cl_mem *xin, cl_mem *xout)
 					  t2l2_lws
 					  );
 			  clu_CheckError(ecode, "clEnqueueNDRangeKernel()");
+			  #endif
 		  }
 		  }
 		  for (i = 0; i < num_devices; i++) {
@@ -1401,37 +1409,39 @@ static void transpose2_local(int n1, int n2, cl_mem *xin, cl_mem *xout)
 	  }
   } else {
 
-  		  for (cmdq_id = 0; cmdq_id < num_devices; cmdq_id++) {
-	  		for (i = 0; i < actual_num_devices; i++) {
-		  int j;
-		  for(j = 0; j < 3; j++) t2l3_lws[j] = 1;
-		  for(j = 0; j < 3; j++) t2l3_gws[j] = 1;
-		  if (TRANSPOSE2_LOCAL3_DIM[i] == 2) {
-			  size_t num_1d = n1 / TRANSBLOCK;
-			  size_t num_2d = n2 / TRANSBLOCK;
-			  t2l3_lws[0] = num_1d < work_item_sizes[0] ? num_1d : work_item_sizes[0];
-			  temp = max_work_group_size / t2l3_lws[0];
-			  t2l3_lws[1] = num_2d < temp ? num_2d : temp;
-			  t2l3_gws[0] = clu_RoundWorkSize((size_t)num_1d, t2l3_lws[0]);
-			  t2l3_gws[1] = clu_RoundWorkSize((size_t)num_2d, t2l3_lws[1]);
-		  } else { //TRANSPOSE2_LOCAL3_DIM[i] == 1
-			  size_t num_1d = n2 / TRANSBLOCK;
-			  //temp = num_1d / max_compute_units;
-			  temp = 1;
-			  t2l3_lws[0] = temp == 0 ? 1 : temp;
-			  t2l3_gws[0] = clu_RoundWorkSize((size_t)num_1d, t2l3_lws[0]);
+	  for (cmdq_id = 0; cmdq_id < num_devices; cmdq_id++) {
+		  for (i = 0; i < actual_num_devices; i++) {
+			  int j;
+			  for(j = 0; j < 3; j++) t2l3_lws[j] = 1;
+			  for(j = 0; j < 3; j++) t2l3_gws[j] = 1;
+			  if (TRANSPOSE2_LOCAL3_DIM[i] == 2) {
+				  size_t num_1d = n1 / TRANSBLOCK;
+				  size_t num_2d = n2 / TRANSBLOCK;
+				  t2l3_lws[0] = num_1d < work_item_sizes[0] ? num_1d : work_item_sizes[0];
+				  temp = max_work_group_size / t2l3_lws[0];
+				  t2l3_lws[1] = num_2d < temp ? num_2d : temp;
+				  t2l3_gws[0] = clu_RoundWorkSize((size_t)num_1d, t2l3_lws[0]);
+				  t2l3_gws[1] = clu_RoundWorkSize((size_t)num_2d, t2l3_lws[1]);
+			  } else { //TRANSPOSE2_LOCAL3_DIM[i] == 1
+				  size_t num_1d = n2 / TRANSBLOCK;
+				  //temp = num_1d / max_compute_units;
+				  temp = 1;
+				  t2l3_lws[0] = temp == 0 ? 1 : temp;
+				  t2l3_gws[0] = clu_RoundWorkSize((size_t)num_1d, t2l3_lws[0]);
+			  }
+			  #ifdef MINIMD_SNUCL_OPTIMIZATIONS
+			  ecode = clSetKernelLaunchConfiguration(devices[i],
+					  k_transpose2_local3[cmdq_id],
+					  3, 
+					  //TRANSPOSE2_LOCAL3_DIM, 
+					  NULL,
+					  t2l3_gws,
+					  t2l3_lws
+					  );
+			  clu_CheckError(ecode, "clEnqueueNDRangeKernel()");
+			  #endif
 		  }
-		  ecode = clSetKernelLaunchConfiguration(devices[i],
-				  k_transpose2_local3[cmdq_id],
-				  3, 
-				  //TRANSPOSE2_LOCAL3_DIM, 
-				  NULL,
-				  t2l3_gws,
-				  t2l3_lws
-				  );
-		  clu_CheckError(ecode, "clEnqueueNDRangeKernel()");
-		  }
-		  }
+	  }
 	  for (i = 0; i < num_devices; i++) {
 		  ecode  = clSetKernelArg(k_transpose2_local3[i], 0, sizeof(cl_mem),
 				  &xin[i]);
@@ -1672,6 +1682,7 @@ static void transpose_x_z_local(int d1, int d2, int d3,
 				  txzl1_lws[0] = temp == 0 ? 1 : temp;
 				  txzl1_gws[0] = clu_RoundWorkSize((size_t)d2, txzl1_lws[0]);
 			  }
+			  #ifdef MINIMD_SNUCL_OPTIMIZATIONS
       	ecode = clSetKernelLaunchConfiguration(devices[i],
                                      k_transpose_x_z_local1[cmdq_id],
                                      //TRANSPOSE_X_Z_LOCAL1_DIM, NULL,
@@ -1680,6 +1691,7 @@ static void transpose_x_z_local(int d1, int d2, int d3,
                                      txzl1_lws
                                      );
       	clu_CheckError(ecode, "clEnqueueNDRangeKernel()");
+		#endif
 		  }
 	  }
 	for (i = 0; i < num_devices; i++) {
@@ -1743,6 +1755,7 @@ static void transpose_x_z_local(int d1, int d2, int d3,
 				txzl2_lws[0] = temp == 0 ? 1 : temp;
 				txzl2_gws[0] = clu_RoundWorkSize((size_t)d2, txzl2_lws[0]);
 			}
+			  #ifdef MINIMD_SNUCL_OPTIMIZATIONS
 			ecode = clSetKernelLaunchConfiguration(devices[i],
 					k_transpose_x_z_local2[cmdq_id],
 					//TRANSPOSE_X_Z_LOCAL2_DIM, NULL,
@@ -1751,6 +1764,7 @@ static void transpose_x_z_local(int d1, int d2, int d3,
 					txzl2_lws
 					);
 			clu_CheckError(ecode, "clEnqueueNDRangeKernel()");
+			#endif
 		}
 	}
 	for (i = 0; i < num_devices; i++) {
@@ -1995,6 +2009,7 @@ static void transpose_x_y_local(int d1, int d2, int d3,
 			  txyl_lws[0] = temp == 0 ? 1 : temp;
 			  txyl_gws[0] = clu_RoundWorkSize((size_t)d3, txyl_lws[0]);
 		  }
+			  #ifdef MINIMD_SNUCL_OPTIMIZATIONS
 		  ecode = clSetKernelLaunchConfiguration(devices[i],
 				  k_transpose_x_y_local[cmdq_id],
 				  //TRANSPOSE_X_Y_LOCAL_DIM, NULL,
@@ -2003,6 +2018,7 @@ static void transpose_x_y_local(int d1, int d2, int d3,
 				  txyl_lws
 				  );
 		  clu_CheckError(ecode, "clEnqueueNDRangeKernel()");
+		  #endif
 	  }
   }
   for (i = 0; i < num_devices; i++) {
@@ -2484,10 +2500,61 @@ static void setup_opencl(int argc, char *argv[])
   device_type = CL_DEVICE_TYPE_ALL;
   //device_type = CL_DEVICE_TYPE_CPU;
   //device_type = CL_DEVICE_TYPE_GPU;
+  if(argc <= 2) {
+    printf("Device type argument missing!\n");
+	exit(-1);
+  }
+  char *device_type_str = argv[2];
+  if(strcmp(device_type_str, "CPU") == 0 || strcmp(device_type_str, "cpu") == 0) {
+  	device_type = CL_DEVICE_TYPE_CPU;
+  } else if(strcmp(device_type_str, "GPU") == 0 || strcmp(device_type_str, "gpu") == 0) {
+  	device_type = CL_DEVICE_TYPE_GPU;
+  } else if(strcmp(device_type_str, "ALL") == 0 || strcmp(device_type_str, "all") == 0) {
+  	device_type = CL_DEVICE_TYPE_ALL;
+  } else {
+    printf("Unsupported device type!\n");
+	exit(-1);
+  }
 
   cl_platform_id platform;
-  ecode = clGetPlatformIDs(1, &platform, NULL);
-  clu_CheckError(ecode, "clGetPlatformIDs()");
+#ifdef SOCL_OPTIMIZATIONS
+	const char *PLATFORM_NAME = "SOCL Platform";
+#else
+	const char *PLATFORM_NAME = "SnuCL Single";
+#endif
+	cl_uint num_platforms;
+	cl_platform_id *platforms;
+	cl_int errNum = clGetPlatformIDs(0, NULL, &num_platforms);
+	clu_CheckError(errNum, "Platform Count");
+	printf("Number of platforms: %d\n", num_platforms);
+	platforms = (cl_platform_id*)malloc(sizeof(cl_platform_id) * num_platforms);
+	cl_int err = clGetPlatformIDs(num_platforms, platforms, NULL);
+	clu_CheckError(err, "Platform Count");
+
+	int platform_name_size;
+	for (i = 0; i < num_platforms; i++) {
+		err = clGetPlatformInfo(platforms[i], CL_PLATFORM_NAME, 0, NULL,
+				&platform_name_size);
+		clu_CheckError(err, "Platform Info");
+
+		char *platform_name = (char*)malloc(sizeof(char) * platform_name_size);
+		err = clGetPlatformInfo(platforms[i], CL_PLATFORM_NAME, platform_name_size,
+				platform_name, NULL);
+		clu_CheckError(err, "Platform Info");
+
+		printf("Platform %d: %s\n", i, platform_name);
+		if (strcmp(platform_name, PLATFORM_NAME) == 0)
+		{
+			printf("Choosing Platform %d: %s\n", i, platform_name);
+			platform = platforms[i];
+		}
+		free(platform_name);
+	}
+
+	if (platform == NULL) {
+		printf("%s platform is not found.\n", PLATFORM_NAME);
+		//exit(EXIT_FAILURE);
+	}
 
   ecode = clGetDeviceIDs(platform, device_type, 0, NULL, &num_devices);
   clu_CheckError(ecode, "clGetDeviceIDs()");
@@ -2534,15 +2601,17 @@ static void setup_opencl(int argc, char *argv[])
 			 	&cur_device_type,
 				NULL);
     clu_CheckError(err, "clGetDeviceInfo()");
-
+ 
  if (cur_device_type == CL_DEVICE_TYPE_CPU) {
-    TRANSPOSE2_LOCAL1_DIM[i] = TRANSPOSE2_LOCAL1_DIM_CPU;
+    printf("Device[%d] is a CPU\n", i);
+	TRANSPOSE2_LOCAL1_DIM[i] = TRANSPOSE2_LOCAL1_DIM_CPU;
     TRANSPOSE2_LOCAL2_DIM[i] = TRANSPOSE2_LOCAL2_DIM_CPU;
     TRANSPOSE2_LOCAL3_DIM[i] = TRANSPOSE2_LOCAL3_DIM_CPU;
     TRANSPOSE_X_Z_LOCAL1_DIM[i] = TRANSPOSE_X_Z_LOCAL1_DIM_CPU;
     TRANSPOSE_X_Z_LOCAL2_DIM[i] = TRANSPOSE_X_Z_LOCAL2_DIM_CPU;
     TRANSPOSE_X_Y_LOCAL_DIM[i] = TRANSPOSE_X_Y_LOCAL_DIM_CPU;
   } else {
+    printf("Device[%d] is a GPU\n", i);
     TRANSPOSE2_LOCAL1_DIM[i] = TRANSPOSE2_LOCAL1_DIM_GPU;
     TRANSPOSE2_LOCAL2_DIM[i] = TRANSPOSE2_LOCAL2_DIM_GPU;
     TRANSPOSE2_LOCAL3_DIM[i] = TRANSPOSE2_LOCAL3_DIM_GPU;
@@ -2563,6 +2632,14 @@ static void setup_opencl(int argc, char *argv[])
 		//CL_CONTEXT_SCHEDULER_PERF_MODEL,
 		//CL_CONTEXT_SCHEDULER_FIRST_EPOCH_BASED_PERF_MODEL,
 		//CL_CONTEXT_SCHEDULER_ALL_EPOCH_BASED_PERF_MODEL,
+		0 };
+  context = clCreateContext(props, 
+#elif defined(SOCL_OPTIMIZATIONS)
+	cl_context_properties props[5] = {
+		CL_CONTEXT_PLATFORM,
+		(cl_context_properties)platform,
+		CL_CONTEXT_SCHEDULER_SOCL,
+		"dmda",
 		0 };
   context = clCreateContext(props, 
 #else
@@ -2605,8 +2682,12 @@ static void setup_opencl(int argc, char *argv[])
   // 3. Create a command queue
   cmd_queue = (cl_command_queue*)malloc(sizeof(cl_command_queue)*num_command_queues);
   for (i = 0; i < num_command_queues; i++) {
+#ifdef SOCL_OPTIMIZATIONS
+	cmd_queue[i] = clCreateCommandQueue(context, NULL,
+#else
     cmd_queue[i] = clCreateCommandQueue(context, devices[(i % num_devices)], 
     //cmd_queue[i] = clCreateCommandQueue(context, devices[(num_devices - 1) - (i % num_devices)], 
+#endif
 #ifdef MINIMD_SNUCL_OPTIMIZATIONS
 			0,
 			//CL_QUEUE_AUTO_DEVICE_SELECTION | 

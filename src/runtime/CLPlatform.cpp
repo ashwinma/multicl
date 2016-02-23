@@ -225,6 +225,27 @@ void CLPlatform::Init() {
 #endif // SNUCL_DEBUG
 }
 
+void CLPlatform::InitD2DMetrics(int force) {
+  devices_devices_distances_.resize(devices_.size());
+  // We need separate loops because we will be initializing in a triangular fashion
+  int device_id;
+  for(device_id = 0; device_id < devices_.size(); device_id++)
+  {
+  	devices_devices_distances_[device_id].resize(devices_.size());
+  }
+  unsigned int src_dev_id = 0;
+  unsigned int dest_dev_id = 0;
+  D2DMetricsManager d2dmmgr("d2d_distances.conf", topology_, force);
+  for(src_dev_id = 0; src_dev_id < devices_.size(); src_dev_id++)
+  {
+  	for(dest_dev_id = 0; dest_dev_id < devices_.size(); dest_dev_id++)
+	{
+		double latency = d2dmmgr.getD2DBandwidth(src_dev_id, dest_dev_id, 512 * 1024, D2DMetricsManager::SNUCL_LATENCY);
+  		devices_devices_distances_[src_dev_id][dest_dev_id] = latency;
+	}
+  }
+}
+
 void CLPlatform::InitDeviceMetrics()
 {
   // Find number of "hosts" for the system.
@@ -253,19 +274,26 @@ void CLPlatform::InitDeviceMetrics()
   {
   	devices_hosts_distances_[host_id].resize(devices_.size());
   }
-
-  unsigned int device_id = 0;
   devices_devices_distances_.resize(devices_.size());
-  device_id = 0;
   // We need separate loops because we will be initializing in a triangular fashion
+  unsigned int device_id = 0;
   for(device_id = 0; device_id < devices_.size(); device_id++)
   {
   	devices_devices_distances_[device_id].resize(devices_.size());
   }
+ 
+  device_id = 0;
   devices_compute_perf_.resize(devices_.size());
   devices_memory_perf_.resize(devices_.size());
   devices_lmemory_perf_.resize(devices_.size());
 
+  // TODO: Move the below individual metrics to be withing CLDevice
+  // itself. They should all be populated as and when the device obj
+  // get created.
+  for(device_id = 0; device_id < devices_.size(); device_id++)
+  {
+  	devices_compute_perf_[device_id] = devices_.size() - device_id;
+  }
   H2DMetricsManager h2dmmgr("h2d_distances.conf", topology_, 0);
   for(host_id = 0; host_id < hosts_.size(); host_id++)
   {
@@ -280,7 +308,14 @@ void CLPlatform::InitDeviceMetrics()
 	}
   }
 
+#if 0
   D2DMetricsManager d2dmmgr("d2d_distances.conf", topology_, 0);
+  devices_devices_distances_.resize(devices_.size());
+  // We need separate loops because we will be initializing in a triangular fashion
+  for(device_id = 0; device_id < devices_.size(); device_id++)
+  {
+  	devices_devices_distances_[device_id].resize(devices_.size());
+  }
   unsigned int src_dev_id = 0;
   unsigned int dest_dev_id = 0;
   for(src_dev_id = 0; src_dev_id < devices_.size(); src_dev_id++)
@@ -291,14 +326,9 @@ void CLPlatform::InitDeviceMetrics()
   		devices_devices_distances_[src_dev_id][dest_dev_id] = latency;
 	}
   }
-
-  // TODO: Move the below individual metrics to be withing CLDevice
-  // itself. They should all be populated as and when the device obj
-  // get created.
-  for(device_id = 0; device_id < devices_.size(); device_id++)
-  {
-  	devices_compute_perf_[device_id] = devices_.size() - device_id;
-  }
+#else
+  InitD2DMetrics(0);
+#endif
 
   for(device_id = 0; device_id < devices_.size(); device_id++)
   {
@@ -371,6 +401,7 @@ CLContext* CLPlatform::CreateContextFromDevices(
     const cl_context_properties* properties, cl_uint num_devices,
     const cl_device_id* devices, ContextErrorNotificationCallback* callback,
     cl_int* err) {
+SNUCL_INFO("Check Context 0\n", 0);
   *err = CL_SUCCESS;
   size_t num_properties = CheckContextProperties(properties, err);
   if (*err != CL_SUCCESS) return NULL;
@@ -407,6 +438,7 @@ CLContext* CLPlatform::CreateContextFromDevices(
   }
 
   SNUCL_INFO("(Before) Number of hosts: %u\n", hosts_.size());
+  SNUCL_INFO("(Before) Number of properties: %u\n", num_properties);
   CLContext* context = new CLContext(selected_devices, num_properties,
                                      properties,
 									 hosts_,

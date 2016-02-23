@@ -78,7 +78,7 @@ class CLDevice: public CLObject<struct _cl_device_id, CLDevice,
 
   cl_int GetDeviceInfo(cl_device_info param_name, size_t param_value_size,
                        void* param_value, size_t* param_value_size_ret);
-  cl_int CreateSubDevices(const cl_device_partition_property* properties,
+  virtual cl_int CreateSubDevices(const cl_device_partition_property* properties,
                           cl_uint num_devices, cl_device_id* out_devices,
                           cl_uint* num_devices_ret);
 

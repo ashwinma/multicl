@@ -309,7 +309,11 @@ static void setup_opencl(int argc, char **argv);
 static void release_opencl();
 
 #define DEFAULT_NUM_SUBS    40
-#define MINIMD_SNUCL_OPTIMIZATIONS
+//#define MINIMD_SNUCL_OPTIMIZATIONS
+#define SOCL_OPTIMIZATIONS
+#ifdef SOCL_OPTIMIZATIONS
+#include "socl.h"
+#endif
 
 
 #ifdef CLUSTER
@@ -520,6 +524,21 @@ static void setup_opencl(int argc, char **argv)
   //device_type = CL_DEVICE_TYPE_CPU;
   device_type = CL_DEVICE_TYPE_ALL;
   //device_type = CL_DEVICE_TYPE_GPU;
+  if(argc <= 2) {
+    printf("Device type argument missing!\n");
+	exit(-1);
+  }
+  char *device_type_str = argv[2];
+  if(strcmp(device_type_str, "CPU") == 0 || strcmp(device_type_str, "cpu") == 0) {
+  	device_type = CL_DEVICE_TYPE_CPU;
+  } else if(strcmp(device_type_str, "GPU") == 0 || strcmp(device_type_str, "gpu") == 0) {
+  	device_type = CL_DEVICE_TYPE_GPU;
+  } else if(strcmp(device_type_str, "ALL") == 0 || strcmp(device_type_str, "all") == 0) {
+  	device_type = CL_DEVICE_TYPE_ALL;
+  } else {
+    printf("Unsupported device type!\n");
+	exit(-1);
+  }
   cl_uint num_command_queues = 4;
   char *num_command_queues_str = getenv("SNU_NPB_COMMAND_QUEUES");
   if(num_command_queues_str != NULL)
@@ -583,6 +602,15 @@ static void setup_opencl(int argc, char **argv)
 		//CL_CONTEXT_SCHEDULER_ALL_EPOCH_BASED_PERF_MODEL,
 		0 };
   context = clCreateContext(props, 
+#elif defined(SOCL_OPTIMIZATIONS)
+	cl_context_properties props[5] = {
+		CL_CONTEXT_PLATFORM,
+		(cl_context_properties)platform,
+		CL_CONTEXT_SCHEDULER_SOCL,
+		"dmda",
+		//"random",
+		0 };
+  context = clCreateContext(props, 
 #else
   context = clCreateContext(NULL, 
 #endif
@@ -594,8 +622,13 @@ static void setup_opencl(int argc, char **argv)
   // 3. Create a command queue
   cmd_queue = (cl_command_queue*)malloc(sizeof(cl_command_queue)*num_command_queues*3);
   for (i = 0; i < num_command_queues * 2; i++) {
-   // cmd_queue[i] = clCreateCommandQueue(context, devices[(i / 2) % num_devices], 
-    cmd_queue[i] = clCreateCommandQueue(context, devices[0], 
+    //cmd_queue[i] = clCreateCommandQueue(context, devices[(i / 2) % num_devices], 
+#ifdef SOCL_OPTIMIZATIONS
+    cmd_queue[i] = clCreateCommandQueue(context, NULL, 
+#else    
+	cmd_queue[i] = clCreateCommandQueue(context, devices[num_devices - 1 - ((i / 2) % num_devices)],
+#endif
+   // cmd_queue[i] = clCreateCommandQueue(context, devices[0], 
 #ifdef MINIMD_SNUCL_OPTIMIZATIONS
 	0,
 	//		CL_QUEUE_AUTO_DEVICE_SELECTION | 

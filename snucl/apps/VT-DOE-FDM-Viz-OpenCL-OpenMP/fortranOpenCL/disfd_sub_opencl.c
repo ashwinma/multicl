@@ -15,12 +15,12 @@
 # include <string.h>
 
 #ifdef __APPLE__
-# include <OpenCL/opencl.h>
+//# include <OpenCL/opencl.h>
 #else
-# include <CL/opencl.h>
+//# include <CL/opencl.h>
 #endif
 #include "mpiacc_cl.h"
-#include "papi_interface.h"
+//#include "papi_interface.h"
 #include "RealTimer.h"
 #include "switches.h"
 #define CHECK_ERROR(err, str) \
@@ -37,12 +37,14 @@
 //#define DISFD_DEBUG
 //#define DISFD_PAPI
 #define DISFD_USE_ROW_MAJOR_DATA
+//#define DEVICE_FISSION
 #if 1
 #define DISFD_H2D_SYNC_KERNEL
 #else
 #define DISFD_EAGER_DATA_TRANSFER
 #endif
 //#define SNUCL_PERF_MODEL_OPTIMIZATION
+#define SOCL_OPTIMIZATIONS
 //#define DISFD_SINGLE_COMMANDQ
 /***********************************************/
 /* for debug: check the output                 */
@@ -66,9 +68,15 @@ struct __dim3 {
 
 typedef struct __dim3 dim3;
 
+#ifdef SOCL_OPTIMIZATIONS
+//extern "C" {
+#include "socl.h"
+//}
+#endif
 #ifdef __cplusplus
 extern "C" {
 #endif
+
 void logger_log_timing(const char *msg, double time) 
 {
 	fprintf(stdout, "[Disfd] %s %g\n", msg, time);
@@ -654,7 +662,70 @@ void init_cl(int *deviceID)
 	  fprintf(stderr, "Failed to find any available OpenCL platform!\n");
 	  }*/
 	cl_uint num_devices;
-	errNum = clGetDeviceIDs(_cl_firstPlatform, CL_DEVICE_TYPE_ALL, 0, NULL, &num_devices);
+#ifdef DEVICE_FISSION
+  cl_device_id *gpu_devices = NULL;
+  cl_device_id *out_cpu_devices = NULL;
+  cl_uint num_gpu_devices = 0;
+  int num_partitions = 0;
+  cl_device_type device_type = CL_DEVICE_TYPE_ALL;
+  if(device_type == CL_DEVICE_TYPE_GPU || device_type == CL_DEVICE_TYPE_ALL) {
+	  clGetDeviceIDs(_cl_firstPlatform, CL_DEVICE_TYPE_GPU, 0, 
+			  NULL, &num_gpu_devices);
+	  CHECK_ERROR(errNum, "clGetDeviceIDs()");
+	  gpu_devices = (cl_device_id *)malloc(sizeof(cl_device_id) * 
+			  num_gpu_devices);
+	  clGetDeviceIDs(_cl_firstPlatform, CL_DEVICE_TYPE_GPU, num_gpu_devices,
+			  gpu_devices, NULL);
+	  CHECK_ERROR(errNum, "clGetDeviceIDs()");
+  }
+  if(device_type == CL_DEVICE_TYPE_CPU || device_type == CL_DEVICE_TYPE_ALL) {
+	  num_partitions = 2;
+	  cl_device_id cpu_device;
+	  out_cpu_devices = (cl_device_id *)malloc(sizeof(cl_device_id) * num_partitions);
+
+	  errNum = clGetDeviceIDs(_cl_firstPlatform, CL_DEVICE_TYPE_CPU, 1, &cpu_device, NULL);
+	  CHECK_ERROR(errNum, "clGetDeviceIDs()");
+#if 0
+	  cl_device_affinity_domain supported_affinity = 0;
+	  errNum = clGetDeviceInfo(cpu_device,
+			  CL_DEVICE_PARTITION_AFFINITY_DOMAIN,
+			  sizeof(cl_device_affinity_domain),
+			  &supported_affinity,
+			  NULL);
+	  CHECK_ERROR(errNum, "clGetDeviceInfo");
+	  printf("Supported Affinity: %x\n", supported_affinity);
+
+#endif
+
+	  /*cl_device_partition_property  partition_properties[3] = {
+		  CL_DEVICE_PARTITION_BY_AFFINITY_DOMAIN,
+		  CL_DEVICE_AFFINITY_DOMAIN_NEXT_PARTITIONABLE,
+		  //		CL_DEVICE_AFFINITY_DOMAIN_NUMA,
+		  0 };*/
+	  cl_device_partition_property  partition_properties[3] = {
+	  	  CL_DEVICE_PARTITION_EQUALLY, 8, 0 };
+	  cl_uint ret_device_count;
+	  errNum = clCreateSubDevices(cpu_device,
+			  partition_properties,
+			  num_partitions,
+			  out_cpu_devices,
+			  &ret_device_count);
+	  CHECK_ERROR(errNum, "clCreateSubDevices()");
+  }
+  num_devices = num_gpu_devices + num_partitions;
+  _cl_devices = (cl_device_id *)malloc(sizeof(cl_device_id) * num_devices);
+
+  int dev_id = 0;
+  for(i = 0; i < num_partitions; i++) {
+  	_cl_devices[dev_id++] = out_cpu_devices[i];
+  }
+  for(i = 0; i < num_gpu_devices; i++) {
+  	_cl_devices[dev_id++] = gpu_devices[i];
+  }
+  if(gpu_devices) free(gpu_devices);
+  if(out_cpu_devices) free(out_cpu_devices);
+#else
+    errNum = clGetDeviceIDs(_cl_firstPlatform, CL_DEVICE_TYPE_ALL, 0, NULL, &num_devices);
 	if(errNum != CL_SUCCESS)
 	{
 		fprintf(stderr, "Failed to find any available OpenCL device!\n");
@@ -666,6 +737,7 @@ void init_cl(int *deviceID)
 	{
 		fprintf(stderr, "Failed to find any available OpenCL device!\n");
 	}
+#endif
 #ifdef SNUCL_PERF_MODEL_OPTIMIZATION
 	cl_context_properties props[5] = {
 		CL_CONTEXT_PLATFORM,
@@ -677,6 +749,14 @@ void init_cl(int *deviceID)
 		//CL_CONTEXT_SCHEDULER_ALL_EPOCH_BASED_PERF_MODEL,
 		0 };
 	_cl_context = clCreateContext(props, num_devices, _cl_devices, NULL, NULL, &errNum);
+#elif defined(SOCL_OPTIMIZATIONS)
+	cl_context_properties props[5] = {
+		CL_CONTEXT_PLATFORM,
+		(cl_context_properties)platform,
+		CL_CONTEXT_SCHEDULER_SOCL,
+		"dmda",
+		0 };
+    _cl_context = clCreateContext(props, num_devices, _cl_devices, NULL, NULL, &errNum);
 #else
 	_cl_context = clCreateContext(NULL, num_devices, _cl_devices, NULL, NULL, &errNum);
 #endif
@@ -704,8 +784,13 @@ void init_cl(int *deviceID)
 				chosen_dev_id = atoi(foo);
 		}
 		printf("[OpenCL] %dth command queue uses Dev ID %d\n", i, chosen_dev_id);
+#ifdef SOCL_OPTIMIZATIONS
+		_cl_commandQueues[i] = clCreateCommandQueue(_cl_context, 
+				NULL, 
+#else
 		_cl_commandQueues[i] = clCreateCommandQueue(_cl_context, 
 				_cl_devices[chosen_dev_id], 
+#endif
 #ifdef SNUCL_PERF_MODEL_OPTIMIZATION
 				//CL_QUEUE_AUTO_DEVICE_SELECTION | 
 				//CL_QUEUE_ITERATIVE | 
@@ -724,7 +809,11 @@ void init_cl(int *deviceID)
 	if(foo != NULL)
 		chosen_dev_id = atoi(foo);
 	printf("[OpenCL] All command queue uses Dev ID %d\n", chosen_dev_id);
+#ifdef SOCL_OPTIMIZATIONS
+	_cl_commandQueues[0] = clCreateCommandQueue(_cl_context, NULL, 
+#else
 	_cl_commandQueues[0] = clCreateCommandQueue(_cl_context, _cl_devices[chosen_dev_id], 
+#endif
 #ifdef SNUCL_PERF_MODEL_OPTIMIZATION
 			//CL_QUEUE_AUTO_DEVICE_SELECTION | 
 			//CL_QUEUE_ITERATIVE | 

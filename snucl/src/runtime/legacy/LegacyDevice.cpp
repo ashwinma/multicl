@@ -107,6 +107,308 @@ typedef CL_API_ENTRY cl_int (CL_API_CALL *pfn_clIcdGetPlatformIDs)(
     SNUCL_ERROR("legacy vendor error with device %p (Type: %d) : %d %s\n", device_id_, type_, err, clCheckErrorString(err)); \
   }
 
+LegacyDevice::LegacyDevice(LegacyDevice *device, cl_device_id device_id)
+    : CLDevice(device) {
+  gLegacyTimer.Init();
+  gLegacyTestTimer.Init();
+  gLegacyReadTimer.Init();
+  gLegacyWriteTimer.Init();
+  library_ = device->library_;
+  dispatch_ = device->dispatch_;
+  platform_id_ = device->platform_id_;
+  device_id_ = device_id;
+  device_index_ = device->device_index_;
+  context_ = device->context_;
+  //context_ = NULL;
+  kernel_queue_ = NULL;
+  mem_queue_ = NULL;
+  misc_queue_ = NULL;
+
+  cl_int err;
+#if 0
+
+#define GET_LEGACY_DEVICE_INFO(param, type, value, def)             \
+  err = dispatch_->clGetDeviceInfo(device_id_, param, sizeof(type), \
+                                   &value, NULL);                   \
+  if (err != CL_SUCCESS)                                            \
+    value = def;
+
+#define GET_LEGACY_DEVICE_INFO_A(param, type, value, length, def)            \
+  err = dispatch_->clGetDeviceInfo(device_id_, param, sizeof(type) * length, \
+                                   value, NULL);                             \
+  if (err != CL_SUCCESS) {                                                   \
+    for (int i = 0; i < length; i++)                                         \
+      value[i] = def;                                                        \
+  }
+
+#define GET_LEGACY_DEVICE_INFO_S(param, value)                           \
+  {                                                                      \
+    size_t size;                                                         \
+    err = dispatch_->clGetDeviceInfo(device_id_, param, 0, NULL, &size); \
+    if (err != CL_SUCCESS || size == 0) {                                \
+      value = NULL;                                                      \
+    } else {                                                             \
+      char* buffer = (char*)malloc(size);                                \
+      err = dispatch_->clGetDeviceInfo(device_id_, param, size, buffer,  \
+                                       NULL);                            \
+      if (err != CL_SUCCESS) {                                           \
+        free(buffer);                                                    \
+        value = NULL;                                                    \
+      } else {                                                           \
+        value = buffer;                                                  \
+      }                                                                  \
+    }                                                                    \
+  }
+
+  GET_LEGACY_DEVICE_INFO(CL_DEVICE_AVAILABLE, cl_bool, available_, CL_FALSE);
+  GET_LEGACY_DEVICE_INFO_S(CL_DEVICE_PROFILE, profile_);
+  GET_LEGACY_DEVICE_INFO_S(CL_DEVICE_VERSION, device_version_);
+  if (profile_ == NULL || strcmp(profile_, "FULL_PROFILE") != 0)
+    available_ = CL_FALSE;
+  if (device_version_ != NULL) {
+    if (strncmp(device_version_, "OpenCL 1.2", 10) == 0) {
+      version_ = LEGACY_VERSION_1_2;
+    } else if (strncmp(device_version_, "OpenCL 1.1", 10) == 0) {
+      version_ = LEGACY_VERSION_1_1;
+    } else if (strncmp(device_version_, "OpenCL 1.0", 10) == 0) {
+      version_ = LEGACY_VERSION_1_0;
+    } else {
+      available_ = CL_FALSE;
+    }
+  } else {
+    available_ = CL_FALSE;
+  }
+
+  /* TODO: Get the values for mem_bw_, lmem_bw_ and compute_throughput_
+   * via microbenchmarks for this legacy device
+   */
+  GET_LEGACY_DEVICE_INFO(CL_DEVICE_TYPE, cl_device_type, type_,
+                         CL_DEVICE_TYPE_DEFAULT);
+  GET_LEGACY_DEVICE_INFO(CL_DEVICE_VENDOR_ID, cl_uint, vendor_id_, 201111);
+  GET_LEGACY_DEVICE_INFO(CL_DEVICE_MAX_COMPUTE_UNITS, cl_uint,
+                         max_compute_units_, 1);
+  GET_LEGACY_DEVICE_INFO(CL_DEVICE_MAX_WORK_ITEM_DIMENSIONS, cl_uint,
+                         max_work_item_dimensions_, 3);
+  GET_LEGACY_DEVICE_INFO_A(CL_DEVICE_MAX_WORK_ITEM_SIZES, size_t,
+                           max_work_item_sizes_, max_work_item_dimensions_, 1);
+  GET_LEGACY_DEVICE_INFO(CL_DEVICE_MAX_WORK_GROUP_SIZE, size_t,
+                         max_work_group_size_, 1);
+
+  GET_LEGACY_DEVICE_INFO(CL_DEVICE_PREFERRED_VECTOR_WIDTH_CHAR, cl_uint,
+                         preferred_vector_width_char_, 0);
+  GET_LEGACY_DEVICE_INFO(CL_DEVICE_PREFERRED_VECTOR_WIDTH_SHORT, cl_uint,
+                         preferred_vector_width_short_, 0);
+  GET_LEGACY_DEVICE_INFO(CL_DEVICE_PREFERRED_VECTOR_WIDTH_INT, cl_uint,
+                         preferred_vector_width_int_, 0);
+  GET_LEGACY_DEVICE_INFO(CL_DEVICE_PREFERRED_VECTOR_WIDTH_LONG, cl_uint,
+                         preferred_vector_width_long_, 0);
+  GET_LEGACY_DEVICE_INFO(CL_DEVICE_PREFERRED_VECTOR_WIDTH_FLOAT, cl_uint,
+                         preferred_vector_width_float_, 0);
+  GET_LEGACY_DEVICE_INFO(CL_DEVICE_PREFERRED_VECTOR_WIDTH_DOUBLE, cl_uint,
+                         preferred_vector_width_double_, 0);
+  GET_LEGACY_DEVICE_INFO(CL_DEVICE_PREFERRED_VECTOR_WIDTH_HALF, cl_uint,
+                         preferred_vector_width_half_, 0);
+  if (version_ >= LEGACY_VERSION_1_1) {
+    GET_LEGACY_DEVICE_INFO(CL_DEVICE_NATIVE_VECTOR_WIDTH_CHAR, cl_uint,
+                           native_vector_width_char_, 0);
+    GET_LEGACY_DEVICE_INFO(CL_DEVICE_NATIVE_VECTOR_WIDTH_SHORT, cl_uint,
+                           native_vector_width_short_, 0);
+    GET_LEGACY_DEVICE_INFO(CL_DEVICE_NATIVE_VECTOR_WIDTH_INT, cl_uint,
+                           native_vector_width_int_, 0);
+    GET_LEGACY_DEVICE_INFO(CL_DEVICE_NATIVE_VECTOR_WIDTH_LONG, cl_uint,
+                           native_vector_width_long_, 0);
+    GET_LEGACY_DEVICE_INFO(CL_DEVICE_NATIVE_VECTOR_WIDTH_FLOAT, cl_uint,
+                           native_vector_width_float_, 0);
+    GET_LEGACY_DEVICE_INFO(CL_DEVICE_NATIVE_VECTOR_WIDTH_DOUBLE, cl_uint,
+                           native_vector_width_double_, 0);
+    GET_LEGACY_DEVICE_INFO(CL_DEVICE_NATIVE_VECTOR_WIDTH_HALF, cl_uint,
+                           native_vector_width_half_, 0);
+  } else {
+    native_vector_width_char_ = 0;
+    native_vector_width_short_ = 0;
+    native_vector_width_int_ = 0;
+    native_vector_width_long_ = 0;
+    native_vector_width_float_ = 0;
+    native_vector_width_double_ = 0;
+    native_vector_width_half_ = 0;
+  }
+  GET_LEGACY_DEVICE_INFO(CL_DEVICE_MAX_CLOCK_FREQUENCY, cl_uint,
+                         max_clock_frequency_, 0);
+  GET_LEGACY_DEVICE_INFO(CL_DEVICE_ADDRESS_BITS, cl_uint, address_bits_,
+                         sizeof(size_t));
+
+  GET_LEGACY_DEVICE_INFO(CL_DEVICE_MAX_MEM_ALLOC_SIZE, cl_ulong,
+                         max_mem_alloc_size_, 0);
+
+  GET_LEGACY_DEVICE_INFO(CL_DEVICE_IMAGE_SUPPORT, cl_bool, image_support_,
+                         CL_FALSE);
+  GET_LEGACY_DEVICE_INFO(CL_DEVICE_MAX_READ_IMAGE_ARGS, cl_uint,
+                         max_read_image_args_, 8);
+  GET_LEGACY_DEVICE_INFO(CL_DEVICE_MAX_WRITE_IMAGE_ARGS, cl_uint,
+                         max_write_image_args_, 1);
+  GET_LEGACY_DEVICE_INFO(CL_DEVICE_IMAGE2D_MAX_WIDTH, size_t,
+                         image2d_max_width_, 2048);
+  GET_LEGACY_DEVICE_INFO(CL_DEVICE_IMAGE2D_MAX_HEIGHT, size_t,
+                         image2d_max_height_, 2048);
+  GET_LEGACY_DEVICE_INFO(CL_DEVICE_IMAGE3D_MAX_WIDTH, size_t,
+                         image3d_max_width_, 0);
+  GET_LEGACY_DEVICE_INFO(CL_DEVICE_IMAGE3D_MAX_HEIGHT, size_t,
+                         image3d_max_height_, 0);
+  GET_LEGACY_DEVICE_INFO(CL_DEVICE_IMAGE3D_MAX_DEPTH, size_t,
+                         image3d_max_depth_, 0);
+  GET_LEGACY_DEVICE_INFO(CL_DEVICE_IMAGE_MAX_BUFFER_SIZE, size_t,
+                         image_max_buffer_size_, 2048);
+  GET_LEGACY_DEVICE_INFO(CL_DEVICE_IMAGE_MAX_ARRAY_SIZE, size_t,
+                         image_max_array_size_, 256);
+  GET_LEGACY_DEVICE_INFO(CL_DEVICE_MAX_SAMPLERS, cl_uint, max_samplers_, 8);
+
+  GET_LEGACY_DEVICE_INFO(CL_DEVICE_MAX_PARAMETER_SIZE, size_t,
+                         max_parameter_size_, 256);
+
+  GET_LEGACY_DEVICE_INFO(CL_DEVICE_MEM_BASE_ADDR_ALIGN, cl_uint,
+                         mem_base_addr_align_, 1024);
+  if (version_ <= LEGACY_VERSION_1_1) {
+    GET_LEGACY_DEVICE_INFO(CL_DEVICE_MIN_DATA_TYPE_ALIGN_SIZE, cl_uint,
+                           min_data_type_align_size_, 0);
+  } else {
+    min_data_type_align_size_ = 0;
+  }
+
+  GET_LEGACY_DEVICE_INFO(CL_DEVICE_SINGLE_FP_CONFIG, cl_device_fp_config,
+                         single_fp_config_, 0);
+  GET_LEGACY_DEVICE_INFO(CL_DEVICE_SINGLE_FP_CONFIG, cl_device_fp_config,
+                         double_fp_config_, 0);
+
+  GET_LEGACY_DEVICE_INFO(CL_DEVICE_GLOBAL_MEM_CACHE_TYPE,
+                         cl_device_mem_cache_type, global_mem_cache_type_,
+                         CL_NONE);
+  GET_LEGACY_DEVICE_INFO(CL_DEVICE_GLOBAL_MEM_CACHELINE_SIZE, cl_uint,
+                         global_mem_cacheline_size_, 0);
+  GET_LEGACY_DEVICE_INFO(CL_DEVICE_GLOBAL_MEM_CACHE_SIZE, cl_ulong,
+                         global_mem_cache_size_, 0);
+  GET_LEGACY_DEVICE_INFO(CL_DEVICE_GLOBAL_MEM_SIZE, cl_ulong,
+                         global_mem_size_, 0);
+
+  GET_LEGACY_DEVICE_INFO(CL_DEVICE_MAX_CONSTANT_BUFFER_SIZE, cl_ulong,
+                         max_constant_buffer_size_, 1024);
+  GET_LEGACY_DEVICE_INFO(CL_DEVICE_MAX_CONSTANT_ARGS, cl_uint,
+                         max_constant_args_, 4);
+
+  GET_LEGACY_DEVICE_INFO(CL_DEVICE_LOCAL_MEM_TYPE, cl_device_local_mem_type,
+                         local_mem_type_, CL_GLOBAL);
+  GET_LEGACY_DEVICE_INFO(CL_DEVICE_LOCAL_MEM_SIZE, cl_ulong, local_mem_size_,
+                         1024);
+  GET_LEGACY_DEVICE_INFO(CL_DEVICE_ERROR_CORRECTION_SUPPORT, cl_bool,
+                         error_correction_support_, CL_FALSE);
+
+  if (version_ >= LEGACY_VERSION_1_1) {
+    GET_LEGACY_DEVICE_INFO(CL_DEVICE_HOST_UNIFIED_MEMORY, cl_bool,
+                           host_unified_memory_, CL_FALSE);
+  } else {
+    host_unified_memory_ = CL_FALSE;
+  }
+
+  GET_LEGACY_DEVICE_INFO(CL_DEVICE_PROFILING_TIMER_RESOLUTION, size_t,
+                         profiling_timer_resolution_, 1);
+
+  GET_LEGACY_DEVICE_INFO(CL_DEVICE_ENDIAN_LITTLE, cl_bool, endian_little_,
+                         CL_TRUE);
+
+  GET_LEGACY_DEVICE_INFO(CL_DEVICE_COMPILER_AVAILABLE, cl_bool,
+                         compiler_available_, CL_TRUE);
+  GET_LEGACY_DEVICE_INFO(CL_DEVICE_LINKER_AVAILABLE, cl_bool,
+                         linker_available_, CL_TRUE);
+
+  GET_LEGACY_DEVICE_INFO(CL_DEVICE_EXECUTION_CAPABILITIES,
+                         cl_device_exec_capabilities, execution_capabilities_,
+                         CL_EXEC_KERNEL);
+
+  GET_LEGACY_DEVICE_INFO(CL_DEVICE_QUEUE_PROPERTIES,
+                         cl_command_queue_properties, queue_properties_, 0);
+
+  built_in_kernels_ = "";
+
+  GET_LEGACY_DEVICE_INFO_S(CL_DEVICE_NAME, name_);
+  GET_LEGACY_DEVICE_INFO_S(CL_DEVICE_VENDOR, vendor_);
+  GET_LEGACY_DEVICE_INFO_S(CL_DRIVER_VERSION, driver_version_);
+  if (version_ >= LEGACY_VERSION_1_1) {
+    GET_LEGACY_DEVICE_INFO_S(CL_DEVICE_OPENCL_C_VERSION, opencl_c_version_);
+  } else {
+    opencl_c_version_ = NULL;
+  }
+  GET_LEGACY_DEVICE_INFO_S(CL_DEVICE_EXTENSIONS, device_extensions_);
+
+  GET_LEGACY_DEVICE_INFO(CL_DEVICE_PRINTF_BUFFER_SIZE, size_t,
+                         printf_buffer_size_, 1024);
+
+  GET_LEGACY_DEVICE_INFO(CL_DEVICE_PREFERRED_INTEROP_USER_SYNC, cl_bool,
+                         preferred_interop_user_sync_, CL_FALSE);
+
+  if (version_ >= LEGACY_VERSION_1_2) {
+	  GET_LEGACY_DEVICE_INFO(CL_DEVICE_PARTITION_MAX_SUB_DEVICES, cl_uint,
+			  partition_max_sub_devices_, 0);
+	  err = dispatch_->clGetDeviceInfo(device_id_, CL_DEVICE_PARTITION_PROPERTIES,
+			  0, NULL, &num_partition_properties_);
+	  if (err != CL_SUCCESS)
+		  num_partition_properties_ = 0;
+	  num_partition_properties_ /= sizeof(cl_device_partition_property);
+	  GET_LEGACY_DEVICE_INFO_A(CL_DEVICE_PARTITION_PROPERTIES,
+			  cl_device_partition_property,
+			  partition_properties_, num_partition_properties_,
+			  0);
+	  GET_LEGACY_DEVICE_INFO(CL_DEVICE_PARTITION_AFFINITY_DOMAIN,
+			  cl_device_affinity_domain,
+			  affinity_domain_, 0);
+	  partition_type_ = NULL;
+	  partition_type_len_ = 0;
+  }
+  else 
+  {
+	  partition_max_sub_devices_ = 1;
+	  partition_max_compute_units_ = max_compute_units_;
+	  num_partition_properties_ = 0;
+	  affinity_domain_ = 0;
+	  partition_type_ = NULL;
+	  partition_type_len_ = 0;
+  }
+
+#undef GET_LEGACY_DEVICE_INFO
+#undef GET_LEGACY_DEVICE_INFO_A
+#undef GET_LEGACY_DEVICE_INFO_S
+
+#endif
+  built_in_kernels_ = "";
+  partition_max_compute_units_ = max_compute_units_;
+  partition_type_ = NULL;
+  partition_type_len_ = 0;
+#if 1
+  cl_context_properties properties[3] = {CL_CONTEXT_PLATFORM,
+                                         (cl_context_properties)platform_id_,
+                                         0};
+  context_ = dispatch_->clCreateContext(properties, 1, &device_id_, NULL, NULL,
+                                        &err);
+  if (err != CL_SUCCESS) {
+    available_ = false;
+  } else {
+#else
+  if(context_ != NULL) {  
+#endif
+	kernel_queue_ = dispatch_->clCreateCommandQueue(context_, device_id_, CL_QUEUE_PROFILING_ENABLE,
+                                                    &err);
+    if (err != CL_SUCCESS)
+      available_ = false;
+    mem_queue_ = dispatch_->clCreateCommandQueue(context_, device_id_, 0,
+                                                 &err);
+    if (err != CL_SUCCESS)
+      available_ = false;
+    misc_queue_ = dispatch_->clCreateCommandQueue(context_, device_id_, 0,
+                                                  &err);
+    if (err != CL_SUCCESS)
+      available_ = false;
+  }
+  std::cout << "Done creating legacy device" << std::endl;
+}
+
 LegacyDevice::LegacyDevice(void* library, struct _cl_icd_dispatch* dispatch, 
 						   cl_context context,
                            cl_platform_id platform_id, cl_device_id device_id,
@@ -346,7 +648,7 @@ LegacyDevice::LegacyDevice(void* library, struct _cl_icd_dispatch* dispatch,
 
   GET_LEGACY_DEVICE_INFO(CL_DEVICE_PREFERRED_INTEROP_USER_SYNC, cl_bool,
                          preferred_interop_user_sync_, CL_FALSE);
-/*
+
   if (version_ >= LEGACY_VERSION_1_2) {
 	  GET_LEGACY_DEVICE_INFO(CL_DEVICE_PARTITION_MAX_SUB_DEVICES, cl_uint,
 			  partition_max_sub_devices_, 0);
@@ -354,16 +656,18 @@ LegacyDevice::LegacyDevice(void* library, struct _cl_icd_dispatch* dispatch,
 			  0, NULL, &num_partition_properties_);
 	  if (err != CL_SUCCESS)
 		  num_partition_properties_ = 0;
-	  num_partition_properties_ /= sizeof(cl_device_partition_properties);
+	  num_partition_properties_ /= sizeof(cl_device_partition_property);
 	  GET_LEGACY_DEVICE_INFO_A(CL_DEVICE_PARTITION_PROPERTIES,
-			  cl_device_partition_properties,
+			  cl_device_partition_property,
 			  partition_properties_, num_partition_properties_,
 			  0);
 	  GET_LEGACY_DEVICE_INFO(CL_DEVICE_PARTITION_AFFINITY_DOMAIN,
-			  cl_device_partition_affinity_domain,
+			  cl_device_affinity_domain,
 			  affinity_domain_, 0);
+	  partition_type_ = NULL;
+	  partition_type_len_ = 0;
   }
-  else */
+  else 
   {
 	  partition_max_sub_devices_ = 1;
 	  partition_max_compute_units_ = max_compute_units_;
@@ -608,7 +912,6 @@ void LegacyDevice::LaunchKernel(CLCommand* command, CLKernel* kernel,
   UPDATE_ERROR(err);
 //  err = dispatch_->clFinish(kernel_queue_);
   err = dispatch_->clWaitForEvents(1, &event);
-  UPDATE_ERROR(err);
   gLegacyTimer.Stop();
   cl_ulong start = 0, end = 0;
   dispatch_->clGetEventProfilingInfo(event, CL_PROFILING_COMMAND_START, sizeof(cl_ulong), &start, NULL);
@@ -1686,3 +1989,94 @@ cl_device_id* LegacyDevice::IcdGetDevices(cl_platform_id platform,
   fprintf(stderr, "[Device] Number of devices: %lu\n", *num_devices);
   return devices;
 }
+
+cl_int LegacyDevice::CreateSubDevices(
+    const cl_device_partition_property* properties, cl_uint num_devices,
+    cl_device_id* out_devices, cl_uint* num_devices_ret) {
+  
+  if (properties == NULL) return CL_INVALID_VALUE;
+
+  bool supported = false;
+  for (size_t i = 0; i < num_partition_properties_; i++) {
+    if (properties[0] == partition_properties_[i]) {
+      supported = true;
+      break;
+    }
+  }
+  if (!supported) return CL_INVALID_VALUE;
+
+  switch (properties[0]) {
+    case CL_DEVICE_PARTITION_EQUALLY: {
+  	  SNUCL_INFO("Legacy CreateSubDevices equal\n", 0);
+      unsigned int n = (unsigned int)properties[1];
+      if (n == 0) return CL_INVALID_VALUE;
+      if (properties[2] != 0) return CL_INVALID_VALUE;
+
+ //     return CreateSubDevicesEqually(n, num_devices, out_devices,
+   //                                  num_devices_ret);
+    }
+	break;
+    case CL_DEVICE_PARTITION_BY_COUNTS: {
+  	  SNUCL_INFO("Legacy CreateSubDevices by_counts\n", 0);
+      vector<unsigned int> sizes;
+      unsigned int total_size = 0;
+      size_t idx = 1;
+      while (properties[idx] != CL_DEVICE_PARTITION_BY_COUNTS_LIST_END) {
+        unsigned int size = properties[idx];
+        sizes.push_back(size);
+        total_size += size;
+      }
+
+      if (sizes.empty()) return CL_INVALID_VALUE;
+      if (properties[idx + 1] != 0) return CL_INVALID_VALUE;
+      if (sizes.size() > partition_max_sub_devices_)
+        return CL_INVALID_DEVICE_PARTITION_COUNT;
+      if (total_size > partition_max_compute_units_)
+        return CL_INVALID_DEVICE_PARTITION_COUNT;
+
+    //  return CreateSubDevicesByCount(sizes, num_devices, out_devices,
+      //                               num_devices_ret);
+    }
+	break;
+    case CL_DEVICE_PARTITION_BY_AFFINITY_DOMAIN: {
+      cl_device_affinity_domain domain =
+          (cl_device_affinity_domain)properties[1];
+  	  SNUCL_INFO("Legacy CreateSubDevices by_domain NUMA: %x given %x\n", CL_DEVICE_AFFINITY_DOMAIN_NEXT_PARTITIONABLE, domain);
+      if (!(domain & (CL_DEVICE_AFFINITY_DOMAIN_NUMA |
+                      CL_DEVICE_AFFINITY_DOMAIN_L4_CACHE |
+                      CL_DEVICE_AFFINITY_DOMAIN_L3_CACHE |
+                      CL_DEVICE_AFFINITY_DOMAIN_L2_CACHE |
+                      CL_DEVICE_AFFINITY_DOMAIN_L1_CACHE |
+                      CL_DEVICE_AFFINITY_DOMAIN_NEXT_PARTITIONABLE))) {
+		SNUCL_INFO("Invalid Domain\n", 0);
+        return CL_INVALID_VALUE;
+      }
+      if (properties[2] != 0) return CL_INVALID_VALUE;
+
+     // return CreateSubDevicesByAffinity(domain, num_devices, out_devices,
+       //                                 num_devices_ret);
+    }
+	break;
+    default: return CL_INVALID_VALUE;
+  }
+
+  cl_int err; 
+  err = dispatch_->clCreateSubDevices(device_id_, properties, 0, 
+  				NULL, num_devices_ret);
+  VERIFY_ERROR(err);
+  SNUCL_INFO("Number of NUMA partitions: %u\n", *num_devices_ret);
+  partition_device_ids_ = (cl_device_id *)malloc(sizeof(cl_device_id) * num_devices);
+  err = dispatch_->clCreateSubDevices(device_id_, properties, num_devices, 
+  				partition_device_ids_, num_devices_ret);
+  VERIFY_ERROR(err);
+  int i;
+  for(i = 0; i < num_devices; i++) {
+    LegacyDevice* device = new LegacyDevice(this, partition_device_ids_[i]);
+	out_devices[i] = device->st_obj();
+  	SNUCL_INFO("SubDevice[ %d ]: %p\n", i, out_devices[i]); 
+  }
+  CLPlatform* platform = CLPlatform::GetPlatform();
+  platform->InitD2DMetrics(1);
+  return err;
+}
+

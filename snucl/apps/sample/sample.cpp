@@ -51,7 +51,8 @@
 #if defined(SAMPLE_CPU)
 #define PLATFORM_NAME "SnuCL CPU"
 #elif defined(SAMPLE_SINGLE)
-#define PLATFORM_NAME "SnuCL Single"
+//#define PLATFORM_NAME "SnuCL Single"
+#define PLATFORM_NAME "SOCL Platform"
 #elif defined(SAMPLE_CLUSTER)
 #define PLATFORM_NAME "SnuCL Cluster"
 #else

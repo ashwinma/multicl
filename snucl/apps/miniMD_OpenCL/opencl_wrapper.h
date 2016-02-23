@@ -36,8 +36,10 @@
 #include <cstdarg>
 #define __CR printf("Got to line %i in '%s'\n",__LINE__,__FILE__);
 
+#include <CL/cl.h>
 #include <CL/opencl.h>
 
+//#define MINIMD_SNUCL_OPTIMIZATIONS
 class OpenCLWrapper{
 public:
     cl_uint num_platforms;
@@ -72,6 +74,8 @@ public:
 
     int Init(int argc, char** argv,int me,int ppn,int* devicelist, int platformid=0, int subdevice=-1);
 
+	void SetCommandQueueProperty();
+	void ResetCommandQueueProperty();
     cl_mem AllocDevData(unsigned nbytes);
     void FreeDevData(cl_mem dev_data,unsigned nbytes);
 

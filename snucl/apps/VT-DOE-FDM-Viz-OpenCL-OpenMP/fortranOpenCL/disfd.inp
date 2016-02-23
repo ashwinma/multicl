@@ -2,8 +2,8 @@ fd_nort.inf
 50.0,  1
 0.0
 0.0  0.0
-2 2
-12  0.02
+1 1
+10  0.1
 fd_north.mat
 source_model.list
 station_rock.list

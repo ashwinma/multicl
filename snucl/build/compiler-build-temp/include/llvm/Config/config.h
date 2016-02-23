@@ -536,7 +536,7 @@
 #define LLVM_BINDIR "/usr/local/bin"
 
 /* Time at which LLVM was configured */
-#define LLVM_CONFIGTIME "Mon Dec  2 17:05:43 EST 2013"
+#define LLVM_CONFIGTIME "Fri Dec  6 01:29:03 EST 2013"
 
 /* Installation directory for data files */
 #define LLVM_DATADIR "/usr/local/share/llvm"

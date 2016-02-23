@@ -36,7 +36,6 @@
 //      program mg_ocl_md
 //---------------------------------------------------------------------
 
-//#define MINIMD_SNUCL_OPTIMIZATIONS
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -52,6 +51,11 @@
 #include <CL/cl.h>
 #include <CL/cl_ext.h>
 #include "cl_util.h"
+//#define MINIMD_SNUCL_OPTIMIZATIONS
+#define SOCL_OPTIMIZATIONS
+#ifdef SOCL_OPTIMIZATIONS
+#include "socl.h"
+#endif
 #define TIMER_OPENCL    20
 #define TIMER_BUILD     21
 #define TIMER_BUFFER    22
@@ -1725,8 +1729,8 @@ static void norm2u3(cl_mem *or_buf, int* n1, int* n2, int* n3,
         tmp = max_rnmu[i];
 	  //tmp_sum += s_dev[i];
   	  //tmp2 = sqrt( tmp_sum / dn );
-	  printf("Intermediate Norm for device %d: rnmu: %g tmp_rnm2: %g dn: %g\n",
-	  				i, tmp, s_dev[i], dn);
+	  //printf("Intermediate Norm for device %d: rnmu: %g tmp_rnm2: %g dn: %g\n",
+	  				//i, tmp, s_dev[i], dn);
     }
   }
 
@@ -1781,7 +1785,7 @@ static void rep_nrm(cl_mem *ou_buf, int* n1, int* n2, int* n3, char *title, int 
 
   norm2u3(ou_buf, n1, n2, n3, &rnm2, &rnmu, nx[kk], ny[kk], nz[kk], offset);
 
-  printf(" Level%2d in %8s: norms =%21.14E%21.14E\n", kk, title, rnm2, rnmu);
+  //printf(" Level%2d in %8s: norms =%21.14E%21.14E\n", kk, title, rnm2, rnmu);
 
 }
 
@@ -2188,7 +2192,7 @@ static void copy_buffer(int axis, int dir, int i)
   }
   else
   {
-    printf("Copying Buffers\n");
+    //printf("Copying Buffers\n");
     ecode = clEnqueueCopyBuffer(cmd_queue[i],
         recv_params[i][1+dir][axis].src_buf,
         recv_params[i][1+dir][axis].dst_buf,
@@ -3828,10 +3832,61 @@ static void setup_opencl(int argc, char *argv[])
   //device_type = CL_DEVICE_TYPE_CPU;
   //device_type = CL_DEVICE_TYPE_GPU;
   device_type = CL_DEVICE_TYPE_ALL;
+  if(argc <= 2) {
+    printf("Device type argument missing!\n");
+	exit(-1);
+  }
+  char *device_type_str = argv[2];
+  if(strcmp(device_type_str, "CPU") == 0 || strcmp(device_type_str, "cpu") == 0) {
+  	device_type = CL_DEVICE_TYPE_CPU;
+  } else if(strcmp(device_type_str, "GPU") == 0 || strcmp(device_type_str, "gpu") == 0) {
+  	device_type = CL_DEVICE_TYPE_GPU;
+  } else if(strcmp(device_type_str, "ALL") == 0 || strcmp(device_type_str, "all") == 0) {
+  	device_type = CL_DEVICE_TYPE_ALL;
+  } else {
+    printf("Unsupported device type!\n");
+	exit(-1);
+  }
 
   cl_platform_id platform;
-  ecode = clGetPlatformIDs(1, &platform, NULL);
-  clu_CheckError(ecode, "clGetPlatformIDs()");
+#ifdef SOCL_OPTIMIZATIONS
+	const char *PLATFORM_NAME = "SOCL Platform";
+#else
+	const char *PLATFORM_NAME = "SnuCL Single";
+#endif
+	cl_uint num_platforms;
+	cl_platform_id *platforms;
+	cl_int errNum = clGetPlatformIDs(0, NULL, &num_platforms);
+	clu_CheckError(errNum, "Platform Count");
+	printf("Number of platforms: %d\n", num_platforms);
+	platforms = (cl_platform_id*)malloc(sizeof(cl_platform_id) * num_platforms);
+	cl_int err = clGetPlatformIDs(num_platforms, platforms, NULL);
+	clu_CheckError(err, "Platform Count");
+
+	int platform_name_size;
+	for (i = 0; i < num_platforms; i++) {
+		err = clGetPlatformInfo(platforms[i], CL_PLATFORM_NAME, 0, NULL,
+				&platform_name_size);
+		clu_CheckError(err, "Platform Info");
+
+		char *platform_name = (char*)malloc(sizeof(char) * platform_name_size);
+		err = clGetPlatformInfo(platforms[i], CL_PLATFORM_NAME, platform_name_size,
+				platform_name, NULL);
+		clu_CheckError(err, "Platform Info");
+
+		printf("Platform %d: %s\n", i, platform_name);
+		if (strcmp(platform_name, PLATFORM_NAME) == 0)
+		{
+			printf("Choosing Platform %d: %s\n", i, platform_name);
+			platform = platforms[i];
+		}
+		free(platform_name);
+	}
+
+	if (platform == NULL) {
+		printf("%s platform is not found.\n", PLATFORM_NAME);
+		//exit(EXIT_FAILURE);
+	}
 
   ecode = clGetDeviceIDs(platform, device_type, 0, NULL, &num_devices);
   clu_CheckError(ecode, "clGetDeviceIDs()");
@@ -3935,6 +3990,14 @@ static void setup_opencl(int argc, char *argv[])
 		//CL_CONTEXT_SCHEDULER_ALL_EPOCH_BASED_PERF_MODEL,
 		0 };
   context = clCreateContext(props, 
+#elif defined(SOCL_OPTIMIZATIONS)
+	cl_context_properties props[5] = {
+		CL_CONTEXT_PLATFORM,
+		(cl_context_properties)platform,
+		CL_CONTEXT_SCHEDULER_SOCL,
+		"dmda",
+		0 };
+  context = clCreateContext(props, 
 #else
   context = clCreateContext(NULL, 
 #endif
@@ -3946,7 +4009,12 @@ static void setup_opencl(int argc, char *argv[])
   // 3. Create a command queue
   cmd_queue = (cl_command_queue*)malloc(sizeof(cl_command_queue)*num_command_queues);
   for (i = 0; i < num_command_queues; i++) {
-    cmd_queue[i] = clCreateCommandQueue(context, devices[i%num_devices], 
+    //cmd_queue[i] = clCreateCommandQueue(context, devices[i%num_devices], 
+#ifdef SOCL_OPTIMIZATIONS
+	cmd_queue[i] = clCreateCommandQueue(context, NULL,
+#else
+    cmd_queue[i] = clCreateCommandQueue(context, devices[num_devices - 1 - (i%num_devices)], 
+#endif 
 #ifdef MINIMD_SNUCL_OPTIMIZATIONS
 	0,
 //			CL_QUEUE_AUTO_DEVICE_SELECTION | 

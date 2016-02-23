@@ -2,13 +2,26 @@
    2400.0000    
  Enter the Max. frequency (fmax) of FD computation 
  and the Reference frequency of Velocity Structure
-   2.4000001       2.0000000    
+  0.30000001       2.0000000    
  Enter the number of control points used in X-axis of FD
+           3
  Enter the location and grid sapce of control points in X-axis for Region II
+   0.0000000       1200.0000    
+   1200.0000       1200.0000    
+   46000.000       1200.0000    
  Enter the number of control points used in Y-axis of FD 
+           3
  Enter the location and grid sapce of control points in Y-axis for Region II
+   0.0000000       1200.0000    
+   1200.0000       1200.0000    
+   48000.000       1200.0000    
  Enter the number of control points  used in Z-axis of FD 
+           4
  Enter the location and grid sapce of control points in Z-axis
+   0.0000000       400.00000    
+   2800.0000       400.00000    
+   4800.0000       1200.0000    
+   30000.000       1200.0000    
  Enter min. Vp, Vs, roh, Qp, and Qs used in FD model
    0.0000000       0.0000000       0.0000000       0.0000000       0.0000000    
  The velocity structure is 1D model(y) or not(n)
@@ -34,26 +47,26 @@ fd_north.mat
 
  --------------------------------------------------
  The node number of X,Y,Z-axis in Region II
-         156         162         101          24
+          41          42          27           6
 
- The number of different material:           13
+ The number of different material:            3
 
- max. and min. P-velocity:    7808.1460       2031.3230    
- max. and min. S-velocity:    4507.0425       818.81494    
- max. and min. Density:    3300.0000       2000.0000    
- max. and min. Qp:    1080.0000       72.000000    
- max. and min. Qs:    720.00000       48.000000    
+ max. and min. P-velocity:    3010.7168       2349.5767    
+ max. and min. S-velocity:    1508.0366       1002.5057    
+ max. and min. Density:    2200.0000       2075.0000    
+ max. and min. Qp:    315.00000       148.83221    
+ max. and min. Qs:    209.99998       99.221474    
 
  exp(-dt/relaxt),    qwt1,      qwt2
-   0.21895E+00   0.94800E-02   0.42529E-01
-   0.21903E+00   0.65819E-02   0.56838E-01
-   0.73134E+00   0.77689E-02   0.68143E-01
-   0.92897E+00   0.78722E-02   0.71651E-01
-   0.98134E+00   0.11504E-01   0.62600E-01
-   0.99485E+00   0.10475E-01   0.71554E-01
-   0.99917E+00   0.17124E-01   0.52233E-01
-   0.99917E+00   0.11923E-01   0.72904E-01
+  -0.60163E+00   0.94800E-02   0.42529E-01
+  -0.60157E+00   0.65819E-02   0.56838E-01
+   0.13352E-01   0.77689E-02   0.68143E-01
+   0.62464E+00   0.78722E-02   0.71651E-01
+   0.88840E+00   0.11504E-01   0.62600E-01
+   0.96815E+00   0.10475E-01   0.71554E-01
+   0.99479E+00   0.17124E-01   0.52233E-01
+   0.99479E+00   0.11923E-01   0.72904E-01
    
- The time step is   1.02000004E-02
- The minimum node-number per wavelength is    3.3333333    
+ The time step is   6.40000030E-02
+ The minimum node-number per wavelength is    4.1666665    
   

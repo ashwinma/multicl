@@ -312,7 +312,7 @@ void MetricsManager::clInit()
 	_devices = (cl_device_id *)malloc(sizeof(cl_device_id) * _num_devices);
 	//err = clGetDeviceIDs(_platforms[chosen_platform_id], CL_DEVICE_TYPE_ALL, _num_devices, _devices, NULL);
 	//OPENCL_CHECK_ERR(err, "Failed to create a device group!");
-	printf("Total available devices: %d\n", _Devices.size());
+	SNUCL_INFO("Total available devices: %d\n", _Devices.size());
 	//printf("Total available devices: %d\n", _num_devices);
 	for(int i = 0; i < _num_devices; i++)
 	{
@@ -354,8 +354,10 @@ void MetricsManager::clFinalize()
 void H2DMetricsManager::testAndWriteH2DMetrics()
 {
 	SNUCL_INFO("About to run tests and write the H2D Bandwidths", 0);
+	clInit();
 	if(!_ofile_stream.is_open())
 	{
+		SNUCL_INFO("About to open File: %s\n", _filename.c_str());
 		_ofile_stream.open(_filename.c_str());
 		//_ofile_stream.open(_filename.c_str());
 		if(!_ofile_stream)
@@ -364,7 +366,6 @@ void H2DMetricsManager::testAndWriteH2DMetrics()
 			SNUCL_ERROR("cannot open metrics file for write\n", 0);
 		}
 	}
-	clInit();
 	Global::RealTimer gH2DMetricTimer;
   	gH2DMetricTimer.Init();
 	// how many host sockets?
@@ -394,6 +395,7 @@ void H2DMetricsManager::testAndWriteH2DMetrics()
 		num_memSizes++;
 	}
 
+	SNUCL_INFO("About to write into File: %s\n", _filename.c_str());
 	_ofile_stream << n_sockets << " " << n_devices << " " << num_memSizes << std::endl; 
 	for(int host_id = 0; host_id < n_sockets; host_id++)
 	{
@@ -655,6 +657,7 @@ void H2DMetricsManager::readH2DMetrics()
 			else
 			{
 				//insert tokens as tuple elements
+				//SNUCL_INFO("Token0: %s Token1: %s Token2: %s Token3: %s\n", tokens[0].c_str(), tokens[1].c_str(), tokens[2].c_str(), tokens[3].c_str());
 				metrics_tuple mt = std::make_tuple(
 									atoi(tokens[0].c_str()),
 									atol(tokens[1].c_str()),
@@ -716,8 +719,10 @@ double H2DMetricsManager::getH2DBandwidth(const int host_id, const int device_id
 void D2DMetricsManager::testAndWriteD2DMetrics()
 {
 	SNUCL_INFO("About to run tests and write the D2D Bandwidths", 0);
+	clInit();
 	if(!_ofile_stream.is_open())
 	{
+		SNUCL_INFO("About to open File: %s\n", _filename.c_str());
 		_ofile_stream.open(_filename.c_str());
 		//_ofile_stream.open(_filename.c_str());
 		if(!_ofile_stream)
@@ -726,7 +731,6 @@ void D2DMetricsManager::testAndWriteD2DMetrics()
 			SNUCL_ERROR("cannot open metrics file for write\n", 0);
 		}
 	}
-	clInit();
 	Global::RealTimer gD2DMetricTimer;
   	gD2DMetricTimer.Init();
 	// how many host sockets?
@@ -748,7 +752,7 @@ void D2DMetricsManager::testAndWriteD2DMetrics()
 	const unsigned int defaultMemSize = (64 * (1 << 20));
 
 	const size_t MIN_MEM_SIZE = (256 * 1024);
-	const size_t MAX_MEM_SIZE = (32 * 1024 * 1024);
+	const size_t MAX_MEM_SIZE = (1 * 1024 * 1024);
 	const int MULTIPLIER = 2;
 	int num_memSizes = 0;
 	for(size_t memSize = MIN_MEM_SIZE; memSize <= MAX_MEM_SIZE; memSize *= MULTIPLIER)
@@ -756,6 +760,7 @@ void D2DMetricsManager::testAndWriteD2DMetrics()
 		num_memSizes++;
 	}
 
+	SNUCL_INFO("About to write into File: %s\n", _filename.c_str());
 	_ofile_stream << n_devices << " " << num_memSizes << std::endl; 
 	for(int src_dev_id = 0; src_dev_id < n_devices; src_dev_id++)
 	{

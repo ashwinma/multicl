@@ -1,4 +1,0 @@
-let Component = "OpenCL" in {
-
-}
-

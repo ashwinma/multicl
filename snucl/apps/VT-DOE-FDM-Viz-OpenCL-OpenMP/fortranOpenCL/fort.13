@@ -1,7 +1,0 @@
-  
- Type number of material=           2
-  
- Time step=  3.19000008E-03
-  
-     PID, nxtop, nytop, nztop, nxbtm, nybtm, nzbtm
-      1     16     16      4      6      6      6

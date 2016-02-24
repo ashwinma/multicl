@@ -1,9 +1,0 @@
-#SNUCL_DEV_0=0 SNUCL_DEV_1=0 mpirun -f machinefile -n 2 -binding user:0 -prepend-rank -print-rank-map ./disfd > res.2x1.1p2Hz.d0d0 2>&1
-#SNUCL_DEV_0=1 SNUCL_DEV_1=0 mpirun -f machinefile -n 2 -binding user:0 -prepend-rank -print-rank-map ./disfd > res.2x1.1p2Hz.d1d0 2>&1
-#SNUCL_DEV_0=2 SNUCL_DEV_1=0 mpirun -f machinefile -n 2 -binding user:0 -prepend-rank -print-rank-map ./disfd > res.2x1.1p2Hz.d2d0 2>&1
-#SNUCL_DEV_0=0 SNUCL_DEV_1=1 mpirun -f machinefile -n 2 -binding user:0 -prepend-rank -print-rank-map ./disfd > res.2x1.1p2Hz.d0d1 2>&1
-SNUCL_DEV_0=1 SNUCL_DEV_1=1 mpirun -f machinefile -n 2 -binding user:0 -prepend-rank -print-rank-map ./disfd > res.2x1.1p2Hz.d1d1 2>&1
-SNUCL_DEV_0=2 SNUCL_DEV_1=1 mpirun -f machinefile -n 2 -binding user:0 -prepend-rank -print-rank-map ./disfd > res.2x1.1p2Hz.d2d1 2>&1
-#SNUCL_DEV_0=0 SNUCL_DEV_1=2 mpirun -f machinefile -n 2 -binding user:0 -prepend-rank -print-rank-map ./disfd > res.2x1.1p2Hz.d0d2 2>&1
-SNUCL_DEV_0=1 SNUCL_DEV_1=2 mpirun -f machinefile -n 2 -binding user:0 -prepend-rank -print-rank-map ./disfd > res.2x1.1p2Hz.d1d2 2>&1
-SNUCL_DEV_0=2 SNUCL_DEV_1=2 mpirun -f machinefile -n 2 -binding user:0 -prepend-rank -print-rank-map ./disfd > res.2x1.1p2Hz.d2d2 2>&1

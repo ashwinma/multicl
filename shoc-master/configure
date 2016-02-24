@@ -5711,7 +5711,7 @@ fi
               savedLDFLAGS=$LDFLAGS
               CXXFLAGS=$NVCXXFLAGS
               LDFLAGS=""
-
+$as_echo "SAVED CPP FLAG: $savedCPPFLAGS" >&5
               # find cuda include path based on location of nvcc command
               cudabindir=`$as_dirname -- $NVCC ||
 $as_expr X$NVCC : 'X\(.*[^/]\)//*[^/][^/]*/*$' \| \

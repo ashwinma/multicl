@@ -1,0 +1,100 @@
+Index: sample_opencl.c
+===================================================================
+--- sample_opencl.c	(revision 116)
++++ sample_opencl.c	(working copy)
+@@ -416,14 +416,17 @@
+ }
+ 
+ int main () {
+-	int iter_scale = 16 * 1024;
+-	const size_t const_mem_size = 32 * 1024 * 1024;
+-	const size_t start_mem_size = 1 * 1024 * 1024;
++	int iter_scale = 1 * 1024;
++	const size_t start_mem_size = sizeof(float) * 256 * 1024;
+ 	init_cl();
+-	size_t mem_size = start_mem_size;
++	size_t mem_size = sizeof(float) * 256 * 1024;
++	char *foo = getenv("TOTAL_FLOAT_ELEMENTS");
++	if(foo != NULL)
++		mem_size = atoi(foo) * sizeof(float);
++ 	printf("Total mem size: %lu\n", mem_size);	
+ 	//for(iter_scale = 512; iter_scale <= 2048; iter_scale *= 2) {
+-	for(size_t mem_size = start_mem_size; mem_size <= 64 * start_mem_size; mem_size *= 2) {
+-	//for(int i = 0; i < 16; i++) {
++	//for(size_t mem_size = start_mem_size; mem_size <= 64 * start_mem_size; mem_size *= 2) {
++	for(int i = 0; i < 16; i++) {
+ 		init_mem(mem_size);
+ 		compute(iter_scale, start_mem_size, mem_size);
+ 		marshal(1, start_mem_size, mem_size);
+Index: sample_kernel.cl
+===================================================================
+--- sample_kernel.cl	(revision 116)
++++ sample_kernel.cl	(working copy)
+@@ -93,30 +93,14 @@
+ 	int localThreadCount = get_local_size(0);
+ 	int blockCount = get_num_groups(0);
+ 
++	// below loop repeats for d_size/globalThreadCount times
+ 	for(int i = globalThreadId; i < d_size; i += globalThreadCount)
+ 	{
+ 		//register 
+ 		float s = d_a[i], s2=10.0f-s, s3=9.0f-s, s4=9.0f-s2, s5=8.0f-s, s6=8.0f-s2, s7=7.0f-s, s8=7.0f-s2;
+-		MULMADD8_MOP1
+-		MULMADD8_MOP1
+-		MULMADD8_MOP1
+-		MULMADD8_MOP1
+-		MULMADD8_MOP1
+-		MULMADD8_MOP1
+-		MULMADD8_MOP1
+-		MULMADD8_MOP1
+-		MULMADD8_MOP1
+-		MULMADD8_MOP1
+-		MULMADD8_MOP1
+-		MULMADD8_MOP1
+-		MULMADD8_MOP1
+-		MULMADD8_MOP1
+-		MULMADD8_MOP1
+-		MULMADD8_MOP1
+ 		for (int j=0 ; j<nIters ; ++j) {
+-			/* Each macro op has 5 operations. 
+-			   Unroll 4 more times for 20 operations total.
+-			   */
++			/* Each macro op has 8 MUL and 8 MAD operations. 
++			   flop_count = nIters * (8 + 8)*/
+ 			MULMADD8_MOP1
+ 		}
+ 		d_a[i] = ((s+s2)+(s3+s4))+((s5+s6)+(s7+s8));
+@@ -132,30 +116,14 @@
+ 	int localThreadCount = get_local_size(0);
+ 	int blockCount = get_num_groups(0);
+ 
++	// below loop repeats for d_size/globalThreadCount times
+ 	for(int i = globalThreadId; i < d_size; i += globalThreadCount)
+ 	{
+ 		//register 
+ 		float s = d_a[i], s2=10.0f-s, s3=9.0f-s, s4=9.0f-s2, s5=8.0f-s, s6=8.0f-s2, s7=7.0f-s, s8=7.0f-s2;
+-		MULMADD8_MOP1
+-		MULMADD8_MOP1
+-		MULMADD8_MOP1
+-		MULMADD8_MOP1
+-		MULMADD8_MOP1
+-		MULMADD8_MOP1
+-		MULMADD8_MOP1
+-		MULMADD8_MOP1
+-		MULMADD8_MOP1
+-		MULMADD8_MOP1
+-		MULMADD8_MOP1
+-		MULMADD8_MOP1
+-		MULMADD8_MOP1
+-		MULMADD8_MOP1
+-		MULMADD8_MOP1
+-		MULMADD8_MOP1
+ 		for (int j=0 ; j<nIters ; ++j) {
+-			/* Each macro op has 5 operations. 
+-			   Unroll 4 more times for 20 operations total.
+-			   */
++			/* Each macro op has 8 MUL and 8 MAD operations. 
++			   flop_count = nIters * (8 + 8)*/
+ 			MULMADD8_MOP1
+ 		}
+ 		d_a[i] = ((s+s2)+(s3+s4))+((s5+s6)+(s7+s8));

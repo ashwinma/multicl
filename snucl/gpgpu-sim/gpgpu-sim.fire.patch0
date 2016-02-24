@@ -1,0 +1,1036 @@
+diff --git v3.x/Makefile v3.x/Makefile
+index 7a9c9bd..f19d6f1 100644
+--- v3.x/Makefile
++++ v3.x/Makefile
+@@ -164,6 +164,7 @@ $(SIM_LIB_DIR)/libcudart.dylib: $(LIBS) cudalib
+ $(SIM_LIB_DIR)/libOpenCL.so: $(LIBS) opencllib
+ 	g++ -shared -Wl,-soname,libOpenCL.so \
+ 			$(SIM_OBJ_FILES_DIR)/libopencl/*.o \
++			$(HOME)/myOpenCLImpl/opencl_runtime.o \
+ 			$(SIM_OBJ_FILES_DIR)/cuda-sim/*.o \
+ 			$(SIM_OBJ_FILES_DIR)/cuda-sim/decuda_pred_table/*.o \
+ 			$(SIM_OBJ_FILES_DIR)/gpgpu-sim/*.o \
+@@ -173,6 +174,8 @@ $(SIM_LIB_DIR)/libOpenCL.so: $(LIBS) opencllib
+ 			-o $(SIM_LIB_DIR)/libOpenCL.so 
+ 	if [ ! -f $(SIM_LIB_DIR)/libOpenCL.so.1 ]; then ln -s libOpenCL.so $(SIM_LIB_DIR)/libOpenCL.so.1; fi
+ 	if [ ! -f $(SIM_LIB_DIR)/libOpenCL.so.1.1 ]; then ln -s libOpenCL.so $(SIM_LIB_DIR)/libOpenCL.so.1.1; fi
++	if [ ! -f $(SIM_LIB_DIR)/libOpenCL.so.1.0 ]; then ln -s libOpenCL.so $(SIM_LIB_DIR)/libOpenCL.so.1.0; fi
++	if [ ! -f $(SIM_LIB_DIR)/libOpenCL.so.1.0.0 ]; then ln -s libOpenCL.so $(SIM_LIB_DIR)/libOpenCL.so.1.0.0; fi
+ 
+ cudalib: cuda-sim
+ 	$(MAKE) -C ./libcuda/ depend
+@@ -246,3 +249,4 @@ ifneq ($(GPGPUSIM_POWER_MODEL),)
+ endif
+ 	rm -rf $(SIM_LIB_DIR)
+ 	rm -rf $(SIM_OBJ_FILES_DIR)
++# DO NOT DELETE
+diff --git v3.x/libcuda/Makefile v3.x/libcuda/Makefile
+index 399a533..69827e9 100644
+--- v3.x/libcuda/Makefile
++++ v3.x/libcuda/Makefile
+@@ -83,6 +83,9 @@ else
+ 	CCFLAGS += -Wall -Wno-unused-function -Wno-sign-compare -fPIC
+ endif
+ 
++CXXFLAGS += -L$(HOME)/opt/lib64 -L$(HOME)/opt/lib
++CCFLAGS += -L$(HOME)/opt/lib64 -L$(HOME)/opt/lib
++
+ PROG     =cuda
+ 
+ CXX_SRCS =  cuda_runtime_api.cc
+diff --git v3.x/libopencl/Makefile v3.x/libopencl/Makefile
+index d597a0d..0d444cf 100644
+--- v3.x/libopencl/Makefile
++++ v3.x/libopencl/Makefile
+@@ -70,7 +70,7 @@ CPP = g++
+ CC = gcc
+ CREATELIBRARY    =  1
+ DEBUG ?= 0
+-CCFLAGS = -O3 -g -Wall -fPIC $(GL)
++CCFLAGS = -O3 -g -Wall -fPIC $(GL) 
+ ifeq ($(DEBUG),1)
+ 	CCFLAGS =  -Wall -g -fPIC $(GL)
+ endif
+@@ -84,12 +84,16 @@ PROG     =opencl
+ 
+ CXX_SRCS =  opencl_runtime_api.cc
+ CCFLAGS += -DCUDART_VERSION=$(CUDART_VERSION)
++ 
++CXXFLAGS += -L$(HOME)/opt/lib64 -L$(HOME)/opt/lib 
++CCFLAGS += -L$(HOME)/opt/lib64 -L$(HOME)/opt/lib 
+ 
+ .PHONY: clean
+ 
+ OUTPUT_DIR=../$(SIM_OBJ_FILES_DIR)/libopencl
+ 
+-OBJS = $(CXX_SRCS:%.cc=$(OUTPUT_DIR)/%.o)
++OBJS = $(CXX_SRCS:%.cc=$(OUTPUT_DIR)/%.o) #$(HOME)/myOpenCLImpl/opencl_runtime.o
++
+ 
+ #--- Make rules ---
+ 
+@@ -106,7 +110,7 @@ depend:
+ 
+ nvopencl_wrapper: nvopencl_wrapper.cc
+ 	if [ ! -d bin ]; then mkdir bin; fi
+-	g++ $(CCFLAGS) nvopencl_wrapper.cc -I./ -I$(NVOPENCL_INCDIR)/ -L $(NVOPENCL_LIBDIR) -lOpenCL  -o bin/nvopencl_wrapper
++	g++ $(CCFLAGS) nvopencl_wrapper.cc -I./ -I$(NVOPENCL_INCDIR)/ -L$(NVOPENCL_LIBDIR) -lOpenCL  -o bin/nvopencl_wrapper
+ 	
+ OUTPUT_DIR=../$(SIM_OBJ_FILES_DIR)/libopencl
+ 
+diff --git v3.x/libopencl/opencl_runtime_api.cc v3.x/libopencl/opencl_runtime_api.cc
+index 630c491..1365026 100644
+--- v3.x/libopencl/opencl_runtime_api.cc
++++ v3.x/libopencl/opencl_runtime_api.cc
+@@ -96,6 +96,7 @@
+ 
+ #define CL_USE_DEPRECATED_OPENCL_1_0_APIS
+ #include <CL/cl.h>
++#include <CL/emu_cl.h>
+ 
+ #include <map>
+ #include <string>
+@@ -376,7 +377,7 @@ cl_mem _cl_context::lookup_mem( cl_mem m )
+    std::map<cl_mem/*device ptr*/,cl_mem>::iterator i=m_devptr_to_cl_mem.find(m);
+    if( i == m_devptr_to_cl_mem.end() ) {
+       void *t = (void*)m;
+-      std::map<void*/*host_ptr*/,cl_mem>::iterator j = m_hostptr_to_cl_mem.find(t);
++      std::map<void* /*host_ptr*/,cl_mem>::iterator j = m_hostptr_to_cl_mem.find(t);
+       if( j == m_hostptr_to_cl_mem.end() )
+          return NULL;
+       else 
+@@ -669,9 +670,23 @@ void opencl_not_finished( const char* func, unsigned line )
+    abort();
+ }
+ 
++/***************************** Unimplemented shell functions *******************************************/
++extern CL_API_ENTRY cl_program CL_API_CALL
++emu_clCreateProgramWithBinary(cl_context                     /* context */,
++                          cl_uint                        /* num_devices */,
++                          const cl_device_id *           /* device_list */,
++                          const size_t *                 /* lengths */,
++                          const unsigned char **         /* binaries */,
++                          cl_int *                       /* binary_status */,
++                          cl_int *                       /* errcode_ret */) CL_API_SUFFIX__VERSION_1_0 {
++
++	opencl_not_finished(__my_func__, __LINE__ );
++	return cl_program();
++}
++
+ extern CL_API_ENTRY cl_context CL_API_CALL
+-clCreateContextFromType(cl_context_properties * properties,
+-                        cl_ulong          device_type,
++emu_clCreateContextFromType(const cl_context_properties * properties,
++                        cl_device_type          device_type,
+                         void (*pfn_notify)(const char *, const void *, size_t, void *),
+                         void *                  user_data,
+                         cl_int *                errcode_ret) CL_API_SUFFIX__VERSION_1_0
+@@ -692,22 +707,8 @@ clCreateContextFromType(cl_context_properties * properties,
+    return ctx;
+ }
+ 
+-/***************************** Unimplemented shell functions *******************************************/
+-extern CL_API_ENTRY cl_program CL_API_CALL
+-clCreateProgramWithBinary(cl_context                     /* context */,
+-                          cl_uint                        /* num_devices */,
+-                          const cl_device_id *           /* device_list */,
+-                          const size_t *                 /* lengths */,
+-                          const unsigned char **         /* binaries */,
+-                          cl_int *                       /* binary_status */,
+-                          cl_int *                       /* errcode_ret */) CL_API_SUFFIX__VERSION_1_0 {
+-
+-	opencl_not_finished(__my_func__, __LINE__ );
+-	return cl_program();
+-}
+-
+ extern CL_API_ENTRY cl_int CL_API_CALL
+-clGetEventProfilingInfo(cl_event            /* event */,
++emu_clGetEventProfilingInfo(cl_event            /* event */,
+                         cl_profiling_info   /* param_name */,
+                         size_t              /* param_value_size */,
+                         void *              /* param_value */,
+@@ -719,7 +720,7 @@ clGetEventProfilingInfo(cl_event            /* event */,
+ 
+ 
+ extern CL_API_ENTRY cl_context CL_API_CALL
+-clCreateContext(  const cl_context_properties * properties,
++emu_clCreateContext(  const cl_context_properties * properties,
+                   cl_uint num_devices,
+                   const cl_device_id *devices,
+                   void (*pfn_notify)(const char *, const void *, size_t, void *),
+@@ -739,7 +740,7 @@ clCreateContext(  const cl_context_properties * properties,
+ }
+ 
+ extern CL_API_ENTRY cl_int CL_API_CALL
+-clGetContextInfo(cl_context         context, 
++emu_clGetContextInfo(cl_context         context, 
+                  cl_context_info    param_name, 
+                  size_t             param_value_size, 
+                  void *             param_value, 
+@@ -772,7 +773,7 @@ clGetContextInfo(cl_context         context,
+ }
+ 
+ extern CL_API_ENTRY cl_command_queue CL_API_CALL
+-clCreateCommandQueue(cl_context                     context, 
++emu_clCreateCommandQueue(cl_context                     context, 
+                      cl_device_id                   device, 
+                      cl_command_queue_properties    properties,
+                      cl_int *                       errcode_ret) CL_API_SUFFIX__VERSION_1_0
+@@ -788,7 +789,7 @@ clCreateCommandQueue(cl_context                     context,
+ }
+ 
+ extern CL_API_ENTRY cl_mem CL_API_CALL
+-clCreateBuffer(cl_context   context,
++emu_clCreateBuffer(cl_context   context,
+                cl_mem_flags flags,
+                size_t       size ,
+                void *       host_ptr,
+@@ -799,7 +800,7 @@ clCreateBuffer(cl_context   context,
+ }
+ 
+ extern CL_API_ENTRY cl_program CL_API_CALL
+-clCreateProgramWithSource(cl_context        context,
++emu_clCreateProgramWithSource(cl_context        context,
+                           cl_uint           count,
+                           const char **     strings,
+                           const size_t *    lengths,
+@@ -812,7 +813,7 @@ clCreateProgramWithSource(cl_context        context,
+ 
+ 
+ extern CL_API_ENTRY cl_int CL_API_CALL
+-clBuildProgram(cl_program           program,
++emu_clBuildProgram(cl_program           program,
+                cl_uint              num_devices,
+                const cl_device_id * device_list,
+                const char *         options, 
+@@ -825,7 +826,7 @@ clBuildProgram(cl_program           program,
+ }
+ 
+ extern CL_API_ENTRY cl_kernel CL_API_CALL
+-clCreateKernel(cl_program      program,
++emu_clCreateKernel(cl_program      program,
+                const char *    kernel_name,
+                cl_int *        errcode_ret) CL_API_SUFFIX__VERSION_1_0
+ {
+@@ -838,7 +839,7 @@ clCreateKernel(cl_program      program,
+ }
+ 
+ extern CL_API_ENTRY cl_int CL_API_CALL
+-clSetKernelArg(cl_kernel    kernel,
++emu_clSetKernelArg(cl_kernel    kernel,
+                cl_uint      arg_index,
+                size_t       arg_size,
+                const void * arg_value ) CL_API_SUFFIX__VERSION_1_0
+@@ -848,7 +849,7 @@ clSetKernelArg(cl_kernel    kernel,
+ }
+ 
+ extern CL_API_ENTRY cl_int CL_API_CALL
+-clEnqueueNDRangeKernel(cl_command_queue command_queue,
++emu_clEnqueueNDRangeKernel(cl_command_queue command_queue,
+                        cl_kernel        kernel,
+                        cl_uint          work_dim,
+                        const size_t *   global_work_offset,
+@@ -926,14 +927,15 @@ clEnqueueNDRangeKernel(cl_command_queue command_queue,
+    }
+    kernel_info_t *grid = gpgpu_opencl_ptx_sim_init_grid(kernel->get_implementation(),params,GridDim,BlockDim,gpu);
+    if ( g_ptx_sim_mode )
+-      gpgpu_opencl_ptx_sim_main_func( grid );
++      //gpgpu_opencl_ptx_sim_main_func( grid );
++      gpgpu_cuda_ptx_sim_main_func( *grid, true );
+    else
+       gpgpu_opencl_ptx_sim_main_perf( grid );
+    return CL_SUCCESS;
+ }
+ 
+ extern CL_API_ENTRY cl_int CL_API_CALL
+-clEnqueueReadBuffer(cl_command_queue    command_queue,
++emu_clEnqueueReadBuffer(cl_command_queue    command_queue,
+                     cl_mem              buffer,
+                     cl_bool             blocking_read,
+                     size_t              offset,
+@@ -951,7 +953,7 @@ clEnqueueReadBuffer(cl_command_queue    command_queue,
+ }
+ 
+ extern CL_API_ENTRY cl_int CL_API_CALL
+-clEnqueueWriteBuffer(cl_command_queue   command_queue, 
++emu_clEnqueueWriteBuffer(cl_command_queue   command_queue, 
+                      cl_mem             buffer, 
+                      cl_bool            blocking_write, 
+                      size_t             offset, 
+@@ -969,37 +971,37 @@ clEnqueueWriteBuffer(cl_command_queue   command_queue,
+ }
+ 
+ extern CL_API_ENTRY cl_int CL_API_CALL
+-clReleaseMemObject(cl_mem /* memobj */) CL_API_SUFFIX__VERSION_1_0
++emu_clReleaseMemObject(cl_mem /* memobj */) CL_API_SUFFIX__VERSION_1_0
+ {
+    return CL_SUCCESS;
+ }
+ 
+ extern CL_API_ENTRY cl_int CL_API_CALL
+-clReleaseKernel(cl_kernel   /* kernel */) CL_API_SUFFIX__VERSION_1_0
++emu_clReleaseKernel(cl_kernel   /* kernel */) CL_API_SUFFIX__VERSION_1_0
+ {
+    return CL_SUCCESS;
+ }
+ 
+ extern CL_API_ENTRY cl_int CL_API_CALL
+-clReleaseProgram(cl_program /* program */) CL_API_SUFFIX__VERSION_1_0
++emu_clReleaseProgram(cl_program /* program */) CL_API_SUFFIX__VERSION_1_0
+ {
+    return CL_SUCCESS;
+ }
+ 
+ extern CL_API_ENTRY cl_int CL_API_CALL
+-clReleaseCommandQueue(cl_command_queue /* command_queue */) CL_API_SUFFIX__VERSION_1_0
++emu_clReleaseCommandQueue(cl_command_queue /* command_queue */) CL_API_SUFFIX__VERSION_1_0
+ {
+    return CL_SUCCESS;
+ }
+ 
+ extern CL_API_ENTRY cl_int CL_API_CALL
+-clReleaseContext(cl_context /* context */) CL_API_SUFFIX__VERSION_1_0
++emu_clReleaseContext(cl_context /* context */) CL_API_SUFFIX__VERSION_1_0
+ {
+    return CL_SUCCESS;
+ }
+ 
+ extern CL_API_ENTRY cl_int CL_API_CALL
+-clGetPlatformIDs(cl_uint num_entries, cl_platform_id *platforms, cl_uint *num_platforms ) CL_API_SUFFIX__VERSION_1_0
++emu_clGetPlatformIDs(cl_uint num_entries, cl_platform_id *platforms, cl_uint *num_platforms ) CL_API_SUFFIX__VERSION_1_0
+ {
+    if( ((num_entries == 0) && (platforms != NULL)) ||
+        ((num_platforms == NULL) && (platforms == NULL)) ) 
+@@ -1016,6 +1018,11 @@ clGetPlatformIDs(cl_uint num_entries, cl_platform_id *platforms, cl_uint *num_pl
+       if( param_value ) snprintf(buf,strlen(S)+1,S); \
+       if( param_value_size_ret ) *param_value_size_ret = strlen(S)+1; 
+ 
++#define CL_UINT_CASE( N ) \
++      if( param_value && param_value_size < sizeof(cl_uint) ) return CL_INVALID_VALUE; \
++      if( param_value ) *((cl_uint*)param_value) = (N); \
++      if( param_value_size_ret ) *param_value_size_ret = sizeof(cl_uint);
++
+ #define CL_INT_CASE( N ) \
+       if( param_value && param_value_size < sizeof(cl_int) ) return CL_INVALID_VALUE; \
+       if( param_value ) *((cl_int*)param_value) = (N); \
+@@ -1037,7 +1044,7 @@ clGetPlatformIDs(cl_uint num_entries, cl_platform_id *platforms, cl_uint *num_pl
+       if( param_value_size_ret ) *param_value_size_ret = sizeof(T);
+ 
+ extern CL_API_ENTRY cl_int CL_API_CALL 
+-clGetPlatformInfo(cl_platform_id   platform, 
++emu_clGetPlatformInfo(cl_platform_id   platform, 
+                   cl_platform_info param_name,
+                   size_t           param_value_size, 
+                   void *           param_value,
+@@ -1061,7 +1068,7 @@ clGetPlatformInfo(cl_platform_id   platform,
+ #define NUM_DEVICES 1
+ 
+ extern CL_API_ENTRY cl_int CL_API_CALL
+-clGetDeviceIDs(cl_platform_id   platform,
++emu_clGetDeviceIDs(cl_platform_id   platform,
+                cl_device_type   device_type, 
+                cl_uint          num_entries, 
+                cl_device_id *   devices, 
+@@ -1093,7 +1100,7 @@ clGetDeviceIDs(cl_platform_id   platform,
+ }
+ 
+ extern CL_API_ENTRY cl_int CL_API_CALL
+-clGetDeviceInfo(cl_device_id    device,
++emu_clGetDeviceInfo(cl_device_id    device,
+                 cl_device_info  param_name, 
+                 size_t          param_value_size, 
+                 void *          param_value,
+@@ -1104,10 +1111,11 @@ clGetDeviceInfo(cl_device_id    device,
+    char *buf = (char*)param_value;
+    switch( param_name ) {
+    case CL_DEVICE_NAME: CL_STRING_CASE( "GPGPU-Sim" ); break;
+-   case CL_DEVICE_GLOBAL_MEM_SIZE: CL_ULONG_CASE( 1024*1024*1024 ); break;
++   case CL_DEVICE_GLOBAL_MEM_SIZE: CL_ULONG_CASE( 10*1024*1024*1024 ); break;
+    case CL_DEVICE_MAX_COMPUTE_UNITS: CL_INT_CASE( device->the_device()->get_config().num_shader() ); break;
+    case CL_DEVICE_MAX_CLOCK_FREQUENCY: CL_INT_CASE( device->the_device()->shader_clock() ); break;
+    case CL_DEVICE_VENDOR:CL_STRING_CASE("GPGPU-Sim.org"); break;
++   case CL_DEVICE_VENDOR_ID: CL_UINT_CASE(42); break;
+    case CL_DRIVER_VERSION: CL_STRING_CASE("1.0"); break;
+    case CL_DEVICE_TYPE: CL_INT_CASE(CL_DEVICE_TYPE_GPU); break;
+    case CL_DEVICE_MAX_WORK_ITEM_DIMENSIONS: CL_INT_CASE( 3 ); break;
+@@ -1148,7 +1156,9 @@ clGetDeviceInfo(cl_device_id    device,
+    case CL_DEVICE_PREFERRED_VECTOR_WIDTH_LONG: CL_INT_CASE(1); break;
+    case CL_DEVICE_PREFERRED_VECTOR_WIDTH_FLOAT: CL_INT_CASE(1); break;
+    case CL_DEVICE_PREFERRED_VECTOR_WIDTH_DOUBLE: CL_INT_CASE(0); break;
++   case CL_DEVICE_PREFERRED_VECTOR_WIDTH_HALF: CL_INT_CASE(0); break;
+    case CL_DEVICE_SINGLE_FP_CONFIG: CL_INT_CASE(0); break;
++   //case CL_DEVICE_DOUBLE_FP_CONFIG: CL_INT_CASE(0); break;
+    case CL_DEVICE_MEM_BASE_ADDR_ALIGN: CL_INT_CASE(256*8); break;
+    default:
+       opencl_not_implemented(__my_func__,__LINE__);
+@@ -1157,13 +1167,13 @@ clGetDeviceInfo(cl_device_id    device,
+ }
+ 
+ extern CL_API_ENTRY cl_int CL_API_CALL
+-clFinish(cl_command_queue /* command_queue */) CL_API_SUFFIX__VERSION_1_0
++emu_clFinish(cl_command_queue /* command_queue */) CL_API_SUFFIX__VERSION_1_0
+ {
+    return CL_SUCCESS;
+ }
+ 
+ extern CL_API_ENTRY cl_int CL_API_CALL
+-clGetProgramInfo(cl_program         program,
++emu_clGetProgramInfo(cl_program         program,
+                  cl_program_info    param_name,
+                  size_t             param_value_size,
+                  void *             param_value,
+@@ -1216,7 +1226,7 @@ clGetProgramInfo(cl_program         program,
+ }
+ 
+ extern CL_API_ENTRY cl_int CL_API_CALL
+-clEnqueueCopyBuffer(cl_command_queue    command_queue, 
++emu_clEnqueueCopyBuffer(cl_command_queue    command_queue, 
+                     cl_mem              src_buffer,
+                     cl_mem              dst_buffer, 
+                     size_t              src_offset,
+@@ -1249,7 +1259,7 @@ clEnqueueCopyBuffer(cl_command_queue    command_queue,
+ }
+ 
+ extern CL_API_ENTRY cl_int CL_API_CALL
+-clGetKernelWorkGroupInfo(cl_kernel                  kernel,
++emu_clGetKernelWorkGroupInfo(cl_kernel                  kernel,
+                          cl_device_id               device,
+                          cl_kernel_work_group_info  param_name,
+                          size_t                     param_value_size,
+@@ -1263,8 +1273,9 @@ clGetKernelWorkGroupInfo(cl_kernel                  kernel,
+       CL_SIZE_CASE( kernel->get_workgroup_size(device) );
+       break;
+    case CL_KERNEL_COMPILE_WORK_GROUP_SIZE:
+-   case CL_KERNEL_LOCAL_MEM_SIZE:
+       opencl_not_implemented(__my_func__,__LINE__);
++	  break;
++   case CL_KERNEL_LOCAL_MEM_SIZE:
+       *(size_t *)param_value = device->the_device()->shared_mem_size();
+       break;
+    default:
+@@ -1275,20 +1286,20 @@ clGetKernelWorkGroupInfo(cl_kernel                  kernel,
+ }
+ 
+ extern CL_API_ENTRY cl_int CL_API_CALL
+-clWaitForEvents(cl_uint             /* num_events */,
++emu_clWaitForEvents(cl_uint             /* num_events */,
+                 const cl_event *    /* event_list */) CL_API_SUFFIX__VERSION_1_0
+ {
+    return CL_SUCCESS;
+ }
+ 
+ extern CL_API_ENTRY cl_int CL_API_CALL
+-clReleaseEvent(cl_event /* event */) CL_API_SUFFIX__VERSION_1_0
++emu_clReleaseEvent(cl_event /* event */) CL_API_SUFFIX__VERSION_1_0
+ {
+    return CL_SUCCESS;
+ }
+ 
+ extern CL_API_ENTRY cl_int CL_API_CALL
+-clGetCommandQueueInfo(cl_command_queue      command_queue,
++emu_clGetCommandQueueInfo(cl_command_queue      command_queue,
+                       cl_command_queue_info param_name,
+                       size_t                param_value_size,
+                       void *                param_value,
+@@ -1308,13 +1319,13 @@ clGetCommandQueueInfo(cl_command_queue      command_queue,
+ }
+ 
+ extern CL_API_ENTRY cl_int CL_API_CALL
+-clFlush(cl_command_queue /* command_queue */) CL_API_SUFFIX__VERSION_1_0
++emu_clFlush(cl_command_queue /* command_queue */) CL_API_SUFFIX__VERSION_1_0
+ {
+    return CL_SUCCESS;
+ }
+ 
+ extern CL_API_ENTRY cl_int CL_API_CALL
+-clGetSupportedImageFormats(cl_context           context,
++emu_clGetSupportedImageFormats(cl_context           context,
+                            cl_mem_flags         flags,
+                            cl_mem_object_type   image_type,
+                            cl_uint              num_entries,
+@@ -1411,7 +1422,7 @@ clGetSupportedImageFormats(cl_context           context,
+ }
+ 
+ extern CL_API_ENTRY void * CL_API_CALL
+-clEnqueueMapBuffer(cl_command_queue command_queue,
++emu_clEnqueueMapBuffer(cl_command_queue command_queue,
+                    cl_mem           buffer,
+                    cl_bool          blocking_map, 
+                    cl_map_flags     map_flags,
+@@ -1425,11 +1436,16 @@ clEnqueueMapBuffer(cl_command_queue command_queue,
+    _cl_mem *mem = command_queue->get_context()->lookup_mem(buffer);
+    assert( mem->is_on_host() );
+    return mem->host_ptr();
++   /*if(mem->is_on_host())
++      return mem->host_ptr();
++   else
++   	  return (void *)(mem->device_ptr());
++	*/
+ }
+ 
+ 
+ extern CL_API_ENTRY cl_int CL_API_CALL
+-clSetCommandQueueProperty( cl_command_queue command_queue,
++emu_clSetCommandQueueProperty( cl_command_queue command_queue,
+                               cl_command_queue_properties properties,
+                               cl_bool enable,
+                               cl_command_queue_properties *old_properties
+diff --git v3.x/src/abstract_hardware_model.cc v3.x/src/abstract_hardware_model.cc
+index cb6f141..cea2520 100644
+--- v3.x/src/abstract_hardware_model.cc
++++ v3.x/src/abstract_hardware_model.cc
+@@ -152,11 +152,24 @@ void warp_inst_t::do_atomic( const active_mask_t& access_mask,bool forceDo ) {
+ void warp_inst_t::generate_mem_accesses()
+ {
+     if( empty() || op == MEMORY_BARRIER_OP || m_mem_accesses_created ) 
++	{
++	/*	if(empty())
++			printf("Maybe Empty\n");
++		else 
++			printf("May not be empty\n");
++	*/
+         return;
++	}
+     if ( !((op == LOAD_OP) || (op == STORE_OP)) )
++	{
++	//	printf("Maybe not load or store\n");
+         return; 
++	}
+     if( m_warp_active_mask.count() == 0 ) 
++	{
++	//	printf("Maybe predicated off\n");
+         return; // predicated off
++	}
+ 
+     const size_t starting_queue_size = m_accessq.size();
+ 
+@@ -732,17 +745,260 @@ void simt_stack::update( simt_mask_t &thread_done, addr_vector_t &next_pc, addre
+ 
+ void core_t::execute_warp_inst_t(warp_inst_t &inst, unsigned warpSize, unsigned warpId)
+ {
+-    for ( unsigned t=0; t < warpSize; t++ ) {
++	// 0 -- 32B
++	// 1 -- 64B
++	// 2 -- 128B
++	const int mem_segment_types = 3;
++	int cur_mem_segment_type = 2; //128B transaction by default
++	unsigned t = 0;
++	//std::unordered_set<unsigned long int> local_rseg_count[mem_segment_types];
++	//std::unordered_set<unsigned long int> local_wseg_count[mem_segment_types];
++	std::map<unsigned long int, std::pair<unsigned long int, unsigned long int> > local_rseg_map;
++	std::map<unsigned long int, std::pair<unsigned long int, unsigned long int> > local_wseg_map;
++	local_rseg_map.clear();
++	local_wseg_map.clear();
++	/*
++	for(int i = 0; i < mem_segment_types; i++)
++	{
++		local_rseg_count[i].clear();
++		local_wseg_count[i].clear();
++	}
++	*/
++    for ( t=0; t < warpSize/2; t++ ) {
+         if( inst.active(t) ) {
+             if(warpId==(unsigned (-1)))
+                 warpId = inst.warp_id();
+             unsigned tid=warpSize*warpId+t;
+             m_thread[tid]->ptx_exec_inst(inst,t);
+             
++	  		// HACK to get the mem transactions 
++      		if(inst.space == global_space)
++			{
++      			addr_t addr = inst.get_addr(t);
++				unsigned long int mem_segment_id = addr/128;
++				if(g_hack_nvtesla_emu == 1)
++				{
++					if(inst.data_size == 1)
++						mem_segment_id = addr/32;
++					else if(inst.data_size == 2)
++						mem_segment_id = addr/64;
++				}
++				if(inst.memory_op == memory_load)
++				{
++					auto it = local_rseg_map.find(mem_segment_id);
++					if(it != local_rseg_map.end()) //found
++					{
++						std::pair<unsigned long int, unsigned long int> tmp_pair = it->second;
++						if(addr < tmp_pair.first) // new minimum
++							tmp_pair.first = addr;
++						else if(addr > tmp_pair.second) // new maximum
++							tmp_pair.second = addr;
++						local_rseg_map[mem_segment_id] = std::make_pair(tmp_pair.first, tmp_pair.second);
++					}
++					else
++					{
++						local_rseg_map[mem_segment_id] = std::make_pair(addr, addr);
++					}
++					//local_rseg_count.insert(addr/128);
++				}
++				else if(inst.memory_op == memory_store)
++				{
++					auto it = local_wseg_map.find(mem_segment_id);
++					if(it != local_wseg_map.end()) //found
++					{
++						std::pair<unsigned long int, unsigned long int> tmp_pair = it->second;
++						if(addr < tmp_pair.first) // new minimum
++							tmp_pair.first = addr;
++						else if(addr > tmp_pair.second) // new maximum
++							tmp_pair.second = addr;
++						local_wseg_map[mem_segment_id] = std::make_pair(tmp_pair.first, tmp_pair.second);
++					}
++					else
++					{
++						local_wseg_map[mem_segment_id] = std::make_pair(addr, addr);
++					}
++					//local_wseg_count.insert(addr/128);
++				}
++      			//inst.data_size may not be too useful? 
++      			//assert( inst.memory_op == memory_load || memory_store );
++			}
++            //virtual function
++            checkExecutionStatusAndUpdate(inst,t,tid);
++        }
++    }
++	// For TESLA GPUs treat each half warp as independent transaction generators
++	// For FERMI, this is done at the end of the entire warp
++	if(g_hack_nvtesla_emu == 1)
++	{
++		for(auto it = local_rseg_map.begin(); it != local_rseg_map.end(); it++)
++		{
++			std::pair<unsigned long int, unsigned long int> tmp_pair = it->second;
++			//if(g_hack_nvtesla_emu == 1)
++			{
++				if(tmp_pair.first/32 == tmp_pair.second/32)
++					(m_rsegment_counts[0])[tmp_pair.first/32]++;
++				else if(tmp_pair.first/64 == tmp_pair.second/64)
++					(m_rsegment_counts[1])[tmp_pair.first/64]++;
++				else 
++					(m_rsegment_counts[2])[tmp_pair.first/128]++;
++			}
++			//else
++			//{
++		//		(m_rsegment_counts[2])[tmp_pair.first/128]++;
++		//	}
++		}	
++		for(auto it = local_wseg_map.begin(); it != local_wseg_map.end(); it++)
++		{
++			std::pair<unsigned long int, unsigned long int> tmp_pair = it->second;
++		//	if(g_hack_nvtesla_emu == 1)
++			{
++				if(tmp_pair.first/32 == tmp_pair.second/32)
++					(m_wsegment_counts[0])[tmp_pair.first/32]++;
++				else if(tmp_pair.first/64 == tmp_pair.second/64)
++					(m_wsegment_counts[1])[tmp_pair.first/64]++;
++				else 
++					(m_wsegment_counts[2])[tmp_pair.first/128]++;
++			}
++		//	else
++		//	{
++		//		(m_wsegment_counts[2])[tmp_pair.first/128]++;
++		//	}
++		}
++		//if(!local_rseg_map.empty())
++		//	printf("At halfwarp, found new %d segments and total segments= %d\n", local_rseg_map.size(), m_rsegment_counts[2].size());
++		local_rseg_map.clear();
++		local_wseg_map.clear();
++	}
++	/*
++	for(int i = 0; i < mem_segment_types; i++)
++	{
++		if(m_rsegment_counts[i] != NULL && m_wsegment_counts[i] != NULL)
++		{
++			for ( auto it = local_rseg_count[i].begin(); it != local_rseg_count[i].end(); ++it )
++				(*m_rsegment_counts[i])[*it]++;
++			for ( auto it = local_wseg_count[i].begin(); it != local_wseg_count[i].end(); ++it )
++				(*m_wsegment_counts[i])[*it]++;
++			// renew the local sets and data structures
++			local_rseg_count[i].clear();
++			local_wseg_count[i].clear();
++		}
++	}
++	*/
++    for ( ; t < warpSize; t++ ) {
++        if( inst.active(t) ) {
++            if(warpId==(unsigned (-1)))
++                warpId = inst.warp_id();
++            unsigned tid=warpSize*warpId+t;
++            m_thread[tid]->ptx_exec_inst(inst,t);
++            
++	  		// HACK to get the mem transactions 
++      		if(inst.space == global_space)
++			{
++      			addr_t addr = inst.get_addr(t);
++				unsigned long int mem_segment_id = addr/128;
++				if(g_hack_nvtesla_emu == 1)
++				{
++					if(inst.data_size == 1)
++						mem_segment_id = addr/32;
++					else if(inst.data_size == 2)
++						mem_segment_id = addr/64;
++				}
++				if(inst.memory_op == memory_load)
++				{
++					auto it = local_rseg_map.find(mem_segment_id);
++					if(it != local_rseg_map.end()) //found
++					{
++						std::pair<unsigned long int, unsigned long int> tmp_pair = it->second;
++						if(addr < tmp_pair.first) // new minimum
++							tmp_pair.first = addr;
++						else if(addr > tmp_pair.second) // new maximum
++							tmp_pair.second = addr;
++						local_rseg_map[mem_segment_id] = std::make_pair(tmp_pair.first, tmp_pair.second);
++					}
++					else
++					{
++						local_rseg_map[mem_segment_id] = std::make_pair(addr, addr);
++					}
++					//local_rseg_count.insert(addr/128);
++				}
++				else if(inst.memory_op == memory_store)
++				{	
++					auto it = local_wseg_map.find(mem_segment_id);
++					if(it != local_wseg_map.end()) //found
++					{
++						std::pair<unsigned long int, unsigned long int> tmp_pair = it->second;
++						if(addr < tmp_pair.first) // new minimum
++							tmp_pair.first = addr;
++						else if(addr > tmp_pair.second) // new maximum
++							tmp_pair.second = addr;
++						local_wseg_map[mem_segment_id] = std::make_pair(tmp_pair.first, tmp_pair.second);
++					}
++					else
++					{
++						local_wseg_map[mem_segment_id] = std::make_pair(addr, addr);
++					}
++					//local_wseg_count.insert(addr/128);
++				}
++				//inst.data_size may not be too useful? 
++      			//assert( inst.memory_op == memory_load || memory_store );
++			}
+             //virtual function
+             checkExecutionStatusAndUpdate(inst,t,tid);
+         }
+     } 
++	for(auto it = local_rseg_map.begin(); it != local_rseg_map.end(); it++)
++	{
++		std::pair<unsigned long int, unsigned long int> tmp_pair = it->second;
++		if(g_hack_nvtesla_emu == 1)
++		{
++			if(tmp_pair.first/32 == tmp_pair.second/32)
++				(m_rsegment_counts[0])[tmp_pair.first/32]++;
++			else if(tmp_pair.first/64 == tmp_pair.second/64)
++				(m_rsegment_counts[1])[tmp_pair.first/64]++;
++			else 
++				(m_rsegment_counts[2])[tmp_pair.first/128]++;
++		}
++		else
++		{
++			(m_rsegment_counts[2])[tmp_pair.first/128]++;
++		}
++	}
++	for(auto it = local_wseg_map.begin(); it != local_wseg_map.end(); it++)
++	{
++		std::pair<unsigned long int, unsigned long int> tmp_pair = it->second;
++		if(g_hack_nvtesla_emu == 1)
++		{
++			if(tmp_pair.first/32 == tmp_pair.second/32)
++				(m_wsegment_counts[0])[tmp_pair.first/32]++;
++			else if(tmp_pair.first/64 == tmp_pair.second/64)
++				(m_wsegment_counts[1])[tmp_pair.first/64]++;
++			else 
++				(m_wsegment_counts[2])[tmp_pair.first/128]++;
++		}
++		else
++		{
++			(m_wsegment_counts[2])[tmp_pair.first/128]++;
++		}
++	}
++	//if(!local_rseg_map.empty())
++//		printf("At fullwarp, found new %d segments and total segments= %d\n", local_rseg_map.size(), m_rsegment_counts[2].size());
++	local_rseg_map.clear();
++	local_wseg_map.clear();
++	/*
++	for(int i = 0; i < mem_segment_types; i++)
++	{
++		if(m_rsegment_counts[i] != NULL && m_wsegment_counts[i] != NULL)
++		{
++			for ( auto it = local_rseg_count[i].begin(); it != local_rseg_count[i].end(); ++it )
++				(*m_rsegment_counts[i])[*it]++;
++			for ( auto it = local_wseg_count[i].begin(); it != local_wseg_count[i].end(); ++it )
++				(*m_wsegment_counts[i])[*it]++;
++			// renew the local sets and data structures
++			local_rseg_count[i].clear();
++			local_wseg_count[i].clear();
++		}
++	}
++	*/
+ }
+   
+ bool  core_t::ptx_thread_done( unsigned hw_thread_id ) const  
+diff --git v3.x/src/abstract_hardware_model.h v3.x/src/abstract_hardware_model.h
+index ce428da..497e200 100644
+--- v3.x/src/abstract_hardware_model.h
++++ v3.x/src/abstract_hardware_model.h
+@@ -52,6 +52,7 @@ enum _memory_space_t {
+ #include <string.h>
+ #include <stdio.h>
+ 
++extern unsigned int g_hack_nvtesla_emu;
+ typedef unsigned long long new_addr_type;
+ typedef unsigned address_type;
+ typedef unsigned addr_t;
+@@ -122,6 +123,7 @@ enum _memory_op_t {
+ #include <stdlib.h>
+ #include <map>
+ #include <deque>
++//#include <unordered_set>
+ 
+ #if !defined(__VECTOR_TYPES_H__)
+ struct dim3 {
+@@ -954,7 +956,10 @@ class core_t {
+         class gpgpu_sim *m_gpu;
+         kernel_info_t *m_kernel;
+         simt_stack  **m_simt_stack; // pdom based reconvergence context for each warp
+-        class ptx_thread_info ** m_thread; 
++        class ptx_thread_info ** m_thread;
++		// Three address maps, one each for 32B, 64B and 128B mem accesses
++        std::map<unsigned long int, unsigned int> *m_rsegment_counts;
++        std::map<unsigned long int, unsigned int> *m_wsegment_counts;
+ };
+ 
+ 
+diff --git v3.x/src/cuda-sim/cuda-sim.cc v3.x/src/cuda-sim/cuda-sim.cc
+index cba5262..a880aea 100644
+--- v3.x/src/cuda-sim/cuda-sim.cc
++++ v3.x/src/cuda-sim/cuda-sim.cc
+@@ -58,6 +58,8 @@ int g_debug_thread_uid = 0;
+ addr_t g_debug_pc = 0xBEEF1518;
+ // Output debug information to file options
+ 
++unsigned int g_hack_one_block_emu = 0;
++unsigned int g_hack_nvtesla_emu = 0;
+ unsigned g_ptx_sim_num_insn = 0;
+ unsigned gpgpu_param_num_shaders = 0;
+ 
+@@ -1291,7 +1293,7 @@ void ptx_thread_info::ptx_exec_inst( warp_inst_t &inst, unsigned lane_id)
+    g_ptx_sim_num_insn++;
+    
+    //not using it with functional simulation mode
+-   if(!(this->m_functionalSimulationMode))
++   //if(!(this->m_functionalSimulationMode))
+        ptx_file_line_stats_add_exec_count(pI);
+    
+    if ( gpgpu_ptx_instruction_classification ) {
+@@ -1633,6 +1635,14 @@ void read_sim_environment_variables()
+    g_debug_execution = 0;
+    g_interactive_debugger_enabled = false;
+ 
++   char *hack_nvtesla_emu = getenv("MYGPGPUSIM_TESLA");
++   if ( hack_nvtesla_emu )
++      sscanf(hack_nvtesla_emu,"%u", &g_hack_nvtesla_emu);
++   printf("GPGPU-Sim PTX: NVIDIA TESLA simulation mode %d (can change with MYGPGPUSIM_TESLA environment variable:\n", g_hack_nvtesla_emu);
++   char *hack_one_block_emu = getenv("MYGPGPUSIM_SINGLE_BLOCK_EMU");
++   if ( hack_one_block_emu )
++      sscanf(hack_one_block_emu,"%u", &g_hack_one_block_emu);
++   printf("GPGPU-Sim PTX: one block simulation mode %d (can change with MYGPGPUSIM_SINGLE_BLOCK_EMU environment variable:\n", g_hack_one_block_emu);
+    char *mode = getenv("PTX_SIM_MODE_FUNC");
+    if ( mode )
+       sscanf(mode,"%u", &g_ptx_sim_mode);
+@@ -1700,11 +1710,60 @@ void gpgpu_cuda_ptx_sim_main_func( kernel_info_t &kernel, bool openCL )
+      //using a shader core object for book keeping, it is not needed but as most function built for performance simulation need it we use it here
+     extern gpgpu_sim *g_the_gpu;
+ 
++	// 0 -- 32B
++	// 1 -- 64B
++	// 2 -- 128B
++	const int mem_segment_types = 3;
++    std::map<unsigned long int, unsigned int> m_rsegment_counts[mem_segment_types];
++    std::map<unsigned long int, unsigned int> m_wsegment_counts[mem_segment_types];
++	int count = 0;
++	unsigned int coalesced_transactions = 0;
++	for(int i = 0; i < mem_segment_types; i++)
++	{
++		m_rsegment_counts[i].clear();
++		m_wsegment_counts[i].clear();
++	}
+     //we excute the kernel one CTA (Block) at the time, as synchronization functions work block wise
+-    while(!kernel.no_more_ctas_to_run()){
+-        functionalCoreSim cta(&kernel, g_the_gpu, g_the_gpu->getShaderCoreConfig()->warp_size);
+-        cta.execute();
+-    }
++	if(g_hack_one_block_emu == 1)
++	{
++		if(!kernel.no_more_ctas_to_run())
++		{
++			functionalCoreSim cta(&kernel, g_the_gpu, g_the_gpu->getShaderCoreConfig()->warp_size, &m_rsegment_counts[0], &m_wsegment_counts[0]);
++			cta.execute();
++			count++;
++			coalesced_transactions += cta.m_coalesced_transactions;
++		}
++	}
++	else
++	{
++		while(!kernel.no_more_ctas_to_run())
++		{
++			functionalCoreSim cta(&kernel, g_the_gpu, g_the_gpu->getShaderCoreConfig()->warp_size, &m_rsegment_counts[0], &m_wsegment_counts[0]);
++			cta.execute();
++			count++;
++			coalesced_transactions += cta.m_coalesced_transactions;
++		}
++	}
++	int r_mem_segments_accessed[mem_segment_types] = {0};
++	int w_mem_segments_accessed[mem_segment_types] = {0};
++	//show content:
++	printf("KernelBlockCount: %d KernelThreadsInBlock: %d\n", kernel.num_blocks(), kernel.threads_per_cta());
++	for(int i = 0; i < mem_segment_types; i++)
++	{
++		for (auto it=m_rsegment_counts[i].begin(); it!=m_rsegment_counts[i].end(); ++it)
++		{
++			//std::cout << it->first << " => " << it->second << '\n';
++			r_mem_segments_accessed[i] += it->second;
++		}
++		for (auto it=m_wsegment_counts[i].begin(); it!=m_wsegment_counts[i].end(); ++it)
++		{
++			//std::cout << it->first << " => " << it->second << '\n';
++			w_mem_segments_accessed[i] += it->second;
++		}
++		int halfwarpcount = 2 * ceil((double)kernel.threads_per_cta()/g_the_gpu->getShaderCoreConfig()->warp_size);
++		printf("SegmentType: %d CTAs: %d halfwarps_per_CTA: %d r_mem_segsments: %d r_mem_segments_accessed: %d w_mem_segments: %d w_mem_segments_accessed: %d\n", i, count, halfwarpcount, m_rsegment_counts[i].size(), r_mem_segments_accessed[i], m_wsegment_counts[i].size(), w_mem_segments_accessed[i]);
++	}
++	printf("Coalesced transactions: %d\n", coalesced_transactions);
+     
+    //registering this kernel as done      
+    extern stream_manager *g_stream_manager;
+@@ -1720,6 +1779,7 @@ void gpgpu_cuda_ptx_sim_main_func( kernel_info_t &kernel, bool openCL )
+       StatDisp ( g_inst_op_classification_stat[g_ptx_kernel_count]);
+    }
+ 
++   ptx_file_line_stats_write_file();
+    //time_t variables used to calculate the total simulation time
+    //the start time of simulation is hold by the global variable g_simulation_starttime
+    //g_simulation_starttime is initilized by gpgpu_ptx_sim_init_perf() in gpgpusim_entrypoint.cc upon starting gpgpu-sim
+@@ -1807,6 +1867,11 @@ void functionalCoreSim::executeWarp(unsigned i, bool &allAtBarrier, bool & someO
+     if(!m_warpAtBarrier[i] && m_liveThreadCount[i]!=0){
+         warp_inst_t inst =getExecuteWarp(i);
+         execute_warp_inst_t(inst,m_maxWarpSize,i);
++		//HACK?
++    	inst.issue( m_simt_stack[i]->get_active_mask(), i, 0, i ); // dynamic instruction information
++		inst.generate_mem_accesses();
++		m_coalesced_transactions += inst.accessq_count();
++		//printf("Uncoalesced accesses: %d\n", inst.accessq_count());
+         if(inst.isatomic()) inst.do_atomic(true);
+         if(inst.op==BARRIER_OP || inst.op==MEMORY_BARRIER_OP ) m_warpAtBarrier[i]=true;
+         updateSIMTStack(i,m_maxWarpSize,&inst);
+diff --git v3.x/src/cuda-sim/cuda-sim.h v3.x/src/cuda-sim/cuda-sim.h
+index 261d458..2693d3f 100644
+--- v3.x/src/cuda-sim/cuda-sim.h
++++ v3.x/src/cuda-sim/cuda-sim.h
+@@ -85,10 +85,15 @@ void set_param_gpgpu_num_shaders(int num_shaders);
+ class functionalCoreSim: public core_t
+ {    
+ public:
+-    functionalCoreSim(kernel_info_t * kernel, gpgpu_sim *g, unsigned maxwarpSize){
++    functionalCoreSim(kernel_info_t * kernel, gpgpu_sim *g, unsigned maxwarpSize, 
++			std::map<unsigned long int, unsigned int> *rsegcounts,
++			std::map<unsigned long int, unsigned int> *wsegcounts){
+         this->m_kernel=kernel;
+         m_gpu=g;
+         m_maxWarpSize = maxwarpSize;
++		m_rsegment_counts = rsegcounts;
++		m_wsegment_counts = wsegcounts;
++		m_coalesced_transactions = 0;
+     }
+     ~functionalCoreSim(){
+         warp_exit(0);
+@@ -103,6 +108,7 @@ public:
+         return (m_warpAtBarrier[warp_id] || !(m_liveThreadCount[warp_id]>0));
+     }
+     
++	unsigned int m_coalesced_transactions;
+ private:
+     void executeWarp(unsigned, bool &, bool &);
+     //initializes threads in the CTA block which we are executing
+diff --git v3.x/src/cuda-sim/opcodes.def v3.x/src/cuda-sim/opcodes.def
+index b4912c0..6deed27 100644
+--- v3.x/src/cuda-sim/opcodes.def
++++ v3.x/src/cuda-sim/opcodes.def
+@@ -103,7 +103,7 @@ OP_DEF(SIN_OP,sin_impl,"sin",1,4)
+ OP_DEF(SLCT_OP,slct_impl,"slct",1,1)
+ OP_DEF(SQRT_OP,sqrt_impl,"sqrt",1,4)
+ OP_DEF(SSY_OP,ssy_impl,"ssy",0,3)
+-OP_DEF(ST_OP,st_impl,"st",0,5)
++OP_DEF(ST_OP,st_impl,"st",0,8)
+ OP_DEF(SUB_OP,sub_impl,"sub",1,1)
+ OP_DEF(SUBC_OP,subc_impl,"subc",1,1)
+ OP_DEF(SULD_OP,suld_impl,"suld",1,6)
+diff --git v3.x/src/cuda-sim/ptx-stats.cc v3.x/src/cuda-sim/ptx-stats.cc
+index 0a9f08d..ba2a732 100644
+--- v3.x/src/cuda-sim/ptx-stats.cc
++++ v3.x/src/cuda-sim/ptx-stats.cc
+@@ -87,6 +87,7 @@ public:
+     ptx_file_line_stats() 
+         : exec_count(0), latency(0), dram_traffic(0), 
+           smem_n_way_bank_conflict_total(0), smem_warp_count(0),
++          smem_n_way_bank_conflict_total_w(0), smem_warp_count_w(0),
+           gmem_n_access_total(0), gmem_warp_count(0), exposed_latency(0),
+           warp_divergence(0)
+     { }
+@@ -94,6 +95,8 @@ public:
+     unsigned long exec_count;
+     unsigned long long latency;
+     unsigned long long dram_traffic;
++    unsigned long long smem_n_way_bank_conflict_total_w;  // total number of banks accessed by this instruction
++    unsigned long smem_warp_count_w;                      // number of warps accessing shared memory
+     unsigned long long smem_n_way_bank_conflict_total;  // total number of banks accessed by this instruction
+     unsigned long smem_warp_count;                      // number of warps accessing shared memory
+     unsigned long long gmem_n_access_total; // number of uncoalesced access in total from this instruction
+@@ -127,7 +130,7 @@ void ptx_file_line_stats_write_file()
+     FILE * pfile;
+ 
+     pfile = fopen(ptx_line_stats_filename, "w");
+-    fprintf(pfile,"kernel line : count latency dram_traffic smem_bk_conflicts smem_warp gmem_access_generated gmem_warp exposed_latency warp_divergence\n");
++    fprintf(pfile,"kernel line : count latency dram_traffic smem_bk_conflicts_read smem_warp_read smem_bk_conflicts_write smem_warp_write gmem_access_generated gmem_warp exposed_latency warp_divergence\n");
+     for( it=ptx_file_line_stats_tracker.begin(); it != ptx_file_line_stats_tracker.end(); it++ ) {
+         fprintf(pfile, "%s %i : ", it->first.st.c_str(), it->first.line);
+         fprintf(pfile, "%lu ", it->second.exec_count);
+@@ -135,6 +138,8 @@ void ptx_file_line_stats_write_file()
+         fprintf(pfile, "%llu ", it->second.dram_traffic);
+         fprintf(pfile, "%llu ", it->second.smem_n_way_bank_conflict_total);
+         fprintf(pfile, "%lu ", it->second.smem_warp_count);
++        fprintf(pfile, "%llu ", it->second.smem_n_way_bank_conflict_total_w);
++        fprintf(pfile, "%lu ", it->second.smem_warp_count_w);
+         fprintf(pfile, "%llu ", it->second.gmem_n_access_total);
+         fprintf(pfile, "%lu ", it->second.gmem_warp_count);
+         fprintf(pfile, "%llu ", it->second.exposed_latency);
+@@ -175,10 +180,19 @@ void ptx_file_line_stats_add_dram_traffic(unsigned pc, unsigned dram_traffic)
+ void ptx_file_line_stats_add_smem_bank_conflict(unsigned pc, unsigned n_way_bkconflict)
+ {
+     const ptx_instruction *pInsn = function_info::pc_to_instruction(pc);
++    bool is_write = pInsn->is_store();
+     
+     ptx_file_line_stats& line_stats = ptx_file_line_stats_tracker[ptx_file_line(pInsn->source_file(), pInsn->source_line())];
++    if(is_write)
++	{
++	line_stats.smem_n_way_bank_conflict_total_w += n_way_bkconflict;
++    line_stats.smem_warp_count_w += 1;
++	}
++	else
++	{
+     line_stats.smem_n_way_bank_conflict_total += n_way_bkconflict;
+     line_stats.smem_warp_count += 1;
++	}
+ }
+ 
+ // attribute a non-coalesced mem access to a ptx instruction 
+diff --git v3.x/src/gpgpu-sim/shader.cc v3.x/src/gpgpu-sim/shader.cc
+index 797ebc0..6254296 100644
+--- v3.x/src/gpgpu-sim/shader.cc
++++ v3.x/src/gpgpu-sim/shader.cc
+@@ -74,6 +74,8 @@ shader_core_ctx::shader_core_ctx( class gpgpu_sim *gpu,
+    : m_barriers( config->max_warps_per_shader, config->max_cta_per_core ),
+      m_dynamic_warp_id(0)
+ {
++	m_rsegment_counts = NULL;
++	m_wsegment_counts = NULL;
+     m_kernel = NULL;
+     m_gpu = gpu;
+     m_cluster = cluster;

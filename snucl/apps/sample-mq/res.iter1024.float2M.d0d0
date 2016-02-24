@@ -1,0 +1,259 @@
+ICD Path:/home/aaji/etc/OpenCL/vendors, File ptr: 0x19fdd10
+ICD Library Name: (null)
+ICD Library Name: libsnucl_single.so
+[Device] 1; library libsnucl_single.so: 0x19a9370
+[Device] Getting Extension Function Address: 0x7ffb90aac2e0
+[Device] Getting ICD platform: 0x7ffb90aa57e0
+[Device] Got ICD platform ID
+[Device] Got platform ID
+[Device] Got  ICD platform ID 2
+[Device] 2
+ICD Library Name: libamdocl64.so
+[Device] 1; library libamdocl64.so: 0x19c3e60
+[Device] Getting Extension Function Address: 0x7ffb8881e0c0
+[Device] Getting ICD platform: 0x7ffb88828df0
+[Device] Got ICD platform ID
+Setting of real/effective user Id to 0/0 failed
+FATAL: Module fglrx not found.
+Error! Fail to load fglrx kernel module! Maybe you can switch to root user to load kernel module directly
+[Device] Got platform ID
+[Device] Got  ICD platform ID 2
+[Device] 2
+[Device] Number of devices: 1
+* INF * [CLScheduler.cpp:732] Setting Scheduler Thread to Core: 3
+[GPGPUSIM]: Inside the emulator!
+* INF * [CLIssuer.cpp:64] CLIssuer adding 0x1a30720 has thisIndex 0* INF * [CLIssuer.cpp:213] Available Cores: 16, Available PUs: 16, Available sockets: 4 Idx: 0
+* INF * [CLIssuer.cpp:235] Device 0x1a30720 Selected core: (5/16)
+Done creating legacy device
+[Device] 3
+ICD Library Name: libnvidia-opencl.so.1
+[Device] 1; library libnvidia-opencl.so.1: 0x1a314e0
+[Device] Getting Extension Function Address: 0x7ffa97725aa0
+[Device] Getting ICD platform: 0x7ffa97713270
+[Device] Got ICD platform ID
+[Device] Got platform ID
+[Device] Got  ICD platform ID 2
+[Device] 2
+[Device] Number of devices: 2
+* INF * [CLIssuer.cpp:64] CLIssuer adding 0x1d32bb0 has thisIndex 1Done creating legacy device
+[Device] 3
+* INF * [CLIssuer.cpp:64] CLIssuer adding 0x1d3b540 has thisIndex 2Done creating legacy device
+[Device] 3
+Adding device to ctx: 0x1a30720 ID: 0, Type: 2
+Adding device to ctx: 0x1d32bb0 ID: 1, Type: 4
+Adding device to ctx: 0x1d3b540 ID: 2, Type: 4
+Number of CPU sockets discovered: 4
+* INF * [CLPlatform.cpp:239] (Much before) Number of hosts: 4
+* INF * [CLPlatform.cpp:244] (During) Number of hosts: 4
+* INF * [CLPlatform.cpp:245] Hosts hwloc ptr[0]: 0x19b8550
+* INF * [CLPlatform.cpp:244] (During) Number of hosts: 4
+* INF * [CLPlatform.cpp:245] Hosts hwloc ptr[1]: 0x19b87e0
+* INF * [CLPlatform.cpp:244] (During) Number of hosts: 4
+* INF * [CLPlatform.cpp:245] Hosts hwloc ptr[2]: 0x19b8de0
+* INF * [CLPlatform.cpp:244] (During) Number of hosts: 4
+* INF * [CLPlatform.cpp:245] Hosts hwloc ptr[3]: 0x19b8ae0
+* INF * [metrics.cpp:678] About to get the individual H2D Bandwidths
+* INF * [metrics.cpp:682] Metrics matrix is empty. Reconstructing...
+* INF * [metrics.cpp:608] About to read the H2D Bandwidths from file /home/aaji/.mpiacc.d/h2d_distances.conf
+* INF * [CLIssuer.cpp:213] Available Cores: 16, Available PUs: 16, Available sockets: 4 Idx: 2
+* INF * [CLIssuer.cpp:235] Device 0x1d3b540 Selected core: (13/16)
+* INF * [CLIssuer.cpp:213] Available Cores: 16, Available PUs: 16, Available sockets: 4 Idx: 1
+* INF * [CLIssuer.cpp:235] Device 0x1d32bb0 Selected core: (9/16)
+* INF * [metrics.cpp:678] About to get the individual H2D Bandwidths
+* INF * [metrics.cpp:678] About to get the individual H2D Bandwidths
+* INF * [metrics.cpp:678] About to get the individual H2D Bandwidths
+* INF * [metrics.cpp:678] About to get the individual H2D Bandwidths
+* INF * [metrics.cpp:678] About to get the individual H2D Bandwidths
+* INF * [metrics.cpp:678] About to get the individual H2D Bandwidths
+* INF * [metrics.cpp:678] About to get the individual H2D Bandwidths
+* INF * [metrics.cpp:678] About to get the individual H2D Bandwidths
+* INF * [metrics.cpp:678] About to get the individual H2D Bandwidths
+* INF * [metrics.cpp:678] About to get the individual H2D Bandwidths
+* INF * [metrics.cpp:678] About to get the individual H2D Bandwidths
+* INF * [metrics.cpp:1002] About to get the individual D2D Bandwidths
+* INF * [metrics.cpp:1006] Metrics matrix is empty. Reconstructing...
+* INF * [metrics.cpp:932] About to read the D2D Bandwidths from file /home/aaji/.mpiacc.d/d2d_distances.conf
+* INF * [metrics.cpp:1002] About to get the individual D2D Bandwidths
+* INF * [metrics.cpp:1002] About to get the individual D2D Bandwidths
+* INF * [metrics.cpp:1002] About to get the individual D2D Bandwidths
+* INF * [metrics.cpp:1002] About to get the individual D2D Bandwidths
+* INF * [metrics.cpp:1002] About to get the individual D2D Bandwidths
+* INF * [metrics.cpp:1002] About to get the individual D2D Bandwidths
+* INF * [metrics.cpp:1002] About to get the individual D2D Bandwidths
+* INF * [metrics.cpp:1002] About to get the individual D2D Bandwidths
+* INF * [CLPlatform.cpp:221] SnuCL platform has been initialized.* INF * [CLPlatform.cpp:224] Total 3 devices (1 CPUs, 2 GPUs, 0 accelerators, and 0 custom devices) are in the platform.Platform 0: SnuCL Single
+Choosing Platform 0: SnuCL Single
+Platform 1: AMD Accelerated Parallel Processing
+Platform 2: NVIDIA CUDA
+[GPGPUSIM]: Inside the emulator!
+[GPGPUSIM]: Inside the emulator!
+* INF * [CLPlatform.cpp:409] (Before) Number of hosts: 4
+* INF * [CLContext.cpp:144] Number of hosts: 4
+ --------- Compute ----------- 
+[0]: 3	[1]: 2	[2]: 1	
+ --------- Memory ----------- 
+[0]: 0	[1]: 1	[2]: 2	
+ --------- Local Memory ----------- 
+[0]: 0	[1]: 1	[2]: 2	
+ --------- D2H Vector[i] ----------- 
+[0]: 1036.68	[1]: 366.593	[2]: 398.47	
+ --------- D2H Vector[i] ----------- 
+[1]: 366.593	[2]: 398.47	[0]: 1036.68	
+ --------- D2H Vector[i] ----------- 
+[0]: 1262.2	[1]: 380.721	[2]: 424.993	
+ --------- D2H Vector[i] ----------- 
+[1]: 380.721	[2]: 424.993	[0]: 1262.2	
+ --------- D2H Vector[i] ----------- 
+[0]: 1295.47	[1]: 575.149	[2]: 522.787	
+ --------- D2H Vector[i] ----------- 
+[2]: 522.787	[1]: 575.149	[0]: 1295.47	
+ --------- D2H Vector[i] ----------- 
+[0]: 1297.12	[1]: 545.491	[2]: 524.685	
+ --------- D2H Vector[i] ----------- 
+[2]: 524.685	[1]: 545.491	[0]: 1297.12	
+ --------- Compute ----------- 
+[2]: 1	[1]: 2	[0]: 3	
+ --------- Memory ----------- 
+[0]: 0	[1]: 1	[2]: 2	
+ --------- Local Memory ----------- 
+[0]: 0	[1]: 1	[2]: 2	
+Build Log for device 0:
+
+Build Log for device 1:
+
+
+Build Log for device 2:
+
+
+[OpenCL] 0th command queue uses Dev ID 0
+[OpenCL] 1th command queue uses Dev ID 0
+[OpenCL] program loaded
+* INF * [CLAPI.cpp:781] Before Program Creation
+* INF * [CLAPI.cpp:784] After Program Creation
+[OpenCL] program built!
+[OpenCL] device initialization success!
+Total mem size: 8388608
+* INF * [legacy/LegacyDevice.cpp:1126] Mem: 0x1a04e50 --> Dev 0x1a32750 Specific Mem: 0x7ffb74543850
+* INF * [legacy/LegacyDevice.cpp:1126] Mem: 0x1a05590 --> Dev 0x1a32750 Specific Mem: 0x7ffb74007a70
+* INF * [legacy/LegacyDevice.cpp:614] [Device 0x1a32750 Type 2] Kernel compute_kernel Time: 0.172907 sec
+* INF * [legacy/LegacyDevice.cpp:614] [Device 0x1a32750 Type 2] Kernel compute_kernel Time: 0.159048 sec
+[OpenCL] compute success!
+* INF * [legacy/LegacyDevice.cpp:614] [Device 0x1a32750 Type 2] Kernel marshal_kernel Time: 0.000475944 sec
+[OpenCL] marshal success!
+* INF * [legacy/LegacyDevice.cpp:1126] Mem: 0x1a04e50 --> Dev 0x1a32750 Specific Mem: 0x7ffb74543850
+* INF * [legacy/LegacyDevice.cpp:1126] Mem: 0x1a05570 --> Dev 0x1a32750 Specific Mem: 0x7ffb74007a70
+* INF * [legacy/LegacyDevice.cpp:614] [Device 0x1a32750 Type 2] Kernel compute_kernel Time: 0.165867 sec
+* INF * [legacy/LegacyDevice.cpp:614] [Device 0x1a32750 Type 2] Kernel compute_kernel Time: 0.158668 sec
+[OpenCL] compute success!
+* INF * [legacy/LegacyDevice.cpp:614] [Device 0x1a32750 Type 2] Kernel marshal_kernel Time: 0.000513929 sec
+[OpenCL] marshal success!
+* INF * [legacy/LegacyDevice.cpp:1126] Mem: 0x1a04e50 --> Dev 0x1a32750 Specific Mem: 0x7ffb74543850
+* INF * [legacy/LegacyDevice.cpp:1126] Mem: 0x1d4cc90 --> Dev 0x1a32750 Specific Mem: 0x7ffb74007a70
+* INF * [legacy/LegacyDevice.cpp:614] [Device 0x1a32750 Type 2] Kernel compute_kernel Time: 0.166597 sec
+* INF * [legacy/LegacyDevice.cpp:614] [Device 0x1a32750 Type 2] Kernel compute_kernel Time: 0.156917 sec
+[OpenCL] compute success!
+* INF * [legacy/LegacyDevice.cpp:614] [Device 0x1a32750 Type 2] Kernel marshal_kernel Time: 0.000480162 sec
+[OpenCL] marshal success!
+* INF * [legacy/LegacyDevice.cpp:1126] Mem: 0x1a04e50 --> Dev 0x1a32750 Specific Mem: 0x7ffb74543850
+* INF * [legacy/LegacyDevice.cpp:1126] Mem: 0x1d4cc90 --> Dev 0x1a32750 Specific Mem: 0x7ffb74007a70
+* INF * [legacy/LegacyDevice.cpp:614] [Device 0x1a32750 Type 2] Kernel compute_kernel Time: 0.160161 sec
+* INF * [legacy/LegacyDevice.cpp:614] [Device 0x1a32750 Type 2] Kernel compute_kernel Time: 0.1595 sec
+[OpenCL] compute success!
+* INF * [legacy/LegacyDevice.cpp:614] [Device 0x1a32750 Type 2] Kernel marshal_kernel Time: 0.000515262 sec
+[OpenCL] marshal success!
+* INF * [legacy/LegacyDevice.cpp:1126] Mem: 0x1a04e50 --> Dev 0x1a32750 Specific Mem: 0x7ffb74543850
+* INF * [legacy/LegacyDevice.cpp:1126] Mem: 0x1d4cc90 --> Dev 0x1a32750 Specific Mem: 0x7ffb74007a70
+* INF * [legacy/LegacyDevice.cpp:614] [Device 0x1a32750 Type 2] Kernel compute_kernel Time: 0.164109 sec
+* INF * [legacy/LegacyDevice.cpp:614] [Device 0x1a32750 Type 2] Kernel compute_kernel Time: 0.157021 sec
+[OpenCL] compute success!
+* INF * [legacy/LegacyDevice.cpp:614] [Device 0x1a32750 Type 2] Kernel marshal_kernel Time: 0.00050844 sec
+[OpenCL] marshal success!
+* INF * [legacy/LegacyDevice.cpp:1126] Mem: 0x1a04e50 --> Dev 0x1a32750 Specific Mem: 0x7ffb74543850
+* INF * [legacy/LegacyDevice.cpp:1126] Mem: 0x1d4cc90 --> Dev 0x1a32750 Specific Mem: 0x7ffb74007a70
+* INF * [legacy/LegacyDevice.cpp:614] [Device 0x1a32750 Type 2] Kernel compute_kernel Time: 0.166656 sec
+* INF * [legacy/LegacyDevice.cpp:614] [Device 0x1a32750 Type 2] Kernel compute_kernel Time: 0.156936 sec
+[OpenCL] compute success!
+* INF * [legacy/LegacyDevice.cpp:614] [Device 0x1a32750 Type 2] Kernel marshal_kernel Time: 0.000490571 sec
+[OpenCL] marshal success!
+* INF * [legacy/LegacyDevice.cpp:1126] Mem: 0x1a04e50 --> Dev 0x1a32750 Specific Mem: 0x7ffb74543850
+* INF * [legacy/LegacyDevice.cpp:1126] Mem: 0x1d4cc90 --> Dev 0x1a32750 Specific Mem: 0x7ffb74007a70
+* INF * [legacy/LegacyDevice.cpp:614] [Device 0x1a32750 Type 2] Kernel compute_kernel Time: 0.160319 sec
+* INF * [legacy/LegacyDevice.cpp:614] [Device 0x1a32750 Type 2] Kernel compute_kernel Time: 0.159757 sec
+[OpenCL] compute success!
+* INF * [legacy/LegacyDevice.cpp:614] [Device 0x1a32750 Type 2] Kernel marshal_kernel Time: 0.000498818 sec
+[OpenCL] marshal success!
+* INF * [legacy/LegacyDevice.cpp:1126] Mem: 0x1a04e50 --> Dev 0x1a32750 Specific Mem: 0x7ffb74543850
+* INF * [legacy/LegacyDevice.cpp:1126] Mem: 0x1d4cc90 --> Dev 0x1a32750 Specific Mem: 0x7ffb74007a70
+* INF * [legacy/LegacyDevice.cpp:614] [Device 0x1a32750 Type 2] Kernel compute_kernel Time: 0.164855 sec
+* INF * [legacy/LegacyDevice.cpp:614] [Device 0x1a32750 Type 2] Kernel compute_kernel Time: 0.156357 sec
+[OpenCL] compute success!
+* INF * [legacy/LegacyDevice.cpp:614] [Device 0x1a32750 Type 2] Kernel marshal_kernel Time: 0.000507737 sec
+[OpenCL] marshal success!
+* INF * [legacy/LegacyDevice.cpp:1126] Mem: 0x1a04e50 --> Dev 0x1a32750 Specific Mem: 0x7ffb74543850
+* INF * [legacy/LegacyDevice.cpp:1126] Mem: 0x1d4cc90 --> Dev 0x1a32750 Specific Mem: 0x7ffb74007a70
+* INF * [legacy/LegacyDevice.cpp:614] [Device 0x1a32750 Type 2] Kernel compute_kernel Time: 0.166648 sec
+* INF * [legacy/LegacyDevice.cpp:614] [Device 0x1a32750 Type 2] Kernel compute_kernel Time: 0.156939 sec
+[OpenCL] compute success!
+* INF * [legacy/LegacyDevice.cpp:614] [Device 0x1a32750 Type 2] Kernel marshal_kernel Time: 0.000496196 sec
+[OpenCL] marshal success!
+* INF * [legacy/LegacyDevice.cpp:1126] Mem: 0x1a04e50 --> Dev 0x1a32750 Specific Mem: 0x7ffb74543850
+* INF * [legacy/LegacyDevice.cpp:1126] Mem: 0x1d4cc90 --> Dev 0x1a32750 Specific Mem: 0x7ffb74007a70
+* INF * [legacy/LegacyDevice.cpp:614] [Device 0x1a32750 Type 2] Kernel compute_kernel Time: 0.160445 sec
+* INF * [legacy/LegacyDevice.cpp:614] [Device 0x1a32750 Type 2] Kernel compute_kernel Time: 0.159967 sec
+[OpenCL] compute success!
+* INF * [legacy/LegacyDevice.cpp:614] [Device 0x1a32750 Type 2] Kernel marshal_kernel Time: 0.000506812 sec
+[OpenCL] marshal success!
+* INF * [legacy/LegacyDevice.cpp:1126] Mem: 0x1a04e50 --> Dev 0x1a32750 Specific Mem: 0x7ffb74543850
+* INF * [legacy/LegacyDevice.cpp:1126] Mem: 0x1d4cc90 --> Dev 0x1a32750 Specific Mem: 0x7ffb74007a70
+* INF * [legacy/LegacyDevice.cpp:614] [Device 0x1a32750 Type 2] Kernel compute_kernel Time: 0.17534 sec
+* INF * [legacy/LegacyDevice.cpp:614] [Device 0x1a32750 Type 2] Kernel compute_kernel Time: 0.164225 sec
+[OpenCL] compute success!
+* INF * [legacy/LegacyDevice.cpp:614] [Device 0x1a32750 Type 2] Kernel marshal_kernel Time: 0.000487178 sec
+[OpenCL] marshal success!
+* INF * [legacy/LegacyDevice.cpp:1126] Mem: 0x1a04e50 --> Dev 0x1a32750 Specific Mem: 0x7ffb74543850
+* INF * [legacy/LegacyDevice.cpp:1126] Mem: 0x1d4cc90 --> Dev 0x1a32750 Specific Mem: 0x7ffb74007a70
+* INF * [legacy/LegacyDevice.cpp:614] [Device 0x1a32750 Type 2] Kernel compute_kernel Time: 0.169593 sec
+* INF * [legacy/LegacyDevice.cpp:614] [Device 0x1a32750 Type 2] Kernel compute_kernel Time: 0.159263 sec
+[OpenCL] compute success!
+* INF * [legacy/LegacyDevice.cpp:614] [Device 0x1a32750 Type 2] Kernel marshal_kernel Time: 0.000484006 sec
+[OpenCL] marshal success!
+* INF * [legacy/LegacyDevice.cpp:1126] Mem: 0x1a04e50 --> Dev 0x1a32750 Specific Mem: 0x7ffb74543850
+* INF * [legacy/LegacyDevice.cpp:1126] Mem: 0x1d4cc90 --> Dev 0x1a32750 Specific Mem: 0x7ffb74007a70
+* INF * [legacy/LegacyDevice.cpp:614] [Device 0x1a32750 Type 2] Kernel compute_kernel Time: 0.15979 sec
+* INF * [legacy/LegacyDevice.cpp:614] [Device 0x1a32750 Type 2] Kernel compute_kernel Time: 0.157654 sec
+[OpenCL] compute success!
+* INF * [legacy/LegacyDevice.cpp:614] [Device 0x1a32750 Type 2] Kernel marshal_kernel Time: 0.000487972 sec
+[OpenCL] marshal success!
+* INF * [legacy/LegacyDevice.cpp:1126] Mem: 0x1a04e50 --> Dev 0x1a32750 Specific Mem: 0x7ffb74543850
+* INF * [legacy/LegacyDevice.cpp:1126] Mem: 0x1d4cc90 --> Dev 0x1a32750 Specific Mem: 0x7ffb74007a70
+* INF * [legacy/LegacyDevice.cpp:614] [Device 0x1a32750 Type 2] Kernel compute_kernel Time: 0.165169 sec
+* INF * [legacy/LegacyDevice.cpp:614] [Device 0x1a32750 Type 2] Kernel compute_kernel Time: 0.157379 sec
+[OpenCL] compute success!
+* INF * [legacy/LegacyDevice.cpp:614] [Device 0x1a32750 Type 2] Kernel marshal_kernel Time: 0.000502065 sec
+[OpenCL] marshal success!
+* INF * [legacy/LegacyDevice.cpp:1126] Mem: 0x1a04e50 --> Dev 0x1a32750 Specific Mem: 0x7ffb74543850
+* INF * [legacy/LegacyDevice.cpp:1126] Mem: 0x1d4cc90 --> Dev 0x1a32750 Specific Mem: 0x7ffb74007a70
+* INF * [legacy/LegacyDevice.cpp:614] [Device 0x1a32750 Type 2] Kernel compute_kernel Time: 0.167126 sec
+* INF * [legacy/LegacyDevice.cpp:614] [Device 0x1a32750 Type 2] Kernel compute_kernel Time: 0.157034 sec
+[OpenCL] compute success!
+* INF * [legacy/LegacyDevice.cpp:614] [Device 0x1a32750 Type 2] Kernel marshal_kernel Time: 0.000494287 sec
+[OpenCL] marshal success!
+* INF * [legacy/LegacyDevice.cpp:1126] Mem: 0x1a04e50 --> Dev 0x1a32750 Specific Mem: 0x7ffb74543850
+* INF * [legacy/LegacyDevice.cpp:1126] Mem: 0x1d4cc90 --> Dev 0x1a32750 Specific Mem: 0x7ffb74007a70
+* INF * [legacy/LegacyDevice.cpp:614] [Device 0x1a32750 Type 2] Kernel compute_kernel Time: 0.16038 sec
+* INF * [legacy/LegacyDevice.cpp:614] [Device 0x1a32750 Type 2] Kernel compute_kernel Time: 0.159739 sec
+[OpenCL] compute success!
+* INF * [legacy/LegacyDevice.cpp:614] [Device 0x1a32750 Type 2] Kernel marshal_kernel Time: 0.000725286 sec
+[OpenCL] marshal success!
+Compute time for Q[0]: 5.18809 sec 16 times
+Compute time for Q[1]: 5.18947 sec 16 times
+Marshal time for Q[0]: 0.011944 sec 16 times
+Enqueue Timer: 7.7486e-05 secs 32 times 2.42144e-06 secs each
+CLFinish Timer: 5.20119 secs 48 times 0.108358 secs each
+[OpenCL] context all released!
+[Device AMD Opteron(tm) Processor 6134] Dispatch timer: 5.19572 secs 48 times 0.108244 secs each
+[Device AMD Opteron(tm) Processor 6134] Write timer: 0.222435 secs 32 times 0.00695109 secs each
+Scheduler Time: 0 secs 0 times
+* INF * [CLScheduler.cpp:90] CLScheduler joined main thread* INF * [CLIssuer.cpp:105] CLIssuer joined main thread
+* INF * [CLIssuer.cpp:105] CLIssuer joined main thread
+* INF * [CLIssuer.cpp:105] CLIssuer joined main thread

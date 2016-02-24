@@ -384,7 +384,7 @@ void RunBenchmark(cl::Device& devcpp,
     const int numWordsFloat = memSize / sizeof(float);
 
     //for(int i=0; i<NBLOCKS; i++) {
-    int i = 4; {
+    int i = 8; {
         //size_t numBlocks = numSMs ;  // use 8 times as many warps as the number of compute units
         size_t numBlocks = numBlocksArr[i] ;
         size_t globalWorkSize = numBlocks*WAVEFRONT_SIZE;  //redundant

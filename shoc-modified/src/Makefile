@@ -3,7 +3,7 @@
 SHOC_ROOT=../
 -include $(SHOC_ROOT)/config/config.mk
 
-SUBDIRS=common  opencl
+SUBDIRS=common  opencl cuda stability mpi
 
 all:
 	@for dir in $(SUBDIRS); do (cd $$dir && $(MAKE) all)  || exit 1; done

@@ -172,7 +172,8 @@ void RunBenchmark(ResultDatabase &resultDB,
                     bdwth);
 
             // Test 2
-            cudaEventRecord(start, 0);
+            /*
+			cudaEventRecord(start, 0);
             readGlobalMemoryUnit<<<blocks, threads>>>
                     (d_mem1, d_mem2, numWordsFloat, maxRepeatsUnit);
             cudaEventRecord(stop, 0);
@@ -183,7 +184,7 @@ void RunBenchmark(ResultDatabase &resultDB,
             bdwth = ((double) globalWorkSize * maxRepeatsUnit * 16 * sizeof(float)) 
                    / (t * 1000. * 1000. * 1000.);
             resultDB.AddResult("readGlobalMemoryUnit", sizeStr, "GB/s", bdwth);
-
+			*/
             // Test 3
             cudaEventRecord(start, 0);
             readLocalMemory<<<blocks, threads>>>
@@ -212,7 +213,8 @@ void RunBenchmark(ResultDatabase &resultDB,
                     bdwth);
 
             // Test 5
-            cudaEventRecord(start, 0);
+            /*
+			cudaEventRecord(start, 0);
             writeGlobalMemoryUnit<<<blocks, threads>>>
                        (d_mem2, numWordsFloat, maxRepeatsUnit);
             cudaEventRecord(stop, 0);
@@ -224,6 +226,7 @@ void RunBenchmark(ResultDatabase &resultDB,
                     / (t * 1000. * 1000. * 1000.);
             resultDB.AddResult("writeGlobalMemoryUnit", sizeStr, "GB/s",
                     bdwth);
+			*/
 
             // Test 6
             cudaEventRecord(start, 0);

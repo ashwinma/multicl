@@ -3,7 +3,7 @@
 SHOC_ROOT=../../..
 -include $(SHOC_ROOT)/config/config.mk
 
-SUBDIRS= opencl
+SUBDIRS= opencl cuda
 
 
 all:

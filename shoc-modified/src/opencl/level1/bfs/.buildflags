@@ -1,13 +1,13 @@
 CXX=g++
 CC=g++
-NVCC=
+NVCC=/home/aaji/opt/cuda/bin/nvcc
 AR=ar
 LD=g++
-CPPFLAGS=-I../../../../src/common -I../../../../config -I/opt/AMDAPP/include/ -I../../../../src/opencl/common -I../../../../src/mpi/common
+CPPFLAGS=-I../../../../src/common -I../../../../config -I/home/aaji/opt/cuda/include/ -I../../../../src/opencl/common -I../../../../src/mpi/common
 CFLAGS=-g -O2
 CXXFLAGS=-g -O2
 NVCXXFLAGS=-g -O2
 LDFLAGS= 
 ARFLAGS=rcv
 LIBS=-lSHOCCommonOpenCL -lSHOCCommon -lOpenCL -L../../../../lib  -lrt
-uname= Linux armor2 2.6.32-5-amd64 #1 SMP Mon Jan 16 16:22:28 UTC 2012 x86_64 GNU/Linux
+uname= Linux fire 2.6.35-11.el5.elrepo #1 SMP PREEMPT Mon Feb 7 13:39:24 EST 2011 x86_64 x86_64 x86_64 GNU/Linux

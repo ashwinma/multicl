@@ -13,20 +13,20 @@ ARFLAGS  = rcv
 LDFLAGS  = 
 LIBS     = -L$(SHOC_ROOT)/lib  -lrt
 
-USE_MPI         = no
-MPICXX          = 
+USE_MPI         = yes
+MPICXX          = /home/aaji/opt/bin/mpicxx
 
 OCL_CPPFLAGS    += -I${SNUCLROOT}/inc -I${SHOC_ROOT}/src/opencl/common
 OCL_LIBS        = -lOpenCL
 
-NVCC            = 
-CUDA_CXX        = 
-CUDA_INC        = -I
-CUDA_CPPFLAGS   +=  -I${SHOC_ROOT}/src/cuda/include
+NVCC            = /home/aaji/opt/cuda/bin/nvcc
+CUDA_CXX        = /home/aaji/opt/cuda/bin/nvcc
+CUDA_INC        = -I/home/aaji/opt/cuda/include
+CUDA_CPPFLAGS   += -gencode=arch=compute_12,code=sm_12  -gencode=arch=compute_13,code=sm_13  -gencode=arch=compute_20,code=sm_20  -gencode=arch=compute_20,code=compute_20 -I${SHOC_ROOT}/src/cuda/include
 
-USE_CUDA        = no
+USE_CUDA        = yes
 ifeq ($(USE_CUDA),yes)
-CUDA_LIBS       := $(shell  -dryrun bogus.cu 2>&1 | grep LIBRARIES | sed 's/^.*LIBRARIES=//')
+CUDA_LIBS       := $(shell /home/aaji/opt/cuda/bin/nvcc -dryrun bogus.cu 2>&1 | grep LIBRARIES | sed 's/^.*LIBRARIES=//')
 else
 CUDA_LIBS       =
 endif

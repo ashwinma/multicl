@@ -1,0 +1,32 @@
+# Makefile for mpicxx compiler
+
+SHELL = /bin/sh
+#.IGNORE:
+
+# System-specific settings
+
+CUDAPATH=/usr/local/cuda
+
+CC =		mpicxx
+CCFLAGS =	-O3 -DMPICH_IGNORE_CXX_SEEK  -DMDPREC=1 -DPRECMPI=MPI_FLOAT -DPREC_TIMER -I$(CUDAPATH)/include 
+LINK =		mpicxx
+LINKFLAGS =	-O3 
+USRLIB =	
+SYSLIB =	-lpthread -lOpenCL -lrt
+SIZE =		size
+
+# Link rule
+
+$(EXE):	$(OBJ)
+	$(LINK) $(LINKFLAGS) $(OBJ) $(USRLIB) $(SYSLIB) -o $(EXE)
+	$(SIZE) $(EXE)
+	
+
+# Compilation rules
+
+.cpp.o:
+	$(CC) $(CCFLAGS) -c $<
+
+# Individual dependencies
+
+$(OBJ): $(INC)

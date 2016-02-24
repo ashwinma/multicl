@@ -1,0 +1,59 @@
+ Enter the depth of interface if you know the value.
+ 2400.
+ Enter the Max. frequency (fmax) of FD computation 
+ and the Reference frequency of Velocity Structure
+ 2.4000001 2.
+ Enter the number of control points used in X-axis of FD
+ Enter the location and grid sapce of control points in X-axis for Region II
+ Enter the number of control points used in Y-axis of FD 
+ Enter the location and grid sapce of control points in Y-axis for Region II
+ Enter the number of control points  used in Z-axis of FD 
+ Enter the location and grid sapce of control points in Z-axis
+ Enter min. Vp, Vs, roh, Qp, and Qs used in FD model
+ 0.E+0 0.E+0 0.E+0 0.E+0 0.E+0
+ The velocity structure is 1D model(y) or not(n)
+y                                                                       
+ How many files are used to store whole velocity structure model
+ 1
+ Enter the file name of velocity model
+velocity_rock_north                                                     
+ Enter the depth (m) of the top of this structure model 
+ 0.E+0
+ Enter node number (nx,ny,nz) of each part of Structure
+ 3 3 3
+ Enter grid spaces (dx, dy,dz) of each part of Structure
+ 0.E+0 0.E+0 0.E+0
+ Enter angles (degree) clockwise counting from X-axis of FD system 
+ to X and Y-axis of Structure model, respectively
+ 0.E+0 90.
+ Enter the (x,y) of the first point of structure model
+ in the of FD coordinate system
+ 0.E+0 0.E+0
+ Give the name of outputing velocity model of FD
+fd_north.mat                                                            
+ 
+ --------------------------------------------------
+ The node number of X,Y,Z-axis in Region II
+ 156 162 101 24
+ 
+ The number of different material:  13
+ 
+ max. and min. P-velocity:  7808.14648 2031.323
+ max. and min. S-velocity:  4507.04248 818.814941
+ max. and min. Density:  3300. 2000.
+ max. and min. Qp:  1080. 72.
+ max. and min. Qs:  720. 48.
+ 
+ exp(-dt/relaxt),    qwt1,      qwt2
+   0.21895E+00   0.94800E-02   0.42529E-01
+   0.21903E+00   0.65819E-02   0.56838E-01
+   0.73134E+00   0.77689E-02   0.68143E-01
+   0.92897E+00   0.78722E-02   0.71651E-01
+   0.98134E+00   0.11504E-01   0.62600E-01
+   0.99485E+00   0.10475E-01   0.71554E-01
+   0.99917E+00   0.17124E-01   0.52233E-01
+   0.99917E+00   0.11923E-01   0.72904E-01
+   
+ The time step is  1.020000037E-2
+ The minimum node-number per wavelength is  3.33333325
+  

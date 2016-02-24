@@ -1,0 +1,18 @@
+// © 2013.  Virginia Polytechnic Institute & State University
+
+OPENCL version of the FDM code; to be run on GPU
+===============================================
+
+Prerequisites:
+1) CUDA Toolkit Installed
+2) MPI libraries with Fortran bindings
+
+1) In the Makefile, set the following environment variables to appropriate compilers
+MPIF90, MPICC , FF90 , CC, GCC
+
+2) In the Makefile, set the following environment variables to MPI installation and CUDA toolkit installation directories respectively:
+MPI_DIR, CUDA_HOME 
+
+3) Running 'make' should compile the code
+
+4) mpirun -np X ./disfd # would launch simulation with X processes

@@ -1,0 +1,9 @@
+#!/bin/sh
+
+if [[ $# < 2 ]]; then
+  echo "Usage: snuclrun <number of compute nodes> <program name> [<program arguments>]";
+else
+  NODES=$(($1+1))
+  mpirun -hostfile $SNUCLROOT/bin/snucl_nodes -np $NODES $2 $3 $4 $5 $6 $7 $8 $9
+fi
+

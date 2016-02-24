@@ -149,6 +149,7 @@ RunBenchmark(cl::Device& devcpp, cl::Context& ctxcpp,
     runTest<float>("AllReduce", dev, ctx, queue, resultDB, op, spMacros);
 
     // If double precision is supported, run the DP test
+	/*
     if (checkExtension(dev, "cl_khr_fp64"))
     {
         if (rank == 0)
@@ -170,6 +171,7 @@ RunBenchmark(cl::Device& devcpp, cl::Context& ctxcpp,
         ("AllReduce-DP", dev, ctx, queue, resultDB, op, dpMacros);
     }
     else
+	*/
     {
         char atts[1024] = "DP_Not_Supported";
         cout << "Warning, rank " << rank << "'s device does not support DP\n";
